@@ -11,8 +11,9 @@ services:
       - "80"
     depends_on:
       - mysql
+    network_mode: "host"
     networks:
-      - host
+      - databases
 
   mysql:
     image: mysql
