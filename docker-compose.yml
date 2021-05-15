@@ -1,0 +1,30 @@
+version: '3'
+services:
+  nginx:
+    image: nginx
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    expose:
+      - "80"
+    depends_on:
+      - mysql
+    networks:
+      - databases
+
+  mysql:
+    image: mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - databases
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  databases:
+    driver: bridge
