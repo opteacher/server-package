@@ -15,6 +15,7 @@ services:
 
   mysql:
     image: mysql
+    name: mysql
     ports:
       - "3306:3306"
     networks:
