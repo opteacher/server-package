@@ -14,7 +14,7 @@ services:
     container_name: mysql
     restart: unless-stopped
     ports:
-      - "3306:3306"
+      - 3306:3306
     networks:
       - databases
     environment:
@@ -28,7 +28,7 @@ services:
     container_name: mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - 27017:27017
     networks:
       - databases
     environment:
@@ -51,6 +51,46 @@ services:
       - ./configs/redis.conf:/usr/local/etc/redis/redis.conf:rw
     command:
       /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
+
+  population-statistics:
+    build:
+      context: ../population-statistics
+    ports:
+      - 127.0.0.1:3000:3000
+    networks:
+      - databases
+    depends_on:
+      - mysql
+
+  hand-write-receipt:
+    build:
+      context: ../hand-write-receipt
+    ports:
+      - 127.0.0.1:5000:4000
+    networks:
+      - databases
+    depends_on:
+      - mongodb
+
+  schedule-patrols-sys:
+    build:
+      context: ../schedule-patrols-sys
+    ports:
+      - 127.0.0.1:4000:4000
+    networks:
+      - databases
+    depends_on:
+      - mongodb
+
+  community-job:
+    build:
+      context: ../community-job
+    ports:
+      - 127.0.0.1:6000:4000
+    networks:
+      - databases
+    depends_on:
+      - mongodb
 
 networks:
   databases:
