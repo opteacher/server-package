@@ -92,6 +92,17 @@ services:
     depends_on:
       - mongodb
 
+  super-salty:
+    build:
+      context: ../super-salty/server
+    ports:
+      - 127.0.0.1:7000:4000
+    networks:
+      - databases
+    depends_on:
+      - mongodb
+      - redis
+
 networks:
   databases:
     driver: bridge
