@@ -1,0 +1,3 @@
+[submodule "server/lib/backend-library"]
+	path = server/lib/backend-library
+	url = https://gitlab.com/opteacher/backend-library.git
