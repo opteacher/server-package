@@ -11,8 +11,13 @@ import { Worker } from 'worker_threads'
 
 const svrCfg = readConfig(Path.resolve('..', 'configs', 'server'))
 
-export async function syncProject (pid: string): Promise<any> {
+const workers: { [thread: number]: Worker } = {}
+
+export async function sync (pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }, { ext: true }))[0]
+  if (project.thread) {
+    return Promise.resolve(`项目已启动`)
+  }
   for (const index in project.models) {
     const mid = project.models[index]
     project.models[index] = (await db.select(Model, { _index: mid }, { ext: true }))[0]
@@ -57,19 +62,25 @@ export async function syncProject (pid: string): Promise<any> {
   for (const model of project.models) {
     adjustFile(mdlData, Path.join(mdlPath, model.name + '.js'), { model })
   }
-  return new Promise((res, rej) => {
-    process.chdir(genPath)
-    const worker = new Worker('./app.js', {
-      env: { ENV: '' }
-    })
-    worker.on('message', res)
-    worker.on('error', rej)
-    worker.on('exit', code => {
-      if (!code) {
-        rej(new Error(`线程已停止，返回码${code}`))
-      }
-    })
+  // 切换生成项目的上下文
+  process.chdir(genPath)
+  const worker = new Worker('./app.js', {
+    env: { ENV: '' }
   })
+  worker.on('message', msg => {
+    console.log(msg)
+  })
+  worker.on('error', err => {
+    console.log(err)
+  })
+  worker.on('exit', code => {
+    if (!code) {
+      console.log(`线程已停止，返回码${code}`)
+    }
+  })
+  workers[worker.threadId] = worker
+  await db.save(Project, { thread: worker.threadId }, { _index: pid })
+  return Promise.resolve(worker.threadId)
 }
 
 function adjustFile (src: string | Buffer, dest: string, args?: { [name: string]: any }): void {
@@ -93,7 +104,7 @@ function adjustFile (src: string | Buffer, dest: string, args?: { [name: string]
   fs.writeFileSync(dest, strData)
 }
 
-export async function delProject (pid: string): Promise<any> {
+export async function del (pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }))[0]
   for (const mid of project.models) {
     const model = (await db.select(Model, { _index: mid }))[0]
@@ -106,4 +117,27 @@ export async function delProject (pid: string): Promise<any> {
     await db.del(Model, { _index: mid })
   }
   return db.del(Project, { _index: pid })
+}
+
+export async function stop (pid: string): Promise<any> {
+  const project = (await db.select(Project, { _index: pid }))[0]
+  if (project.thread in workers) {
+    await workers[project.thread].terminate()
+    delete workers[project.thread]
+  }
+  return await db.save(Project, { thread: 0 }, { _index: pid })
+}
+
+export async function showStatus (pid: string): Promise<any> {
+  const project = (await db.select(Project, { _index: pid }))[0]
+  if (!project.thread) {
+    return Promise.resolve({
+      status: 'stopped'
+    })
+  } else {
+    return Promise.resolve({
+      status: 'running',
+      threadId: project.thread
+    })
+  }
 }
