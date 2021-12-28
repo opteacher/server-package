@@ -1,6 +1,4 @@
-import { getDatabase } from '../utils/index.js'
-
-const db = await getDatabase()
+import { db } from '../utils/index.js'
 
 export default db.defineModel({
   __modelName: 'project',
@@ -11,6 +9,6 @@ export default db.defineModel({
   models: [{ type: db.PropTypes.Id, ref: 'model' }]
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT']
+    methods: ['POST', 'ALL', 'GET', 'PUT']
   }
 })

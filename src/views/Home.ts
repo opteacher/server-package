@@ -3,6 +3,7 @@ import { DataBase, Mapper, Project } from "@/common"
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import router from '@/router'
 
 export class EditProjFormDlg {
   show: boolean
@@ -54,8 +55,14 @@ export class EditProjFormDlg {
             okText: 'Yes',
             okType: 'danger',
             cancelText: 'No',
-            onOk: () => {
-              console.log(this.current)
+            onOk: async () => {
+              this.mapper.operation.disabled = true
+              this.mapper.operation.loading = true
+              await axios.delete(`/server-package/api/v1/project/${this.current.key}`)
+              this.show = false
+              this.mapper.operation.disabled = false
+              this.mapper.operation.loading = false
+              router.replace('/#/home')
             },
             onCancel() {
               console.log('Cancel')

@@ -1,6 +1,4 @@
-import { getDatabase } from '../utils/index.js'
-
-const db = await getDatabase()
+import { db } from '../utils/index.js'
 
 export default db.defineModel({
   __modelName: 'property',

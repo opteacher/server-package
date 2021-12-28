@@ -8,15 +8,14 @@ import cors from 'koa2-cors'
 
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
+import { db } from './utils/index.js'
 
-const __dirname = path.resolve()
 const router = await genApiRoutes(
-  path.resolve(__dirname, 'routes')
+  path.resolve('routes')
 )
 const models = (await genMdlRoutes(
-  path.resolve(__dirname, 'models'),
-  path.resolve(__dirname, '..', 'configs', 'db'),
-  path.resolve(__dirname, '..', 'configs', 'models')
+  db, path.resolve('models'),
+  path.resolve('..', 'configs', 'models')
 )).router
 
 const app = new Koa()
@@ -39,7 +38,7 @@ app.use(json())
 // 日志输出
 app.use(logger())
 // 指定静态目录
-app.use(statc(path.join(__dirname, 'public')))
+app.use(statc(path.resolve('public')))
 // 模型路由
 app.use(models.routes()).use(models.allowedMethods())
 // 路径分配

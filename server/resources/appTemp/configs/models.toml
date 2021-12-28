@@ -1,4 +1,4 @@
 version=1
-prefix="server-package"
-type="mongo"
+prefix="/*return project.name*/"
+type="/*return project.database[0]*/"
 sync=true

@@ -57,7 +57,8 @@ export class Mapper {
     // type = Button
     inner?: string
     danger?: boolean
-    onClick?: Function
+    loading?: boolean
+    onClick?: () => void
   }
 
   constructor (init?: any) {
@@ -91,7 +92,8 @@ export class Mapper {
         chkLabels: value.chkLabels || undefined,
         inner: value.inner || '',
         danger: value.danger || false,
-        onClick: value.onClick || (() => {})
+        loading: value.loading || false,
+        onClick: value.onClick || undefined
       }
     }
   }
@@ -114,6 +116,7 @@ export class Column {
 }
 
 export class Project {
+  key: string
   name: string
   desc: string
   port: number
@@ -122,6 +125,7 @@ export class Project {
   models: Model[]
 
   constructor () {
+    this.key = ''
     this.name = ''
     this.desc = ''
     this.port = 0
@@ -131,6 +135,7 @@ export class Project {
   }
 
   reset () {
+    this.key = ''
     this.name = ''
     this.desc = ''
     this.port = 0
@@ -141,6 +146,7 @@ export class Project {
 
   static copy (src: any, tgt?: Project): Project {
     tgt = tgt || new Project()
+    tgt.key = src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
@@ -329,7 +335,7 @@ export class Route {
 
 export class DataBase {
   key: string
-  name: String
+  name: string
   dbs: string[]
   host: string
   port: number

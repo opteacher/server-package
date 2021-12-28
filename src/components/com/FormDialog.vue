@@ -80,6 +80,7 @@
             class="w-100"
             :disabled="value.disabled"
             :danger="value.danger"
+            :loading="value.loading"
             @click="value.onClick"
           >{{ value.inner }}</a-button>
         </a-form-item>

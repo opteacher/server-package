@@ -6,6 +6,4 @@ export const cfgPath = path.resolve('..', 'configs')
 const mdlCfgPath = path.resolve(cfgPath, 'models')
 const dbCfgPath = path.resolve(cfgPath, 'db')
 
-export function getDatabase() {
-  return getDbByName(readConfig(mdlCfgPath).type, dbCfgPath)
-}
+export const db = await getDbByName(readConfig(mdlCfgPath).type, dbCfgPath)

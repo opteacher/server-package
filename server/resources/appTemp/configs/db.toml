@@ -1,6 +1,6 @@
-[mongo]
+[/*return database.name*/]
 database="/*return project.database[1]*/"
-username="root"
-password="12345"
-host="81.69.34.148"
-port=27017
+username="/*return database.username*/"
+password="/*return database.password*/"
+host="/*return database.host*/"
+port=/*return database.port*/

@@ -176,7 +176,7 @@ export default defineComponent({
         icon: createVNode(ExclamationCircleOutlined),
         content: createVNode('div', { style: 'color:red;' }, '同步过程中，该项目已有的API将暂时停用！'),
         onOk() {
-          makeRequest(axios.put(`/server-package/api/v1/project/${pid.value}`), {
+          makeRequest(axios.put(`/server-package/api/v1/project/${pid.value}/sync`), {
             middles: {
               before: () => { syncProj.value = true },
               after: () => { syncProj.value = false }
