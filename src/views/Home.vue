@@ -1,18 +1,117 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+    <a-row type="flex">
+      <a-col flex="auto">
+        <div style="text-align: left; line-height: 34px; vertical-align: middle">
+          <h3 style="margin-bottom: 0">项目列表</h3>
+        </div>
+      </a-col>
+      <a-col flex="20vw">
+        <div style="text-align: right">
+          <a-button type="primary" @click="editProj.show = true" :disabled="loading">
+            添加项目
+          </a-button>
+          <FormDialog
+            title="添加项目"
+            :show="editProj.show"
+            :mapper="editProj.mapper"
+            :object="editProj.current"
+            @update:show="(show) => { editProj.show = show }"
+            @submit="onNewProjSubmit"
+          />
+        </div>
+      </a-col>
+    </a-row>
+    <a-list
+      class="project-list"
+      item-layout="horizontal"
+      :data-source="projects"
+      :loading="loading"
+    >
+      <template #renderItem="{ item }">
+        <a-list-item>
+          <template #actions>
+            <a-popconfirm
+              title="确定删除该项目？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="onDelProjSubmit(item._id)"
+            >
+              <a href="#">删除</a>
+            </a-popconfirm>
+          </template>
+          <a-list-item-meta :description="item.desc">
+            <template #title>
+              <a :href="`/#/project/${item._id}`">{{ item.name }}</a>
+            </template>
+          </a-list-item-meta>
+          <div>{{ item.port }}</div>
+        </a-list-item>
+      </template>
+    </a-list>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
+import { defineComponent, ref, onMounted, reactive } from 'vue'
+import FormDialog from '../components/com/FormDialog.vue'
+import { Project } from '@/common'
+import { reqDelete, reqGet, reqPost } from '../utils'
+import { EditProjFormDlg } from './Home'
 
 export default defineComponent({
-  name: "Home",
+  name: 'Home',
   components: {
-    HelloWorld,
+    FormDialog
   },
-});
+  setup () {
+    const projects = ref([])
+    const editProj = reactive(new EditProjFormDlg())
+    const loading = ref(false)
+
+    onMounted(refresh)
+
+    async function refresh () {
+      await editProj.initialize()
+      projects.value = (await reqGet('projects')).data
+    }
+    async function onNewProjSubmit (project: Project) {
+      await reqPost('project', project, {
+        middles: {
+          before: () => { loading.value = true },
+          after: () => { loading.value = false }
+        }
+      })
+      await refresh()
+    }
+    async function onDelProjSubmit (pid: string) {
+      await reqDelete('project', pid, {
+        middles: {
+          before: () => { loading.value = true },
+          after: () => { loading.value = false }
+        }
+      })
+      await refresh()
+    }
+    return {
+      projects,
+      editProj,
+      loading,
+
+      onNewProjSubmit,
+      onDelProjSubmit
+    }
+  }
+})
 </script>
+
+<style lang="less" scoped>
+.home {
+  height: 100%;
+  padding: 5vh 10vw;
+}
+
+.project-list {
+  height: 100%;
+}
+</style>
