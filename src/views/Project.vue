@@ -5,9 +5,12 @@
       <a-row>
         <a-col :span="12">
           <a-space>
+            <a-button type="text" @click="router.push('/')">
+              <arrow-left-outlined />
+            </a-button>
             <h3 class="mb-0">{{editProj.current.name}}</h3>
             <a-button type="link" @click="editProj.show = true">
-              <template #icon><SettingOutlined/></template>
+              <setting-outlined/>
             </a-button>
             <FormDialog
               title="添加项目"
@@ -20,13 +23,27 @@
           </a-space>
         </a-col>
         <a-col :span="12" class="text-right">
-          <a-button type="primary" :disabled="syncProj" :loading="syncProj" @click="onProjSync">
+          <a-button
+            type="primary"
+            :disabled="syncingProj || stoppingProj"
+            :loading="syncingProj"
+            @click="onProjSync"
+          >
             <template #icon><SyncOutlined/></template>&nbsp;同步
+          </a-button>
+          <a-button
+            v-if="editProj.current.thread"
+            class="ml-5" danger
+            :disabled="syncingProj || stoppingProj"
+            :loading="stoppingProj"
+            @click="onProjStop"
+          >
+            <template #icon><PoweroffOutlined/></template>&nbsp;停止
           </a-button>
         </a-col>
       </a-row>
     </template>
-    <a-descriptions-item label="描述">
+    <a-descriptions-item label="描述" :span="3">
       {{ editProj.current.desc }}
     </a-descriptions-item>
     <a-descriptions-item label="占用端口">
@@ -37,6 +54,15 @@
     </a-descriptions-item>
     <a-descriptions-item label="数据库">
       {{ editProj.current.database.join('/') }}
+    </a-descriptions-item>
+    <a-descriptions-item label="状态">
+      <template v-if="startingSvc">
+        <a-spin size="small"/>&nbsp;启动中……
+      </template>
+      <a-badge v-else
+        :status="editProj.current.thread ? 'processing' : 'default'"
+        :text="editProj.current.thread ? '运行中' : '已停止'"
+      />
     </a-descriptions-item>
   </a-descriptions>
   <EditTable
@@ -82,9 +108,9 @@
 <script lang="ts">
 import { Model, Project, Property, Route } from '@/common'
 import { makeRequest, reqGet, reqLink, reqPost, reqPut } from '@/utils'
-import { computed, createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
-import { SettingOutlined, SyncOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
-import { useRoute } from 'vue-router'
+import { createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
+import { SettingOutlined, SyncOutlined, ExclamationCircleOutlined, PoweroffOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
 import EditTable from '../components/com/EditTable.vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ModelTable, PropTable, RouteTable } from './Project'
@@ -98,22 +124,27 @@ export default defineComponent({
     EditTable,
     FormDialog,
     SettingOutlined,
-    SyncOutlined
+    SyncOutlined,
+    PoweroffOutlined,
+    ArrowLeftOutlined
   },
   setup () {
-    const router = useRoute()
+    const route = useRoute()
+    const router = useRouter()
     const editProj = reactive(new EditProjFormDlg())
-    const pid = computed(() => router.params.pid)
+    const pid = route.params.pid
     const modelTable = reactive(new ModelTable())
     const propTable = reactive(new PropTable())
     const routeTable = reactive(new RouteTable())
-    const syncProj = ref(false)
+    const syncingProj = ref(false)
+    const stoppingProj = ref(false)
+    const startingSvc = ref(false)
 
     onMounted(refresh)
 
     async function refresh () {
       await editProj.initialize()
-      Project.copy((await reqGet('project', pid.value)).data, editProj.current)
+      Project.copy((await reqGet('project', pid)).data, editProj.current)
       for (const index in editProj.current.models) {
         const model = editProj.current.models[index]
         Model.copy((await reqGet('model', model.key)).data, model)
@@ -135,10 +166,10 @@ export default defineComponent({
       await refresh()
     }
     function onModelSave (model: Model) {
-      onProjectChange(model, ['project', pid.value], ['model', ''])
+      onProjectChange(model, ['project', pid], ['model', ''])
     }
     function onModelDel (iden: any) {
-      onProjectChange(null, ['project', pid.value], ['model', iden])
+      onProjectChange(null, ['project', pid], ['model', iden])
     }
     function onPropSave (prop: Property, mid: string) {
       onProjectChange(prop, ['model', mid], ['property', ''])
@@ -167,35 +198,75 @@ export default defineComponent({
       }
     }
     async function onCurProjConfig (project: Project) {
-      await reqPut('project', pid.value, project, { ignores: ['models'] }),
+      await reqPut('project', pid, project, { ignores: ['models'] }),
       await refresh()
     }
     function onProjSync () {
       Modal.confirm({
         title: '确定同步项目到服务器？',
         icon: createVNode(ExclamationCircleOutlined),
-        content: createVNode('div', { style: 'color:red;' }, '同步过程中，该项目已有的API将暂时停用！'),
-        onOk() {
-          makeRequest(axios.put(`/server-package/api/v1/project/${pid.value}/sync`), {
+        content: createVNode('div', {
+          style: 'color:red;'
+        }, '同步过程中，该项目已有的API将暂时停用！'),
+        onOk: async () => {
+          await makeRequest(axios.put(`/server-package/api/v1/project/${pid}/sync`), {
             middles: {
-              before: () => { syncProj.value = true },
-              after: () => { syncProj.value = false }
+              before: () => {
+                syncingProj.value = true
+              },
+              after: () => {
+                syncingProj.value = false
+              }
             },
             messages: {
               loading: '同步中……',
               succeed: '同步成功！'
             }
           })
+          await refresh()
+          startingSvc.value = true
+          setTimeout(() => {
+            startingSvc.value = false
+          }, 6000)
+        },
+      })
+    }
+    function onProjStop () {
+      Modal.confirm({
+        title: '是否停止项目？',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: '项目实例所提供的API服务也将同时停止！',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: async () => {
+          await makeRequest(axios.put(`/server-package/api/v1/project/${pid}/stop`), {
+            middles: {
+              before: () => {
+                stoppingProj.value = true
+              },
+              after: () => {
+                stoppingProj.value = false
+              }
+            },
+            messages: {
+              loading: '停止中……',
+              succeed: '操作成功！'
+            }
+          })
+          await refresh()
         },
       })
     }
     return {
-      pid,
-      syncProj,
+      router,
+      syncingProj,
+      stoppingProj,
       editProj,
       modelTable,
       propTable,
       routeTable,
+      startingSvc,
 
       onModelSave,
       onModelDel,
@@ -206,6 +277,7 @@ export default defineComponent({
       genPathByRoute,
       onCurProjConfig,
       onProjSync,
+      onProjStop,
     }
   }
 })

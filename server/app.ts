@@ -4,7 +4,10 @@ import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
 import statc from 'koa-static'
+import views from 'koa-views'
 import cors from 'koa2-cors'
+
+import { runAll } from './services/project.js'
 
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
@@ -43,11 +46,15 @@ app.use(statc(path.resolve('public')))
 app.use(models.routes()).use(models.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
-// 404接口
+// 指定页面目录
+app.use(views('./views', {extension: 'html'}))
+// 以页面路由结尾
 app.use(async ctx => {
-  ctx.body = {
-    error: `未找到路由：${ctx.request.path}`
-  }
+  await ctx.render('index')
 })
 
-app.listen(process.env.PORT || 4000)
+app.listen(process.env.PORT || 4000, undefined, () => {
+  console.log(`服务已部署，占用端口：${process.env.PORT || 4000}`)
+})
+
+runAll()

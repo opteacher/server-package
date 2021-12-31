@@ -38,13 +38,7 @@
 		"lib": ["esnext"]
 	},
 	// 包含文件
-	"include": [
-		"./**/*.cjs",
-		"./**/*.js",
-		"./**/*.ts",
-		"./**/*.tsx",
-		"resources/appTemp/models/temp"
-	],
+	"include": ["./**/*.cjs", "./**/*.js", "./**/*.ts", "./**/*.tsx"],
 	// 排除文件
 	"exclude": ["dist", "./resources", "./tests", "./lib/tests"]
 }

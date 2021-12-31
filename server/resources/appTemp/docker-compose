@@ -1,0 +1,86 @@
+version: '3'
+services:
+  # nginx:
+  #   image: nginx
+  #   container_name: nginx
+  #   volumes:
+  #     - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
+  #   expose:
+  #     - "80"
+  #   network_mode: "host"
+
+  # mysql:
+  #   image: mysql
+  #   container_name: mysql
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3306:3306
+  #   networks:
+  #     - databases
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: 12345
+  #   volumes:
+  #     - ./data/mysql:/var/lib/mysql
+  #   command: --default-authentication-plugin=mysql_native_password
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    networks:
+      - databases
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 12345
+    volumes:
+      - ./data/mongo/db:/data/db
+      - ./data/mongo/config:/data/config
+
+  # redis:
+  #   container_name: redis
+  #   image: redis:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - databases
+  #   volumes:
+  #     - ./data/redis:/data:rw
+  #     - ./configs/redis.conf:/usr/local/etc/redis/redis.conf:rw
+  #   command:
+  #     /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
+
+  server-package:
+    container_name: server-package
+    build:
+      context: ./
+    ports:
+      - 127.0.0.1:4000:4000
+      /*return projects.map(project => `- 127.0.0.1:${project.port}:${project.port}`).join('\n      ')*/
+    networks:
+      - databases
+    depends_on:
+      - mongo
+      # - mysql
+    volumes:
+      - ./Dockerfile:/app/Dockerfile
+      - ./docker-compose.yml:/app/docker-compose.yml
+
+  restart-helper:
+    image: alpine
+    container_name: restart-helper
+    privileged: true
+    networks:
+      - databases
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/bin/docker:/usr/bin/docker:ro
+      - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
+      - ./server/bin/restart-docker.sh:/restart-docker.sh
+    command: ["/bin/sh", "/restart-docker.sh"]
+
+networks:
+  databases:
+    driver: bridge

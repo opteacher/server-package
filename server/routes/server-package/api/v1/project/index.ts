@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { sync, del, stop, showStatus } from '../../../../../services/project.js'
+import { sync, del, stop, status } from '../../../../../services/project.js'
 
 const router = new Router()
 
@@ -11,7 +11,7 @@ router.put('/:pid/sync', async ctx => {
 
 router.get('/:pid/stat', async ctx => {
   ctx.body = {
-    result: await showStatus(ctx.params.pid)
+    result: await status(ctx.params.pid)
   }
 })
 

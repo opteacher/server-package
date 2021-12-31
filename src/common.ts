@@ -12,7 +12,7 @@ export class Cond {
     this.val = undefined
   }
 
-  isVaild (object: StrIterable) {
+  isValid (object: StrIterable) {
     switch (this.cmp) {
     case '!=':
       return object[this.key] !== this.val
@@ -26,7 +26,7 @@ export class Cond {
     tgt = tgt || new Cond()
     tgt.key = src.key || tgt.key
     tgt.cmp = src.cmp || tgt.cmp
-    tgt.val = src.val || tgt.val
+    tgt.val = typeof src.val !== 'undefined' ? src.val : tgt.val
     return tgt
   }
 }
@@ -121,6 +121,7 @@ export class Project {
   desc: string
   port: number
   path: string
+  thread: number
   database: string[]
   models: Model[]
 
@@ -130,6 +131,7 @@ export class Project {
     this.desc = ''
     this.port = 0
     this.path = ''
+    this.thread = 0
     this.database = []
     this.models = []
   }
@@ -140,6 +142,7 @@ export class Project {
     this.desc = ''
     this.port = 0
     this.path = ''
+    this.thread = 0
     this.database = []
     this.models = []
   }
@@ -150,6 +153,7 @@ export class Project {
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
+    tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
     tgt.path = src.path || `/${tgt.name}/mdl/v1`
     if (src.models) {

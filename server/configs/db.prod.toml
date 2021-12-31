@@ -1,0 +1,6 @@
+[mongo]
+database="server-package"
+username="root"
+password="12345"
+host="mongo"
+port=27017

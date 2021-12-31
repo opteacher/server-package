@@ -8,8 +8,9 @@
 		"lib": "lib"
 	},
 	"scripts": {
-		"start:dev": "tsc && cd dist && cross-env ENV=dev node app.js",
-		"start:prod": "tsc && cd dist && cross-env ENV=prod node app.js",
+		"start": "cd dist && node ./bin/exec.js",
+		"start:dev": "tsc && cd dist && cross-env ENV=dev node ./bin/exec.js",
+		"build": "tsc",
 		"test": "cross-env ENV=dev jest",
 		"test-c": "cross-env ENV=dev jest --coverage"
 	},
@@ -23,6 +24,7 @@
 		"koa-logger": "^3.2.1",
 		"koa-router": "^10.0.0",
 		"koa-static": "^5.0.0",
+		"koa-views": "^8.0.0",
 		"koa2-cors": "^2.0.6",
 		"lodash": "^4.17.21",
 		"mongoose": "^6.1.2",

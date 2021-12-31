@@ -13,78 +13,76 @@
     :wrapper-col="{ span: 18 }"
   >
     <template v-for="(value, key) in formMapper" :key="key">
-      <template v-if="isDisplay(key)">
-        <a-form-item :ref="key" :name="key">
-          <template #label>
-            {{value.label}}&nbsp;
-            <a-tooltip v-if="value.desc">
-              <template #title>{{value.desc}}</template>
-              <InfoCircleOutlined />
-            </a-tooltip>
-          </template>
-          <a-input
-            v-if="value.type === 'Input'"
-            v-model:value="formState[key]"
-            :disabled="value.disabled"
-          />
-          <a-input-number
-            v-else-if="value.type === 'Number'"
-            class="w-100"
-            v-model:value="formState[key]"
-            :disabled="value.disabled"
-          />
-          <a-select
-            v-else-if="value.type === 'Select'"
-            class="w-100"
-            v-model:value="formState[key]"
-            :disabled="value.disabled"
+      <a-form-item v-show="isDisplay(key)" :ref="key" :name="key">
+        <template #label>
+          {{value.label}}&nbsp;
+          <a-tooltip v-if="value.desc">
+            <template #title>{{value.desc}}</template>
+            <InfoCircleOutlined />
+          </a-tooltip>
+        </template>
+        <a-input
+          v-if="value.type === 'Input'"
+          v-model:value="formState[key]"
+          :disabled="value.disabled"
+        />
+        <a-input-number
+          v-else-if="value.type === 'Number'"
+          class="w-100"
+          v-model:value="formState[key]"
+          :disabled="value.disabled"
+        />
+        <a-select
+          v-else-if="value.type === 'Select'"
+          class="w-100"
+          v-model:value="formState[key]"
+          :disabled="value.disabled"
+        >
+          <a-select-option
+            v-for="item in value.options"
+            :key="typeof item === 'string' ? item : item.value"
+            :value="typeof item === 'string' ? item : item.value"
           >
-            <a-select-option
-              v-for="item in value.options"
-              :key="typeof item === 'string' ? item : item.value"
-              :value="typeof item === 'string' ? item : item.value"
+            {{typeof item === 'string' ? item : item.title}}
+            <span
+              v-if="typeof item !== 'string' && item.subTitle"
+              style="float: right"
             >
-              {{typeof item === 'string' ? item : item.title}}
-              <span
-                v-if="typeof item !== 'string' && item.subTitle"
-                style="float: right"
-              >
-                {{item.subTitle}}
-              </span>
-            </a-select-option>
-          </a-select>
-          <a-checkbox
-            v-else-if="value.type === 'Checkbox'"
-            :name="key"
-            v-model:checked="formState[key]"
-            :disabled="value.disabled"
-          >
-            {{formState[key]
-              ? (value.chkLabels ? value.chkLabels[1] : '是')
-              : (value.chkLabels ? value.chkLabels[0] : '否')}}
-          </a-checkbox>
-          <a-textarea
-            v-else-if="value.type === 'Textarea'"
-            v-model:value="formState[key]"
-            :rows="4"
-            :disabled="value.disabled"
-          />
-          <a-cascader
-            v-else-if="value.type === 'Cascader'"
-            :options="value.options"
-            v-model:value="formState[key]"
-            :disabled="value.disabled"
-          />
-          <a-button
-            v-else-if="value.type === 'Button'"
-            class="w-100"
-            :disabled="value.disabled"
-            :danger="value.danger"
-            :loading="value.loading"
-            @click="value.onClick"
-          >{{ value.inner }}</a-button>
-        </a-form-item>
-      </template>
+              {{item.subTitle}}
+            </span>
+          </a-select-option>
+        </a-select>
+        <a-checkbox
+          v-else-if="value.type === 'Checkbox'"
+          :name="key"
+          v-model:checked="formState[key]"
+          :disabled="value.disabled"
+        >
+          {{formState[key]
+            ? (value.chkLabels ? value.chkLabels[1] : '是')
+            : (value.chkLabels ? value.chkLabels[0] : '否')}}
+        </a-checkbox>
+        <a-textarea
+          v-else-if="value.type === 'Textarea'"
+          v-model:value="formState[key]"
+          :rows="4"
+          :disabled="value.disabled"
+        />
+        <a-cascader
+          v-else-if="value.type === 'Cascader'"
+          :options="value.options"
+          v-model:value="formState[key]"
+          :disabled="value.disabled"
+        />
+        <a-button
+          v-else-if="value.type === 'Button'"
+          class="w-100"
+          :disabled="value.disabled"
+          :danger="value.danger"
+          :loading="value.loading"
+          @click="value.onClick"
+        >{{ value.inner }}</a-button>
+      </a-form-item>
     </template>
   </a-form>
 </a-modal>
@@ -125,7 +123,7 @@ export default defineComponent({
       }
       for (const chg of value.changes) {
         watch(() => formState[chg.cond.key], () => {
-          if (chg.cond.isVaild(formState)) {
+          if (chg.cond.isValid(formState)) {
             (formMapper[key] as any)[chg.attr.key] = chg.attr.val
           }
         })
@@ -137,7 +135,7 @@ export default defineComponent({
       if (typeof display === 'boolean') {
         return display as boolean
       } else {
-        return (display as Cond).isVaild(formState)
+        return (display as Cond).isValid(formState)
       }
     }
     async function onOkClick () {

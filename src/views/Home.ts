@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { DataBase, Mapper, Project } from "@/common"
+import { Cond, DataBase, Mapper, Project } from "@/common"
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -44,6 +44,11 @@ export class EditProjFormDlg {
       },
       operation: {
         label: '操作项目',
+        display: Cond.copy({
+          key: 'key',
+          cmp: '!=',
+          val: ''
+        }),
         type: 'Button',
         inner: '删除项目',
         danger: true,
@@ -62,7 +67,7 @@ export class EditProjFormDlg {
               this.show = false
               this.mapper.operation.disabled = false
               this.mapper.operation.loading = false
-              router.replace('/#/home')
+              router.replace('/')
             },
             onCancel() {
               console.log('Cancel')

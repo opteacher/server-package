@@ -42,7 +42,10 @@
           </template>
           <a-list-item-meta :description="item.desc">
             <template #title>
-              <a :href="`/#/project/${item._id}`">{{ item.name }}</a>
+              <a :href="`/project/${item._id}`">{{ item.name }}</a>
+            </template>
+            <template #avatar>
+              <a-badge :status="item.thread ? 'processing' : 'default'"/>
             </template>
           </a-list-item-meta>
           <div>{{ item.port }}</div>
@@ -56,8 +59,9 @@
 import { defineComponent, ref, onMounted, reactive } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { Project } from '@/common'
-import { reqDelete, reqGet, reqPost } from '../utils'
+import { makeRequest, reqGet, reqPost } from '../utils'
 import { EditProjFormDlg } from './Home'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'Home',
@@ -85,7 +89,7 @@ export default defineComponent({
       await refresh()
     }
     async function onDelProjSubmit (pid: string) {
-      await reqDelete('project', pid, {
+      await makeRequest(axios.delete(`/server-package/api/v1/project/${pid}`), {
         middles: {
           before: () => { loading.value = true },
           after: () => { loading.value = false }
@@ -105,7 +109,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .home {
   height: 100%;
   padding: 5vh 10vw;
@@ -113,5 +117,10 @@ export default defineComponent({
 
 .project-list {
   height: 100%;
+}
+
+.ant-list-item-meta-avatar {
+  line-height: 48px;
+  vertical-align: middle;
 }
 </style>

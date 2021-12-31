@@ -13,10 +13,10 @@ const svrCfg = readConfig(Path.resolve('..', 'configs', 'server'))
 
 const workers: { [thread: number]: Worker } = {}
 
-export async function sync (pid: string): Promise<any> {
+export async function sync(pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }, { ext: true }))[0]
   if (project.thread) {
-    return Promise.resolve(`项目已启动`)
+    await stop(project)
   }
   for (const index in project.models) {
     const mid = project.models[index]
@@ -33,28 +33,24 @@ export async function sync (pid: string): Promise<any> {
   fs.mkdirSync(genPath, { recursive: true })
 
   fs.mkdirSync(Path.join(genPath, 'configs'))
+  adjustFile(Path.join(tmpPath, 'configs', 'db'), Path.join(genPath, 'configs', 'db.toml'), {
+    project,
+    database
+  })
   adjustFile(
-    Path.join(tmpPath, 'configs', 'db.toml'),
-    Path.join(genPath, 'configs', 'db.toml'),
-    { project, database }
-  )
-  adjustFile(
-    Path.join(tmpPath, 'configs', 'models.toml'),
+    Path.join(tmpPath, 'configs', 'models'),
     Path.join(genPath, 'configs', 'models.toml'),
     { project }
   )
 
   const appFile = Path.join(genPath, 'app.js')
-  adjustFile(
-    Path.join(tmpPath, 'app.js'),
-    appFile, { project }
-  )
+  adjustFile(Path.join(tmpPath, 'app'), appFile, { project, svrCfg })
 
   fs.mkdirSync(Path.join(genPath, 'utils'))
-  adjustFile(
-    Path.join(tmpPath, 'utils', 'index.js'),
-    Path.join(genPath, 'utils', 'index.js'),
-  )
+  adjustFile(Path.join(tmpPath, 'utils', 'index'), Path.join(genPath, 'utils', 'index.js'), {
+    project,
+    svrCfg
+  })
 
   const mdlPath = Path.join(genPath, 'models')
   fs.mkdirSync(mdlPath)
@@ -62,10 +58,45 @@ export async function sync (pid: string): Promise<any> {
   for (const model of project.models) {
     adjustFile(mdlData, Path.join(mdlPath, model.name + '.js'), { model })
   }
-  // 切换生成项目的上下文
-  process.chdir(genPath)
-  const worker = new Worker('./app.js', {
-    env: { ENV: '' }
+
+  // 调整docker和nginx的配置
+  fixDockerAndNginx()
+
+  await db.save(Project, { thread: -1 }, { _index: pid })
+  // 重启本服务
+  if (process.send) {
+    process.send('restart')
+  }
+  return Promise.resolve()
+}
+
+async function fixDockerAndNginx(projects?: any[]) {
+  if (!projects) {
+    projects = await db.select(Project)
+  }
+  const runnings = projects?.filter((project: any) => project.thread as boolean)
+
+  const tmpPath = Path.resolve('..', 'resources', 'appTemp')
+  const dkrFilePath = Path.join(tmpPath, 'Dockerfile')
+  const dkrCmpsPath = Path.join(tmpPath, 'docker-compose')
+
+  const rootPath = Path.resolve('..', '..')
+  adjustFile(dkrFilePath, Path.join(rootPath, 'Dockerfile'), { projects: runnings })
+  adjustFile(dkrCmpsPath, Path.join(rootPath, 'docker-compose.yml'), { projects: runnings })
+}
+
+export async function run(pjt: string | { _id: string; name: string }): Promise<number> {
+  const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
+  const appFile = Path.resolve(svrCfg.apps, project.name, 'app.js')
+  try {
+    fs.accessSync(appFile)
+  } catch (e) {
+    // 如果项目的可执行文件不存在，则同步后重启
+    await sync(project._id)
+    return Promise.resolve(-1)
+  }
+  const worker = new Worker(appFile, {
+    env: { ENV: '' } // 暂时不支持环境
   })
   worker.on('message', msg => {
     console.log(msg)
@@ -74,16 +105,32 @@ export async function sync (pid: string): Promise<any> {
     console.log(err)
   })
   worker.on('exit', code => {
-    if (!code) {
-      console.log(`线程已停止，返回码${code}`)
-    }
+    console.log(`工作线程已停止${!code ? '，异常返回码' + code : ''}`)
   })
   workers[worker.threadId] = worker
-  await db.save(Project, { thread: worker.threadId }, { _index: pid })
+  await db.save(Project, { thread: worker.threadId }, { _index: project._id })
   return Promise.resolve(worker.threadId)
 }
 
-function adjustFile (src: string | Buffer, dest: string, args?: { [name: string]: any }): void {
+export async function runAll(): Promise<void> {
+  const projects = await db.select(Project)
+  await fixDockerAndNginx(projects)
+  projects.map((project: any) => {
+    if (project.thread) {
+      try {
+        run(project)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+  })
+}
+
+function adjustFile(
+  src: string | Buffer,
+  dest?: string,
+  args?: { [name: string]: any }
+): string | void {
   if (!args) {
     args = {}
   }
@@ -92,20 +139,21 @@ function adjustFile (src: string | Buffer, dest: string, args?: { [name: string]
   }
   let strData = src.toString()
   const codes = strData.match(/\/\*.*\*\//g)
-  if (!codes) {
-    fs.writeFileSync(dest, strData)
-    return
+  if (codes) {
+    for (const code of codes) {
+      const fmtCode = code.substring(2, code.length - 2)
+      const func = new Function(...Object.keys(args), fmtCode)
+      strData = strData.replaceAll(code, func(...Object.values(args)))
+    }
   }
-  for (const code of codes) {
-    const fmtCode = code.substring(2, code.length - 2)
-    const func = new Function(...Object.keys(args), fmtCode)
-    strData = strData.replaceAll(code, func(...Object.values(args)))
-  }
-  fs.writeFileSync(dest, strData)
+  return dest ? fs.writeFileSync(dest, strData) : strData
 }
 
-export async function del (pid: string): Promise<any> {
+export async function del(pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }))[0]
+  if (project.thread) {
+    await stop(project)
+  }
   for (const mid of project.models) {
     const model = (await db.select(Model, { _index: mid }))[0]
     for (const ppid of model.props) {
@@ -119,16 +167,16 @@ export async function del (pid: string): Promise<any> {
   return db.del(Project, { _index: pid })
 }
 
-export async function stop (pid: string): Promise<any> {
-  const project = (await db.select(Project, { _index: pid }))[0]
+export async function stop(pjt: string | { _id: string; thread: number }): Promise<any> {
+  const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
   if (project.thread in workers) {
     await workers[project.thread].terminate()
     delete workers[project.thread]
   }
-  return await db.save(Project, { thread: 0 }, { _index: pid })
+  return db.save(Project, { thread: 0 }, { _index: project._id })
 }
 
-export async function showStatus (pid: string): Promise<any> {
+export async function status(pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }))[0]
   if (!project.thread) {
     return Promise.resolve({

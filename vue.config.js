@@ -1,4 +1,7 @@
 module.exports = {
+  publicPath: '/server-package',
+  outputDir: 'server/dist/public/server-package',
+  assetsDir: 'static',
   devServer: {
     proxy: {
       '/server-package': {
