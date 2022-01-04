@@ -2,5 +2,5 @@
 database="server-package"
 username="root"
 password="12345"
-host="mongo"
+host="10.0.16.4"
 port=27017
