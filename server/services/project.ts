@@ -105,8 +105,18 @@ export async function run(pjt: string | { _id: string; name: string }): Promise<
   }
   let thread: number | undefined
   if (process.env.ENV === 'prod') {
+    try {
+      spawnSync([
+        'docker stop nginx',
+        'docker container prune -f'
+      ].join(' && '), {
+        stdio: 'inherit',
+        shell: true,
+      })
+    } catch (e) {
+      console.log(`无运行中的${project.name}实例`)
+    }
     const childPcs = spawn([
-      'docker container prune -f',
       `docker build -t ${project.name}:latest ${appPath}`,
       'docker run --rm -itd ' + [
         `-p 127.0.0.1:${project.port}:${project.port}`,
@@ -147,20 +157,30 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
   console.log(`调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
   adjustFile(ngCfgTmp, ngCfgGen, { projects })
 
+  console.log('重启Nginx……')
+  try {
+    spawnSync([
+      'docker stop nginx',
+      'docker container prune -f'
+    ].join(' && '), {
+      stdio: 'inherit',
+      shell: true,
+    })
+  } catch (e) {
+    console.log('无运行中的Nginx实例')
+  }
   const result = spawnSync([
     'docker run --rm -itd ' + [
-      `-v=${ngCfgGen}:/etc/nginx/conf.d/default.conf`,
-      '--expose=80',
-      '--net=host',
-      '--name=nginx nginx',
-    ].join(' ')
+      '--volumes-from server-package',
+      '--expose 80',
+      '--net host',
+      '--name nginx nginx',
+    ].join(' '),
+    `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`
   ].join(' && '), {
     stdio: 'inherit',
     shell: true,
   })
-  if (result.error) {
-    console.log(result.stderr)
-  }
 }
 
 export async function runAll(): Promise<void> {
@@ -243,7 +263,7 @@ export async function stop(pjt: string | { _id: string; thread: number }): Promi
   } else if (project.thread) {
     spawn([
       `docker container stop ${project.name}`,
-      'docker container prune -f'
+      `docker container rm ${project.name}`
     ].join(' && '), {
       stdio: 'inherit',
       shell: true

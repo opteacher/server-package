@@ -48,7 +48,7 @@ services:
   #   command:
   #     /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
 
-  server-package:
+  '1':
     container_name: server-package
     build:
       context: ./
@@ -62,4 +62,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
-      - ./configs/nginx.conf:/app/configs/nginx.conf
