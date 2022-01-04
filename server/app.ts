@@ -1,4 +1,4 @@
-import path from 'path'
+import Path from 'path'
 import Koa from 'koa'
 import koaBody from 'koa-body'
 import json from 'koa-json'
@@ -14,11 +14,12 @@ import { genMdlRoutes } from './lib/backend-library/models/index.js'
 import { db } from './utils/index.js'
 
 const router = await genApiRoutes(
-  path.resolve('routes')
+  Path.resolve('routes')
 )
 const models = (await genMdlRoutes(
-  db, path.resolve('models'),
-  path.resolve('..', 'configs', 'models')
+  db,
+  Path.resolve('models'),
+  Path.resolve('configs', 'models')
 )).router
 
 const app = new Koa()
@@ -41,13 +42,13 @@ app.use(json())
 // 日志输出
 app.use(logger())
 // 指定静态目录
-app.use(statc(path.resolve('public')))
+app.use(statc(Path.resolve('public')))
 // 模型路由
 app.use(models.routes()).use(models.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
 // 指定页面目录
-app.use(views('./views', {extension: 'html'}))
+app.use(views('./public/server-package', {extension: 'html'}))
 // 以页面路由结尾
 app.use(async ctx => {
   await ctx.render('index')

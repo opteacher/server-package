@@ -320,19 +320,107 @@ export const routeMethods = [
   'POST', 'PUT', 'DELETE', 'GET', 'ALL'
 ]
 
+export type BaseTypes = 'Unknown' | 'Number' | 'String' | 'Boolean' | 'Array' | 'Map'
+export class Attr {
+  key: string
+  name: string
+  type: BaseTypes | Model
+  value: any
+  default: any
+  required: boolean
+
+  constructor () {
+    this.key = ''
+    this.name = ''
+    this.type = 'Unknown'
+    this.value = undefined
+    this.default = undefined
+    this.required = false
+  }
+
+  reset () {
+    this.key = ''
+    this.name = ''
+    this.type = 'Unknown'
+    this.value = undefined
+    this.default = undefined
+    this.required = false
+  }
+
+  static copy (src: any, tgt?: Attr): Attr {
+    tgt = tgt || new Attr()
+    tgt.key = src._id || tgt.key
+    tgt.name = src._name || tgt.name
+    tgt.type = src._type || tgt.type
+    tgt.value = src._value || tgt.value
+    tgt.default = src._default || tgt.default
+    tgt.required = src._required || tgt.required
+    return tgt
+  }
+}
+
+type NodeType = 'normal' | 'condition' | 'traversal'
+
+export class Node {
+  key: string
+  type: NodeType
+  inputs: [string, Attr][] // [0]参数 [1]槽
+  outputs: Attr[]
+  code: string
+  previous: Node | null
+  nexts: Node[]
+
+  constructor () {
+    this.key = ''
+    this.type = 'normal'
+    this.inputs = []
+    this.outputs = []
+    this.code = ''
+    this.previous = null
+    this.nexts = []
+  }
+
+  reset () {
+    this.key = ''
+    this.type = 'normal'
+    this.inputs = []
+    this.outputs = []
+    this.code = ''
+    this.previous = null
+    this.nexts = []
+  }
+
+  static copy (src: any, tgt?: Node): Node {
+    tgt = tgt || new Node()
+    tgt.key = src._id || tgt.key
+    tgt.type = src._type || tgt.type
+    if (src.inputs.length) {
+      tgt.inputs = src.inputs.map((ipt: any) => Attr.copy(ipt))
+    }
+    tgt.outputs = src.outputs || tgt.outputs
+    tgt.code = src.code || tgt.code
+    tgt.previous = src.previous || tgt.previous
+    tgt.nexts = src.nexts || tgt.nexts
+    return tgt
+  }
+}
+
 export class Route {
   key: string
   method: string
+  flow: Node | null
 
   constructor () {
     this.key = ''
     this.method = ''
+    this.flow = new Node()
   }
 
   static copy (src: any, tgt?: Route): Route {
     tgt = tgt || new Route()
     tgt.key = src._id || tgt.key
     tgt.method = src.method || tgt.method
+    tgt.flow = src.flow || tgt.flow
     return tgt
   }
 }

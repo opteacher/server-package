@@ -9,19 +9,17 @@ services:
   #     - "80"
   #   network_mode: "host"
 
-  # mysql:
-  #   image: mysql
-  #   container_name: mysql
-  #   restart: unless-stopped
-  #   ports:
-  #     - 3306:3306
-  #   networks:
-  #     - databases
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 12345
-  #   volumes:
-  #     - ./data/mysql:/var/lib/mysql
-  #   command: --default-authentication-plugin=mysql_native_password
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
 
   mongo:
     image: mongo
@@ -29,8 +27,6 @@ services:
     restart: unless-stopped
     ports:
       - 27017:27017
-    networks:
-      - databases
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 12345
@@ -56,30 +52,14 @@ services:
     container_name: server-package
     build:
       context: ./
+    privileged: true
     ports:
       - 127.0.0.1:4000:4000
-    networks:
-      - databases
     depends_on:
       - mongo
-      # - mysql
-    volumes:
-      - ./Dockerfile:/app/Dockerfile
-      - ./docker-compose.yml:/app/docker-compose.yml
-
-  restart-helper:
-    image: alpine
-    container_name: restart-helper
-    privileged: true
-    networks:
-      - databases
+      - mysql
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
-      - ./server/bin/restart-docker.sh:/restart-docker.sh
-    command: ["/bin/sh", "/restart-docker.sh"]
-
-networks:
-  databases:
-    driver: bridge
+      - ./configs/nginx.conf:/app/configs/nginx.conf

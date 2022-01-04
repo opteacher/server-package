@@ -1,17 +1,7 @@
 FROM node:latest
-
-ENV ENV prod
-ENV NODE_OPTIONS --openssl-legacy-provider
-
-WORKDIR /app/server
-
+WORKDIR /app
 COPY . /app
-RUN npm install cnpm -g --unsafe-perm=true --allow-root
-RUN cd /app/server && cnpm install --unsafe-perm=true --allow-root && cnpm run build
-RUN cd /app && cnpm install --unsafe-perm=true --allow-root && cnpm run build
-RUN cd /app/server/dist && mkdir views/ && mv ./public/server-package/index.html ./views/
-
-EXPOSE 4000
-/*return projects.map(project => `EXPOSE ${project.port}`).join('\n')*/
-
-CMD [ "npm", "run", "start" ]
+RUN npm config set registry http://registry.npm.taobao.org
+RUN npm install --unsafe-perm=true --allow-root
+##return `EXPOSE ${project.port}`*/
+CMD [ "node", "./app.js" ]

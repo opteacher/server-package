@@ -78,14 +78,19 @@ export class RouteTable {
   current: Route
 
   constructor() {
-    this.columns = [new Column('访问方式', 'method'), new Column('路径', 'path')]
+    this.columns = [
+      new Column('访问方式', 'method'),
+      new Column('路径', 'path'),
+      new Column('编辑', 'flow')
+    ]
     this.mapper = new Mapper({
       method: {
         label: '访问方式',
         type: 'Select',
         options: routeMethods
       },
-      path: {}
+      path: {},
+      flow: {}
     })
     this.current = new Route()
   }

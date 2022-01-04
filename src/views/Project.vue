@@ -25,8 +25,8 @@
         <a-col :span="12" class="text-right">
           <a-button
             type="primary"
-            :disabled="syncingProj || stoppingProj"
-            :loading="syncingProj"
+            :disabled="syncingProj || stoppingProj || startingSvc"
+            :loading="syncingProj || startingSvc"
             @click="onProjSync"
           >
             <template #icon><SyncOutlined/></template>&nbsp;同步
@@ -99,6 +99,11 @@
         <template #path="{ record: route }">
           {{ genPathByRoute(route.method, `${editProj.current.path}/${record.name}`) }}
         </template>
+        <template #flow="{ record: route }">
+          <a-button @click="router.push(`/project/${editProj.current.key}/process/${route.key}`)">
+            <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
+          </a-button>
+        </template>
       </EditTable>
     </template>
   </EditTable>
@@ -109,7 +114,14 @@
 import { Model, Project, Property, Route } from '@/common'
 import { makeRequest, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import { createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
-import { SettingOutlined, SyncOutlined, ExclamationCircleOutlined, PoweroffOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
+import {
+  SettingOutlined,
+  SyncOutlined,
+  ExclamationCircleOutlined,
+  PoweroffOutlined,
+  ArrowLeftOutlined,
+  ApartmentOutlined
+} from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditTable from '../components/com/EditTable.vue'
 import FormDialog from '../components/com/FormDialog.vue'
@@ -126,7 +138,8 @@ export default defineComponent({
     SettingOutlined,
     SyncOutlined,
     PoweroffOutlined,
-    ArrowLeftOutlined
+    ArrowLeftOutlined,
+    ApartmentOutlined
   },
   setup () {
     const route = useRoute()
@@ -224,10 +237,17 @@ export default defineComponent({
             }
           })
           await refresh()
+
           startingSvc.value = true
-          setTimeout(() => {
+          const h = setInterval(async () => {
+            try {
+              await axios.get(`/${editProj.current.name}/mdl/v1`)
+            } catch (e) {
+              console.log(`等待项目${editProj.current.name}启动……`)
+            }
+            clearInterval(h)
             startingSvc.value = false
-          }, 6000)
+          }, 1000)
         },
       })
     }

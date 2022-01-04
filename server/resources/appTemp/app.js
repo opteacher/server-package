@@ -5,13 +5,12 @@ import json from 'koa-json';
 import logger from 'koa-logger';
 import statc from 'koa-static';
 import cors from 'koa2-cors';
-import { genMdlRoutes } from '../../lib/backend-library/models/index.js';
+import { genMdlRoutes } from './lib/backend-library/models/index.js';
 import { db } from './utils/index.js';
-const rootPath = path.resolve(/*return `\'${svrCfg.apps}\', \'${project.name}\'`*/)
 const models = (await genMdlRoutes(
     db,
-    path.join(rootPath, 'models'),
-    path.join(rootPath, 'configs', 'models')
+    path.resolve('models'),
+    path.resolve('configs', 'models')
 )).router
 const app = new Koa();
 // 跨域配置
@@ -41,6 +40,6 @@ app.use(async (ctx) => {
         error: `未找到路由：${ctx.request.path}`
     };
 });
-app.listen(/*return project.port*/, undefined, () => {
-    console.log(`服务已部署，占用端口：${/*return project.port*/}`);
+app.listen(0/*return project.port*/, undefined, () => {
+    console.log('服务已部署，占用端口：/*return project.port*/');
 })

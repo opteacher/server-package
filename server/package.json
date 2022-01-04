@@ -2,14 +2,14 @@
 	"name": "server",
 	"version": "1.0.0",
 	"description": "",
-	"main": "app.ts",
+	"main": "app.js",
 	"type": "module",
 	"directories": {
 		"lib": "lib"
 	},
 	"scripts": {
-		"start": "cd dist && node ./bin/exec.js",
-		"start:dev": "tsc && cd dist && cross-env ENV=dev node ./bin/exec.js",
+		"start": "node ./app.js",
+		"start:dev": "tsc && cp -r ./configs/ ./dist/configs/ && cd ./dist/ && cross-env ENV=dev node ./app.js",
 		"build": "tsc",
 		"test": "cross-env ENV=dev jest",
 		"test-c": "cross-env ENV=dev jest --coverage"
