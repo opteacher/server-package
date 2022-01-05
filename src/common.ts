@@ -1,3 +1,5 @@
+import { ref, Ref } from "vue"
+
 export class StrIterable {
   [idx: string]: any
 }
@@ -124,6 +126,7 @@ export class Project {
   thread: number
   database: string[]
   models: Model[]
+  status: 'starting' | 'stopping' | 'running' | 'stopped'
 
   constructor () {
     this.key = ''
@@ -134,6 +137,7 @@ export class Project {
     this.thread = 0
     this.database = []
     this.models = []
+    this.status = 'stopped'
   }
 
   reset () {
@@ -145,6 +149,7 @@ export class Project {
     this.thread = 0
     this.database = []
     this.models = []
+    this.status = 'stopped'
   }
 
   static copy (src: any, tgt?: Project): Project {
@@ -162,6 +167,7 @@ export class Project {
         tgt.models.push(Model.copy(model))
       }
     }
+    tgt.status = src.status || tgt.status
     return tgt
   }
 }
@@ -350,11 +356,11 @@ export class Attr {
   static copy (src: any, tgt?: Attr): Attr {
     tgt = tgt || new Attr()
     tgt.key = src._id || tgt.key
-    tgt.name = src._name || tgt.name
-    tgt.type = src._type || tgt.type
-    tgt.value = src._value || tgt.value
-    tgt.default = src._default || tgt.default
-    tgt.required = src._required || tgt.required
+    tgt.name = src.name || tgt.name
+    tgt.type = src.type || tgt.type
+    tgt.value = src.value || tgt.value
+    tgt.default = src.default || tgt.default
+    tgt.required = src.required || tgt.required
     return tgt
   }
 }
@@ -369,6 +375,8 @@ export class Node {
   code: string
   previous: Node | null
   nexts: Node[]
+  posLT: [number, number] // [0]左坐标 [1]顶坐标
+  sizeWH: [number, number] // [0]宽度 [1]高度
 
   constructor () {
     this.key = ''
@@ -378,6 +386,8 @@ export class Node {
     this.code = ''
     this.previous = null
     this.nexts = []
+    this.posLT = [-1, -1]
+    this.sizeWH = [0, 0]
   }
 
   reset () {
@@ -388,19 +398,32 @@ export class Node {
     this.code = ''
     this.previous = null
     this.nexts = []
+    this.posLT = [-1, -1]
+    this.sizeWH = [0, 0]
   }
 
   static copy (src: any, tgt?: Node): Node {
     tgt = tgt || new Node()
     tgt.key = src._id || tgt.key
-    tgt.type = src._type || tgt.type
-    if (src.inputs.length) {
-      tgt.inputs = src.inputs.map((ipt: any) => Attr.copy(ipt))
+    tgt.type = src.type || tgt.type
+    if (src.inputs && src.inputs.length) {
+      tgt.inputs = src.inputs.map((ipt: any) => [ipt[0], Attr.copy(ipt[1])])
     }
-    tgt.outputs = src.outputs || tgt.outputs
+    if (src.outputs && src.outputs.length) {
+      tgt.outputs = src.outputs.map((opt: any) => Attr.copy(opt))
+    }
     tgt.code = src.code || tgt.code
-    tgt.previous = src.previous || tgt.previous
-    tgt.nexts = src.nexts || tgt.nexts
+    if (src.previous) {
+      tgt.previous = Node.copy(src.previous)
+    }
+    if (src.nexts && src.nexts.length) {
+      tgt.nexts = []
+      for (const nxt of src.nexts) {
+        tgt.nexts.push(Node.copy(nxt))
+      }
+    }
+    tgt.posLT = src.posLT || tgt.posLT
+    tgt.sizeWH = src.sizeWH || tgt.sizeWH
     return tgt
   }
 }

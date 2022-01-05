@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from '../views/Home.vue'
 import Project from '../views/Project.vue'
-import Process from '../views/Process.vue'
+import Flow from '../views/Flow.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -15,9 +15,9 @@ const routes: Array<RouteRecordRaw> = [
     component: Project
   },
   {
-    path: '/project/:pid/process/:rid',
-    name: 'Process',
-    component: Process
+    path: '/project/:pid/model/:mid/flow/:rid',
+    name: 'Flow',
+    component: Flow
   }
 ]
 
