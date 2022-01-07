@@ -2,6 +2,7 @@
 <a-modal
   :visible="show"
   :title="title"
+  :width="width"
   @ok="onOkClick"
   @cancel="onCclClick"
 >
@@ -9,8 +10,8 @@
     ref="formRef"
     :model="formState"
     :rules="formRules"
-    :label-col="{ span: 6 }"
-    :wrapper-col="{ span: 18 }"
+    :label-col="{ span: column[0] }"
+    :wrapper-col="{ span: column[1] }"
   >
     <template v-for="(value, key) in formMapper" :key="key">
       <a-form-item v-show="isDisplay(key)" :ref="key" :name="key">
@@ -82,6 +83,19 @@
           :loading="value.loading"
           @click="value.onClick"
         >{{ value.inner }}</a-button>
+        <a-form-item-rest
+          v-else-if="value.type === 'Table'"
+        >
+          <EditTable
+            class="w-100"
+            :cols="value.columns"
+            :data="formState[key]"
+            :dftRecord="value.default"
+            :dataMapper="value.mapper"
+            @save="value.onSaved"
+            @delete="value.onDeleted"
+          />
+        </a-form-item-rest>
       </a-form-item>
     </template>
   </a-form>
@@ -92,13 +106,17 @@
 import { Cond, Mapper } from '@/common'
 import { defineComponent, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import EditTable from './EditTable.vue'
 export default defineComponent({
   name: 'FormDialog',
   components: {
+    EditTable,
     InfoCircleOutlined
   },
   props: {
     show: { type: Boolean, required: true },
+    width: { type: String, default: '50vw' },
+    column: { type: Array, default: () => [4, 20] }, // [0]标题宽度 [1]表单项宽度
     title: { type: String, default: 'Form Dialog' },
     object: { type: Object, required: true },
     mapper: { type: Mapper, required: true },

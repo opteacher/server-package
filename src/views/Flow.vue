@@ -1,110 +1,154 @@
 <template>
-<ProjDetail :editProj="project">
+<FlowDesign :route="current">
   <div class="flow-panel" ref="panelRef">
     <NodeCard
-      v-for="node in nodes"
-      :key="node.key"
-      :node="node"
-      @update:size="(szWH) => onNodeSzChanged(node, szWH)"
-      @click="() => {
-        editNode.show = true
-        editNode.current = node
-      }"
+      v-if="Object.values(nodes).length === 0"
+      :noCard="true"
+      :pnlWid="pnlWid"
+      @click:addBtn="onAddBtnClicked"
     />
+    <template v-else>
+      <NodeCard
+        v-for="node in Object.values(nodes)"
+        :key="node.key"
+        :node="node"
+        @update:size="(szWH) => onNodeSzUpdated(node, szWH)"
+        @click:card="() => onCardClicked(node)"
+        @click:addBtn="onAddBtnClicked"
+      />
+    </template>
   </div>
   <FormDialog
-    title="修改节点"
+    :title="editTitle"
+    width="70vw"
+    :column="[2, 22]"
+    :show="editNode.show"
     :mapper="editNode.mapper"
     :object="editNode.current"
-    :show="editNode.show"
     @update:show="(show) => editNode.show = show"
+    @submit="onNodeSaved"
   />
-</ProjDetail>
+</FlowDesign>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import ProjDetail from '../layouts/ProjDetail.vue'
+import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { EditProjFormDlg } from './Home'
-import { Node, Attr } from '../common'
+import { Node, Route } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
-import { EditNodeFormDlg } from './Flow'
+import { ArrowHeight, CardWidth, EditNodeFormDlg, NodeInPnl } from './Flow'
+import { reqGet } from '@/utils'
 export default defineComponent({
   name: 'Flow',
   components: {
-    ProjDetail,
+    FlowDesign,
     NodeCard,
     FormDialog
   },
   setup () {
     const route = useRoute()
-    const project = reactive(new EditProjFormDlg())
-    const rootNode = computed(() => project.current
-      .models.find(mdl => mdl.key === route.params.mid)
-      ?.routes.find(rt => rt.key === route.params.rid)
-      ?.flow
-    )
-    const nodes = ref([] as Node[])
+    const current = reactive(new Route())
+    const nodes = reactive({} as {
+      [key: string]: NodeInPnl
+    })
     const panelRef = ref()
     const editNode = reactive(new EditNodeFormDlg())
-
-    onMounted(async () => {
-      await project.refresh(route.params.pid as string)
-      // @_@: 测试用数据
-      const rt = project.current
-        .models.find(mdl => mdl.key === route.params.mid)
-        ?.routes.find(rt => rt.key === route.params.rid)
-      if (!rt) {
-        return
-      }
-      rt.flow = Node.copy({
-        inputs: [
-          ['', Attr.copy({ name: 'cccc', type: 'Number' })],
-          ['', Attr.copy({ name: 'vvvv', type: 'String' })]
-        ],
-        outputs: [
-          Attr.copy({ name: 'dddd', type: 'Number' })
-        ]
-      })
-      rt.flow.nexts = [
-        new Node()
-      ]
-      // @_@
-      if (rootNode.value) {
-        nodes.value = buildNodes(rootNode.value, 0)
+    const pnlWid = computed(() => {
+      return panelRef.value ? panelRef.value.clientWidth : 0
+    })
+    const editTitle = computed(() => {
+      if (editNode.current.key) {
+        return `编辑节点#${editNode.current.key}`
+      } else if (editNode.current.previous?.key) {
+        return `在节点#${editNode.current.previous.key}后新增节点`
+      } else {
+        return '在根节点后新增节点'
       }
     })
 
-    function buildNodes (node: Node, height: number): Node[] {
+    onMounted(refresh)
+    editNode.emitter.on('refresh', refresh)
+    editNode.emitter.on('update:show', (show: boolean) => {
+      editNode.show = show
+    })
+    editNode.emitter.on('remove:node', (key: string) => {
+      delete nodes[key]
+    })
+
+    async function refresh () {
+      Route.copy((await reqGet('route', route.params.rid)).data, current)
+      if (current && current.flow) {
+        await buildNodes(current.flow.key, 0)
+      }
+    }
+    async function buildNodes (ndKey: string, height: number) {
+      const rawNode = (await reqGet('node', ndKey)).data
+      let node: NodeInPnl
+      if (!(ndKey in nodes)) {
+        node = Object.assign(Node.copy(rawNode), {
+          posLT: [-1, -1], sizeWH: [0, 0]
+        }) as NodeInPnl
+        nodes[ndKey] = node
+      } else {
+        Node.copy(rawNode, nodes[ndKey])
+        node = nodes[ndKey]
+      }
       if (!node.previous) {
-        node.posLT[0] = panelRef.value.clientWidth >> 1
+        node.posLT[0] = pnlWid.value >> 1
       } else {
         const nexts = node.previous.nexts
-        node.posLT[0] = (nexts.indexOf(node) / nexts.length) * panelRef.value.clientWidth
+        const index = nexts.indexOf(node.key) + 1
+        const size = nexts.length + 1
+        node.posLT[0] = (index / size) * pnlWid.value
       }
-      node.posLT[0] -= 250
+      node.posLT[0] -= (CardWidth >> 1)
       node.posLT[1] = height
-      const ret = [node]
-      for (const subNode of node.nexts) {
-        ret.push(...buildNodes(subNode, node.sizeWH[1] + 100))
+      for (const nxtNode of node.nexts) {
+        const nxtNdKey = typeof nxtNode === 'string' ? nxtNode : nxtNode.key
+        await buildNodes(nxtNdKey, node.posLT[1] + node.sizeWH[1] + ArrowHeight)
       }
-      return ret
     }
-    function onNodeSzChanged (node: Node, sizeWH: [number, number]) {
+    function onNodeSzUpdated (node: NodeInPnl, sizeWH: [number, number]) {
       node.sizeWH = sizeWH
-      if (rootNode.value) {
-        nodes.value = buildNodes(rootNode.value, 0)
+      refresh()
+    }
+    function onCardClicked (node: Node) {
+      editNode.current.reset()
+      Node.copy(node, editNode.current)
+      editNode.show = true
+    }
+    function onAddBtnClicked (previous: Node) {
+      editNode.current.reset()
+      if (previous) {
+        Node.copy({ previous }, editNode.current)
+      }
+      editNode.show = true
+    }
+    function onNodeSaved (node: Node) {
+      console.log(node)
+      if (node.key) {
+        return Promise.resolve()
+      }
+      if (node.previous && node.previous.key) {
+        editNode.createNode(node.previous)
+      } else {
+        editNode.createNode(route.params.rid as string)
       }
     }
     return {
       nodes,
-      project,
+      current,
       editNode,
       panelRef,
+      pnlWid,
+      editTitle,
 
-      onNodeSzChanged
+      onNodeSzUpdated,
+      onCardClicked,
+      onAddBtnClicked,
+      onNodeSaved
     }
   }
 })
@@ -114,7 +158,7 @@ export default defineComponent({
 // 1px solid #f0f0f0
 .flow-panel {
   position: absolute;
-  top: 250px;
+  top: 150px;
   left: 100px;
   bottom: 50px;
   right: 100px;

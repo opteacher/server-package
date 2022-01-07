@@ -42,28 +42,39 @@ export class Mapper {
     type: CompoType
     rules?: any[]
     disabled?: boolean | Cond
+    loading?: boolean
     display?: boolean | Cond
     expanded?: boolean
     changes?: {
       cond: Cond
       attr: Cond
     }[]
+    reset?: boolean
+
     // type = Select
     options?: string[] | {
       title: string
       subTitle?: string
       value: any
     }[]
+
     // type = Checkbox。0为false，1为true
     chkLabels?: [string, string]
+
     // type = Button
     inner?: string
     danger?: boolean
-    loading?: boolean
     onClick?: () => void
+
+    // type = Table
+    columns?: Column[]
+    mapper?: Mapper
+    default?: any
+    onSaved?: (record: any, extra?: any) => void
+    onDeleted?: (key: any, extra?: any) => void
   }
 
-  constructor (init?: any) {
+  constructor (init?: any, reset?: boolean) {
     for (const [key, val] of Object.entries(init)) {
       const value = val as any
       this[key] = {
@@ -82,6 +93,7 @@ export class Mapper {
           cond: Cond.copy(chg.cond),
           attr: Cond.copy(chg.attr),
         })) : [],
+        reset: typeof value.reset !== 'undefined' ? true : value.reset,
         options: value.options ? value.options.map((opn: any) => {
           if (typeof opn === 'string') {
             return opn
@@ -91,11 +103,20 @@ export class Mapper {
             }
           }
         }) : [],
-        chkLabels: value.chkLabels || undefined,
+        chkLabels: value.chkLabels,
         inner: value.inner || '',
         danger: value.danger || false,
         loading: value.loading || false,
-        onClick: value.onClick || undefined
+        onClick: value.onClick,
+        columns: value.columns ? value.columns.map((col: any) => Column.copy(col)) : [],
+        mapper: value.mapper,
+        default: value.default,
+        onSaved: value.onSaved || ((record: any, extra: any) => {
+          console.log(record, extra)
+        }),
+        onDeleted: value.onDeleted || ((key: any, extra: any) => {
+          console.log(key, extra)
+        }),
       }
     }
   }
@@ -114,6 +135,16 @@ export class Column {
     this.dataIndex = dataIdx
     this.key = dataIdx
     this.slots = { customRender: dataIdx }
+  }
+
+  static copy (src: any, tgt?: Column): Column {
+    tgt = tgt || new Column('', '')
+    tgt.title = src.title || tgt.title
+    tgt.dataIndex = src.dataIndex || tgt.dataIndex
+    if (src.slots && src.slots.customRender) {
+      tgt.slots.customRender = src.slots.customRender
+    }
+    return tgt
   }
 }
 
@@ -366,48 +397,45 @@ export class Attr {
 }
 
 type NodeType = 'normal' | 'condition' | 'traversal'
-
 export class Node {
   key: string
+  title: string
   type: NodeType
-  inputs: [string, Attr][] // [0]参数 [1]槽
+  inputs: Attr[] // [0]参数 [1]槽
   outputs: Attr[]
   code: string
   previous: Node | null
-  nexts: Node[]
-  posLT: [number, number] // [0]左坐标 [1]顶坐标
-  sizeWH: [number, number] // [0]宽度 [1]高度
+  nexts: (Node | string)[]
 
   constructor () {
     this.key = ''
+    this.title = ''
     this.type = 'normal'
     this.inputs = []
     this.outputs = []
     this.code = ''
     this.previous = null
     this.nexts = []
-    this.posLT = [-1, -1]
-    this.sizeWH = [0, 0]
   }
 
   reset () {
     this.key = ''
+    this.title = ''
     this.type = 'normal'
     this.inputs = []
     this.outputs = []
     this.code = ''
     this.previous = null
     this.nexts = []
-    this.posLT = [-1, -1]
-    this.sizeWH = [0, 0]
   }
 
   static copy (src: any, tgt?: Node): Node {
     tgt = tgt || new Node()
-    tgt.key = src._id || tgt.key
+    tgt.title = src.title || tgt.title
+    tgt.key = src.key || src._id || tgt.key
     tgt.type = src.type || tgt.type
     if (src.inputs && src.inputs.length) {
-      tgt.inputs = src.inputs.map((ipt: any) => [ipt[0], Attr.copy(ipt[1])])
+      tgt.inputs = src.inputs.map((ipt: any) => Attr.copy(ipt))
     }
     if (src.outputs && src.outputs.length) {
       tgt.outputs = src.outputs.map((opt: any) => Attr.copy(opt))
@@ -419,11 +447,9 @@ export class Node {
     if (src.nexts && src.nexts.length) {
       tgt.nexts = []
       for (const nxt of src.nexts) {
-        tgt.nexts.push(Node.copy(nxt))
+        tgt.nexts.push(typeof nxt === 'string' ? nxt : Node.copy(nxt))
       }
     }
-    tgt.posLT = src.posLT || tgt.posLT
-    tgt.sizeWH = src.sizeWH || tgt.sizeWH
     return tgt
   }
 }
@@ -436,14 +462,16 @@ export class Route {
   constructor () {
     this.key = ''
     this.method = ''
-    this.flow = new Node()
+    this.flow = null
   }
 
   static copy (src: any, tgt?: Route): Route {
     tgt = tgt || new Route()
     tgt.key = src._id || tgt.key
     tgt.method = src.method || tgt.method
-    tgt.flow = src.flow || tgt.flow
+    if (src.flow) {
+      tgt.flow = Node.copy(src.flow)
+    }
     return tgt
   }
 }

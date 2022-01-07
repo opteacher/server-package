@@ -32,15 +32,11 @@
         @delete="onRouteDel"
       >
         <template #path="{ record: route }">
-          {{ genPathByRoute(route.method, `${editProj.current.path}/${route.name}`) }}
+          {{ genPathByRoute(route.method, `${editProj.current.path}/${model.name}`) }}
         </template>
         <template #flow="{ record: route }">
           <a-button @click="() => {
-            router.push([
-            `/project/${editProj.current.key}`,
-            `/model/${model.key}`,
-            `/flow/${route.key}`
-            ].join(''))
+            router.push(`/flow/${route.key}`)
           }">
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
@@ -80,7 +76,12 @@ export default defineComponent({
 
     onMounted(() => editProj.refresh(pid))
 
-    async function onProjectChange (operChild: any, parent: [string, any], child: [string, any]) {
+    async function onProjectChange (
+      operChild: any,
+      parent: [string, any],
+      child: [string, any],
+      ignores?: string[]
+    ) {
       if (operChild) {
         if (operChild.key) {
           // 更新
@@ -88,30 +89,30 @@ export default defineComponent({
           return editProj.refresh()
         } else {
           // 新增
-          const newOne = (await reqPost(child[0], operChild)).data
+          const newOne = (await reqPost(child[1], operChild, { ignores })).data
           child[1] = newOne._id
         }
       }
       await reqLink({ parent, child }, operChild as boolean)
-      await editProj.refresh()
+      return editProj.refresh()
     }
     function onModelSave (model: Model) {
-      onProjectChange(model, ['project', pid], ['model', ''])
+      onProjectChange(model, ['project', pid], ['models', 'model'])
     }
     function onModelDel (iden: any) {
-      onProjectChange(null, ['project', pid], ['model', iden])
+      onProjectChange(null, ['project', pid], ['models', iden])
     }
     function onPropSave (prop: Property, mid: string) {
-      onProjectChange(prop, ['model', mid], ['property', ''])
+      onProjectChange(prop, ['model', mid], ['props', 'property'])
     }
-    async function onPropDel (iden: any, mid: string) {
-      onProjectChange(null, ['model', mid], ['property', iden])
+    function onPropDel (iden: any, mid: string) {
+      onProjectChange(null, ['model', mid], ['props', iden])
     }
-    async function onRouteSave (route: Route, mid: string) {
-      onProjectChange(route, ['model', mid], ['route', ''])
+    function onRouteSave (route: Route, mid: string) {
+      onProjectChange(route, ['model', mid], ['routes', 'route'], ['flow'])
     }
     function onRouteDel (iden: any, mid: string) {
-      onProjectChange(null, ['model', mid], ['route', iden])
+      onProjectChange(null, ['model', mid], ['routes', iden])
     }
     function genPathByRoute (method: string, path: string): string {
       switch (method) {

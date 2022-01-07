@@ -87,10 +87,14 @@ export function reqPut (path: string, iden: any, body: any, options?: RequestOpt
   return makeRequest(axios.put(`/server-package/mdl/v1/${path}/${iden}`, body), options)
 }
 
-export function reqLink (body: {
-  parent: [string, any],
-  child: [string, any],
-}, link = true, options?: RequestOptions): Promise<any> {
+export function reqLink (
+  body: {
+    parent: [string, any],
+    child: [string, any],
+  },
+  link = true,
+  options?: RequestOptions
+): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -107,6 +111,10 @@ export function reqLink (body: {
     '/server-package/mdl/v1',
     body.parent[0], body.parent[1],
     body.child[0], body.child[1]
-  ].join('/') + `?link=${link ? '1' : ''}`
-  return makeRequest(axios.put(url), options)
+  ].join('/')
+  if (link) {
+    return makeRequest(axios.put(url), options)
+  } else {
+    return makeRequest(axios.delete(url), options)
+  }
 }

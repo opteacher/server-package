@@ -10,6 +10,6 @@ export default db.defineModel({
   models: [{ type: db.PropTypes.Id, ref: 'model' }]
 }, {
   router: {
-    methods: ['POST', 'ALL', 'GET', 'PUT']
+    methods: ['POST', 'ALL', 'GET', 'PUT', 'LINK']
   }
 })

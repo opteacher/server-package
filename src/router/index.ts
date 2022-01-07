@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
     component: Project
   },
   {
-    path: '/project/:pid/model/:mid/flow/:rid',
+    path: '/flow/:rid',
     name: 'Flow',
     component: Flow
   }

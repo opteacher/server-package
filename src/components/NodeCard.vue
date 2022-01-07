@@ -1,11 +1,13 @@
 <template>
 <a-card
+  v-if="!noCard"
   size="small"
   ref="nodeRef"
   :bordered="false"
-  title="Small size card"
-  class="step-card"
+  :title="node.title"
   :style="{
+    position: 'absolute',
+    width: `${CardWidth}px`,
     left: `${node.posLT[0]}px`,
     top: `${node.posLT[1]}px`,
   }"
@@ -17,108 +19,96 @@
     border: '1px solid #f0f0f0'
   }"
   hoverable
-  @click="onCardClicked"
+  @click="$emit('click:card')"
 >
-  <template #extra><a href="#">more</a></template>
   <a-row type="flex">
-    <a-col flex="50px">
-      <a-list size="small" :data-source="Object.values(node.inputs)">
-        <template #renderItem="{ item: input }">
-          <a-list-item>{{ input[1].name }}</a-list-item>
-        </template>
-      </a-list>
+    <a-col flex="10px">
+      <a-tag
+        v-for="input in node.inputs"
+        :key="input.key" color="#108ee9"
+      >{{ input.name }}</a-tag>
     </a-col>
     <a-col flex="auto">
       <a-card style="margin: 0 12px; height: 100%">
         <p>Code</p>
       </a-card>
     </a-col>
-    <a-col flex="50px">
-      <a-list size="small" :data-source="node.outputs">
-        <template #renderItem="{ item: output }">
-          <a-list-item>{{ output.name }}</a-list-item>
-        </template>
-      </a-list>
+    <a-col flex="10px">
+      <a-tag
+        v-for="output in node.outputs"
+        :key="output.key" color="#87d068"
+      >{{ output.name }}</a-tag>
     </a-col>
   </a-row>
 </a-card>
-<a-button class="add-button" type="primary" shape="circle" :style="{
-  left: `${addBtnPosLT[0]}px`, top: `${addBtnPosLT[1]}px`
-}">
+<a-button type="primary" shape="circle" :style="{
+  position: 'absolute',
+  left: `${addBtnPosLT[0]}px`,
+  top: `${addBtnPosLT[1]}px`
+}" @click="$emit('click:addBtn', node)">
   <template #icon><PlusOutlined/></template>
 </a-button>
-<svg class="step-link" :style="{
-  left: `${arwSvgPosLT[0]}px`, top: `${arwSvgPosLT[1]}px`,
+<svg v-if="!noCard" :style="{
+  position: 'absolute',
+  'z-index': -100,
+  width: `${CardWidth}px`,
+  left: `${arwSvgPosLT[0]}px`,
+  top: `${arwSvgPosLT[1]}px`,
 }">
   <line
     stroke-width="2"
     stroke="#f0f0f0"
-    x1="250" y1="0"
-    x2="250" y2="100"
+    :x1="CardWidth >> 1" y1="0"
+    :x2="CardWidth >> 1" :y2="ArrowHeight"
   />
 </svg>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from 'vue'
-import { Node } from '../common'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
+import { AddBtnWH, ArrowHeight, CardWidth } from '@/views/Flow'
 export default defineComponent({
   name: 'NodeCard',
   emits: [
     'update:size',
-    'click',
+    'click:card',
+    'click:addBtn'
   ],
   components: {
     PlusOutlined
   },
   props: {
-    node: { type: Node, required: true }
+    node: { type: Object, default: null },
+    noCard: { type: Boolean, default: false },
+    pnlWid: { type: Number, default: 0 },
   },
   setup (props, { emit }) {
     const nodeRef = ref()
-    const addBtnPosLT = computed(() => [
-      props.node.posLT[0] + (props.node.sizeWH[0] >> 1) - 16,
-      props.node.posLT[1] + props.node.sizeWH[1] + 50 - 16
+    const addBtnPosLT = computed(() => props.node ? [
+      props.node.posLT[0] + (CardWidth >> 1) - (AddBtnWH >> 1),
+      props.node.posLT[1] + props.node.sizeWH[1] + (ArrowHeight >> 1) - (AddBtnWH >> 1)
+    ] : [
+      (props.pnlWid >> 1) - (AddBtnWH >> 1), 0
     ])
-    const arwSvgPosLT = computed(() => [
+    const arwSvgPosLT = computed(() => props.node ? [
       props.node.posLT[0],
       props.node.posLT[1] + props.node.sizeWH[1]
-    ])
+    ] : [0, 0])
 
     onMounted(() => {
-      emit('update:size', [
+      emit('update:size', nodeRef.value ? [
         nodeRef.value.$el.clientWidth,
         nodeRef.value.$el.clientHeight
-      ])
+      ] : [CardWidth, 0])
     })
-
-    function onCardClicked () {
-      emit('click')
-    }
     return {
+      CardWidth,
+      ArrowHeight,
       nodeRef,
       addBtnPosLT,
-      arwSvgPosLT,
-
-      onCardClicked
+      arwSvgPosLT
     }
   }
 })
 </script>
-
-<style lang="less" scoped>
-.step-card {
-  position: absolute;
-  width: 500px;
-}
-.add-button {
-  position: absolute;
-}
-.step-link {
-  position: absolute;
-  width: 500px;
-  height: 100px;
-  z-index: -100;
-}
-</style>
