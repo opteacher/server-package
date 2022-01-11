@@ -1,6 +1,6 @@
 <template>
 <a-card
-  v-if="!noCard"
+  v-if="!first"
   size="small"
   ref="nodeRef"
   :bordered="false"
@@ -48,7 +48,7 @@
 }" @click="$emit('click:addBtn', node)">
   <template #icon><PlusOutlined/></template>
 </a-button>
-<svg v-if="!noCard" :style="{
+<svg v-if="!first" :style="{
   position: 'absolute',
   'z-index': -100,
   width: `${CardWidth}px`,
@@ -58,8 +58,8 @@
   <line
     stroke-width="2"
     stroke="#f0f0f0"
-    :x1="CardWidth >> 1" y1="0"
-    :x2="CardWidth >> 1" :y2="ArrowHeight"
+    :x1="CardHlfWid" y1="0"
+    :x2="CardHlfWid" :y2="ArrowHeight"
   />
 </svg>
 </template>
@@ -67,7 +67,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { AddBtnWH, ArrowHeight, CardWidth } from '@/views/Flow'
+import { AddBtnWH, AddBtnHlfWH, ArrowHeight, ArrowHlfHgt, CardWidth, CardHlfWid } from '@/views/Flow'
 export default defineComponent({
   name: 'NodeCard',
   emits: [
@@ -80,16 +80,16 @@ export default defineComponent({
   },
   props: {
     node: { type: Object, default: null },
-    noCard: { type: Boolean, default: false },
+    first: { type: Boolean, default: false },
     pnlWid: { type: Number, default: 0 },
   },
   setup (props, { emit }) {
     const nodeRef = ref()
     const addBtnPosLT = computed(() => props.node ? [
-      props.node.posLT[0] + (CardWidth >> 1) - (AddBtnWH >> 1),
-      props.node.posLT[1] + props.node.sizeWH[1] + (ArrowHeight >> 1) - (AddBtnWH >> 1)
+      props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
+      props.node.posLT[1] + props.node.sizeWH[1] + ArrowHlfHgt - AddBtnHlfWH
     ] : [
-      (props.pnlWid >> 1) - (AddBtnWH >> 1), 0
+      (props.pnlWid >> 1) - AddBtnHlfWH, 0
     ])
     const arwSvgPosLT = computed(() => props.node ? [
       props.node.posLT[0],
@@ -104,6 +104,7 @@ export default defineComponent({
     })
     return {
       CardWidth,
+      CardHlfWid,
       ArrowHeight,
       nodeRef,
       addBtnPosLT,

@@ -3,7 +3,7 @@
   <div class="flow-panel" ref="panelRef">
     <NodeCard
       v-if="Object.values(nodes).length === 0"
-      :noCard="true"
+      :first="true"
       :pnlWid="pnlWid"
       @click:addBtn="onAddBtnClicked"
     />
@@ -25,6 +25,7 @@
     :show="editNode.show"
     :mapper="editNode.mapper"
     :object="editNode.current"
+    :copy="Node.copy"
     @update:show="(show) => editNode.show = show"
     @submit="onNodeSaved"
   />
@@ -40,6 +41,7 @@ import { Node, Route } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ArrowHeight, CardWidth, EditNodeFormDlg, NodeInPnl } from './Flow'
 import { reqGet } from '@/utils'
+
 export default defineComponent({
   name: 'Flow',
   components: {
@@ -84,15 +86,15 @@ export default defineComponent({
       }
     }
     async function buildNodes (ndKey: string, height: number) {
-      const rawNode = (await reqGet('node', ndKey)).data
+      const data = (await reqGet('node', ndKey)).data
       let node: NodeInPnl
       if (!(ndKey in nodes)) {
-        node = Object.assign(Node.copy(rawNode), {
+        node = Object.assign(Node.copy(data), {
           posLT: [-1, -1], sizeWH: [0, 0]
         }) as NodeInPnl
         nodes[ndKey] = node
       } else {
-        Node.copy(rawNode, nodes[ndKey])
+        Node.copy(data, nodes[ndKey])
         node = nodes[ndKey]
       }
       if (!node.previous) {
@@ -127,17 +129,14 @@ export default defineComponent({
       editNode.show = true
     }
     function onNodeSaved (node: Node) {
-      console.log(node)
-      if (node.key) {
-        return Promise.resolve()
-      }
       if (node.previous && node.previous.key) {
-        editNode.createNode(node.previous)
+        editNode.saveNode(node.previous)
       } else {
-        editNode.createNode(route.params.rid as string)
+        editNode.saveNode(route.params.rid as string)
       }
     }
     return {
+      Node,
       nodes,
       current,
       editNode,

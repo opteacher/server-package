@@ -48,11 +48,9 @@ app.use(models.routes()).use(models.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
 // 指定页面目录
-app.use(views('./public/server-package', {extension: 'html'}))
+app.use(views('./views', {extension: 'html'}))
 // 以页面路由结尾
-app.use(async ctx => {
-  await ctx.render('index')
-})
+app.use(ctx => ctx.render('index'))
 
 app.listen(process.env.PORT || 4000, undefined, () => {
   console.log(`服务已部署，占用端口：${process.env.PORT || 4000}`)

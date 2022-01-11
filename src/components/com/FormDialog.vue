@@ -88,9 +88,10 @@
         >
           <EditTable
             class="w-100"
+            size="small"
             :cols="value.columns"
             :data="formState[key]"
-            :dftRecord="value.default"
+            :copy="value.copy"
             :dataMapper="value.mapper"
             @save="value.onSaved"
             @delete="value.onDeleted"

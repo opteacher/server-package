@@ -1,9 +1,8 @@
-import { baseTypes, Column, Mapper, Model, Property, Route, routeMethods } from '@/common'
+import { baseTypes, Column, Cond, Mapper, routeMethods } from '@/common'
 
 export class ModelTable {
   columns: Column[]
   mapper: Mapper
-  current: Model
   expandeds: string[]
 
   constructor() {
@@ -25,7 +24,6 @@ export class ModelTable {
         expanded: true
       }
     })
-    this.current = new Model()
     this.expandeds = []
   }
 }
@@ -33,7 +31,6 @@ export class ModelTable {
 export class PropTable {
   columns: Column[]
   mapper: Mapper
-  current: Property
 
   constructor() {
     this.columns = [
@@ -68,14 +65,12 @@ export class PropTable {
         type: 'Switch'
       }
     })
-    this.current = new Property()
   }
 }
 
 export class RouteTable {
   columns: Column[]
   mapper: Mapper
-  current: Route
 
   constructor() {
     this.columns = [
@@ -89,9 +84,10 @@ export class RouteTable {
         type: 'Select',
         options: routeMethods
       },
-      path: {},
+      path: {
+        type: 'Input',
+      },
       flow: {}
     })
-    this.current = new Route()
   }
 }

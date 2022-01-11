@@ -5,7 +5,7 @@
     :data="editProj.current.models"
     :cols="modelTable.columns"
     :dataMapper="modelTable.mapper"
-    :dftRecord="modelTable.current"
+    :copy="Model.copy"
     v-model:expanded-row-keys="modelTable.expandeds"
     @save="onModelSave"
     @delete="onModelDel"
@@ -17,7 +17,7 @@
         :data="model.props"
         :cols="propTable.columns"
         :dataMapper="propTable.mapper"
-        :dftRecord="propTable.current"
+        :copy="Property.copy"
         @save="onPropSave"
         @delete="onPropDel"
       />
@@ -27,13 +27,13 @@
         :data="model.routes"
         :cols="routeTable.columns"
         :dataMapper="routeTable.mapper"
-        :dftRecord="routeTable.current"
+        :copy="Route.copy"
         @save="onRouteSave"
         @delete="onRouteDel"
       >
-        <template #path="{ record: route }">
+        <!-- <template #path="{ record: route }">
           {{ genPathByRoute(route.method, `${editProj.current.path}/${model.name}`) }}
-        </template>
+        </template> -->
         <template #flow="{ record: route }">
           <a-button @click="() => {
             router.push(`/flow/${route.key}`)
@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import { Model, Property, Route } from '@/common'
-import { reqLink, reqPost, reqPut } from '@/utils'
+import { reqDelete, reqLink, reqPost, reqPut } from '@/utils'
 import { defineComponent, onMounted, reactive } from 'vue'
 import { ApartmentOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -82,16 +82,19 @@ export default defineComponent({
       child: [string, any],
       ignores?: string[]
     ) {
-      if (operChild) {
+      if (typeof operChild !== 'string') {
         if (operChild.key) {
           // 更新
-          await reqPut(child[0], operChild.key, operChild)
+          await reqPut(child[1], operChild.key, operChild)
           return editProj.refresh()
         } else {
           // 新增
           const newOne = (await reqPost(child[1], operChild, { ignores })).data
           child[1] = newOne._id
         }
+      } else {
+        // 删除
+        await reqDelete(operChild, child[1])
       }
       await reqLink({ parent, child }, operChild as boolean)
       return editProj.refresh()
@@ -100,19 +103,19 @@ export default defineComponent({
       onProjectChange(model, ['project', pid], ['models', 'model'])
     }
     function onModelDel (iden: any) {
-      onProjectChange(null, ['project', pid], ['models', iden])
+      onProjectChange('model', ['project', pid], ['models', iden])
     }
     function onPropSave (prop: Property, mid: string) {
       onProjectChange(prop, ['model', mid], ['props', 'property'])
     }
     function onPropDel (iden: any, mid: string) {
-      onProjectChange(null, ['model', mid], ['props', iden])
+      onProjectChange('property', ['model', mid], ['props', iden])
     }
     function onRouteSave (route: Route, mid: string) {
       onProjectChange(route, ['model', mid], ['routes', 'route'], ['flow'])
     }
     function onRouteDel (iden: any, mid: string) {
-      onProjectChange(null, ['model', mid], ['routes', iden])
+      onProjectChange('route', ['model', mid], ['routes', iden])
     }
     function genPathByRoute (method: string, path: string): string {
       switch (method) {
@@ -129,6 +132,10 @@ export default defineComponent({
       }
     }
     return {
+      Model,
+      Property,
+      Route,
+
       router,
       editProj,
       modelTable,

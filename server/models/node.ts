@@ -11,6 +11,6 @@ export default db.defineModel({
   nexts: [{ type: db.PropTypes.Id, ref: 'node' }],
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'ALL', 'GET', 'LINK']
+    methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT', 'LINK']
   }
 })

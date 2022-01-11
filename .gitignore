@@ -2,7 +2,6 @@ data/
 .DS_Store
 node_modules
 dist
-./server/public/server-package
 
 
 # local env files

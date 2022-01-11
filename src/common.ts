@@ -24,7 +24,7 @@ export class Cond {
     }
   }
 
-  public static copy (src: any, tgt?: Cond): Cond {
+  static copy (src: any, tgt?: Cond): Cond {
     tgt = tgt || new Cond()
     tgt.key = src.key || tgt.key
     tgt.cmp = src.cmp || tgt.cmp
@@ -69,7 +69,7 @@ export class Mapper {
     // type = Table
     columns?: Column[]
     mapper?: Mapper
-    default?: any
+    copy?: (one: any) => any
     onSaved?: (record: any, extra?: any) => void
     onDeleted?: (key: any, extra?: any) => void
   }
@@ -110,7 +110,7 @@ export class Mapper {
         onClick: value.onClick,
         columns: value.columns ? value.columns.map((col: any) => Column.copy(col)) : [],
         mapper: value.mapper,
-        default: value.default,
+        copy: value.copy,
         onSaved: value.onSaved || ((record: any, extra: any) => {
           console.log(record, extra)
         }),
@@ -185,7 +185,7 @@ export class Project {
 
   static copy (src: any, tgt?: Project): Project {
     tgt = tgt || new Project()
-    tgt.key = src._id || tgt.key
+    tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
@@ -292,7 +292,7 @@ export class Property {
       tgt.key = src
       return tgt
     }
-    tgt.key = src._id || tgt.key
+    tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.type = src.type || tgt.type
     tgt.index = src.index || tgt.index
@@ -334,7 +334,7 @@ export class Model {
       tgt.key = src
       return tgt
     }
-    tgt.key = src._id || tgt.key
+    tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.logTime = src.logTime || tgt.logTime
     if (src.props) {
@@ -358,7 +358,7 @@ export const routeMethods = [
 ]
 
 export type BaseTypes = 'Unknown' | 'Number' | 'String' | 'Boolean' | 'Array' | 'Map'
-export class Attr {
+export class Variable {
   key: string
   name: string
   type: BaseTypes | Model
@@ -384,9 +384,9 @@ export class Attr {
     this.required = false
   }
 
-  static copy (src: any, tgt?: Attr): Attr {
-    tgt = tgt || new Attr()
-    tgt.key = src._id || tgt.key
+  static copy (src: any, tgt?: Variable): Variable {
+    tgt = tgt || new Variable()
+    tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.type = src.type || tgt.type
     tgt.value = src.value || tgt.value
@@ -397,17 +397,18 @@ export class Attr {
 }
 
 type NodeType = 'normal' | 'condition' | 'traversal'
-export class Node {
+export class Node extends StrIterable {
   key: string
   title: string
   type: NodeType
-  inputs: Attr[] // [0]参数 [1]槽
-  outputs: Attr[]
+  inputs: Variable[] // [0]参数 [1]槽
+  outputs: Variable[]
   code: string
   previous: Node | null
   nexts: (Node | string)[]
 
   constructor () {
+    super()
     this.key = ''
     this.title = ''
     this.type = 'normal'
@@ -431,20 +432,20 @@ export class Node {
 
   static copy (src: any, tgt?: Node): Node {
     tgt = tgt || new Node()
-    tgt.title = src.title || tgt.title
     tgt.key = src.key || src._id || tgt.key
+    tgt.title = src.title || tgt.title
     tgt.type = src.type || tgt.type
-    if (src.inputs && src.inputs.length) {
-      tgt.inputs = src.inputs.map((ipt: any) => Attr.copy(ipt))
+    if (typeof src.inputs !== 'undefined') {
+      tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
     }
-    if (src.outputs && src.outputs.length) {
-      tgt.outputs = src.outputs.map((opt: any) => Attr.copy(opt))
+    if (typeof src.outputs !== 'undefined') {
+      tgt.outputs = src.outputs.map((opt: any) => Variable.copy(opt))
     }
     tgt.code = src.code || tgt.code
     if (src.previous) {
       tgt.previous = Node.copy(src.previous)
     }
-    if (src.nexts && src.nexts.length) {
+    if (typeof src.nexts !== 'undefined') {
       tgt.nexts = []
       for (const nxt of src.nexts) {
         tgt.nexts.push(typeof nxt === 'string' ? nxt : Node.copy(nxt))
@@ -457,18 +458,28 @@ export class Node {
 export class Route {
   key: string
   method: string
+  path: string
   flow: Node | null
 
   constructor () {
     this.key = ''
     this.method = ''
+    this.path = ''
+    this.flow = null
+  }
+
+  reset () {
+    this.key = ''
+    this.method = ''
+    this.path = ''
     this.flow = null
   }
 
   static copy (src: any, tgt?: Route): Route {
     tgt = tgt || new Route()
-    tgt.key = src._id || tgt.key
+    tgt.key = src.key || src._id || tgt.key
     tgt.method = src.method || tgt.method
+    tgt.path = src.path || tgt.path
     if (src.flow) {
       tgt.flow = Node.copy(src.flow)
     }
@@ -507,7 +518,7 @@ export class DataBase {
 
   static copy (src: any, tgt?: DataBase): DataBase {
     tgt = tgt || new DataBase()
-    tgt.key = src._id || tgt.key
+    tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.dbs = src.dbs || tgt.dbs
     tgt.host = src.host || tgt.host

@@ -1,7 +1,7 @@
 <template>
 <div class="white-bkgd mb-10">
   <a-space class="p-10">
-    <a-button v-if="addable" type="primary" @click="addMod = true">
+    <a-button v-if="addable" type="primary" @click="editing.key = ''">
       添加{{title}}
     </a-button>
     <template v-if="description">
@@ -10,20 +10,21 @@
     </template>
   </a-space>
   <a-table
-    :dataSource="dataSource"
+    :dataSource="dataSrc"
     :columns="columns"
     :pagination="false"
+    :size="size"
     style="overflow-y: hidden;"
   >
     <template
       v-for="(value, key) in dataMapper"
       :key="key"
-      #[key]="{ index, text, record }"
+      #[key]="{ text, record }"
     >
       <template v-if="value.type === 'Input'">
         <a-input
-          v-if="index === edtKey"
-          v-model:value="edtRecord[key]"
+          v-if="record.key === editing.key"
+          v-model:value="editing[key]"
           :placeholder="`输入${value.label}`"
         />
         <template v-else-if="$slots[key]">
@@ -33,8 +34,8 @@
       </template>
       <template v-else-if="value.type === 'Select'">
         <a-select class="w-100"
-          v-if="index === edtKey"
-          v-model:value="edtRecord[key]"
+          v-if="record.key === editing.key"
+          v-model:value="editing[key]"
           :placeholder="`选择${value.label}`"
         >
           <a-select-option
@@ -52,8 +53,8 @@
       </template>
       <template v-else-if="value.type === 'Checkbox'">
         <a-checkbox-group
-          v-if="index === edtKey"
-          v-model="edtRecord[key]"
+          v-if="record.key === editing.key"
+          v-model="editing[key]"
           :options="value.options"
         />
         <template v-else-if="$slots[key]">
@@ -63,10 +64,10 @@
       </template>
       <template v-else-if="value.type === 'Switch'">
         <a-checkbox
-          v-if="index === edtKey"
-          v-model:checked="edtRecord[key]"
+          v-if="record.key === editing.key"
+          v-model:checked="editing[key]"
         >
-          {{edtRecord[key] ? (
+          {{editing[key] ? (
             value.chkLabels ? value.chkLabels[1] : '是'
           ) : (
             value.chkLabels ? value.chkLabels[0] : '否'
@@ -85,8 +86,8 @@
       </template>
       <template v-else-if="value.type === 'Cascader'">
         <a-cascader
-          v-if="index === edtKey"
-          v-model:value="edtRecord[key]"
+          v-if="record.key === editing.key"
+          v-model:value="editing[key]"
           :options="value.options"
           :placeholder="`选择${value.label}`"
         />
@@ -106,8 +107,8 @@
         </template>
       </template>
     </template>
-    <template #action="{ index, record }">
-      <template v-if="index === edtKey">
+    <template #action="{ record }">
+      <template v-if="record.key === editing.key">
         <ul class="unstyled-list">
           <li class="mb-3">
             <a-button
@@ -126,7 +127,7 @@
         <ul class="unstyled-list">
           <li v-if="editable" class="mb-3">
             <a-button size="small"
-              @click="onEditClicked(index, record)"
+              @click="onEditClicked(record)"
             >编辑</a-button>
           </li>
           <li>
@@ -149,8 +150,9 @@
 
 <script lang="ts">
 import { Mapper } from '@/common'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, nextTick, reactive, ref, watch, watchEffect } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
+
 export default defineComponent({
   name: 'EditableTable',
   emits: ['add', 'save', 'delete'],
@@ -162,60 +164,47 @@ export default defineComponent({
     description: { type: String, default: '' },
     extra: { default: undefined },
     cols: { type: Array, required: true },
+    size: { type: String, default: 'default' },
     data: { type: Array, required: true },
+    copy: { type: Function, required: true },
     sclHeight: { type: Number, default: 300 },
-    dftRecord: { type: Object, default: () => ({}) },
     dataMapper: { type: Mapper, required: true },
     editable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true }
   },
   setup (props, { emit }) {
-    const addMod = ref(false)
-    const edtKey = ref(-1)
     const columns = props.cols.concat({
       title: '操作',
       dataIndex: 'action',
       slots: { customRender: 'action' },
       width: 80
     })
-    const dataSource = computed(() => props.data)
-    const edtRecord = ref(props.dftRecord)
-
-    watch(() => addMod.value, () => {
-      if (addMod.value) {
-        dataSource.value.unshift(props.dftRecord)
-        edtKey.value = 0
-      } else {
-        dataSource.value.shift()
-        edtKey.value = -1
-      }
+    const propData = ref(props.data)
+    const dataSrc = computed(() => {
+      return (editing.key === '' ? [editing] : []).concat(propData.value)
     })
+    const editing = reactive(props.copy({ key: '#' }))
 
-    function onAddClicked () {
-      addMod.value = true
-      edtKey.value = 0
+    function refresh (data?: any[]) {
+      if (typeof data !== 'undefined') {
+        propData.value = data
+      }
+      editing.reset()
+      editing.key = '#'
     }
     function onSaveSubmit () {
-      emit('save', edtRecord.value, props.extra)
-      reset(true)
+      emit('save', editing, props.extra, refresh)
+      refresh()
     }
     function onCclClicked () {
-      reset()
+      refresh()
     }
-    function onEditClicked (index: number, record: any) {
-      edtKey.value = index
-      edtRecord.value = record
+    function onEditClicked (record: any) {
+      props.copy(record, editing)
     }
     function onDelSubmit (key: any) {
-      emit('delete', key, props.extra)
-      reset(true)
-    }
-    function reset (reset = false) {
-      addMod.value = false
-      edtKey.value = -1
-      if (reset) {
-        edtRecord.value.reset()
-      }
+      emit('delete', key, props.extra, refresh)
+      refresh()
     }
     function hasExpand () {
       for (const [_key, value] of Object.entries(props.dataMapper)) {
@@ -226,13 +215,10 @@ export default defineComponent({
       return false
     }
     return {
-      addMod,
       columns,
-      dataSource,
-      edtKey,
-      edtRecord,
+      dataSrc,
+      editing,
 
-      onAddClicked,
       onSaveSubmit,
       onCclClicked,
       onEditClicked,

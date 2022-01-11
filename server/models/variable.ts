@@ -9,6 +9,6 @@ export default db.defineModel({
   required: db.PropTypes.Boolean
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'ALL', 'GET']
+    methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT']
   }
 })

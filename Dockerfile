@@ -1,10 +1,26 @@
 FROM node:latest
 ENV ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
+WORKDIR /tmp
+COPY . /tmp
+RUN npm config set registry http://registry.npm.taobao.org
+RUN cd /tmp/server \
+  && npm install --unsafe-perm=true --allow-root \
+  && npm run build
+COPY ./configs/ ./dist/configs/
+COPY ./resources/ ./dist/resources/
+RUN cd /tmp \
+  && npm install --unsafe-perm=true --allow-root \
+  && npm run build
+RUN cd /tmp/server/dist \
+  && mkdir ./views \
+  && mv ./public/server-package/index.html ./views/index.html
+
+FROM node:latest
+ENV ENV prod
+ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /app
-COPY ./server/dist/ /app/
-COPY ./server/configs/ /app/configs/
-COPY ./server/resources/ /app/resources/
+COPY --from=0 /tmp/server/dist/ /app/
 RUN npm config set registry http://registry.npm.taobao.org \
   && npm install --unsafe-perm=true --allow-root
 EXPOSE 4000
