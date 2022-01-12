@@ -7,8 +7,8 @@ RUN npm config set registry http://registry.npm.taobao.org
 RUN cd /tmp/server \
   && npm install --unsafe-perm=true --allow-root \
   && npm run build \
-  && cp /tmp/server/configs/ /tmp/server/dist/configs/ \
-  && cp /tmp/server/resources/ /tmp/server/dist/resources/
+  && cp -r /tmp/server/configs/ /tmp/server/dist/configs/ \
+  && cp -r /tmp/server/resources/ /tmp/server/dist/resources/
 RUN cd /tmp \
   && npm install --unsafe-perm=true --allow-root \
   && npm run build \
