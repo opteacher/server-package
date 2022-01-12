@@ -13,6 +13,7 @@ services:
     image: mysql
     container_name: mysql
     restart: unless-stopped
+    privileged: true
     ports:
       - 3306:3306
     environment:
@@ -25,6 +26,7 @@ services:
     image: mongo
     container_name: mongo
     restart: unless-stopped
+    privileged: true
     ports:
       - 27017:27017
     environment:
