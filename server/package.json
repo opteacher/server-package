@@ -44,6 +44,7 @@
 		"@types/koa-static": "^4.0.2",
 		"@types/koa2-cors": "^2.0.2",
 		"@types/lodash": "^4.14.178",
+		"@types/node": "^16.11.19",
 		"@types/sequelize": "^4.28.10",
 		"@types/uuid": "^8.3.1",
 		"cross-env": "^7.0.3",
