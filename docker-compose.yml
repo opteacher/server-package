@@ -7,7 +7,7 @@ services:
     ports:
       - 3306:3306
     networks:
-      - server-package
+      - network
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
@@ -21,7 +21,7 @@ services:
     ports:
       - 27017:27017
     networks:
-      - server-package
+      - network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 12345
@@ -40,12 +40,12 @@ services:
       - mongo
       - mysql
     networks:
-      - server-package
+      - network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
 
 networks:
-  server-package:
+  network:
     driver: bridge
