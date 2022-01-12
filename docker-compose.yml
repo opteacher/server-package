@@ -1,14 +1,5 @@
 version: '3'
 services:
-  # nginx:
-  #   image: nginx
-  #   container_name: nginx
-  #   volumes:
-  #     - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
-  #   expose:
-  #     - "80"
-  #   network_mode: "host"
-
   mysql:
     image: mysql
     container_name: mysql
@@ -16,6 +7,8 @@ services:
     privileged: true
     ports:
       - 3306:3306
+    networks:
+      - server-package
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
@@ -29,26 +22,14 @@ services:
     privileged: true
     ports:
       - 27017:27017
+    networks:
+      - server-package
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 12345
     volumes:
       - ./data/mongo/db:/data/db
       - ./data/mongo/config:/data/config
-
-  # redis:
-  #   container_name: redis
-  #   image: redis:latest
-  #   restart: unless-stopped
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - databases
-  #   volumes:
-  #     - ./data/redis:/data:rw
-  #     - ./configs/redis.conf:/usr/local/etc/redis/redis.conf:rw
-  #   command:
-  #     /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
 
   '1':
     container_name: server-package
@@ -60,7 +41,13 @@ services:
     depends_on:
       - mongo
       - mysql
+    networks:
+      - server-package
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
+
+networks:
+  server-package:
+    driver: bridge
