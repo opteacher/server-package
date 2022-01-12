@@ -151,7 +151,9 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
   if (process.env.ENV !== 'prod') {
     return Promise.resolve()
   }
-  projects = await db.select(Project)
+  if (typeof projects === 'undefined') {
+    projects = await db.select(Project)
+  }
   const ngCfgTmp = Path.resolve('resources', 'ngTemp', 'nginx.conf')
   const ngCfgGen = Path.resolve('configs', 'nginx.conf')
   console.log(`调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
@@ -169,14 +171,18 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
   } catch (e) {
     console.log('无运行中的Nginx实例')
   }
-  const result = spawnSync([
+  spawnSync([
     'docker run --rm -itd ' + [
-      '--volumes-from server-package',
-      '--expose 80',
+      '-p 80:80',
+      '-p 443:443',
       '--net host',
       '--name nginx nginx',
+    ].join(' '), [
+      'docker container cp',
+      ngCfgGen,
+      'nginx:/etc/nginx/conf.d/default.conf'
     ].join(' '),
-    `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`
+    'docker container restart nginx'
   ].join(' && '), {
     stdio: 'inherit',
     shell: true,
