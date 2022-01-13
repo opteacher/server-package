@@ -8,15 +8,16 @@
       </a-col>
       <a-col flex="20vw">
         <div style="text-align: right">
-          <a-button type="primary" @click="editProj.show = true" :disabled="loading">
+          <a-button type="primary" @click="projForm.show = true" :disabled="loading">
             添加项目
           </a-button>
           <FormDialog
             title="添加项目"
-            :show="editProj.show"
-            :mapper="editProj.mapper"
-            :object="editProj.current"
-            @update:show="(show) => { editProj.show = show }"
+            :copy="Project.copy"
+            :show="projForm.show"
+            :mapper="projForm.mapper"
+            :object="projForm.editProj"
+            @update:show="(show) => { projForm.show = show }"
             @submit="onNewProjSubmit"
           />
         </div>
@@ -60,7 +61,7 @@ import { defineComponent, ref, onMounted, reactive } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { Project } from '@/common'
 import { makeRequest, reqGet, reqPost } from '../utils'
-import { EditProjFormDlg } from './Home'
+import { ProjForm } from './Home'
 import axios from 'axios'
 
 export default defineComponent({
@@ -70,13 +71,13 @@ export default defineComponent({
   },
   setup () {
     const projects = ref([])
-    const editProj = reactive(new EditProjFormDlg())
+    const projForm = reactive(new ProjForm())
     const loading = ref(false)
 
     onMounted(refresh)
 
     async function refresh () {
-      await editProj.initialize()
+      await projForm.initialize()
       projects.value = (await reqGet('projects')).data
     }
     async function onNewProjSubmit (project: Project) {
@@ -98,9 +99,11 @@ export default defineComponent({
       await refresh()
     }
     return {
-      projects,
-      editProj,
+      Project,
+
       loading,
+      projects,
+      projForm,
 
       onNewProjSubmit,
       onDelProjSubmit

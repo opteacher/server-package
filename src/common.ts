@@ -67,8 +67,9 @@ export class Mapper {
     onClick?: () => void
 
     // type = Table
-    columns?: Column[]
+    dsKey?: string
     mapper?: Mapper
+    columns?: Column[]
     copy?: (one: any) => any
     onSaved?: (record: any, extra?: any) => void
     onDeleted?: (key: any, extra?: any) => void
@@ -108,6 +109,7 @@ export class Mapper {
         danger: value.danger || false,
         loading: value.loading || false,
         onClick: value.onClick,
+        dsKey: value.dsKey || '',
         columns: value.columns ? value.columns.map((col: any) => Column.copy(col)) : [],
         mapper: value.mapper,
         copy: value.copy,
@@ -455,6 +457,17 @@ export class Node extends StrIterable {
   }
 }
 
+export const CardWidth = 300
+export const CardHlfWid = CardWidth >> 1
+export const ArrowHeight = 100
+export const ArrowHlfHgt = ArrowHeight >> 1
+export const AddBtnWH = 32
+export const AddBtnHlfWH = AddBtnWH >> 1
+
+export type NodeInPnl = Node & {
+  posLT: [number, number],
+  size: [number, number]
+}
 export class Route {
   key: string
   method: string

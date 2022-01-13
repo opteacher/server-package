@@ -1,10 +1,9 @@
 <template>
-<FlowDesign :route="current">
+<FlowDesign>
   <div class="flow-panel" ref="panelRef">
     <NodeCard
       v-if="Object.values(nodes).length === 0"
       :first="true"
-      :pnlWid="pnlWid"
       @click:addBtn="onAddBtnClicked"
     />
     <template v-else>
@@ -12,8 +11,7 @@
         v-for="node in Object.values(nodes)"
         :key="node.key"
         :node="node"
-        @update:size="(szWH) => onNodeSzUpdated(node, szWH)"
-        @click:card="() => onCardClicked(node)"
+        @click:card="() => nodeForm.setEditNode(node)"
         @click:addBtn="onAddBtnClicked"
       />
     </template>
@@ -22,11 +20,11 @@
     :title="editTitle"
     width="70vw"
     :column="[2, 22]"
-    :show="editNode.show"
-    :mapper="editNode.mapper"
-    :object="editNode.current"
     :copy="Node.copy"
-    @update:show="(show) => editNode.show = show"
+    :show="nodeForm.show"
+    :mapper="nodeForm.mapper"
+    :object="nodeForm.editNode"
+    @update:show="(show) => { nodeForm.show = show }"
     @submit="onNodeSaved"
   />
 </FlowDesign>
@@ -37,10 +35,10 @@ import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { Node, Route } from '../common'
+import { Node, NodeInPnl } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
-import { ArrowHeight, CardWidth, EditNodeFormDlg, NodeInPnl } from './Flow'
-import { reqGet } from '@/utils'
+import { NodeForm } from './Flow'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'Flow',
@@ -51,103 +49,48 @@ export default defineComponent({
   },
   setup () {
     const route = useRoute()
-    const current = reactive(new Route())
-    const nodes = reactive({} as {
-      [key: string]: NodeInPnl
-    })
+    const store = useStore()
     const panelRef = ref()
-    const editNode = reactive(new EditNodeFormDlg())
-    const pnlWid = computed(() => {
-      return panelRef.value ? panelRef.value.clientWidth : 0
-    })
+    const nodeForm = reactive(new NodeForm())
+    const nodes = computed(() => store.getters['route/nodes'])
     const editTitle = computed(() => {
-      if (editNode.current.key) {
-        return `编辑节点#${editNode.current.key}`
-      } else if (editNode.current.previous?.key) {
-        return `在节点#${editNode.current.previous.key}后新增节点`
+      if (nodeForm.editNode.key) {
+        return `编辑节点#${nodeForm.editNode.key}`
+      } else if (nodeForm.editNode.previous?.key) {
+        return `在节点#${nodeForm.editNode.previous.key}后新增节点`
       } else {
         return '在根节点后新增节点'
       }
     })
-
-    onMounted(refresh)
-    editNode.emitter.on('refresh', refresh)
-    editNode.emitter.on('update:show', (show: boolean) => {
-      editNode.show = show
-    })
-    editNode.emitter.on('remove:node', (key: string) => {
-      delete nodes[key]
+    const rszObs = new ResizeObserver(async () => {
+      store.commit('route/SET_WIDTH', panelRef.value?.clientWidth)
+      await store.dispatch('route/refresh', route.params.rid as string)
     })
 
-    async function refresh () {
-      Route.copy((await reqGet('route', route.params.rid)).data, current)
-      if (current && current.flow) {
-        await buildNodes(current.flow.key, 0)
-      }
-    }
-    async function buildNodes (ndKey: string, height: number) {
-      const data = (await reqGet('node', ndKey)).data
-      let node: NodeInPnl
-      if (!(ndKey in nodes)) {
-        node = Object.assign(Node.copy(data), {
-          posLT: [-1, -1], sizeWH: [0, 0]
-        }) as NodeInPnl
-        nodes[ndKey] = node
-      } else {
-        Node.copy(data, nodes[ndKey])
-        node = nodes[ndKey]
-      }
-      if (!node.previous) {
-        node.posLT[0] = pnlWid.value >> 1
-      } else {
-        const nexts = node.previous.nexts
-        const index = nexts.indexOf(node.key) + 1
-        const size = nexts.length + 1
-        node.posLT[0] = (index / size) * pnlWid.value
-      }
-      node.posLT[0] -= (CardWidth >> 1)
-      node.posLT[1] = height
-      for (const nxtNode of node.nexts) {
-        const nxtNdKey = typeof nxtNode === 'string' ? nxtNode : nxtNode.key
-        await buildNodes(nxtNdKey, node.posLT[1] + node.sizeWH[1] + ArrowHeight)
-      }
-    }
-    function onNodeSzUpdated (node: NodeInPnl, sizeWH: [number, number]) {
-      node.sizeWH = sizeWH
-      refresh()
-    }
-    function onCardClicked (node: Node) {
-      editNode.current.reset()
-      Node.copy(node, editNode.current)
-      editNode.show = true
-    }
+    onMounted(() => {
+      rszObs.observe(panelRef.value)
+    })
+
     function onAddBtnClicked (previous: Node) {
-      editNode.current.reset()
+      nodeForm.editNode.reset()
       if (previous) {
-        Node.copy({ previous }, editNode.current)
+        Node.copy({ previous }, nodeForm.editNode)
       }
-      editNode.show = true
+      nodeForm.show = true
     }
-    function onNodeSaved (node: Node) {
-      if (node.previous && node.previous.key) {
-        editNode.saveNode(node.previous)
-      } else {
-        editNode.saveNode(route.params.rid as string)
-      }
+    async function onNodeSaved (node: Node) {
+      await store.dispatch('route/saveNode', Node.copy(node, nodeForm.editNode))
     }
     return {
       Node,
+
       nodes,
-      current,
-      editNode,
+      nodeForm,
       panelRef,
-      pnlWid,
       editTitle,
 
-      onNodeSzUpdated,
-      onCardClicked,
-      onAddBtnClicked,
-      onNodeSaved
+      onNodeSaved,
+      onAddBtnClicked
     }
   }
 })

@@ -118,3 +118,24 @@ export function reqLink (
     return makeRequest(axios.delete(url), options)
   }
 }
+
+
+
+export function getProperty (obj: any, props: string | string[]): any {
+  if (typeof props === 'string') {
+    props = props.split('.')
+  }
+  for (const prop of props) {
+    if (obj instanceof Array
+    && prop.startsWith('[')
+    && prop.endsWith(']')) {
+      const key = prop.substring(1, prop.length - 1)
+      obj = obj.find(el => el.key === key)
+    } else if (prop in obj) {
+      obj = obj[prop]
+    } else {
+      return null
+    }
+  }
+  return obj
+}

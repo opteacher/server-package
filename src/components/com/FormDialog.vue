@@ -89,11 +89,15 @@
           <EditTable
             class="w-100"
             size="small"
-            :cols="value.columns"
-            :data="formState[key]"
+            :dsKey="value.dsKey"
             :copy="value.copy"
-            :dataMapper="value.mapper"
-            @save="value.onSaved"
+            :mapper="value.mapper"
+            :columns="value.columns"
+            :emitter="tblEmitter"
+            @save="async (editing) => {
+              await value.onSaved(editing)
+              tblEmitter.emit('refresh')
+            }"
             @delete="value.onDeleted"
           />
         </a-form-item-rest>
@@ -108,6 +112,8 @@ import { Cond, Mapper } from '@/common'
 import { defineComponent, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
 import EditTable from './EditTable.vue'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+
 export default defineComponent({
   name: 'FormDialog',
   components: {
@@ -116,10 +122,11 @@ export default defineComponent({
   },
   props: {
     show: { type: Boolean, required: true },
+    copy: { type: Function, required: true },
     width: { type: String, default: '50vw' },
     column: { type: Array, default: () => [4, 20] }, // [0]标题宽度 [1]表单项宽度
     title: { type: String, default: 'Form Dialog' },
-    object: { type: Object, required: true },
+    object: { type: Object, default: null },
     mapper: { type: Mapper, required: true },
   },
   emits: [
@@ -135,6 +142,7 @@ export default defineComponent({
       })
     )
     const formMapper = reactive(props.mapper)
+    const tblEmitter = new Emitter()
 
     for (const [key, value] of Object.entries(props.mapper)) {
       if (!value.changes) {
@@ -175,6 +183,7 @@ export default defineComponent({
       formState,
       formRules,
       formMapper,
+      tblEmitter,
 
       onOkClick,
       onCclClick,

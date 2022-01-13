@@ -1,5 +1,31 @@
-import { baseTypes, Column, Cond, Mapper, routeMethods } from '@/common'
+import { baseTypes, Column, Mapper, routeMethods } from '@/common'
+import { Modal } from 'ant-design-vue'
+import { createVNode } from 'vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import store from '@/store'
 
+export function onSync () {
+  Modal.confirm({
+    title: '确定同步项目到服务器？',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: createVNode('div', {
+      style: 'color:red;'
+    }, '同步过程中，该项目已有的API将暂时停用！'),
+    onOk: () => store.dispatch('project/sync'),
+  })
+}
+
+export function onStop () {
+  Modal.confirm({
+    title: '是否停止项目？',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: '项目实例所提供的API服务也将同时停止！',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    onOk: () => store.dispatch('project/stop')
+  })
+}
 export class ModelTable {
   columns: Column[]
   mapper: Mapper

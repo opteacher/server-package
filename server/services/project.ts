@@ -173,8 +173,6 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
   }
   spawnSync([
     'docker run --rm -itd ' + [
-      '-p 80:80',
-      '-p 443:443',
       '--net host',
       '--name nginx nginx',
     ].join(' '), [

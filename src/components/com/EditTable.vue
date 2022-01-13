@@ -11,13 +11,13 @@
   </a-space>
   <a-table
     :dataSource="dataSrc"
-    :columns="columns"
+    :columns="cols"
     :pagination="false"
     :size="size"
     style="overflow-y: hidden;"
   >
     <template
-      v-for="(value, key) in dataMapper"
+      v-for="(value, key) in mapper"
       :key="key"
       #[key]="{ text, record }"
     >
@@ -150,8 +150,11 @@
 
 <script lang="ts">
 import { Mapper } from '@/common'
-import { computed, defineComponent, nextTick, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, defineComponent, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import { useStore } from 'vuex'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { getProperty } from '@/utils'
 
 export default defineComponent({
   name: 'EditableTable',
@@ -160,40 +163,49 @@ export default defineComponent({
     InfoCircleOutlined
   },
   props: {
+    dsKey: { type: String, required: true },
+    columns: { type: Array, required: true },
+    mapper: { type: Mapper, required: true },
+    copy: { type: Function, required: true },
+    emitter: { type: Emitter, default: null },
     title: { type: String, default: ''},
     description: { type: String, default: '' },
-    extra: { default: undefined },
-    cols: { type: Array, required: true },
     size: { type: String, default: 'default' },
-    data: { type: Array, required: true },
-    copy: { type: Function, required: true },
     sclHeight: { type: Number, default: 300 },
-    dataMapper: { type: Mapper, required: true },
     editable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true }
   },
   setup (props, { emit }) {
-    const columns = props.cols.concat({
+    const store = useStore()
+    const cols = props.columns.concat({
       title: '操作',
       dataIndex: 'action',
       slots: { customRender: 'action' },
       width: 80
     })
-    const propData = ref(props.data)
+    const records = ref(getData())
     const dataSrc = computed(() => {
-      return (editing.key === '' ? [editing] : []).concat(propData.value)
+      return (editing.key === '' ? [editing] : []).concat(records.value)
     })
     const editing = reactive(props.copy({ key: '#' }))
 
+    watch(() => getData().length, () => refresh(getData()))
+    if (props.emitter) {
+      props.emitter.on('refresh', () => refresh(getData()))
+    }
+
+    function getData () {
+      return getProperty(store.getters, props.dsKey)
+    }
     function refresh (data?: any[]) {
       if (typeof data !== 'undefined') {
-        propData.value = data
+        records.value = data
       }
       editing.reset()
       editing.key = '#'
     }
     function onSaveSubmit () {
-      emit('save', editing, props.extra, refresh)
+      emit('save', editing, refresh)
       refresh()
     }
     function onCclClicked () {
@@ -203,11 +215,11 @@ export default defineComponent({
       props.copy(record, editing)
     }
     function onDelSubmit (key: any) {
-      emit('delete', key, props.extra, refresh)
+      emit('delete', key, refresh)
       refresh()
     }
     function hasExpand () {
-      for (const [_key, value] of Object.entries(props.dataMapper)) {
+      for (const [_key, value] of Object.entries(props.mapper)) {
         if (value.expanded) {
           return true
         }
@@ -215,7 +227,7 @@ export default defineComponent({
       return false
     }
     return {
-      columns,
+      cols,
       dataSrc,
       editing,
 

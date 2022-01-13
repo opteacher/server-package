@@ -1,10 +1,10 @@
 <template>
-<ProjDetail :editProj="editProj">
+<ProjDetail>
   <EditTable
     title="模型"
-    :data="editProj.current.models"
-    :cols="modelTable.columns"
-    :dataMapper="modelTable.mapper"
+    dsKey="project/ins.models"
+    :columns="modelTable.columns"
+    :mapper="modelTable.mapper"
     :copy="Model.copy"
     v-model:expanded-row-keys="modelTable.expandeds"
     @save="onModelSave"
@@ -13,31 +13,27 @@
     <template #expandedRowRender="{ record: model }">
       <EditTable
         title="字段"
-        :extra="model.key"
-        :data="model.props"
-        :cols="propTable.columns"
-        :dataMapper="propTable.mapper"
+        :dsKey="`project/ins.models.[${model.key}].props`"
+        :columns="propTable.columns"
+        :mapper="propTable.mapper"
         :copy="Property.copy"
-        @save="onPropSave"
-        @delete="onPropDel"
+        @save="(prop) => onPropSave(prop, model.key)"
+        @delete="(key) => onPropDel(key, model.key)"
       />
       <EditTable
         title="接口"
-        :extra="model.key"
-        :data="model.routes"
-        :cols="routeTable.columns"
-        :dataMapper="routeTable.mapper"
+        :dsKey="`project/ins.models.[${model.key}].routes`"
+        :columns="routeTable.columns"
+        :mapper="routeTable.mapper"
         :copy="Route.copy"
-        @save="onRouteSave"
-        @delete="onRouteDel"
+        @save="(route) => onRouteSave(route, model.key)"
+        @delete="(key) => onRouteDel(key, model.key)"
       >
         <!-- <template #path="{ record: route }">
-          {{ genPathByRoute(route.method, `${editProj.current.path}/${model.name}`) }}
+          {{ genPathByRoute(route.method, `${project.path}/${model.name}`) }}
         </template> -->
         <template #flow="{ record: route }">
-          <a-button @click="() => {
-            router.push(`/flow/${route.key}`)
-          }">
+          <a-button @click="() => router.push(`/flow/${route.key}`)">
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
         </template>
@@ -48,15 +44,15 @@
 </template>
 
 <script lang="ts">
-import { Model, Property, Route } from '@/common'
+import { Model, Project, Property, Route } from '@/common'
 import { reqDelete, reqLink, reqPost, reqPut } from '@/utils'
-import { defineComponent, onMounted, reactive } from 'vue'
+import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { ApartmentOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditTable from '../components/com/EditTable.vue'
 import ProjDetail from '../layouts/ProjDetail.vue'
 import { ModelTable, PropTable, RouteTable } from './Project'
-import { EditProjFormDlg } from './Home'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'Project',
@@ -68,13 +64,14 @@ export default defineComponent({
   setup () {
     const route = useRoute()
     const router = useRouter()
-    const editProj = reactive(new EditProjFormDlg())
+    const store = useStore()
     const pid = route.params.pid as string
+    const project = computed(() => store.getters['project/ins'] as Project)
     const modelTable = reactive(new ModelTable())
     const propTable = reactive(new PropTable())
     const routeTable = reactive(new RouteTable())
 
-    onMounted(() => editProj.refresh(pid))
+    onMounted(() => store.dispatch('project/refresh', pid))
 
     async function onProjectChange (
       operChild: any,
@@ -86,7 +83,7 @@ export default defineComponent({
         if (operChild.key) {
           // 更新
           await reqPut(child[1], operChild.key, operChild)
-          return editProj.refresh()
+          return store.dispatch('project/refresh')
         } else {
           // 新增
           const newOne = (await reqPost(child[1], operChild, { ignores })).data
@@ -97,25 +94,25 @@ export default defineComponent({
         await reqDelete(operChild, child[1])
       }
       await reqLink({ parent, child }, operChild as boolean)
-      return editProj.refresh()
+      return store.dispatch('project/refresh')
     }
     function onModelSave (model: Model) {
       onProjectChange(model, ['project', pid], ['models', 'model'])
     }
-    function onModelDel (iden: any) {
-      onProjectChange('model', ['project', pid], ['models', iden])
+    function onModelDel (key: any) {
+      onProjectChange('model', ['project', pid], ['models', key])
     }
     function onPropSave (prop: Property, mid: string) {
       onProjectChange(prop, ['model', mid], ['props', 'property'])
     }
-    function onPropDel (iden: any, mid: string) {
-      onProjectChange('property', ['model', mid], ['props', iden])
+    function onPropDel (key: any, mid: string) {
+      onProjectChange('property', ['model', mid], ['props', key])
     }
     function onRouteSave (route: Route, mid: string) {
       onProjectChange(route, ['model', mid], ['routes', 'route'], ['flow'])
     }
-    function onRouteDel (iden: any, mid: string) {
-      onProjectChange('route', ['model', mid], ['routes', iden])
+    function onRouteDel (key: any, mid: string) {
+      onProjectChange('route', ['model', mid], ['routes', key])
     }
     function genPathByRoute (method: string, path: string): string {
       switch (method) {
@@ -137,7 +134,7 @@ export default defineComponent({
       Route,
 
       router,
-      editProj,
+      project,
       modelTable,
       propTable,
       routeTable,
