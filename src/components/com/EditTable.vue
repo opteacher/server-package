@@ -196,8 +196,11 @@ export default defineComponent({
     }
 
     function getData () {
+      if (!store.getters) {
+        return []
+      }
       const data = getProperty(store.getters, props.dsKey)
-      return !data ? [] as any[] : data
+      return data || []
     }
     function refresh (data?: any[]) {
       if (typeof data !== 'undefined') {
