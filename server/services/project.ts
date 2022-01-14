@@ -172,8 +172,9 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
     console.log('无运行中的Nginx实例')
   }
   spawnSync([
-    'docker run --rm -itd ' + [
+    'docker run --rm -itd' + [
       '--net host',
+      '-p 80:80',
       '--name nginx nginx',
     ].join(' '), [
       'docker container cp',
