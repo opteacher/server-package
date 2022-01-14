@@ -127,7 +127,7 @@ export default defineComponent({
     column: { type: Array, default: () => [4, 20] }, // [0]标题宽度 [1]表单项宽度
     title: { type: String, default: 'Form Dialog' },
     object: { type: Object, default: null },
-    mapper: { type: Mapper, required: true },
+    mapper: { type: Mapper, required: true }
   },
   emits: [
     'update:show',
@@ -168,8 +168,10 @@ export default defineComponent({
     async function onOkClick () {
       try {
         await formRef.value.validate()
-        emit('submit', formState)
-        formRef.value.resetFields()
+        emit('submit', formState, () => {
+          formRef.value.resetFields()
+          formState.reset()
+        })
         emit('update:show', false)
       } catch (e) {
         console.log(e)

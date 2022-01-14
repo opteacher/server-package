@@ -266,7 +266,6 @@ export class Property {
   index: boolean
   unique: boolean
   visible: boolean
-  field: Field
 
   constructor () {
     this.key = ''
@@ -275,7 +274,6 @@ export class Property {
     this.index = false
     this.unique = false
     this.visible = true
-    this.field = new Field()
   }
 
   reset () {
@@ -285,7 +283,6 @@ export class Property {
     this.index = false
     this.unique = false
     this.visible = true
-    this.field = new Field()
   }
 
   static copy (src: any, tgt?: Property): Property {
@@ -300,9 +297,6 @@ export class Property {
     tgt.index = src.index || tgt.index
     tgt.unique = src.unique || tgt.unique
     tgt.visible = src.visible || tgt.visible
-    if (src.field) {
-      Field.copy(src.field, tgt.field)
-    }
     return tgt
   }
 }
@@ -338,7 +332,9 @@ export class Model {
     }
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
-    tgt.logTime = src.logTime || tgt.logTime
+    if (typeof src.logTime !== 'undefined') {
+      tgt.logTime = src.logTime
+    }
     if (src.props) {
       tgt.props = []
       for (const prop of src.props) {
@@ -432,7 +428,7 @@ export class Node extends StrIterable {
     this.nexts = []
   }
 
-  static copy (src: any, tgt?: Node): Node {
+  static copy (src: any, tgt?: Node, recu = true): Node {
     tgt = tgt || new Node()
     tgt.key = src.key || src._id || tgt.key
     tgt.title = src.title || tgt.title
@@ -445,12 +441,16 @@ export class Node extends StrIterable {
     }
     tgt.code = src.code || tgt.code
     if (src.previous) {
-      tgt.previous = Node.copy(src.previous)
+      tgt.previous = recu ? Node.copy(src.previous, undefined, false) : src.previous.key
     }
     if (typeof src.nexts !== 'undefined') {
       tgt.nexts = []
       for (const nxt of src.nexts) {
-        tgt.nexts.push(typeof nxt === 'string' ? nxt : Node.copy(nxt))
+        if (typeof nxt === 'string') {
+          tgt.nexts.push(nxt)
+        } else {
+          tgt.nexts.push(recu ? Node.copy(nxt, undefined, false) : nxt.key)
+        }
       }
     }
     return tgt
@@ -471,20 +471,20 @@ export type NodeInPnl = Node & {
 export class Route {
   key: string
   method: string
-  path: string
+  path: string | undefined
   flow: Node | null
 
   constructor () {
     this.key = ''
     this.method = ''
-    this.path = ''
+    this.path = undefined
     this.flow = null
   }
 
   reset () {
     this.key = ''
     this.method = ''
-    this.path = ''
+    this.path = undefined
     this.flow = null
   }
 

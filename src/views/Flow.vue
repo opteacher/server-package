@@ -31,11 +31,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { Node, NodeInPnl } from '../common'
+import { Node } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
 import { NodeForm } from './Flow'
 import { useStore } from 'vuex'
@@ -78,8 +78,9 @@ export default defineComponent({
       }
       nodeForm.show = true
     }
-    async function onNodeSaved (node: Node) {
-      await store.dispatch('route/saveNode', Node.copy(node, nodeForm.editNode))
+    async function onNodeSaved (node: Node, next: () => void) {
+      await store.dispatch('route/saveNode', Node.copy(node))
+      next()
     }
     return {
       Node,

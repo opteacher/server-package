@@ -42,12 +42,15 @@ export function reqPost (path: string, body: any, options?: RequestOptions): Pro
   if (!options?.messages?.succeed) {
     options.messages.succeed = '提交成功！'
   }
-  if (options.ignores) {
-    for (const ignore of options.ignores) {
-      delete body[ignore]
-    }
+  if (!options.ignores) {
+    options.ignores = []
   }
-  return makeRequest(axios.post(`/server-package/mdl/v1/${path}`, body), options)
+  return makeRequest(axios.post(
+    `/server-package/mdl/v1/${path}`,
+    Object.fromEntries(
+      Object.entries(body).filter((pair: [string, any]) => !options?.ignores?.includes(pair[0]))
+    )
+  ), options)
 }
 
 export function reqDelete (path: string, iden: any, options?: RequestOptions): Promise<any> {
@@ -79,12 +82,15 @@ export function reqPut (path: string, iden: any, body: any, options?: RequestOpt
   if (!options?.messages?.succeed) {
     options.messages.succeed = '提交成功！'
   }
-  if (options.ignores) {
-    for (const ignore of options.ignores) {
-      delete body[ignore]
-    }
+  if (!options.ignores) {
+    options.ignores = []
   }
-  return makeRequest(axios.put(`/server-package/mdl/v1/${path}/${iden}`, body), options)
+  return makeRequest(axios.put(
+    `/server-package/mdl/v1/${path}/${iden}`,
+    Object.fromEntries(
+      Object.entries(body).filter((pair: [string, any]) => !options?.ignores?.includes(pair[0]))
+    )
+  ), options)
 }
 
 export function reqLink (
@@ -118,8 +124,6 @@ export function reqLink (
     return makeRequest(axios.delete(url), options)
   }
 }
-
-
 
 export function getProperty (obj: any, props: string | string[]): any {
   if (typeof props === 'string') {

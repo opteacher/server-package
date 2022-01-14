@@ -3,6 +3,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { Node, Mapper, Cond, Variable, Column, baseTypes } from '../common'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 export class NodeForm {
   show: boolean
   mapper: Mapper

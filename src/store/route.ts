@@ -64,25 +64,24 @@ export default {
       }
     },
     async saveNode ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, node: Node) {
-      const options = { ignores: ['previous', 'nexts', 'inputs', 'outputs'] }
-      const newNode = Node.copy(node.key
-        ? (await reqPut('node', node.key, node, options)).data
-        : (await reqPost('node', node, options)).data
-      )
+      const options = { ignores: ['key', 'previous', 'nexts', 'inputs', 'outputs'] }
       if (node.key) {
+        await reqPut('node', node.key, node, options)
         return dispatch('refresh')
+      } else {
+        Node.copy((await reqPost('node', node, options)).data, node)
       }
       if (!node.previous) {
         // 绑定根节点
         await reqLink({
           parent: ['route', state.route.key],
-          child: ['flow', newNode.key]
+          child: ['flow', node.key]
         })
       } else {
         // 绑定非根节点
         const previous = Node.copy((
           await reqGet('node', node.previous.key)
-        ).data as Node)
+        ).data)
         if (previous.type === 'normal' && previous.nexts.length) {
           const nxtKey = (previous.nexts[0] as Node).key
           // 解绑
@@ -93,22 +92,22 @@ export default {
           // 为原来的子节点添加新父节点
           await Promise.all([
             reqLink({
-              parent: ['node', newNode.key],
+              parent: ['node', node.key],
               child: ['nexts', nxtKey]
             }),
             reqLink({
               parent: ['node', nxtKey],
-              child: ['previous', newNode.key]
+              child: ['previous', node.key]
             })
           ])
         }
         await Promise.all([
           reqLink({
             parent: ['node', previous.key],
-            child: ['nexts', newNode.key]
+            child: ['nexts', node.key]
           }),
           reqLink({
-            parent: ['node', newNode.key],
+            parent: ['node', node.key],
             child: ['previous', previous.key]
           })
         ])

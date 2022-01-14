@@ -1,5 +1,5 @@
-import { Model, Project } from '@/common'
-import { makeRequest, reqGet, reqPut } from '@/utils'
+import { Model, Project, Route } from '@/common'
+import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 
@@ -16,7 +16,42 @@ export default {
       }
     },
     async save ({ dispatch, state }: { dispatch: Dispatch, state: Project }, project: Project) {
-      await reqPut('project', state.key, project, { ignores: ['key', 'models'] })
+      await reqPut('project', state.key, project, { ignores: ['models'] })
+      await dispatch('refresh')
+    },
+    async update ({ dispatch }: { dispatch: Dispatch }, payload: {
+      opera: any,
+      parent: [string, any],
+      child: [string, any],
+      ignores?: string[]
+    }) {
+      if (typeof payload.opera !== 'string') {
+        if (payload.opera.key) {
+          // 更新
+          await reqPut(payload.child[1], payload.opera.key, payload.opera, {
+            ignores: payload.ignores
+          })
+          await dispatch('refresh')
+          return
+        } else {
+          // 新增
+          const newOne = (await reqPost(payload.child[1], payload.opera, {
+            ignores: payload.ignores
+          })).data
+          payload.child[1] = newOne._id
+        }
+      } else {
+        // 删除
+        await reqDelete(payload.opera, payload.child[1])
+      }
+      await reqLink({
+        parent: payload.parent,
+        child: payload.child
+      }, typeof payload.opera !== 'string')
+      await dispatch('refresh')
+    },
+    async setRoutePath ({ dispatch }: { dispatch: Dispatch }, route: Route) {
+      await reqPut('route', route.key, { path: route.path }, { ignores: ['flow'] })
       await dispatch('refresh')
     },
     async del ({ state }: { state: Project }) {

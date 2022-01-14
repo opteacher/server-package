@@ -150,7 +150,7 @@
 
 <script lang="ts">
 import { Mapper } from '@/common'
-import { computed, defineComponent, reactive, ref, watch } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -183,30 +183,33 @@ export default defineComponent({
       slots: { customRender: 'action' },
       width: 80
     })
-    const records = ref(getData())
+    const records = ref([] as any[])
     const dataSrc = computed(() => {
       return (editing.key === '' ? [editing] : []).concat(records.value)
     })
     const editing = reactive(props.copy({ key: '#' }))
 
-    watch(() => getData().length, () => refresh(getData()))
+    onMounted(() => refresh())
+    watch(() => getData(), () => refresh())
     if (props.emitter) {
-      props.emitter.on('refresh', () => refresh(getData()))
+      props.emitter.on('refresh', () => refresh())
     }
 
     function getData () {
-      return getProperty(store.getters, props.dsKey)
+      const data = getProperty(store.getters, props.dsKey)
+      return !data ? [] as any[] : data
     }
     function refresh (data?: any[]) {
       if (typeof data !== 'undefined') {
         records.value = data
+      } else {
+        records.value = getData()
       }
       editing.reset()
       editing.key = '#'
     }
     function onSaveSubmit () {
       emit('save', editing, refresh)
-      refresh()
     }
     function onCclClicked () {
       refresh()
@@ -216,7 +219,6 @@ export default defineComponent({
     }
     function onDelSubmit (key: any) {
       emit('delete', key, refresh)
-      refresh()
     }
     function hasExpand () {
       for (const [_key, value] of Object.entries(props.mapper)) {

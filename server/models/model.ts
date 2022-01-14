@@ -8,6 +8,6 @@ export default db.defineModel({
   routes: [{ type: db.PropTypes.Id, ref: 'route' }],
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'ALL', 'GET', 'LINK']
+    methods: ['POST', 'DELETE', 'ALL', 'GET', 'LINK', 'PUT']
   }
 })

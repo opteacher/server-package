@@ -1,4 +1,4 @@
-import { baseTypes, Column, Mapper, routeMethods } from '@/common'
+import { baseTypes, Column, Cond, Mapper, Model, Project, Route, routeMethods } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -111,9 +111,27 @@ export class RouteTable {
         options: routeMethods
       },
       path: {
-        type: 'Input',
+        type: 'Text'
       },
       flow: {}
     })
+  }
+
+  static genMdlPath (project: Project, model: Model | string, route: Route): string {
+    if (typeof model === 'string') {
+      model = Model.copy(project.models.find(mdl => mdl.key === model))
+    }
+    switch (route.method) {
+    case 'POST':
+      return `${project.path}/${model.name}`
+    case 'DELETE':
+    case 'PUT':
+    case 'GET':
+      return `${project.path}/${model.name}/:index`
+    case 'ALL':
+      return `${project.path}/${model.name}s`
+    default:
+      return ''
+    }
   }
 }

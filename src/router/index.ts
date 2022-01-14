@@ -5,17 +5,17 @@ import Flow from '../views/Flow.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
+    path: '/server-package',
     name: 'Home',
     component: Home
   },
   {
-    path: '/project/:pid',
+    path: '/server-package/project/:pid',
     name: 'Project',
     component: Project
   },
   {
-    path: '/flow/:rid',
+    path: '/server-package/flow/:rid',
     name: 'Flow',
     component: Flow
   }

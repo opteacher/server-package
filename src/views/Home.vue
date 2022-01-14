@@ -43,7 +43,7 @@
           </template>
           <a-list-item-meta :description="item.desc">
             <template #title>
-              <a :href="`/project/${item._id}`">{{ item.name }}</a>
+              <a :href="`/server-package/project/${item._id}`">{{ item.name }}</a>
             </template>
             <template #avatar>
               <a-badge :status="item.thread ? 'processing' : 'default'"/>
