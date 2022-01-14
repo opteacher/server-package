@@ -6,8 +6,6 @@ services:
     restart: unless-stopped
     ports:
       - 3306:3306
-    networks:
-      - network
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
@@ -20,8 +18,6 @@ services:
     restart: unless-stopped
     ports:
       - 27017:27017
-    networks:
-      - network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 12345
@@ -39,13 +35,7 @@ services:
     depends_on:
       - mongo
       - mysql
-    networks:
-      - network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
-
-networks:
-  network:
-    driver: bridge
