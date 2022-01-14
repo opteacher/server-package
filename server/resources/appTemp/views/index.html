@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/moment@2.29.1/min/moment.min.js"></script>
+    <script src="https://unpkg.com/jquery@3.6.0/dist/jquery.slim.min.js"></script>
+    <script src="https://unpkg.com/ant-design-vue@1.7.8/dist/antd.min.js"></script>
+    <link
+      href="https://unpkg.com/ant-design-vue@1.7.8/dist/antd.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <style type="text/css">
+      html,
+      body,
+      #app {
+        height: 100%;
+      }
+    </style>
+
+    <title>404</title>
+  </head>
+  <body>
+    <div id="app">
+      <a-result status="404" title="404" sub-title="Sorry, the page you visited does not exist." />
+    </div>
+
+    <script type="text/javascript">
+      new Vue({
+        el: '#app'
+      })
+    </script>
+  </body>
+</html>

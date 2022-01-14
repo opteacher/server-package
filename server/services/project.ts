@@ -7,13 +7,10 @@ import Model from '../models/model.js'
 import DataBase from '../models/database.js'
 import Property from '../models/property.js'
 import Route from '../models/route.js'
-import { Worker } from 'worker_threads'
 import { spawn, spawnSync } from 'child_process'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
-
-const workers: { [thread: number]: Worker } = {}
 
 export async function sync(pid: string): Promise<any> {
   console.log('从数据库获取项目实例……')
@@ -73,6 +70,12 @@ export async function sync(pid: string): Promise<any> {
   console.log(`调整工具文件：${utilsTmp} -> ${utilsGen}`)
   adjustFile(utilsTmp, utilsGen)
 
+  fs.mkdirSync(Path.join(genPath, 'views'))
+  const vwsTmp = Path.join(tmpPath, 'views')
+  const vwsGen = Path.join(genPath, 'views')
+  console.log(`复制页面文件夹：${vwsTmp} -> ${vwsGen}`)
+  copyDir(vwsTmp, vwsGen)
+
   const mdlPath = Path.join(genPath, 'models')
   fs.mkdirSync(mdlPath)
   const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
@@ -103,54 +106,37 @@ export async function run(pjt: string | { _id: string; name: string }): Promise<
     await sync(project._id)
     return Promise.resolve(-1)
   }
-  let thread: number | undefined
-  if (process.env.ENV === 'prod') {
-    try {
-      spawnSync([
-        'docker stop nginx',
-        'docker container prune -f'
-      ].join(' && '), {
-        stdio: 'inherit',
-        shell: true,
-      })
-    } catch (e) {
-      console.log(`无运行中的${project.name}实例`)
-    }
-    const childPcs = spawn([
-      `docker build -t ${project.name}:latest ${appPath}`,
-      'docker run --rm -itd ' + [
-        `-p 127.0.0.1:${project.port}:${project.port}`,
-        `--name ${project.name} ${project.name}`
-      ].join(' ')
+  try {
+    spawnSync([
+      'docker stop nginx',
+      'docker container prune -f'
     ].join(' && '), {
       stdio: 'inherit',
       shell: true,
-      env: { ENV: '' } // 暂时不支持环境
-    }).on('error', err => {
-      console.log(err)
     })
-    thread = childPcs.pid
-  } else {
-    const worker = new Worker(appFile, {
-      env: { ENV: '' } // 暂时不支持环境
-    })
-    worker.on('error', err => {
-      console.log(err)
-    })
-    worker.on('exit', code => {
-      console.log(`工作线程已停止${!code ? '，异常返回码' + code : ''}`)
-    })
-    workers[worker.threadId] = worker
-    thread = worker.threadId
+  } catch (e) {
+    console.log(`无运行中的${project.name}实例`)
   }
+  const childPcs = spawn([
+    `docker build -t ${project.name}:latest ${appPath}`,
+    'docker run --rm -itd ' + [
+      '--network server-package_default',
+      `-p 127.0.0.1:${project.port}:${project.port}`,
+      `--name ${project.name} ${project.name}`
+    ].join(' ')
+  ].join(' && '), {
+    stdio: 'inherit',
+    shell: true,
+    env: { ENV: '' } // 暂时不支持环境
+  }).on('error', err => {
+    console.log(err)
+  })
+  const thread = childPcs.pid
   await db.save(Project, { thread }, { _index: project._id })
   return Promise.resolve(thread || 0)
 }
 
 async function adjAndRestartNginx (projects?: { name: string, port: number }[]): Promise<any> {
-  if (process.env.ENV !== 'prod') {
-    return Promise.resolve()
-  }
   if (typeof projects === 'undefined') {
     projects = await db.select(Project)
   }
@@ -258,18 +244,13 @@ export async function del(pid: string): Promise<any> {
 
 export async function stop(pjt: string | { _id: string; thread: number }): Promise<any> {
   const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
-  if (project.thread in workers) {
-    await workers[project.thread].terminate()
-    delete workers[project.thread]
-  } else if (project.thread) {
-    spawn([
-      `docker container stop ${project.name}`,
-      `docker container rm ${project.name}`
-    ].join(' && '), {
-      stdio: 'inherit',
-      shell: true
-    })
-  }
+  spawn([
+    `docker container stop ${project.name}`,
+    `docker container rm ${project.name}`
+  ].join(' && '), {
+    stdio: 'inherit',
+    shell: true
+  })
   return db.save(Project, { thread: '' }, { _index: project._id }, { updMode: 'delete' })
 }
 
