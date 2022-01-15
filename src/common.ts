@@ -1,5 +1,3 @@
-import { ref, Ref } from "vue"
-
 export class StrIterable {
   [idx: string]: any
 }
@@ -45,10 +43,7 @@ export class Mapper {
     loading?: boolean
     display?: boolean | Cond
     expanded?: boolean
-    changes?: {
-      cond: Cond
-      attr: Cond
-    }[]
+    onChange?: (record: any, to: any, from?: any) => void
     reset?: boolean
 
     // type = Select
@@ -90,10 +85,7 @@ export class Mapper {
           typeof value.display !== 'undefined' ? value.display : true
         ),
         expanded: typeof value.expanded !== 'undefined' ? value.expanded : false,
-        changes: value.changes ? value.changes.map((chg: any) => ({
-          cond: Cond.copy(chg.cond),
-          attr: Cond.copy(chg.attr),
-        })) : [],
+        onChange: value.onChange || (() => { console.log() }),
         reset: typeof value.reset !== 'undefined' ? true : value.reset,
         options: value.options ? value.options.map((opn: any) => {
           if (typeof opn === 'string') {
@@ -158,8 +150,9 @@ export class Project {
   path: string
   thread: number
   database: string[]
+  frontend?: Deploy
   models: Model[]
-  status: 'starting' | 'stopping' | 'running' | 'stopped'
+  status: 'starting' | 'stopping' | 'running' | 'stopped' | 'deploying'
 
   constructor () {
     this.key = ''
@@ -193,6 +186,9 @@ export class Project {
     tgt.port = src.port || tgt.port
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
+    if (src.frontend) {
+      Deploy.copy(src.frontend, tgt.frontend)
+    }
     tgt.path = src.path || `/${tgt.name}/mdl/v1`
     if (src.models) {
       tgt.models = []
@@ -538,6 +534,51 @@ export class DataBase {
     tgt.port = src.port || tgt.port
     tgt.username = src.username || tgt.username
     tgt.password = src.password || tgt.password
+    return tgt
+  }
+}
+
+export class Deploy {
+  key: string
+  gitURL: string
+  name: string
+  buildCmd: string
+  // * 生成目录，【所在目录】：~/dist/apps/${project.name}/tmp/*
+  indexPath: string
+  assetsPath: string
+  // * 部署目录，【所在目录】：~/app/(assetsPath: public/${project.name}/*|indexPath: views/index.html)
+  //    > 位于容器中，由docker container cp复制过去
+
+  constructor () {
+    this.key = ''
+    this.gitURL = ''
+    this.name = ''
+    this.buildCmd = 'npm run build'
+    this.indexPath = 'public'
+    this.assetsPath = 'public/static'
+  }
+
+  reset () {
+    this.key = ''
+    this.gitURL = ''
+    this.name = ''
+    this.buildCmd = 'npm run build'
+    this.indexPath = 'public/index.html'
+    this.assetsPath = 'public/static'
+  }
+
+  static copy (src: any, tgt?: Deploy): Deploy {
+    tgt = tgt || new Deploy()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.gitURL = src.gitURL || tgt.gitURL
+    if (tgt.gitURL) {
+      const url = new URL(tgt.gitURL)
+      const nameSfx = url.pathname.split('/').pop()
+      tgt.name = nameSfx?.substring(0, nameSfx.lastIndexOf('.')) as string
+    }
+    tgt.buildCmd = src.buildCmd || tgt.buildCmd
+    tgt.indexPath = src.indexPath || tgt.indexPath
+    tgt.assetsPath = src.assetsPath || tgt.assetsPath
     return tgt
   }
 }

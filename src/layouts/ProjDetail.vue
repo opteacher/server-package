@@ -37,6 +37,18 @@
       >
         <template #icon><PoweroffOutlined/></template>&nbsp;停止
       </a-button>
+      <a-button class="ml-5" @click="deployForm.show = true">
+        <template #icon><BuildOutlined /></template>&nbsp;部署前端
+      </a-button>
+      <FormDialog
+        title="部署配置"
+        :copy="Deploy.copy"
+        :show="deployForm.show"
+        :mapper="deployForm.mapper"
+        :object="project.frontend"
+        @update:show="(show) => { deployForm.show = show }"
+        @submit="onDeploy"
+      />
     </template>
     <a-descriptions size="small" :column="3">
       <!-- <a-descriptions-item label="描述">
@@ -70,10 +82,11 @@
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProjForm } from '../views/Home'
-import { SyncOutlined, PoweroffOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { DeployForm } from '../views/Project'
+import { SyncOutlined, PoweroffOutlined, SettingOutlined, BuildOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
-import { Project } from '@/common'
+import { Project, Deploy } from '@/common'
 
 export default defineComponent({
   name: 'ProjectLayout',
@@ -81,13 +94,15 @@ export default defineComponent({
     FormDialog,
     SyncOutlined,
     PoweroffOutlined,
-    SettingOutlined
+    SettingOutlined,
+    BuildOutlined
   },
   setup () {
     const router = useRouter()
     const store = useStore()
     const project = computed(() => store.getters['project/ins'] as Project)
     const projForm = reactive(new ProjForm())
+    const deployForm = reactive(new DeployForm())
 
     onMounted(async () => {
       await projForm.initialize()
@@ -95,14 +110,17 @@ export default defineComponent({
 
     return {
       Project,
+      Deploy,
 
       router,
       project,
       projForm,
+      deployForm,
 
       onConfig: (pjt: Project) => store.dispatch('project/save', pjt),
       onSync: () => store.dispatch('project/sync'),
-      onStop: () => store.dispatch('project/stop')
+      onStop: () => store.dispatch('project/stop'),
+      onDeploy: (config: Deploy) => store.dispatch('project/deploy', config)
     }
   }
 })

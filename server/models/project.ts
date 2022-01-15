@@ -7,7 +7,7 @@ export default db.defineModel({
   port: db.PropTypes.Number,
   thread: db.PropTypes.Number,
   database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
-  frontGit: db.PropTypes.String, // 前端仓库
+  frontend: { type: db.PropTypes.Id, ref: 'deploy' },
   models: [{ type: db.PropTypes.Id, ref: 'model' }]
 }, {
   router: {

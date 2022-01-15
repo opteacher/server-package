@@ -1,4 +1,4 @@
-import { baseTypes, Column, Cond, Mapper, Model, Project, Route, routeMethods } from '@/common'
+import { baseTypes, Column, Cond, Deploy, Mapper, Model, Project, Route, routeMethods } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -133,5 +133,50 @@ export class RouteTable {
     default:
       return ''
     }
+  }
+}
+
+export class DeployForm {
+  show: boolean
+  mapper: Mapper
+
+  constructor () {
+    this.show = false
+    this.mapper = new Mapper({
+      gitURL: {
+        label: '前端仓库URL',
+        desc: 'git clone后的URL',
+        type: 'Input',
+        rules: [],
+        onChange: (record: Deploy, to: string) => {
+          if (to) {
+            console.log(to)
+            const nameSfx = to.split('/').pop()
+            record.name = nameSfx?.substring(0, nameSfx.lastIndexOf('.')) as string
+          }
+        }
+      },
+      name: {
+        label: '前端名',
+        type: 'Input',
+        disabled: true
+      },
+      buildCmd: {
+        label: '构建命令',
+        desc: '生成前端首页和相关资源的命令',
+        type: 'Input'
+      },
+      indexPath: {
+        label: '首页生成目录',
+        desc: '生成之后的首页的位置，【Vue】vue.config.js的outputDir',
+        type: 'Input',
+        rules: []
+      },
+      assetsPath: {
+        label: '资源生成目录',
+        desc: '生成之后的前端资源的位置，【Vue】vue.config.js的outputDir + assetsDir',
+        type: 'Input'
+      }
+    })
   }
 }

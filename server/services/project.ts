@@ -12,7 +12,7 @@ import { spawn, spawnSync } from 'child_process'
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
 
-export async function sync(pid: string): Promise<any> {
+export async function sync (pid: string): Promise<any> {
   console.log('从数据库获取项目实例……')
   const project = (await db.select(Project, { _index: pid }, { ext: true }))[0]
   if (project.thread) {
@@ -95,7 +95,7 @@ export async function sync(pid: string): Promise<any> {
   return Promise.resolve()
 }
 
-export async function run(pjt: string | { _id: string; name: string }): Promise<number> {
+export async function run (pjt: string | { _id: string; name: string }): Promise<number> {
   const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -137,6 +137,9 @@ export async function run(pjt: string | { _id: string; name: string }): Promise<
 }
 
 async function adjAndRestartNginx (projects?: { name: string, port: number }[]): Promise<any> {
+  if (process.env.NODE_ENV !== 'production') {
+    return Promise.resolve()
+  }
   if (typeof projects === 'undefined') {
     projects = await db.select(Project)
   }
@@ -170,7 +173,7 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
   })
 }
 
-export async function runAll(): Promise<void> {
+export async function runAll (): Promise<void> {
   const projects = await db.select(Project)
   await adjAndRestartNginx(projects)
   projects.map((project: any) => {
@@ -180,7 +183,7 @@ export async function runAll(): Promise<void> {
   })
 }
 
-function adjustFile(
+function adjustFile (
   src: string | Buffer,
   dest?: string,
   args?: { [name: string]: any }
@@ -224,7 +227,7 @@ function adjustFile(
   return dest ? fs.writeFileSync(dest, writeData) : writeData
 }
 
-export async function del(pid: string): Promise<any> {
+export async function del (pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }))[0]
   if (project.thread) {
     await stop(project)
@@ -242,7 +245,7 @@ export async function del(pid: string): Promise<any> {
   return db.del(Project, { _index: pid })
 }
 
-export async function stop(pjt: string | { _id: string; thread: number }): Promise<any> {
+export async function stop (pjt: string | { _id: string; thread: number }): Promise<any> {
   const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
   spawn([
     `docker container stop ${project.name}`,
@@ -254,7 +257,7 @@ export async function stop(pjt: string | { _id: string; thread: number }): Promi
   return db.save(Project, { thread: '' }, { _index: project._id }, { updMode: 'delete' })
 }
 
-export async function status(pid: string): Promise<any> {
+export async function status (pid: string): Promise<any> {
   const project = (await db.select(Project, { _index: pid }))[0]
   if (!project.thread) {
     return Promise.resolve({
@@ -266,4 +269,35 @@ export async function status(pid: string): Promise<any> {
       threadId: project.thread
     })
   }
+}
+
+export async function deploy (pid: string, cfg: {
+  gitURL: string
+  name: string
+  buildCmd: string
+  indexPath: string
+  assetsPath: string
+}): Promise<any> {
+  const project = (await db.select(Project, { _index: pid }))[0]
+  const genPath = Path.resolve(svrCfg.apps, project.name, 'temp')
+  console.log(`生成页面缓存目录：${genPath}`)
+  try {
+    fs.accessSync(genPath)
+    delDir(genPath)
+  } catch (e) {}
+  fs.mkdirSync(genPath, { recursive: true })
+
+  console.log('开始部署……')
+  spawn([
+    `git clone ${cfg.gitURL} && cd *`,
+    'npm config set registry http://registry.npm.taobao.org',
+    'npm install --unsafe-perm=true --allow-root',
+    cfg.buildCmd,
+    `docker container cp ${cfg.indexPath} ${project.name}:/app/views/index.html`,
+    `docker container cp ${cfg.assetsPath} ${project.name}:/app/public/${project.name}/`
+  ].join(' && '), {
+    cwd: genPath,
+    stdio: 'inherit',
+    shell: true
+  })
 }

@@ -26,18 +26,21 @@
           v-if="value.type === 'Input'"
           v-model:value="formState[key]"
           :disabled="value.disabled"
+          @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-input-number
           v-else-if="value.type === 'Number'"
           class="w-100"
           v-model:value="formState[key]"
           :disabled="value.disabled"
+          @change="(val) => value.onChange(formState, val)"
         />
         <a-select
           v-else-if="value.type === 'Select'"
           class="w-100"
           v-model:value="formState[key]"
           :disabled="value.disabled"
+          @change="(val) => value.onChange(formState, val)"
         >
           <a-select-option
             v-for="item in value.options"
@@ -58,6 +61,7 @@
           :name="key"
           v-model:checked="formState[key]"
           :disabled="value.disabled"
+          @change="(val) => value.onChange(formState, val)"
         >
           {{formState[key]
             ? (value.chkLabels ? value.chkLabels[1] : '是')
@@ -68,12 +72,14 @@
           v-model:value="formState[key]"
           :rows="4"
           :disabled="value.disabled"
+          @change="(val) => value.onChange(formState, val)"
         />
         <a-cascader
           v-else-if="value.type === 'Cascader'"
           :options="value.options"
           v-model:value="formState[key]"
           :disabled="value.disabled"
+          @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-button
           v-else-if="value.type === 'Button'"
@@ -135,7 +141,7 @@ export default defineComponent({
   ],
   setup (props, { emit }) {
     const formRef = ref()
-    const formState = reactive(props.object)
+    const formState = reactive(props.object || props.copy({}))
     const formRules = Object.fromEntries(
       Object.entries(props.mapper).map((entry) => {
         return [entry[0], entry[1].rules]
@@ -143,19 +149,6 @@ export default defineComponent({
     )
     const formMapper = reactive(props.mapper)
     const tblEmitter = new Emitter()
-
-    for (const [key, value] of Object.entries(props.mapper)) {
-      if (!value.changes) {
-        continue
-      }
-      for (const chg of value.changes) {
-        watch(() => formState[chg.cond.key], () => {
-          if (chg.cond.isValid(formState)) {
-            (formMapper[key] as any)[chg.attr.key] = chg.attr.val
-          }
-        })
-      }
-    }
 
     function isDisplay (key: string): boolean {
       const display = props.mapper[key].display

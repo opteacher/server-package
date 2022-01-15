@@ -1,4 +1,4 @@
-import { Model, Project, Route } from '@/common'
+import { Deploy, Model, Project, Route } from '@/common'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
@@ -93,6 +93,23 @@ export default {
         }
       })
       await dispatch('refresh')
+    },
+    async deploy ({ dispatch, state }: { dispatch: Dispatch, state: Project }, config: Deploy) {
+      const orgSts = state.status
+      await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/deploy`, config), {
+        middles: {
+          before: () => {
+            state.status = 'deploying'
+          },
+          after: () => {
+            state.status = orgSts
+          }
+        },
+        messages: {
+          loading: '部署中……',
+          succeed: '部署成功！'
+        }
+      })
     }
   },
   getters: {

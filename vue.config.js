@@ -4,7 +4,7 @@ module.exports = {
   assetsDir: 'static',
   devServer: {
     proxy: {
-      '/server-package': {
+      '/server-package/(mdl|api)': {
         target: 'http://localhost:4000',
         ws: true,
         changeOrigin: true,
