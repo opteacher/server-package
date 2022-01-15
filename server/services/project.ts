@@ -137,7 +137,7 @@ export async function run (pjt: string | { _id: string; name: string }): Promise
 }
 
 async function adjAndRestartNginx (projects?: { name: string, port: number }[]): Promise<any> {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'prod') {
     return Promise.resolve()
   }
   if (typeof projects === 'undefined') {
