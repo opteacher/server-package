@@ -108,7 +108,7 @@ export async function run (pjt: string | { _id: string; name: string }): Promise
   }
   try {
     spawnSync([
-      'docker stop nginx',
+      `docker stop ${project.name}`,
       'docker container prune -f'
     ].join(' && '), {
       stdio: 'inherit',
@@ -161,11 +161,8 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
     console.log('无运行中的Nginx实例')
   }
   spawnSync([
-    'docker run --rm -itd --net host --name nginx nginx', [
-      'docker container cp',
-      ngCfgGen,
-      'nginx:/etc/nginx/conf.d/default.conf'
-    ].join(' '),
+    'docker run --rm -itd --net host --name nginx nginx',
+    `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`,
     'docker container restart nginx'
   ].join(' && '), {
     stdio: 'inherit',
