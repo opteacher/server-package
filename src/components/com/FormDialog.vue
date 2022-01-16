@@ -107,6 +107,45 @@
             @delete="value.onDeleted"
           />
         </a-form-item-rest>
+        <template v-else-if="value.type === 'Upload'">
+          <a-dropdown class="w-100">
+            <a-button>
+              <UploadOutlined/>&nbsp;选择上传的文件或文件夹
+            </a-button>
+            <template #overlay>
+              <a-upload
+                name="file"
+                :multiple="false"
+                :directory="upldDir"
+                :showUploadList="false"
+                v-model:file-list="formState[key]"
+                action="/server-package/api/v1/temp/file"
+                @change="(info) => value.onChange(formState, info)"
+              >
+                <a-menu @click="onUploadClicked">
+                  <a-menu-item key="file">
+                    <FileAddOutlined/>&nbsp;上传文件
+                  </a-menu-item>
+                  <a-menu-item key="folder">
+                    <FolderAddOutlined />&nbsp;上传文件夹
+                  </a-menu-item>
+                </a-menu>
+              </a-upload>
+            </template>
+          </a-dropdown>
+          <a-list
+            v-show="formState[key].length"
+            style="margin-top: 5px"
+            size="small"
+            :data-source="formState[key]"
+          >
+            <template #renderItem="{ item: file }">
+              <a-list-item>
+                {{ file.originFileObj.webkitRelativePath || file.name }}
+              </a-list-item>
+            </template>
+          </a-list>
+        </template>
       </a-form-item>
     </template>
   </a-form>
@@ -116,7 +155,7 @@
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
 import { defineComponent, reactive, ref, watch } from 'vue'
-import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import { InfoCircleOutlined, UploadOutlined, FileAddOutlined, FolderAddOutlined } from '@ant-design/icons-vue'
 import EditTable from './EditTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
@@ -124,7 +163,10 @@ export default defineComponent({
   name: 'FormDialog',
   components: {
     EditTable,
-    InfoCircleOutlined
+    InfoCircleOutlined,
+    UploadOutlined,
+    FileAddOutlined,
+    FolderAddOutlined
   },
   props: {
     show: { type: Boolean, required: true },
@@ -149,6 +191,7 @@ export default defineComponent({
     )
     const formMapper = reactive(props.mapper)
     const tblEmitter = new Emitter()
+    const upldDir = ref(false)
 
     function isDisplay (key: string): boolean {
       const display = props.mapper[key].display
@@ -173,16 +216,25 @@ export default defineComponent({
     function onCclClick () {
       emit('update:show', false)
     }
+    function onUploadClicked (item: { key: string }) {
+      if (item.key === 'folder') {
+        upldDir.value = true
+      } else {
+        upldDir.value = false
+      }
+    }
     return {
       formRef,
       formState,
       formRules,
       formMapper,
       tblEmitter,
+      upldDir,
 
       onOkClick,
       onCclClick,
-      isDisplay
+      isDisplay,
+      onUploadClicked
     }
   }
 })

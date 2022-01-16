@@ -14,14 +14,14 @@ const tmpPath = Path.resolve('resources', 'appTemp')
 
 export async function sync (pid: string): Promise<any> {
   console.log('从数据库获取项目实例……')
-  const project = (await db.select(Project, { _index: pid }, { ext: true }))[0]
+  const project = await db.select(Project, { _index: pid }, { ext: true })
   if (project.thread) {
     await stop(project)
   }
   console.log('从数据库获取项目模型……')
   for (const index in project.models) {
     const mid = project.models[index]
-    project.models[index] = (await db.select(Model, { _index: mid }, { ext: true }))[0]
+    project.models[index] = await db.select(Model, { _index: mid }, { ext: true })
   }
   console.log('从数据库获取项目持久化源配置……')
   const database = (await db.select(DataBase, { name: project.database[0] }))[0]
@@ -90,13 +90,13 @@ export async function sync (pid: string): Promise<any> {
   await db.save(Project, { thread: -1 }, { _index: pid })
 
   console.log('启动项目……')
-  await run(project)
+  const thread = await run(project)
   await adjAndRestartNginx()
-  return Promise.resolve()
+  return Promise.resolve(thread)
 }
 
 export async function run (pjt: string | { _id: string; name: string }): Promise<number> {
-  const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
+  const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
   try {
@@ -132,6 +132,7 @@ export async function run (pjt: string | { _id: string; name: string }): Promise
     console.log(err)
   })
   const thread = childPcs.pid
+  console.log('持久化进程id……')
   await db.save(Project, { thread }, { _index: project._id })
   return Promise.resolve(thread || 0)
 }
@@ -225,12 +226,12 @@ function adjustFile (
 }
 
 export async function del (pid: string): Promise<any> {
-  const project = (await db.select(Project, { _index: pid }))[0]
+  const project = await db.select(Project, { _index: pid })
   if (project.thread) {
     await stop(project)
   }
   for (const mid of project.models) {
-    const model = (await db.select(Model, { _index: mid }))[0]
+    const model = await db.select(Model, { _index: mid })
     for (const ppid of model.props) {
       await db.del(Property, { _index: ppid })
     }
@@ -243,7 +244,7 @@ export async function del (pid: string): Promise<any> {
 }
 
 export async function stop (pjt: string | { _id: string; thread: number }): Promise<any> {
-  const project = typeof pjt === 'string' ? (await db.select(Project, { _index: pjt }))[0] : pjt
+  const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   spawn([
     `docker container stop ${project.name}`,
     `docker container rm ${project.name}`
@@ -255,7 +256,7 @@ export async function stop (pjt: string | { _id: string; thread: number }): Prom
 }
 
 export async function status (pid: string): Promise<any> {
-  const project = (await db.select(Project, { _index: pid }))[0]
+  const project = await db.select(Project, { _index: pid })
   if (!project.thread) {
     return Promise.resolve({
       status: 'stopped'
@@ -275,7 +276,7 @@ export async function deploy (pid: string, cfg: {
   indexPath: string
   assetsPath: string
 }): Promise<any> {
-  const project = (await db.select(Project, { _index: pid }))[0]
+  const project = await db.select(Project, { _index: pid })
   const genPath = Path.resolve(svrCfg.apps, project.name, 'temp')
   console.log(`生成页面缓存目录：${genPath}`)
   try {
@@ -294,6 +295,28 @@ export async function deploy (pid: string, cfg: {
     `docker container cp ${cfg.assetsPath} ${project.name}:/app/public/${project.name}/`
   ].join(' && '), {
     cwd: genPath,
+    stdio: 'inherit',
+    shell: true
+  })
+}
+
+export async function transfer (info: {
+  pid: string, name?: string,
+  files: { src: string, dest: string }[]
+}) {
+  if (!info.name) {
+    const project = await db.select(Project, { _index: info.pid })
+    if (!project.thread) {
+      return Promise.resolve('项目未启动')
+    }
+    info.name = project.name
+  }
+  console.log('开始传输文件……')
+  const cmds = info.files.map((file: { src: string, dest: string }) => {
+    console.log(`复制文件：${file.src} -> ${file.dest}`)
+    return `docker container cp ${file.src} ${file.dest}`
+  })
+  spawn(cmds.join(' && '), {
     stdio: 'inherit',
     shell: true
   })

@@ -1,4 +1,4 @@
-import { Deploy, Model, Project, Route } from '@/common'
+import { Deploy, Model, Project, Route, Transfer } from '@/common'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
@@ -69,7 +69,11 @@ export default {
 
       const h = setInterval(async () => {
         try {
-          await axios.get(`/${state.name}/mdl/v1`)
+          let host = ''
+          if (process.env.ENV === 'prod') {
+            host = `http://${state.name}:${state.port}`
+          }
+          await axios.get(`${host}/${state.name}/mdl/v1`)
         } catch (e) {
           console.log(`等待项目${state.name}启动……`)
         }
@@ -94,7 +98,7 @@ export default {
       })
       await dispatch('refresh')
     },
-    async deploy ({ dispatch, state }: { dispatch: Dispatch, state: Project }, config: Deploy) {
+    async deploy ({ state }: { state: Project }, config: Deploy) {
       const orgSts = state.status
       await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/deploy`, config), {
         middles: {
@@ -108,6 +112,34 @@ export default {
         messages: {
           loading: '部署中……',
           succeed: '部署成功！'
+        }
+      })
+    },
+    async transfer ({ state }: { state: Project }, info: Transfer) {
+      const url = `/server-package/api/v1/project/${state.key}/transfer`
+      const orgSts = state.status
+      await makeRequest(axios.put(url, {
+        name: state.name,
+        files: info.file.map((file: any) => ({
+          src: file.response.result,
+          dest: [
+            `${state.name}:/app/`,
+            info.dest ? info.dest + '/' : '',
+            file.originFileObj.webkitRelativePath || file.name
+          ].join('')
+        }))
+      }), {
+        middles: {
+          before: () => {
+            state.status = 'transferring'
+          },
+          after: () => {
+            state.status = orgSts
+          }
+        },
+        messages: {
+          loading: '传输中……',
+          succeed: '传输成功！'
         }
       })
     }

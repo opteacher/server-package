@@ -28,6 +28,26 @@
       >
         <template #icon><SyncOutlined/></template>&nbsp;同步
       </a-button>
+      <a-tooltip>
+        <template #title>传输本地文件到项目实例中</template>
+        <a-button
+          v-if="project.thread"
+          class="ml-5"
+          :disabled="project.status === 'stopping'"
+          :loading="project.status === 'stopping'"
+          @click="transferForm.show = true"
+        >
+          <template #icon><UploadOutlined /></template>&nbsp;传输文件
+        </a-button>
+      </a-tooltip>
+      <FormDialog
+        title="投放文件"
+        :copy="Transfer.copy"
+        :show="transferForm.show"
+        :mapper="transferForm.mapper"
+        @update:show="(show) => { transferForm.show = show }"
+        @submit="onTransfer"
+      />
       <a-button
         v-if="project.thread"
         class="ml-5" danger
@@ -82,11 +102,11 @@
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProjForm } from '../views/Home'
-import { DeployForm } from '../views/Project'
-import { SyncOutlined, PoweroffOutlined, SettingOutlined, BuildOutlined } from '@ant-design/icons-vue'
+import { DeployForm, TransferForm } from '../views/Project'
+import { SyncOutlined, PoweroffOutlined, SettingOutlined, BuildOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
-import { Project, Deploy } from '@/common'
+import { Project, Deploy, Transfer } from '@/common'
 
 export default defineComponent({
   name: 'ProjectLayout',
@@ -95,7 +115,8 @@ export default defineComponent({
     SyncOutlined,
     PoweroffOutlined,
     SettingOutlined,
-    BuildOutlined
+    BuildOutlined,
+    UploadOutlined
   },
   setup () {
     const router = useRouter()
@@ -103,6 +124,7 @@ export default defineComponent({
     const project = computed(() => store.getters['project/ins'] as Project)
     const projForm = reactive(new ProjForm())
     const deployForm = reactive(new DeployForm())
+    const transferForm = reactive(new TransferForm())
 
     onMounted(async () => {
       await projForm.initialize()
@@ -111,16 +133,19 @@ export default defineComponent({
     return {
       Project,
       Deploy,
+      Transfer,
 
       router,
       project,
       projForm,
       deployForm,
+      transferForm,
 
       onConfig: (pjt: Project) => store.dispatch('project/save', pjt),
       onSync: () => store.dispatch('project/sync'),
       onStop: () => store.dispatch('project/stop'),
-      onDeploy: (config: Deploy) => store.dispatch('project/deploy', config)
+      onDeploy: (config: Deploy) => store.dispatch('project/deploy', config),
+      onTransfer: (info: Transfer) => store.dispatch('project/transfer', info)
     }
   }
 })

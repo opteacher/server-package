@@ -1,8 +1,9 @@
-import { baseTypes, Column, Cond, Deploy, Mapper, Model, Project, Route, routeMethods } from '@/common'
+import { baseTypes, Column, Cond, Deploy, Mapper, Model, Project, Route, routeMethods, Transfer } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
+import { message } from 'ant-design-vue'
 
 export function onSync () {
   Modal.confirm({
@@ -175,6 +176,36 @@ export class DeployForm {
       assetsPath: {
         label: '资源生成目录',
         desc: '生成之后的前端资源的位置，【Vue】vue.config.js的outputDir + assetsDir',
+        type: 'Input'
+      }
+    })
+  }
+}
+
+export class TransferForm {
+  show: boolean
+  mapper: Mapper
+
+  constructor () {
+    this.show = false
+    this.mapper = new Mapper({
+      file: {
+        label: '上传传送文件',
+        type: 'Upload',
+        onChange: (record: Transfer, info: any) => {
+          if (info.file.status !== 'uploading') {
+            console.log(info.file, info.fileList);
+          }
+          if (info.file.status === 'done') {
+            message.success(`${info.file.name} file uploaded successfully`);
+          } else if (info.file.status === 'error') {
+            message.error(`${info.file.name} file upload failed.`);
+          }
+        }
+      },
+      dest: {
+        label: '投放位置',
+        desc: '基于容器/app位置',
         type: 'Input'
       }
     })

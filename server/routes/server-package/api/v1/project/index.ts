@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { sync, del, stop, status, deploy } from '../../../../../services/project.js'
+import { sync, del, stop, status, deploy, transfer } from '../../../../../services/project.js'
 
 const router = new Router()
 
@@ -24,6 +24,12 @@ router.put('/:pid/stop', async ctx => {
 router.put('/:pid/deploy', async ctx => {
   ctx.body = {
     result: await deploy(ctx.params.pid, ctx.request.body)
+  }
+})
+
+router.put('/:pid/transfer', async ctx => {
+  ctx.body = {
+    result: await transfer(Object.assign({ pid: ctx.params.pid }, ctx.request.body))
   }
 })
 
