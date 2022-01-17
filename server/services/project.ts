@@ -317,7 +317,7 @@ export async function transfer (info: {
     console.log(`复制文件：${file.src} -> ${rootPath}${file.dest}`)
     const dir = Path.parse(`/app${file.dest}`).dir
     return [
-      `docker exec -it ${info.name} /bin/mkdir -p ${dir}/`,
+      `docker exec ${info.name} /bin/mkdir -p ${dir}/`,
       `docker cp ${file.src} ${rootPath}${file.dest}`
     ].join(' && ')
   })
