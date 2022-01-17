@@ -311,10 +311,15 @@ export async function transfer (info: {
     }
     info.name = project.name
   }
+  const rootPath = `${info.name}:/app`
   console.log('开始传输文件……')
   const cmds = info.files.map((file: { src: string, dest: string }) => {
-    console.log(`复制文件：${file.src} -> ${file.dest}`)
-    return `docker container cp ${file.src} ${file.dest}`
+    console.log(`复制文件：${file.src} -> ${rootPath}${file.dest}`)
+    const dir = Path.parse(`/app${file.dest}`).dir
+    return [
+      `docker exec -it ${info.name} /bin/mkdir -p ${dir}/`,
+      `docker cp ${file.src} ${rootPath}${file.dest}`
+    ].join(' && ')
   })
   spawn(cmds.join(' && '), {
     stdio: 'inherit',

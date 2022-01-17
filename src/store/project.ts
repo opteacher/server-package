@@ -123,7 +123,8 @@ export default {
         files: info.file.map((file: any) => ({
           src: file.response.result,
           dest: [
-            `${state.name}:/app/`,
+            // `${state.name}:/app/`, 这一步骤放在后端操作
+            info.dest.startsWith('/') ? '' : '/',
             info.dest ? info.dest + '/' : '',
             file.originFileObj.webkitRelativePath || file.name
           ].join('')

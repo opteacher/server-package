@@ -1,6 +1,6 @@
 <template>
 <ProjDetail>
-  <EditTable
+  <EditableTable
     title="模型"
     dsKey="project/ins.models"
     :columns="modelTable.columns"
@@ -12,7 +12,7 @@
     @delete="onModelDel"
   >
     <template #expandedRowRender="{ record: model }">
-      <EditTable
+      <EditableTable
         title="字段"
         :dsKey="`project/ins.models.[${model.key}].props`"
         :columns="propTable.columns"
@@ -22,7 +22,7 @@
         @save="(prop) => onPropSave(prop, model.key)"
         @delete="(key) => onPropDel(key, model.key)"
       />
-      <EditTable
+      <EditableTable
         title="接口"
         :dsKey="`project/ins.models.[${model.key}].routes`"
         :columns="routeTable.columns"
@@ -51,9 +51,9 @@
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
         </template>
-      </EditTable>
+      </EditableTable>
     </template>
-  </EditTable>
+  </EditableTable>
 </ProjDetail>
 </template>
 
@@ -62,7 +62,7 @@ import { Model, Project, Property, Route } from '@/common'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { ApartmentOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
-import EditTable from '../components/com/EditTable.vue'
+import EditableTable from '../components/com/EditableTable.vue'
 import ProjDetail from '../layouts/ProjDetail.vue'
 import { ModelTable, PropTable, RouteTable } from './Project'
 import { useStore } from 'vuex'
@@ -71,7 +71,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 export default defineComponent({
   name: 'Project',
   components: {
-    EditTable,
+    EditableTable,
     ProjDetail,
     ApartmentOutlined,
     CheckOutlined,

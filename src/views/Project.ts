@@ -4,6 +4,7 @@ import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { message } from 'ant-design-vue'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export function onSync () {
   Modal.confirm({
@@ -184,28 +185,29 @@ export class DeployForm {
 
 export class TransferForm {
   show: boolean
+  emitter: Emitter
   mapper: Mapper
 
   constructor () {
     this.show = false
+    this.emitter = new Emitter()
     this.mapper = new Mapper({
       file: {
         label: '上传传送文件',
         type: 'Upload',
-        onChange: (record: Transfer, info: any) => {
-          if (info.file.status !== 'uploading') {
-            console.log(info.file, info.fileList);
+        onChange: (_record: Transfer, info: any) => {
+          for (const file of info.fileList) {
+            if (file.status !== 'done') {
+              this.emitter.emit('editable', false)
+              return
+            }
           }
-          if (info.file.status === 'done') {
-            message.success(`${info.file.name} file uploaded successfully`);
-          } else if (info.file.status === 'error') {
-            message.error(`${info.file.name} file upload failed.`);
-          }
+          this.emitter.emit('editable', true)
         }
       },
       dest: {
         label: '投放位置',
-        desc: '基于容器/app位置',
+        desc: '基于容器/app位置（注意：文件名不能修改，所以这里只能填写目录！）',
         type: 'Input'
       }
     })

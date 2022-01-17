@@ -45,6 +45,7 @@
         :copy="Transfer.copy"
         :show="transferForm.show"
         :mapper="transferForm.mapper"
+        :emitter="transferForm.emitter"
         @update:show="(show) => { transferForm.show = show }"
         @submit="onTransfer"
       />
@@ -145,7 +146,10 @@ export default defineComponent({
       onSync: () => store.dispatch('project/sync'),
       onStop: () => store.dispatch('project/stop'),
       onDeploy: (config: Deploy) => store.dispatch('project/deploy', config),
-      onTransfer: (info: Transfer) => store.dispatch('project/transfer', info)
+      onTransfer: async (info: Transfer, reset: () => void) => {
+        await store.dispatch('project/transfer', info)
+        reset()
+      }
     }
   }
 })

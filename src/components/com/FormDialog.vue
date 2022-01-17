@@ -3,6 +3,7 @@
   :visible="show"
   :title="title"
   :width="width"
+  :confirmLoading="!editable"
   @ok="onOkClick"
   @cancel="onCclClick"
 >
@@ -25,21 +26,21 @@
         <a-input
           v-if="value.type === 'Input'"
           v-model:value="formState[key]"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-input-number
           v-else-if="value.type === 'Number'"
           class="w-100"
           v-model:value="formState[key]"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(val) => value.onChange(formState, val)"
         />
         <a-select
           v-else-if="value.type === 'Select'"
           class="w-100"
           v-model:value="formState[key]"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(val) => value.onChange(formState, val)"
         >
           <a-select-option
@@ -60,7 +61,7 @@
           v-else-if="value.type === 'Checkbox'"
           :name="key"
           v-model:checked="formState[key]"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(val) => value.onChange(formState, val)"
         >
           {{formState[key]
@@ -71,20 +72,20 @@
           v-else-if="value.type === 'Textarea'"
           v-model:value="formState[key]"
           :rows="4"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(val) => value.onChange(formState, val)"
         />
         <a-cascader
           v-else-if="value.type === 'Cascader'"
           :options="value.options"
           v-model:value="formState[key]"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-button
           v-else-if="value.type === 'Button'"
           class="w-100"
-          :disabled="value.disabled"
+          :disabled="value.disabled || !editable"
           :danger="value.danger"
           :loading="value.loading"
           @click="value.onClick"
@@ -92,7 +93,7 @@
         <a-form-item-rest
           v-else-if="value.type === 'Table'"
         >
-          <EditTable
+          <EditableTable
             class="w-100"
             size="small"
             :dsKey="value.dsKey"
@@ -108,7 +109,7 @@
           />
         </a-form-item-rest>
         <template v-else-if="value.type === 'Upload'">
-          <a-dropdown class="w-100">
+          <a-dropdown class="w-100" :disabled="!editable">
             <a-button>
               <UploadOutlined/>&nbsp;选择上传的文件或文件夹
             </a-button>
@@ -154,15 +155,15 @@
 
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
-import { defineComponent, reactive, ref, watch } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 import { InfoCircleOutlined, UploadOutlined, FileAddOutlined, FolderAddOutlined } from '@ant-design/icons-vue'
-import EditTable from './EditTable.vue'
+import EditableTable from './EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export default defineComponent({
   name: 'FormDialog',
   components: {
-    EditTable,
+    EditableTable,
     InfoCircleOutlined,
     UploadOutlined,
     FileAddOutlined,
@@ -175,7 +176,8 @@ export default defineComponent({
     column: { type: Array, default: () => [4, 20] }, // [0]标题宽度 [1]表单项宽度
     title: { type: String, default: 'Form Dialog' },
     object: { type: Object, default: null },
-    mapper: { type: Mapper, required: true }
+    mapper: { type: Mapper, required: true },
+    emitter: { type: Emitter, default: null }
   },
   emits: [
     'update:show',
@@ -190,8 +192,16 @@ export default defineComponent({
       })
     )
     const formMapper = reactive(props.mapper)
+    const editable = ref(true)
     const tblEmitter = new Emitter()
     const upldDir = ref(false)
+
+    if (props.emitter) {
+      props.emitter.on('editable', (edtb: boolean) => {
+        console.log(edtb)
+        editable.value = edtb
+      })
+    }
 
     function isDisplay (key: string): boolean {
       const display = props.mapper[key].display
@@ -214,6 +224,8 @@ export default defineComponent({
       }
     }
     function onCclClick () {
+      formRef.value.resetFields()
+      formState.reset()
       emit('update:show', false)
     }
     function onUploadClicked (item: { key: string }) {
@@ -228,6 +240,7 @@ export default defineComponent({
       formState,
       formRules,
       formMapper,
+      editable,
       tblEmitter,
       upldDir,
 
