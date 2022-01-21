@@ -11,7 +11,7 @@
         v-for="node in Object.values(nodes)"
         :key="node.key"
         :node="node"
-        @click:card="() => nodeForm.setEditNode(node)"
+        @click:card="() => $store.commit('route/SET_NODE', node)"
         @click:addBtn="onAddBtnClicked"
       />
     </template>
@@ -21,23 +21,23 @@
     width="70vw"
     :column="[2, 22]"
     :copy="Node.copy"
-    :show="nodeForm.show"
-    :mapper="nodeForm.mapper"
-    :object="nodeForm.editNode"
-    @update:show="(show) => { nodeForm.show = show }"
+    :show="$store.getters['route/visible']"
+    :mapper="EditNodeMapper"
+    :object="$store.getters['route/editNode']"
+    @update:show="(show) => $store.commit('route/SET_INVISIBLE')"
     @submit="onNodeSaved"
   />
 </FlowDesign>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
-import { NodeForm } from './Flow'
+import { EditNodeMapper } from './Flow'
 import { useStore } from 'vuex'
 
 export default defineComponent({
@@ -51,20 +51,22 @@ export default defineComponent({
     const route = useRoute()
     const store = useStore()
     const panelRef = ref()
-    const nodeForm = reactive(new NodeForm())
+    const node = computed(() => store.getters['route/editNode'])
     const nodes = computed(() => store.getters['route/nodes'])
     const editTitle = computed(() => {
-      if (nodeForm.editNode.key) {
-        return `编辑节点#${nodeForm.editNode.key}`
-      } else if (nodeForm.editNode.previous?.key) {
-        return `在节点#${nodeForm.editNode.previous.key}后新增节点`
+      if (node.value.key) {
+        return `编辑节点#${node.value.key}`
+      } else if (node.value.previous?.key) {
+        return `在节点#${node.value.previous.key}后新增节点`
       } else {
         return '在根节点后新增节点'
       }
     })
     const rszObs = new ResizeObserver(async () => {
       store.commit('route/SET_WIDTH', panelRef.value?.clientWidth)
-      await store.dispatch('route/refresh', route.params.rid as string)
+      await store.dispatch('route/refresh', {
+        rid: route.params.rid as string
+      })
     })
 
     onMounted(() => {
@@ -72,11 +74,8 @@ export default defineComponent({
     })
 
     function onAddBtnClicked (previous: Node) {
-      nodeForm.editNode.reset()
-      if (previous) {
-        Node.copy({ previous }, nodeForm.editNode)
-      }
-      nodeForm.show = true
+      node.value.reset()
+      store.commit('route/SET_NODE', previous ? { previous } : undefined)
     }
     async function onNodeSaved (node: Node, next: () => void) {
       await store.dispatch('route/saveNode', Node.copy(node))
@@ -86,7 +85,7 @@ export default defineComponent({
       Node,
 
       nodes,
-      nodeForm,
+      EditNodeMapper,
       panelRef,
       editTitle,
 

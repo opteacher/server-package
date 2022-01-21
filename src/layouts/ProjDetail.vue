@@ -58,7 +58,7 @@
       >
         <template #icon><PoweroffOutlined/></template>&nbsp;停止
       </a-button>
-      <a-button class="ml-5" @click="deployForm.show = true">
+      <a-button v-show="false" class="ml-5" @click="deployForm.show = true">
         <template #icon><BuildOutlined /></template>&nbsp;部署前端
       </a-button>
       <FormDialog

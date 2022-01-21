@@ -45,11 +45,6 @@ export class ProjForm {
           { type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }
         ]
       },
-      frontend: {
-        label: '前端仓库',
-        type: 'Input',
-        rules: []
-      },
       operation: {
         label: '操作项目',
         display: Cond.copy({

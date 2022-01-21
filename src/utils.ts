@@ -130,7 +130,9 @@ export function getProperty (obj: any, props: string | string[]): any {
     props = props.split('.')
   }
   for (const prop of props) {
-    if (obj instanceof Array
+    if (!obj) {
+      return null
+    } else if (obj instanceof Array
     && prop.startsWith('[')
     && prop.endsWith(']')) {
       const key = prop.substring(1, prop.length - 1)

@@ -80,7 +80,7 @@
           :options="value.options"
           v-model:value="formState[key]"
           :disabled="value.disabled || !editable"
-          @change="(e) => value.onChange(formState, e.target.value)"
+          @change="(e) => value.onChange(formState, e.target)"
         />
         <a-button
           v-else-if="value.type === 'Button'"
@@ -88,7 +88,7 @@
           :disabled="value.disabled || !editable"
           :danger="value.danger"
           :loading="value.loading"
-          @click="value.onClick"
+          @click="() => value.onClick(formState)"
         >{{ value.inner }}</a-button>
         <a-form-item-rest
           v-else-if="value.type === 'Table'"
@@ -155,10 +155,11 @@
 
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
-import { defineComponent, reactive, ref } from 'vue'
+import { defineComponent, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined, UploadOutlined, FileAddOutlined, FolderAddOutlined } from '@ant-design/icons-vue'
 import EditableTable from './EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { getProperty } from '@/utils'
 
 export default defineComponent({
   name: 'FormDialog',
@@ -198,8 +199,10 @@ export default defineComponent({
 
     if (props.emitter) {
       props.emitter.on('editable', (edtb: boolean) => {
-        console.log(edtb)
         editable.value = edtb
+      })
+      props.emitter.on('update:show', (show: boolean) => {
+        emit('update:show', show)
       })
     }
 

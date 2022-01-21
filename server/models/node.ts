@@ -9,6 +9,7 @@ export default db.defineModel({
   code: db.PropTypes.String,
   previous: { type: db.PropTypes.Id, ref: 'node' },
   nexts: [{ type: db.PropTypes.Id, ref: 'node' }],
+  relative: db.PropTypes.String
 }, {
   router: {
     methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT', 'LINK']

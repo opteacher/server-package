@@ -1,9 +1,7 @@
 <template>
 <div class="white-bkgd mb-10">
   <a-space class="p-10">
-    <a-button v-if="addable" type="primary" @click="editing.key = ''">
-      添加{{title}}
-    </a-button>
+    <a-button v-if="addable" type="primary" @click="editing.key = ''">添加{{title}}</a-button>
     <template v-if="description">
       <InfoCircleOutlined style="color: #1890ff"/>
       <p class="mb-0">{{description}}</p>
@@ -107,7 +105,7 @@
         </template>
       </template>
     </template>
-    <template #action="{ record }">
+    <template v-if="edtable || delable" #action="{ record }">
       <template v-if="record.key === editing.key">
         <ul class="unstyled-list">
           <li class="mb-3">
@@ -125,12 +123,12 @@
       </template>
       <template v-else>
         <ul class="unstyled-list">
-          <li v-if="editable" class="mb-3">
+          <li v-if="edtable" class="mb-3">
             <a-button size="small"
               @click="onEditClicked(record)"
             >编辑</a-button>
           </li>
-          <li>
+          <li v-if="delable">
             <a-popconfirm
               title="确定删除该字段"
               @confirm="onDelSubmit(record.key)"
@@ -157,7 +155,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { getProperty } from '@/utils'
 
 export default defineComponent({
-  name: 'EditableTable',
+  name: 'edtableTable',
   emits: ['add', 'save', 'delete'],
   components: {
     InfoCircleOutlined
@@ -172,17 +170,18 @@ export default defineComponent({
     description: { type: String, default: '' },
     size: { type: String, default: 'default' },
     sclHeight: { type: Number, default: 300 },
-    editable: { type: Boolean, default: true },
-    addable: { type: Boolean, default: true }
+    edtable: { type: Boolean, default: true },
+    addable: { type: Boolean, default: true },
+    delable: { type: Boolean, default: true },
   },
   setup (props, { emit }) {
     const store = useStore()
-    const cols = props.columns.concat({
+    const cols = (props.edtable || props.delable) ? props.columns.concat({
       title: '操作',
       dataIndex: 'action',
       slots: { customRender: 'action' },
       width: 80
-    })
+    }) : props.columns
     const records = ref([] as any[])
     const dataSrc = computed(() => {
       return (editing.key === '' ? [editing] : []).concat(records.value)

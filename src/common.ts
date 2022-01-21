@@ -1,3 +1,5 @@
+import { getProperty } from "./utils"
+
 export class StrIterable {
   [idx: string]: any
 }
@@ -15,10 +17,10 @@ export class Cond {
   isValid (object: StrIterable) {
     switch (this.cmp) {
     case '!=':
-      return object[this.key] !== this.val
+      return getProperty(object, this.key) !== this.val
     case '=':
     default:
-      return object[this.key] === this.val
+      return getProperty(object, this.key) === this.val
     }
   }
 
@@ -31,7 +33,7 @@ export class Cond {
   }
 }
 
-export type CompoType = 'Block' | 'Input' | 'Number' | 'Button' | 'Select' | 'Checkbox' | 'Textarea' | 'Cascader' | 'Unknown'
+export type CompoType = 'Text' | 'Block' | 'Input' | 'Number' | 'Button' | 'Select' | 'Checkbox' | 'Textarea' | 'Cascader' | 'Unknown'
 
 export class Mapper {
   [prop: string]: {
@@ -43,8 +45,8 @@ export class Mapper {
     loading?: boolean
     display?: boolean | Cond
     expanded?: boolean
-    onChange?: (record: any, to: any, from?: any) => void
     reset?: boolean
+    onChange?: (record: any, to: any, from?: any) => void
 
     // type = Select
     options?: string[] | {
@@ -390,7 +392,15 @@ export class Variable {
   }
 }
 
-type NodeType = 'normal' | 'condition' | 'traversal'
+export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
+
+export const NodeTypeMapper = {
+  'normal': '普通',
+  'condition': '条件',
+  'condNode': '条件节点',
+  'traversal': '遍历',
+  'endNode': '结束节点'
+}
 export class Node extends StrIterable {
   key: string
   title: string
@@ -398,8 +408,9 @@ export class Node extends StrIterable {
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   code: string
-  previous: Node | null
+  previous: Node | string | null
   nexts: (Node | string)[]
+  relative: string
 
   constructor () {
     super()
@@ -411,6 +422,7 @@ export class Node extends StrIterable {
     this.code = ''
     this.previous = null
     this.nexts = []
+    this.relative = ''
   }
 
   reset () {
@@ -422,6 +434,7 @@ export class Node extends StrIterable {
     this.code = ''
     this.previous = null
     this.nexts = []
+    this.relative = ''
   }
 
   static copy (src: any, tgt?: Node, recu = true): Node {
@@ -449,16 +462,20 @@ export class Node extends StrIterable {
         }
       }
     }
+    tgt.relative = src.relative || tgt.relative
     return tgt
   }
 }
 
+export const CardMinHgt = 170
 export const CardWidth = 300
 export const CardHlfWid = CardWidth >> 1
 export const ArrowHeight = 100
 export const ArrowHlfHgt = ArrowHeight >> 1
 export const AddBtnWH = 32
 export const AddBtnHlfWH = AddBtnWH >> 1
+export const CardGutter = 50
+export const CardHlfGutter = 25
 
 export type NodeInPnl = Node & {
   posLT: [number, number],
@@ -489,6 +506,7 @@ export class Route {
     tgt.key = src.key || src._id || tgt.key
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path
+    // @_@: 删除根节点出错的问题所在
     if (src.flow) {
       tgt.flow = Node.copy(src.flow)
     }
