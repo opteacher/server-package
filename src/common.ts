@@ -392,14 +392,15 @@ export class Variable {
   }
 }
 
-export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
+export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode' | 'placeholder'
 
 export const NodeTypeMapper = {
-  'normal': '普通',
-  'condition': '条件',
+  'normal': '普通节点',
+  'condition': '条件根节点',
   'condNode': '条件节点',
-  'traversal': '遍历',
-  'endNode': '结束节点'
+  'traversal': '遍历节点',
+  'endNode': '结束节点',
+  'placeholder': '占位节点'
 }
 export class Node extends StrIterable {
   key: string
@@ -467,7 +468,7 @@ export class Node extends StrIterable {
   }
 }
 
-export const CardMinHgt = 170
+export const CardMinHgt = 150
 export const CardWidth = 300
 export const CardHlfWid = CardWidth >> 1
 export const ArrowHeight = 100
@@ -475,7 +476,7 @@ export const ArrowHlfHgt = ArrowHeight >> 1
 export const AddBtnWH = 32
 export const AddBtnHlfWH = AddBtnWH >> 1
 export const CardGutter = 50
-export const CardHlfGutter = 25
+export const CardHlfGutter = CardGutter >> 1
 
 export type NodeInPnl = Node & {
   posLT: [number, number],
@@ -506,9 +507,10 @@ export class Route {
     tgt.key = src.key || src._id || tgt.key
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path
-    // @_@: 删除根节点出错的问题所在
     if (src.flow) {
       tgt.flow = Node.copy(src.flow)
+    } else {
+      tgt.flow = null
     }
     return tgt
   }

@@ -2,20 +2,44 @@
 <svg v-if="node && node.previous" :style="{
   position: 'absolute',
   'z-index': -100,
-  width: `${CardWidth}px`,
+  width: `${arwTopSvgSizeW}px`,
   height: `${ArrowHlfHgt}px`,
-  left: `${node.posLT[0]}px`,
-  top: `${node.posLT[1] - ArrowHlfHgt}px`,
+  left: `${arwTopSvgPosLT[0]}px`,
+  top: `${arwTopSvgPosLT[1]}px`,
 }">
   <line
     stroke-width="2"
     stroke="#f0f0f0"
+    :x1="arwTopSvgSizeW >> 1" :y1="0"
+    :x2="arwTopSvgSizeW >> 1" :y2="ArrowHlfHgt"
+  />
+  <template v-if="multiCond">
+    <line
+      stroke-width="4"
+      stroke="#f0f0f0"
+      :x1="0" :y1="0"
+      :x2="arwTopSvgSizeW" :y2="0"
+    />
+  </template>
+</svg>
+<svg
+  v-if="node && node.type === 'placeholder'"
+  :style="{
+    position: 'absolute',
+    width: `${CardWidth}px`,
+    left: `${node.posLT[0]}px`,
+    top: `${node.posLT[1]}px`,
+  }"
+>
+  <line
+    stroke-width="2"
+    stroke="#f0f0f0"
     :x1="CardHlfWid" :y1="0"
-    :x2="CardHlfWid" :y2="ArrowHlfHgt"
+    :x2="CardHlfWid" :y2="CardMinHgt"
   />
 </svg>
 <a-card
-  v-if="!first"
+  v-else-if="!first"
   size="small"
   ref="nodeRef"
   :bordered="false"
@@ -54,33 +78,39 @@
     </a-col>
   </a-row>
 </a-card>
-<a-button type="primary" shape="circle" :style="{
-  position: 'absolute',
-  left: `${addBtnPosLT[0]}px`,
-  top: `${addBtnPosLT[1]}px`
-}" @click="$emit('click:addBtn', node)">
+<a-button
+  v-if="!node || node.type !== 'placeholder'"
+  type="primary"
+  shape="circle"
+  :style="{
+    position: 'absolute',
+    left: `${addBtnPosLT[0]}px`,
+    top: `${addBtnPosLT[1]}px`
+  }"
+  @click="$emit('click:addBtn', node)"
+>
   <template #icon><PlusOutlined/></template>
 </a-button>
 <svg v-if="!first" :style="{
   position: 'absolute',
   'z-index': -100,
-  width: `${arwSvgSizeW}px`,
+  width: `${arwBtmSvgSizeW}px`,
   height: `${ArrowHlfHgt}px`,
-  left: `${arwSvgPosLT[0]}px`,
-  top: `${arwSvgPosLT[1]}px`,
+  left: `${arwBtmSvgPosLT[0]}px`,
+  top: `${arwBtmSvgPosLT[1]}px`,
 }">
   <line
     stroke-width="2"
     stroke="#f0f0f0"
-    :x1="arwSvgSizeW >> 1" :y1="0"
-    :x2="arwSvgSizeW >> 1" :y2="ArrowHlfHgt"
+    :x1="arwBtmSvgSizeW >> 1" :y1="0"
+    :x2="arwBtmSvgSizeW >> 1" :y2="ArrowHlfHgt"
   />
   <template v-if="nexts.length > 1">
     <line
       stroke-width="4"
       stroke="#f0f0f0"
       :x1="0" :y1="ArrowHlfHgt"
-      :x2="arwSvgSizeW" :y2="ArrowHlfHgt"
+      :x2="arwBtmSvgSizeW" :y2="ArrowHlfHgt"
     />
   </template>
 </svg>
@@ -89,7 +119,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { AddBtnHlfWH, ArrowHeight, ArrowHlfHgt, CardWidth, CardHlfWid, Node, NodeTypeMapper, NodeType } from '@/common'
+import { AddBtnHlfWH, ArrowHeight, ArrowHlfHgt, CardWidth, CardHlfWid, Node, NodeTypeMapper, NodeType, CardMinHgt } from '@/common'
 import { useStore } from 'vuex'
 
 export default defineComponent({
@@ -115,8 +145,8 @@ export default defineComponent({
     ] : [
       (store.getters['route/width'] >> 1) - AddBtnHlfWH, 0
     ])
-    const arwSvgPosLT = computed(() => props.node ? [
-      props.node.posLT[0] - (arwSvgSizeW.value >> 1) + CardHlfWid,
+    const arwBtmSvgPosLT = computed(() => props.node ? [
+      props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
       props.node.posLT[1] + props.node.size[1]
     ] : [0, 0])
     const color = computed(() => {
@@ -136,20 +166,21 @@ export default defineComponent({
     const nexts = computed(() => props.node.nexts.map((next: Node) => {
       return next && next.key ? store.getters['route/node'](next.key) : undefined
     }).filter((node: any) => node))
-    const arwSvgSizeW = computed(() => {
-      if (!props.node.nexts || !props.node.nexts.length) {
+    const multiCond = computed(() => {
+      const relative = store.getters['route/node'](props.node.relative)
+      return props.node.type === 'endNode' && relative.nexts.length > 1
+    })
+    const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node as Node))
+    const arwTopSvgPosLT = computed(() => [
+      props.node.posLT[0] - (arwTopSvgSizeW.value >> 1) + CardHlfWid,
+      props.node.posLT[1] - ArrowHlfHgt
+    ])
+    const arwTopSvgSizeW = computed(() => {
+      if (props.node.type === 'endNode') {
+        return getWidByNexts(store.getters['route/node'](props.node.relative))
+      } else {
         return CardWidth
       }
-      const lstIdx = props.node.nexts.length - 1
-      const fstKey = props.node.nexts[0].key
-      const lstKey = props.node.nexts[lstIdx].key
-      const first = store.getters['route/nodes'][fstKey]
-      const last = store.getters['route/nodes'][lstKey]
-      if (!first || !first.posLT || !last ||!last.posLT
-      || last.posLT[0] <= first.posLT[0]) {
-        return CardWidth
-      }
-      return last.posLT[0] - first.posLT[0]
     })
 
     onMounted(async () => {
@@ -161,22 +192,45 @@ export default defineComponent({
         size: nodeRef.value ? [
           nodeRef.value.$el.clientWidth,
           nodeRef.value.$el.clientHeight
-        ] : [CardWidth, 0]
+        ] : [CardWidth, CardMinHgt]
       })
       await store.dispatch('route/refresh')
     })
+
+    function getKey (obj: { key: string } | string): string {
+      return typeof obj === 'string' ? obj : obj.key
+    }
+    function getWidByNexts (node: Node): number {
+      if (!node.nexts || !node.nexts.length) {
+        return CardWidth
+      }
+      const lstIdx = node.nexts.length - 1
+      const fstKey = getKey(node.nexts[0])
+      const lstKey = getKey(node.nexts[lstIdx])
+      const first = store.getters['route/node'](fstKey)
+      const last = store.getters['route/node'](lstKey)
+      if (!first || !first.posLT || !last ||!last.posLT
+      || last.posLT[0] <= first.posLT[0]) {
+        return CardWidth
+      }
+      return last.posLT[0] - first.posLT[0]
+    }
     return {
       CardWidth,
       CardHlfWid,
+      CardMinHgt,
       ArrowHeight,
       ArrowHlfHgt,
       title,
       color,
       nexts,
+      multiCond,
       nodeRef,
       addBtnPosLT,
-      arwSvgPosLT,
-      arwSvgSizeW
+      arwBtmSvgPosLT,
+      arwBtmSvgSizeW,
+      arwTopSvgPosLT,
+      arwTopSvgSizeW
     }
   }
 })

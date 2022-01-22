@@ -1,4 +1,4 @@
-import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper } from '@/common'
+import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt } from '@/common'
 import { reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import { EditNodeMapper } from '@/views/Flow'
 import { Dispatch } from 'vuex'
@@ -25,6 +25,15 @@ function getNextKeys (node: Node): string[] {
     }
   }
   return []
+}
+
+function getNode (state: { nodes: NodesInPnl }, node: string | Node): NodeInPnl {
+  return typeof node === 'string' ? state.nodes[node] : state.nodes[node.key]
+}
+
+function getPrevious (state: { nodes: NodesInPnl }, node: Node): Node {
+  return (typeof node.previous === 'string'
+    ? state.nodes[node.previous] : node.previous) as Node
 }
 
 export default {
@@ -68,7 +77,11 @@ export default {
         EditNodeMapper.type.options = Object.entries(NodeTypeMapper).map(([key, val]) => ({
           title: val,
           value: key
-        })).filter(item => item.value !== 'endNode' && item.value !== 'condNode')
+        })).filter(item => {
+          return item.value !== 'endNode'
+            && item.value !== 'condNode'
+            && item.value !== 'placeholder'
+        })
       }
       EditNodeMapper.inputs.dsKey = `route/nodes.${state.node.key}.inputs`
       EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
@@ -94,11 +107,14 @@ export default {
       }
       Route.copy((await reqGet('route', payload.rid || state.route.key)).data, state.route)
       if (state && state.route.flow) {
-        await dispatch('buildNodes', {
-          ndKey: state.route.flow.key,
-          height: 0,
-          force: payload.force
-        })
+        const rootKey = state.route.flow.key
+        if (payload.force) {
+          await dispatch('readNodes', rootKey)
+        }
+        await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
+        if (await dispatch('fillPlaceholder', rootKey)) {
+          await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
+        }
         let left = 0
         let right = 0
         for (const node of Object.values(state.nodes)) {
@@ -115,29 +131,95 @@ export default {
         }
       }
     },
-    async buildNodes (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
-      { ndKey, height, force }: {
-        ndKey: string,
-        height: number,
-        force?: boolean
+    async fillPlaceholder ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
+      const node = state.nodes[key]
+      let ret = false
+      for (const nxt of node.nexts) {
+        const nxtNode = getNode(state, nxt)
+        const phNum = Math.floor((nxtNode.posLT[1]
+          - (node.posLT[1] + node.size[1] + ArrowHeight))
+          / (CardMinHgt + ArrowHeight))
+        if (phNum) {
+          ret = ret || true
+          await reqLink({
+            parent: ['node', key],
+            child: ['nexts', nxtNode.key]
+          }, false)
+          let pvsKey = key
+          let phNode = null
+          for (let i = 0; i < phNum; i++) {
+            phNode = Node.copy((await reqPost('node', { type: 'placeholder' })).data)
+            state.nodes[phNode.key] = Object.assign({
+              posLT: [-1, -1], size: [0, 0]
+            }, phNode) as NodeInPnl
+            await Promise.all([
+              reqLink({
+                parent: ['node', pvsKey],
+                child: ['nexts', phNode.key]
+              }),
+              reqLink({
+                parent: ['node', phNode.key],
+                child: ['previous', pvsKey]
+              })
+            ])
+            pvsKey = phNode.key
+          }
+          if (phNode && phNode.key) {
+            await Promise.all([
+              reqLink({
+                parent: ['node', phNode.key],
+                child: ['nexts', nxtNode.key]
+              }),
+              reqLink({
+                parent: ['node', nxtNode.key],
+                child: ['previous', phNode.key]
+              })
+            ])
+          }
+        }
+        ret = ret || await dispatch('fillPlaceholder', getKey(nxt))
       }
-    ) {
-      if (!(ndKey in state.nodes)) {
-        state.nodes[ndKey] = Object.assign(Node.copy(
-          (await reqGet('node', ndKey)).data
-        ), {
-          posLT: [-1, -1], size: [0, 0]
-        }) as NodeInPnl
-      } else if (force) {
+      return ret
+    },
+    async readNodes ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
+      if (!(key in state.nodes)) {
+        state.nodes[key] = Object.assign(
+          Node.copy((await reqGet('node', key)).data),
+          { posLT: [-1, -1], size: [0, 0] }
+        ) as NodeInPnl
+      } else {
         Node.copy(
-          (await reqGet('node', ndKey)).data,
-          state.nodes[ndKey]
+          (await reqGet('node', key)).data, state.nodes[key]
         )
       }
+      for (const nxtNode of state.nodes[key].nexts) {
+        await dispatch('readNodes', getKey(nxtNode))
+      }
+    },
+    async buildNodes (
+      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      { ndKey, height }: { ndKey: string, height: number }
+    ) {
       const node = state.nodes[ndKey]
       if (!node.previous) {
         node.posLT[0] = (state.width >> 1) - CardHlfWid
+        node.posLT[1] = height
+      } else if (node.type === 'endNode') {
+        const relNode = state.nodes[node.relative]
+        node.posLT[0] = relNode.posLT[0]
+        let maxHeight = 0
+        function traverse (node: NodeInPnl) {
+          if (node.key === ndKey) {
+            return
+          }
+          const height = node.posLT[1] + node.size[1] + ArrowHeight
+          maxHeight = height > maxHeight ? height : maxHeight
+          for (const nxt of node.nexts) {
+            traverse(getNode(state, nxt))
+          }
+        }
+        traverse(relNode)
+        node.posLT[1] = maxHeight
       } else {
         const pvsNode = node.previous as Node
         const nexts = pvsNode.nexts
@@ -151,99 +233,93 @@ export default {
           // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
           + idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
           // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
+        node.posLT[1] = height
       }
-      node.posLT[1] = height
       for (const nxtNode of node.nexts) {
-        const nxtNdKey = getKey(nxtNode)
         await dispatch('buildNodes', {
-          ndKey: nxtNdKey,
-          height: node.posLT[1] + node.size[1] + ArrowHeight,
-          force
+          ndKey: getKey(nxtNode),
+          height: node.posLT[1] + node.size[1] + ArrowHeight
         })
       }
     },
     async saveNode ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, node: Node) {
       const options = { ignores: ['key', 'previous', 'nexts', 'inputs', 'outputs'] }
-      let tailKey = ''
       if (node.key) { // 更新节点
         await reqPut('node', node.key, node, options)
         return dispatch('refresh')
-      } else { //新增节点
-        Node.copy((await reqPost('node', node, options)).data, node)
-        tailKey = node.key
-        switch (node.type) {
-        case 'condNode': {
-          const endNode = Node.copy((await reqPost('node', {
-            title: '条件结束节点1',
-            type: 'endNode',
-            relative: node.key
-          }, options)).data)
-          await Promise.all([
-            reqLink({
-              parent: ['node', node.key],
-              child: ['nexts', endNode.key]
-            }),
-            reqLink({
-              parent: ['node', endNode.key],
-              child: ['previous', node.key]
-            })
-          ])
-          tailKey = endNode.key
-        }
-        break
-        case 'condition': { // 对于条件根节点，在其后同时创建一个条件节点和结束节点
-          const condNode = Node.copy((await reqPost('node', {
-            title: '条件节点1',
-            type: 'condNode'
-          }, options)).data)
-          await Promise.all([
-            reqLink({
-              parent: ['node', node.key],
-              child: ['nexts', condNode.key]
-            }),
-            reqLink({
-              parent: ['node', condNode.key],
-              child: ['previous', node.key]
-            }),
-          ])
-          const endNode = Node.copy((await reqPost('node', {
-            title: '条件结束节点1',
-            type: 'endNode',
-            relative: condNode.key
-          }, options)).data)
-          await Promise.all([
-            reqLink({
-              parent: ['node', condNode.key],
-              child: ['nexts', endNode.key]
-            }),
-            reqLink({
-              parent: ['node', endNode.key],
-              child: ['previous', condNode.key]
-            })
-          ])
-          tailKey = endNode.key
-        }
-        break
-        case 'traversal': { // 对于循环根节点，在其后同时创建一个结束节点
-          const endNode = Node.copy((await reqPost('node', {
-            title: '循环结束节点1',
-            type: 'endNode',
-            relative: node.key
-          }, options)).data)
-          await Promise.all([
-            reqLink({
-              parent: ['node', node.key],
-              child: ['nexts', endNode.key]
-            }),
-            reqLink({
-              parent: ['node', endNode.key],
-              child: ['previous', node.key]
-            })
-          ])
-          tailKey = endNode.key
-        }
-        break
-        }
+      }
+      //新增节点
+      let tailNode = Node.copy((await reqPost('node', node, options)).data, node)
+      switch (node.type) {
+      case 'condNode': { // 对于条件节点，找出条件根节点对应的结束节点
+        const rootNode = getPrevious(state, node)
+        const endNode = state.nodes[rootNode.relative]
+        await Promise.all([
+          reqLink({
+            parent: ['node', node.key],
+            child: ['nexts', endNode.key]
+          }),
+          reqLink({
+            parent: ['node', endNode.key],
+            child: ['previous', node.key]
+          })
+        ])
+        tailNode = endNode
+      }
+      break
+      case 'condition': { // 对于条件根节点，在其后同时创建一个条件节点和结束节点
+        const condNode = Node.copy((await reqPost('node', {
+          title: '条件节点1',
+          type: 'condNode'
+        }, options)).data)
+        await Promise.all([
+          reqLink({
+            parent: ['node', node.key],
+            child: ['nexts', condNode.key]
+          }),
+          reqLink({
+            parent: ['node', condNode.key],
+            child: ['previous', node.key]
+          }),
+        ])
+        const endNode = Node.copy((await reqPost('node', {
+          title: '条件结束节点1',
+          type: 'endNode',
+          relative: node.key
+        }, options)).data)
+        await reqPut('node', node.key, { relative: endNode.key })
+        await Promise.all([
+          reqLink({
+            parent: ['node', condNode.key],
+            child: ['nexts', endNode.key]
+          }),
+          reqLink({
+            parent: ['node', endNode.key],
+            child: ['previous', condNode.key]
+          })
+        ])
+        tailNode = endNode
+      }
+      break
+      case 'traversal': { // 对于循环根节点，在其后同时创建一个结束节点
+        const endNode = Node.copy((await reqPost('node', {
+          title: '循环结束节点1',
+          type: 'endNode',
+          relative: node.key
+        }, options)).data)
+        await Promise.all([
+          reqLink({
+            parent: ['node', node.key],
+            child: ['nexts', endNode.key]
+          }),
+          reqLink({
+            parent: ['node', endNode.key],
+            child: ['previous', node.key]
+          })
+        ])
+        tailNode = endNode
+      }
+      break
       }
       if (!node.previous) {
         // 绑定根节点
@@ -266,12 +342,12 @@ export default {
           // 为原来的子节点添加新父节点
           await Promise.all([
             reqLink({
-              parent: ['node', tailKey],
+              parent: ['node', tailNode.key],
               child: ['nexts', nxtKey]
             }),
             reqLink({
               parent: ['node', nxtKey],
-              child: ['previous', tailKey]
+              child: ['previous', tailNode.key]
             })
           ])
         }
@@ -286,6 +362,20 @@ export default {
             child: ['previous', previous.key]
           })
         ])
+
+        // // 向上查找最近的条件根节点，如果存在且该节点没有子节点的话，将条件根节点对应的结束节点绑定到该节点的子节点中
+        // if (!tailNode.nexts.length) {
+        //   let pvsNode = getNode(state, node.previous)
+        //   while (pvsNode && pvsNode.previous && pvsNode.type !== 'condition') {
+        //     pvsNode = getNode(state, pvsNode.previous)
+        //   }
+        //   if (pvsNode && pvsNode.type === 'condition') {
+        //     await reqLink({
+        //       parent: ['node', tailNode.key],
+        //       child: ['nexts', pvsNode.relative]
+        //     })
+        //   }
+        // }
       }
       await dispatch('refresh')
     },
@@ -336,22 +426,22 @@ export default {
       }
       // 删除节点的子节点或解绑子节点
       const nexts = [] as string[]
-      if (node.type === 'condNode' || node.type === 'traversal') {
+      if (node.type === 'condNode') {
         // 如果是条件节点或循环根节点，删除对应的块
+        nexts.push(...await dispatch('delBlock', { node, orgKey: pvsKey }))
+      } else if (node.type === 'traversal') {
         nexts.push(...await dispatch('delBlock', { node, orgKey: key }))
       } else if (node.type === 'condition') {
         // 如果是条件根节点，则依次删除其子条件节点
         for (const nxtKey of getNextKeys(node)) {
-          nexts.push(...await dispatch('delNode', nxtKey))
+          await dispatch('delNode', nxtKey)
         }
       } else {
         // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
         nexts.push(...getNextKeys(node))
       }
-      console.log(nexts)
-      for (const nxtKey of nexts) {
-        const nxtNode = state.nodes[nxtKey]
-        if (pvsKey && nxtNode.type === 'normal') {
+      if (pvsKey) {
+        for (const nxtKey of nexts) {
           await Promise.all([
             reqLink({
               parent: ['node', nxtKey],
