@@ -1,7 +1,8 @@
-import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt } from '@/common'
+import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt, ArrowHlfHgt } from '@/common'
 import { reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import { EditNodeMapper } from '@/views/Flow'
 import { Dispatch } from 'vuex'
+import { uuid } from 'uuidv4'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type RouteState = {
@@ -80,7 +81,6 @@ export default {
         })).filter(item => {
           return item.value !== 'endNode'
             && item.value !== 'condNode'
-            && item.value !== 'placeholder'
         })
       }
       EditNodeMapper.inputs.dsKey = `route/nodes.${state.node.key}.inputs`
@@ -112,80 +112,46 @@ export default {
           await dispatch('readNodes', rootKey)
         }
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
-        if (await dispatch('fillPlaceholder', rootKey)) {
-          await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
+        await dispatch('fillPlaceholder', rootKey)
+        await dispatch('fixWidth')
+      }
+    },
+    async fixWidth ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }) {
+      let left = 0
+      let right = 0
+      for (const node of Object.values(state.nodes)) {
+        if (node.posLT[0] < left) {
+          left = node.posLT[0]
         }
-        let left = 0
-        let right = 0
-        for (const node of Object.values(state.nodes)) {
-          if (node.posLT[0] < left) {
-            left = node.posLT[0]
-          }
-          if (node.posLT[0] + node.size[0] > right) {
-            right = node.posLT[0] + node.size[0]
-          }
+        if (node.posLT[0] + node.size[0] > right) {
+          right = node.posLT[0] + node.size[0]
         }
-        if (state.width < right - left) {
-          state.width = right - left
-          await dispatch('refresh', { force: false })
-        }
+      }
+      if (state.width < right - left) {
+        state.width = right - left
+        await dispatch('refresh', { force: false })
       }
     },
     async fillPlaceholder ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
       const node = state.nodes[key]
-      let ret = false
-      for (const nxt of node.nexts) {
+      for (let i = 0; i < node.nexts.length; ++i) {
+        const nxt = node.nexts[i]
         const nxtNode = getNode(state, nxt)
-        const phNum = Math.floor((nxtNode.posLT[1]
-          - (node.posLT[1] + node.size[1] + ArrowHeight))
-          / (CardMinHgt + ArrowHeight))
-        if (phNum) {
-          ret = ret || true
-          await reqLink({
-            parent: ['node', key],
-            child: ['nexts', nxtNode.key]
-          }, false)
-          let pvsKey = key
-          let phNode = null
-          for (let i = 0; i < phNum; i++) {
-            phNode = Node.copy((await reqPost('node', { type: 'placeholder' })).data)
-            state.nodes[phNode.key] = Object.assign({
-              posLT: [-1, -1], size: [0, 0]
-            }, phNode) as NodeInPnl
-            await Promise.all([
-              reqLink({
-                parent: ['node', pvsKey],
-                child: ['nexts', phNode.key]
-              }),
-              reqLink({
-                parent: ['node', phNode.key],
-                child: ['previous', pvsKey]
-              })
-            ])
-            pvsKey = phNode.key
-          }
-          if (phNode && phNode.key) {
-            await Promise.all([
-              reqLink({
-                parent: ['node', phNode.key],
-                child: ['nexts', nxtNode.key]
-              }),
-              reqLink({
-                parent: ['node', nxtNode.key],
-                child: ['previous', phNode.key]
-              })
-            ])
-          }
+        const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
+        if (height > ArrowHeight) {
+          node.btmSvgHgt = height - ArrowHlfHgt
         }
-        ret = ret || await dispatch('fillPlaceholder', getKey(nxt))
+        await dispatch('fillPlaceholder', getKey(nxt))
       }
-      return ret
     },
     async readNodes ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
       if (!(key in state.nodes)) {
         state.nodes[key] = Object.assign(
-          Node.copy((await reqGet('node', key)).data),
-          { posLT: [-1, -1], size: [0, 0] }
+          Node.copy((await reqGet('node', key)).data), {
+            posLT: [-1, -1],
+            size: [0, 0],
+            btmSvgHgt: ArrowHlfHgt
+          }
         ) as NodeInPnl
       } else {
         Node.copy(
@@ -362,20 +328,6 @@ export default {
             child: ['previous', previous.key]
           })
         ])
-
-        // // 向上查找最近的条件根节点，如果存在且该节点没有子节点的话，将条件根节点对应的结束节点绑定到该节点的子节点中
-        // if (!tailNode.nexts.length) {
-        //   let pvsNode = getNode(state, node.previous)
-        //   while (pvsNode && pvsNode.previous && pvsNode.type !== 'condition') {
-        //     pvsNode = getNode(state, pvsNode.previous)
-        //   }
-        //   if (pvsNode && pvsNode.type === 'condition') {
-        //     await reqLink({
-        //       parent: ['node', tailNode.key],
-        //       child: ['nexts', pvsNode.relative]
-        //     })
-        //   }
-        // }
       }
       await dispatch('refresh')
     },
@@ -467,8 +419,6 @@ export default {
       const ret = [] as string[]
       for (const nxtKey of getNextKeys(payload.node)) {
         const nxtNode = Node.copy(state.nodes[nxtKey])
-        delete state.nodes[nxtKey]
-        await reqDelete('node', nxtKey)
         switch (nxtNode.type) {
         case 'endNode':
           if (nxtNode.relative === payload.orgKey) {
@@ -478,6 +428,8 @@ export default {
         case 'condition':
         case 'condNode':
         case 'traversal':
+          delete state.nodes[nxtKey]
+          await reqDelete('node', nxtKey)
           ret.push(...await dispatch('delBlock', {
             node: nxtNode,
             orgKey: payload.orgKey

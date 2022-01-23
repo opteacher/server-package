@@ -22,24 +22,8 @@
     />
   </template>
 </svg>
-<svg
-  v-if="node && node.type === 'placeholder'"
-  :style="{
-    position: 'absolute',
-    width: `${CardWidth}px`,
-    left: `${node.posLT[0]}px`,
-    top: `${node.posLT[1]}px`,
-  }"
->
-  <line
-    stroke-width="2"
-    stroke="#f0f0f0"
-    :x1="CardHlfWid" :y1="0"
-    :x2="CardHlfWid" :y2="CardMinHgt"
-  />
-</svg>
 <a-card
-  v-else-if="!first"
+  v-if="!first"
   size="small"
   ref="nodeRef"
   :bordered="false"
@@ -79,7 +63,6 @@
   </a-row>
 </a-card>
 <a-button
-  v-if="!node || node.type !== 'placeholder'"
   type="primary"
   shape="circle"
   :style="{
@@ -95,7 +78,7 @@
   position: 'absolute',
   'z-index': -100,
   width: `${arwBtmSvgSizeW}px`,
-  height: `${ArrowHlfHgt}px`,
+  height: `${node.btmSvgHgt}px`,
   left: `${arwBtmSvgPosLT[0]}px`,
   top: `${arwBtmSvgPosLT[1]}px`,
 }">
@@ -103,14 +86,14 @@
     stroke-width="2"
     stroke="#f0f0f0"
     :x1="arwBtmSvgSizeW >> 1" :y1="0"
-    :x2="arwBtmSvgSizeW >> 1" :y2="ArrowHlfHgt"
+    :x2="arwBtmSvgSizeW >> 1" :y2="node.btmSvgHgt"
   />
   <template v-if="nexts.length > 1">
     <line
       stroke-width="4"
       stroke="#f0f0f0"
-      :x1="0" :y1="ArrowHlfHgt"
-      :x2="arwBtmSvgSizeW" :y2="ArrowHlfHgt"
+      :x1="0" :y1="node.btmSvgHgt"
+      :x2="arwBtmSvgSizeW" :y2="node.btmSvgHgt"
     />
   </template>
 </svg>
@@ -119,7 +102,17 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { AddBtnHlfWH, ArrowHeight, ArrowHlfHgt, CardWidth, CardHlfWid, Node, NodeTypeMapper, NodeType, CardMinHgt } from '@/common'
+import {
+  AddBtnHlfWH,
+  ArrowHeight,
+  ArrowHlfHgt,
+  CardWidth,
+  CardHlfWid,
+  Node,
+  NodeTypeMapper,
+  NodeType,
+  CardMinHgt
+} from '@/common'
 import { useStore } from 'vuex'
 
 export default defineComponent({

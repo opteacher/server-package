@@ -392,7 +392,7 @@ export class Variable {
   }
 }
 
-export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode' | 'placeholder'
+export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
 
 export const NodeTypeMapper = {
   'normal': '普通节点',
@@ -400,7 +400,6 @@ export const NodeTypeMapper = {
   'condNode': '条件节点',
   'traversal': '遍历节点',
   'endNode': '结束节点',
-  'placeholder': '占位节点'
 }
 export class Node extends StrIterable {
   key: string
@@ -480,7 +479,8 @@ export const CardHlfGutter = CardGutter >> 1
 
 export type NodeInPnl = Node & {
   posLT: [number, number],
-  size: [number, number]
+  size: [number, number],
+  btmSvgHgt: number
 }
 export class Route {
   key: string
