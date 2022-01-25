@@ -1,14 +1,33 @@
 import store from '@/store'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
-import { createVNode } from 'vue'
+import { createVNode, ref } from 'vue'
 import { Mapper, Cond, Variable, Column, baseTypes, Node, NodeTypeMapper } from '../common'
 
 export const EditNodeMapper = new Mapper({
+  temp: {
+    label: '模板',
+    type: 'Cascader',
+    options: [],
+    display: [
+      Cond.copy({ key: 'key', cmp: '==', val: '' }),
+    ],
+    onChange (addNode: Node, to: [string, string]) {
+
+    }
+  },
   title: {
     label: '标题',
     type: 'Input',
     rules: [{ required: true, message: '请输入节点标题！', trigger: 'blur' }]
+  },
+  desc: {
+    label: '描述',
+    type: 'Textarea',
+    display: [
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+    ],
+    maxRows: 2
   },
   type: {
     label: '类型',
@@ -21,15 +40,14 @@ export const EditNodeMapper = new Mapper({
   inputs: {
     label: '输入',
     type: 'Table',
-    display: Cond.copy({
-      key: 'key',
-      cmp: '!=',
-      val: ''
-    }),
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+    ],
     columns: [
       new Column('参数名', 'name'),
       new Column('参数类型', 'type'),
-      new Column('传入变量', 'variable')
+      new Column('传入变量', 'value')
     ],
     mapper: new Mapper({
       name: {
@@ -39,9 +57,14 @@ export const EditNodeMapper = new Mapper({
         type: 'Select',
         options: baseTypes
       },
-      variable: {
+      value: {
         type: 'Select',
-        options: []
+        options: [],
+        onChange: (input: Variable, to: string) => {
+          const locVars = store.getters['route/locVars']()
+          const selVar = locVars.find((v: any) => v.name === to)
+          input.type = selVar.type
+        }
       }
     }),
     dsKey: '',
@@ -64,11 +87,12 @@ export const EditNodeMapper = new Mapper({
   outputs: {
     label: '输出',
     type: 'Table',
-    display: Cond.copy({
-      key: 'key',
-      cmp: '!=',
-      val: ''
-    }),
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+    ],
     columns: [
       new Column('返回名', 'name'),
       new Column('返回类型', 'type')
@@ -101,21 +125,46 @@ export const EditNodeMapper = new Mapper({
   },
   code: {
     label: '代码',
-    type: 'Textarea'
+    type: 'Textarea',
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+    ]
   },
   previous: {
     label: '父节点',
     type: 'Text',
     display: false
   },
-  operation: {
+  addLib: {
     label: '操作',
     type: 'Button',
-    display: Cond.copy({
-      key: 'key',
-      cmp: '!=',
-      val: ''
-    }),
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'group', cmp: '==', val: '' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+    ],
+    primary: true,
+    inner: '加入库',
+    onClick: () => {
+      store.commit('route/SET_JOIN_VSB', true)
+    }
+  },
+  group: {
+    label: '节点库',
+    type: 'Delable',
+    display: [
+      Cond.copy({ key: 'group', cmp: '!=', val: '' })
+    ],
+  },
+  delete: {
+    label: '操作',
+    type: 'Button',
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+    ],
     inner: '删除节点',
     danger: true,
     onClick: (node: Node) => {

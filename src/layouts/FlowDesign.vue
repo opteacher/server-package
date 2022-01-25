@@ -1,7 +1,6 @@
 <template>
-<div class="flow-container">
+<div class="container">
   <a-page-header
-    class="demo-page-header"
     style="border: 1px solid rgb(235, 237, 240)"
     :title="route.method"
     :sub-title="route.path"
@@ -29,9 +28,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.flow-container {
-  padding: 50px 100px;
-}
-</style>

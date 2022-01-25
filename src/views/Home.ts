@@ -47,11 +47,9 @@ export class ProjForm {
       },
       operation: {
         label: '操作项目',
-        display: Cond.copy({
-          key: 'key',
-          cmp: '!=',
-          val: ''
-        }),
+        display: [
+          Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+        ],
         type: 'Button',
         inner: '删除项目',
         danger: true,

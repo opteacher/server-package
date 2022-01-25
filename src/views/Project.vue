@@ -11,6 +11,11 @@
     @save="onModelSave"
     @delete="onModelDel"
   >
+    <template #dataset="{ record: model }">
+      <a-button @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)">
+        <template #icon><DatabaseOutlined /></template>&nbsp;数据浏览
+      </a-button>
+    </template>
     <template #expandedRowRender="{ record: model }">
       <EditableTable
         title="字段"
@@ -34,13 +39,14 @@
       >
         <template #path="{ record: route }">
           <div class="editable-cell">
-            <div v-if="editRoute.key" class="editable-cell-input-wrapper">
-              <a-input v-model:value="editRoute.path" @pressEnter="onPathSaved" />
-              <CheckOutlined class="editable-cell-icon-check" @click="onPathSaved" />
+            <div v-if="editRoute.key === route.key" class="editable-cell-input-wrapper">
+              <a-input v-model:value="editRoute.path" @pressEnter="onPathSaved(true)" />
+              <CheckOutlined class="editable-cell-icon" style="right: 20px" @click="onPathSaved(true)" />
+              <CloseOutlined class="editable-cell-icon" style="right: 0" @click="onPathSaved(false)"/>
             </div>
             <div v-else class="editable-cell-text-wrapper">
               {{ route.path || genMdlPath(project, model, route) }}
-              <EditOutlined class="editable-cell-icon"
+              <EditOutlined class="editable-cell-icon" style="right: 0"
                 @click="onPathEdited(project, model, route)"
               />
             </div>
@@ -60,7 +66,13 @@
 <script lang="ts">
 import { Model, Project, Property, Route } from '@/common'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
-import { ApartmentOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
+import {
+  ApartmentOutlined,
+  CheckOutlined,
+  EditOutlined,
+  DatabaseOutlined,
+  CloseOutlined
+} from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
 import ProjDetail from '../layouts/ProjDetail.vue'
@@ -75,7 +87,9 @@ export default defineComponent({
     ProjDetail,
     ApartmentOutlined,
     CheckOutlined,
-    EditOutlined
+    EditOutlined,
+    DatabaseOutlined,
+    CloseOutlined
   },
   setup () {
     const route = useRoute()
@@ -144,8 +158,10 @@ export default defineComponent({
       })
       emitter.emit('refresh')
     }
-    async function onPathSaved () {
-      await store.dispatch('project/setRoutePath', editRoute)
+    async function onPathSaved (save: boolean) {
+      if (save) {
+        await store.dispatch('project/setRoutePath', editRoute)
+      }
       editRoute.reset()
       emitter.emit('refresh')
     }
@@ -158,6 +174,7 @@ export default defineComponent({
       Property,
       Route,
 
+      pid,
       router,
       emitter,
       project,
@@ -185,32 +202,25 @@ export default defineComponent({
   position: relative;
   .editable-cell-input-wrapper,
   .editable-cell-text-wrapper {
-    padding-right: 24px;
+    padding-right: 48px;
   }
 
   .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
-    position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
+    padding: 5px 48px 5px 5px;
   }
 
   .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
-
-  .editable-cell-icon-check {
+    position: absolute;
+    width: 20px;
+    cursor: pointer;
     line-height: 28px;
   }
 
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
+  .editable-cell-icon {
+    display: none;
+  }
+
+  .editable-cell-icon:hover {
     color: #108ee9;
   }
 

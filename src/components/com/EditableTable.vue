@@ -35,6 +35,7 @@
           v-if="record.key === editing.key"
           v-model:value="editing[key]"
           :placeholder="`选择${value.label}`"
+          @change="(opn) => value.onChange(editing, opn, editing[key])"
         >
           <a-select-option
             v-for="item in value.options"
@@ -164,7 +165,7 @@ export default defineComponent({
     dsKey: { type: String, required: true },
     columns: { type: Array, required: true },
     mapper: { type: Mapper, required: true },
-    copy: { type: Function, required: true },
+    copy: { type: Function, default: () => ({ key: '#' }) },
     emitter: { type: Emitter, default: null },
     title: { type: String, default: ''},
     description: { type: String, default: '' },
@@ -207,7 +208,9 @@ export default defineComponent({
       } else {
         records.value = getData()
       }
-      editing.reset()
+      if (editing.reset) {
+        editing.reset()
+      }
       editing.key = '#'
     }
     function onSaveSubmit () {

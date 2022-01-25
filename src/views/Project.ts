@@ -3,7 +3,6 @@ import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
-import { message } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export function onSync () {
@@ -36,7 +35,9 @@ export class ModelTable {
   constructor() {
     this.columns = [
       new Column('模型名', 'name'),
-      new Column('是否记录新增时间和更新时间', 'logTime')
+      new Column('描述', 'desc'),
+      new Column('记录时间', 'logTime'),
+      new Column('数据集', 'dataset')
     ]
     this.mapper = new Mapper({
       name: {
@@ -44,9 +45,15 @@ export class ModelTable {
         type: 'Input',
         rules: [{ required: true, message: '请输入模型名！', trigger: 'blur' }]
       },
+      desc: {
+        type: 'Input'
+      },
       logTime: {
         label: '是否记录新增时间和更新时间',
         type: 'Switch'
+      },
+      dataset: {
+        type: 'Unknown'
       },
       props: {
         expanded: true
@@ -63,16 +70,23 @@ export class PropTable {
   constructor() {
     this.columns = [
       new Column('字段名', 'name'),
+      new Column('标签', 'label'),
       new Column('字段类型', 'type'),
       new Column('是否为索引', 'index'),
       new Column('是否唯一', 'unique'),
-      new Column('是否可访问', 'visible')
+      new Column('是否可访问', 'visible'),
+      new Column('备注', 'remark')
     ]
     this.mapper = new Mapper({
       name: {
         label: '字段名',
         type: 'Input',
         rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
+      },
+      label: {
+        label: '标签',
+        type: 'Input',
+        rules: [{ required: true, message: '请输入标签！', trigger: 'blur' }]
       },
       type: {
         label: '字段类型',
@@ -91,7 +105,11 @@ export class PropTable {
       visible: {
         label: '是否可访问',
         type: 'Switch'
-      }
+      },
+      remark: {
+        label: '备注',
+        type: 'Input'
+      },
     })
   }
 }

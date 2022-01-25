@@ -35,25 +35,30 @@ export class Cond {
 
 export type CompoType = 'Text' | 'Block' | 'Input' | 'Number' | 'Button' | 'Select' | 'Checkbox' | 'Textarea' | 'Cascader' | 'Unknown'
 
+export type OpnType = {
+  label: string
+  subLabel?: string
+  value: any
+  children?: any[]
+}
 export class Mapper {
   [prop: string]: {
     label?: string
     desc?: string
     type: CompoType
     rules?: any[]
-    disabled?: boolean | Cond
+    disabled?: boolean | Cond[]
     loading?: boolean
-    display?: boolean | Cond
+    display?: boolean | Cond[]
     expanded?: boolean
     reset?: boolean
     onChange?: (record: any, to: any, from?: any) => void
 
-    // type = Select
-    options?: string[] | {
-      title: string
-      subTitle?: string
-      value: any
-    }[]
+    // type = Textarea
+    maxRows?: number
+
+    // type = Select,
+    options?: string[] | OpnType[]
 
     // type = Checkbox。0为false，1为true
     chkLabels?: [string, string]
@@ -61,6 +66,7 @@ export class Mapper {
     // type = Button
     inner?: string
     danger?: boolean
+    primary?: boolean
     onClick?: () => void
 
     // type = Table
@@ -80,27 +86,32 @@ export class Mapper {
         desc: value.desc || '',
         type: value.type || 'Unknown',
         rules: value.rules || [],
-        disabled: value.disabled instanceof Cond ? Cond.copy(value.disabled) : (
-          typeof value.disabled !== 'undefined' ? value.disabled : false
-        ),
-        display: value.display instanceof Cond ? Cond.copy(value.display) : (
-          typeof value.display !== 'undefined' ? value.display : true
-        ),
+        disabled: value.disabled && value.disabled.length
+          ? value.disabled.map((el: any) => Cond.copy(el))
+          : (typeof value.disabled !== 'undefined' ? value.disabled : false),
+        display: value.display && value.display.length
+          ? value.display.map((el: any) => Cond.copy(el))
+          : (typeof value.display !== 'undefined' ? value.display : true),
         expanded: typeof value.expanded !== 'undefined' ? value.expanded : false,
         onChange: value.onChange || (() => { console.log() }),
         reset: typeof value.reset !== 'undefined' ? true : value.reset,
+        maxRows: value.maxRows || 4,
         options: value.options ? value.options.map((opn: any) => {
           if (typeof opn === 'string') {
             return opn
           } else {
             return {
-              title: opn.title, value: opn.value
+              title: opn.title,
+              value: opn.value,
+              subTitle: opn.subTitle || '',
+              children: opn.children || []
             }
           }
         }) : [],
         chkLabels: value.chkLabels,
         inner: value.inner || '',
         danger: value.danger || false,
+        primary: value.primary || false,
         loading: value.loading || false,
         onClick: value.onClick,
         dsKey: value.dsKey || '',
@@ -260,27 +271,33 @@ export const baseTypes = [
 export class Property {
   key: string
   name: string
+  label: string
   type: string // 字段类型
   index: boolean
   unique: boolean
   visible: boolean
+  remark: string
 
   constructor () {
     this.key = ''
     this.name = ''
+    this.label = ''
     this.type = ''
     this.index = false
     this.unique = false
     this.visible = true
+    this.remark = ''
   }
 
   reset () {
     this.key = ''
     this.name = ''
+    this.label = ''
     this.type = ''
     this.index = false
     this.unique = false
     this.visible = true
+    this.remark = ''
   }
 
   static copy (src: any, tgt?: Property): Property {
@@ -291,10 +308,12 @@ export class Property {
     }
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
+    tgt.label = src.label || tgt.label
     tgt.type = src.type || tgt.type
     tgt.index = src.index || tgt.index
     tgt.unique = src.unique || tgt.unique
     tgt.visible = src.visible || tgt.visible
+    tgt.remark = src.remark || tgt.remark
     return tgt
   }
 }
@@ -302,6 +321,7 @@ export class Property {
 export class Model {
   key: string
   name: string
+  desc: string
   logTime: boolean
   props: Property[]
   routes: Route[]
@@ -309,6 +329,7 @@ export class Model {
   constructor () {
     this.key = ''
     this.name = ''
+    this.desc = ''
     this.logTime = true
     this.props = []
     this.routes = []
@@ -317,6 +338,7 @@ export class Model {
   reset () {
     this.key = ''
     this.name = ''
+    this.desc = ''
     this.logTime = true
     this.props = []
     this.routes = []
@@ -330,6 +352,7 @@ export class Model {
     }
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
+    tgt.desc = src.desc || tgt.desc
     if (typeof src.logTime !== 'undefined') {
       tgt.logTime = src.logTime
     }
@@ -350,7 +373,7 @@ export class Model {
 }
 
 export const routeMethods = [
-  'POST', 'PUT', 'DELETE', 'GET', 'ALL'
+  'POST', 'PUT', 'DELETE', 'GET'
 ]
 
 export type BaseTypes = 'Unknown' | 'Number' | 'String' | 'Boolean' | 'Array' | 'Map'
@@ -403,7 +426,9 @@ export const NodeTypeMapper = {
 }
 export class Node extends StrIterable {
   key: string
+  group: string
   title: string
+  desc: string
   type: NodeType
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
@@ -411,11 +436,14 @@ export class Node extends StrIterable {
   previous: Node | string | null
   nexts: (Node | string)[]
   relative: string
+  temp: string[]
 
   constructor () {
     super()
     this.key = ''
+    this.group = ''
     this.title = ''
+    this.desc = ''
     this.type = 'normal'
     this.inputs = []
     this.outputs = []
@@ -423,11 +451,14 @@ export class Node extends StrIterable {
     this.previous = null
     this.nexts = []
     this.relative = ''
+    this.temp = []
   }
 
   reset () {
     this.key = ''
+    this.group = ''
     this.title = ''
+    this.desc = ''
     this.type = 'normal'
     this.inputs = []
     this.outputs = []
@@ -435,12 +466,15 @@ export class Node extends StrIterable {
     this.previous = null
     this.nexts = []
     this.relative = ''
+    this.temp = []
   }
 
   static copy (src: any, tgt?: Node, recu = true): Node {
     tgt = tgt || new Node()
     tgt.key = src.key || src._id || tgt.key
+    tgt.group = src.group || tgt.group
     tgt.title = src.title || tgt.title
+    tgt.desc = src.desc || tgt.desc
     tgt.type = src.type || tgt.type
     if (typeof src.inputs !== 'undefined') {
       tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
@@ -463,6 +497,7 @@ export class Node extends StrIterable {
       }
     }
     tgt.relative = src.relative || tgt.relative
+    tgt.temp = src.temp || tgt.temp
     return tgt
   }
 }

@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory, createWebHistory, RouteRecordRaw } 
 import Home from '../views/Home.vue'
 import Project from '../views/Project.vue'
 import Flow from '../views/Flow.vue'
+import DataSet from '../views/DataSet.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -18,6 +19,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/flow/:rid',
     name: 'Flow',
     component: Flow
+  },
+  {
+    path: '/server-package/project/:pid/dataset/:mid',
+    name: 'DataSet',
+    component: DataSet
   }
 ]
 

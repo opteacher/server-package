@@ -1,6 +1,30 @@
 <template>
 <FlowDesign>
   <div class="flow-panel" ref="panelRef">
+    <LibraryCard v-if="EditNodeMapper['temp'].options?.length" :style="{
+      position: 'fixed',
+      top: '150px',
+      left: '100px',
+      'z-index': 1000,
+      'background-color': 'white'
+    }"/>
+    <div v-show="locVars.length" :style="{
+      position: 'fixed',
+      width: '15vw',
+      top: '150px',
+      right: '100px',
+      'z-index': 1000,
+      'background-color': 'white'
+    }">
+      <a-list size="small" bordered :data-source="locVars">
+        <template #header>
+          <h4 class="mb-0">可用变量：</h4>
+        </template>
+        <template #renderItem="{ item: locVar }">
+          <a-list-item>{{ locVar.name }}</a-list-item>
+        </template>
+      </a-list>
+    </div>
     <NodeCard
       v-if="Object.values(nodes).length === 0"
       :first="true"
@@ -13,6 +37,8 @@
         :node="node"
         @click:card="() => $store.commit('route/SET_NODE', node)"
         @click:addBtn="onAddBtnClicked"
+        @mouseenter="onNodeHover(node)"
+        @mouseleave="onNodeHover(null)"
       />
     </template>
   </div>
@@ -26,26 +52,32 @@
     :object="$store.getters['route/editNode']"
     @update:show="(show) => $store.commit('route/SET_INVISIBLE')"
     @submit="onNodeSaved"
+    @initialize="onEdtDlgInit"
   />
+  <JoinDialog @submit="onJoinSubmit"/>
 </FlowDesign>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { Node } from '../common'
+import { Node, Variable } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
 import { EditNodeMapper } from './Flow'
 import { useStore } from 'vuex'
+import JoinDialog from '../components/JoinDialog.vue'
+import LibraryCard from '../components/LibraryCard.vue'
 
 export default defineComponent({
   name: 'Flow',
   components: {
     FlowDesign,
     NodeCard,
-    FormDialog
+    FormDialog,
+    JoinDialog,
+    LibraryCard
   },
   setup () {
     const route = useRoute()
@@ -68,6 +100,7 @@ export default defineComponent({
         rid: route.params.rid as string
       })
     })
+    const locVars = reactive([] as Variable[])
 
     onMounted(() => {
       rszObs.observe(panelRef.value)
@@ -81,6 +114,20 @@ export default defineComponent({
       await store.dispatch('route/saveNode', Node.copy(node))
       next()
     }
+    function onNodeHover (node: Node | null) {
+      locVars.splice(0, locVars.length)
+      if (node) {
+        nextTick(() => {
+          locVars.push(...store.getters['route/locVars'](node))
+        })
+      }
+    }
+    async function onJoinSubmit (group: string) {
+      await store.dispatch('route/joinLibrary', group)
+    }
+    async function onEdtDlgInit () {
+      await store.dispatch('route/rfshTemps')
+    }
     return {
       Node,
 
@@ -88,9 +135,13 @@ export default defineComponent({
       EditNodeMapper,
       panelRef,
       editTitle,
+      locVars,
 
       onNodeSaved,
-      onAddBtnClicked
+      onAddBtnClicked,
+      onNodeHover,
+      onJoinSubmit,
+      onEdtDlgInit
     }
   }
 })

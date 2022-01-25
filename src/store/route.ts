@@ -1,8 +1,8 @@
 import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt, ArrowHlfHgt } from '@/common'
-import { reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import { reqDelete, reqGet, reqLink, reqPost, reqPut, getKey, makeRequest, skipIgnores } from '@/utils'
 import { EditNodeMapper } from '@/views/Flow'
+import axios from 'axios'
 import { Dispatch } from 'vuex'
-import { uuid } from 'uuidv4'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type RouteState = {
@@ -10,11 +10,8 @@ type RouteState = {
   nodes: NodesInPnl,
   width: number,
   node: Node,
-  visible: boolean
-}
-
-function getKey (obj: { key: string } | string): string {
-  return typeof obj === 'string' ? obj : obj.key
+  visible: boolean,
+  joinVsb: boolean
 }
 
 function getNextKeys (node: Node): string[] {
@@ -37,6 +34,18 @@ function getPrevious (state: { nodes: NodesInPnl }, node: Node): Node {
     ? state.nodes[node.previous] : node.previous) as Node
 }
 
+function getLocVars (state: RouteState, nd: string | Node | null): Variable[] {
+  if (!nd) {
+    return []
+  }
+  const node = state.nodes[getKey(nd)]
+  const ret = [] as Variable[]
+  if (node.previous) {
+    ret.push(...getLocVars(state, node.previous))
+  }
+  return ret.concat(node.outputs)
+}
+
 export default {
   namespaced: true,
   state: () => ({
@@ -44,7 +53,8 @@ export default {
     nodes: {} as NodesInPnl,
     width: 0,
     node: new Node(),
-    visible: false
+    visible: false,
+    joinVsb: false
   } as RouteState),
   mutations: {
     SET_WIDTH (state: RouteState, width: number) {
@@ -62,28 +72,32 @@ export default {
       if (state.node.previous && state.node.previous instanceof Node
       && state.node.previous.type === 'condition') { // 添加修改条件节点
         state.node.type = 'condNode'
-        EditNodeMapper.operation.display = state.node.key !== ''
-        EditNodeMapper.type.options = [{ title: '条件节点', value: 'condNode' }]
+        EditNodeMapper.delete.display = state.node.key !== ''
+        EditNodeMapper.type.options = [{ label: '条件节点', value: 'condNode' }]
       } else if (state.node.type === 'endNode') { // 修改循环结束节点
-        EditNodeMapper.operation.display = false
-        EditNodeMapper.type.options = [{ title: '循环结束节点', value: 'endNode' }]
+        EditNodeMapper.delete.display = false
+        EditNodeMapper.type.options = [{ label: '循环结束节点', value: 'endNode' }]
       } else if (state.node.key) { // 修改结束节点
-        EditNodeMapper.operation.display = true
+        EditNodeMapper.delete.display = true
         EditNodeMapper.type.options = [{
-          title: NodeTypeMapper[state.node.type],
+          label: NodeTypeMapper[state.node.type],
           value: state.node.type
         }]
       } else { // 添加结束节点
-        EditNodeMapper.operation.display = false
+        EditNodeMapper.delete.display = false
         EditNodeMapper.type.options = Object.entries(NodeTypeMapper).map(([key, val]) => ({
-          title: val,
+          label: val,
           value: key
-        })).filter(item => {
-          return item.value !== 'endNode'
-            && item.value !== 'condNode'
-        })
+        })).filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
       EditNodeMapper.inputs.dsKey = `route/nodes.${state.node.key}.inputs`
+      if (EditNodeMapper.inputs.mapper) {
+        EditNodeMapper.inputs.mapper['value'].options = getLocVars(state, state.node.previous)
+          .concat(Variable.copy({ name: 'params', type: 'Object' }))
+          .concat(Variable.copy({ name: 'query', type: 'Object' }))
+          .concat(Variable.copy({ name: 'body', type: 'Object' }))
+          .map((locVar: Variable) => locVar.name)
+      }
       EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
       state.visible = true
     },
@@ -92,6 +106,9 @@ export default {
     },
     RESET_NODE (state: RouteState) {
       state.node.reset()
+    },
+    SET_JOIN_VSB (state: RouteState, payload?: boolean) {
+      state.joinVsb = typeof payload !== 'undefined' ? payload : false
     }
   },
   actions: {
@@ -466,6 +483,56 @@ export default {
       }, false)
       await reqDelete('variable', payload.delKey)
       await dispatch('rfshNode', payload.ndKey)
+    },
+    async joinLibrary ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, group: string) {
+      const baseURL = '/server-package/api/v1/node/temp'
+      const temp = Node.copy((await makeRequest(axios.get(`${baseURL}/${group}`))).result)
+      const inputs = [], outputs = []
+      if (!temp || !temp.key) {
+        for (const input of state.node.inputs) {
+          inputs.push(Variable.copy((await reqPost('variable', input, {
+            ignores: ['value']
+          })).data).key)
+        }
+        for (const output of state.node.outputs) {
+          outputs.push(Variable.copy((await reqPost('variable', output)).data).key)
+        }
+      }
+      const newTemp = Node.copy((await makeRequest(
+        axios.post(baseURL, Object.assign(skipIgnores(state.node, [
+          'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative'
+        ]), { group })),
+      )).result)
+      if (!temp || !temp.key) {
+        for (const input of inputs) {
+          await reqLink({
+            parent: ['node', newTemp.key],
+            child: ['inputs', input]
+          })
+        }
+        for (const output of outputs) {
+          await reqLink({
+            parent: ['node', newTemp.key],
+            child: ['outputs', output]
+          })
+        }
+      }
+      state.joinVsb = false
+      await reqPut('node', state.node.key, { group })
+      state.node.group = group
+      await dispatch('rfshNode', state.node.key)
+      await dispatch('rfshTemps')
+    },
+    async rfshTemps () {
+      const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
+      EditNodeMapper['temp'].options = Object.entries(resp.result).map(([group, nodes]) => ({
+        label: group,
+        value: group,
+        children: nodes ? (nodes as any[]).map((node: any) => ({
+          label: node.title,
+          value: node._id
+        })) : []
+      }))
     }
   },
   getters: {
@@ -474,6 +541,13 @@ export default {
     width: (state: RouteState): number => state.width,
     node: (state: RouteState) => (key: string): NodesInPnl => state.nodes[key],
     editNode: (state: RouteState): Node => state.node,
-    visible: (state: RouteState): boolean => state.visible
+    visible: (state: RouteState): boolean => state.visible,
+    locVars: (state: RouteState) => (nd?: Node): Variable[] => {
+      return getLocVars(state, nd ? nd.previous : state.node.previous)
+        .concat(Variable.copy({ name: 'params', type: 'Object' }))
+        .concat(Variable.copy({ name: 'query', type: 'Object' }))
+        .concat(Variable.copy({ name: 'body', type: 'Object' }))
+    },
+    joinVsb: (state: RouteState): boolean => state.joinVsb
   }
 }

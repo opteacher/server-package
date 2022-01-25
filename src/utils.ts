@@ -25,6 +25,10 @@ export async function makeRequest (pms: Promise<any>, options?: RequestOptions):
   return Promise.resolve(resp)
 }
 
+export function reqAll (path: string, options?: RequestOptions): Promise<any> {
+  return makeRequest(axios.get(`/server-package/mdl/v1/${path}s`), options)
+}
+
 export function reqGet (path: string, iden?: any, options?: RequestOptions): Promise<any> {
   return makeRequest(axios.get(`/server-package/mdl/v1/${path}${iden ? '/' + iden : ''}`), options)
 }
@@ -43,7 +47,9 @@ export function reqPost (path: string, body: any, options?: RequestOptions): Pro
     options.messages.succeed = '提交成功！'
   }
   if (!options.ignores) {
-    options.ignores = []
+    options.ignores = ['key']
+  } else if (!options.ignores.includes('key')) {
+    options.ignores.push('key')
   }
   return makeRequest(axios.post(
     `/server-package/mdl/v1/${path}`,
@@ -83,7 +89,9 @@ export function reqPut (path: string, iden: any, body: any, options?: RequestOpt
     options.messages.succeed = '提交成功！'
   }
   if (!options.ignores) {
-    options.ignores = []
+    options.ignores = ['key']
+  } else if (!options.ignores.includes('key')) {
+    options.ignores.push('key')
   }
   return makeRequest(axios.put(
     `/server-package/mdl/v1/${path}/${iden}`,
@@ -144,4 +152,12 @@ export function getProperty (obj: any, props: string | string[]): any {
     }
   }
   return obj
+}
+
+export function getKey (obj: { key: string } | string): string {
+  return typeof obj === 'string' ? obj : obj.key
+}
+
+export function skipIgnores (obj: { [key: string]: any }, ignores: string[]): any {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
 }

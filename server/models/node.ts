@@ -2,7 +2,9 @@ import { db } from '../utils/index.js'
 
 export default db.defineModel({
   __modelName: 'node',
+  group: db.PropTypes.String,
   title: db.PropTypes.String,
+  desc: db.PropTypes.String,
   type: db.PropTypes.String,
   inputs: [{ type: db.PropTypes.Id, ref: 'variable' }],
   outputs: [{ type: db.PropTypes.Id, ref: 'variable' }],

@@ -26,42 +26,29 @@
         <a-input
           v-if="value.type === 'Input'"
           v-model:value="formState[key]"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-input-number
           v-else-if="value.type === 'Number'"
           class="w-100"
           v-model:value="formState[key]"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           @change="(val) => value.onChange(formState, val)"
         />
         <a-select
           v-else-if="value.type === 'Select'"
           class="w-100"
+          :options="value.options"
           v-model:value="formState[key]"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           @change="(val) => value.onChange(formState, val)"
-        >
-          <a-select-option
-            v-for="item in value.options"
-            :key="typeof item === 'string' ? item : item.value"
-            :value="typeof item === 'string' ? item : item.value"
-          >
-            {{typeof item === 'string' ? item : item.title}}
-            <span
-              v-if="typeof item !== 'string' && item.subTitle"
-              style="float: right"
-            >
-              {{item.subTitle}}
-            </span>
-          </a-select-option>
-        </a-select>
+        />
         <a-checkbox
           v-else-if="value.type === 'Checkbox'"
           :name="key"
           v-model:checked="formState[key]"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           @change="(val) => value.onChange(formState, val)"
         >
           {{formState[key]
@@ -71,22 +58,24 @@
         <a-textarea
           v-else-if="value.type === 'Textarea'"
           v-model:value="formState[key]"
-          :rows="4"
-          :disabled="value.disabled || !editable"
+          :rows="value.maxRows"
+          :disabled="isDisabled(key) || !editable"
           @change="(val) => value.onChange(formState, val)"
         />
         <a-cascader
           v-else-if="value.type === 'Cascader'"
           :options="value.options"
           v-model:value="formState[key]"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           @change="(e) => value.onChange(formState, e.target)"
         />
         <a-button
           v-else-if="value.type === 'Button'"
           class="w-100"
-          :disabled="value.disabled || !editable"
+          :disabled="isDisabled(key) || !editable"
           :danger="value.danger"
+          :type="value.primary ? 'primary' : 'default'"
+          ghost
           :loading="value.loading"
           @click="() => value.onClick(formState)"
         >{{ value.inner }}</a-button>
@@ -109,7 +98,7 @@
           />
         </a-form-item-rest>
         <template v-else-if="value.type === 'Upload'">
-          <a-dropdown class="w-100" :disabled="!editable">
+          <a-dropdown class="w-100" :disabled="isDisabled(key) || !editable">
             <a-button>
               <UploadOutlined/>&nbsp;选择上传的文件或文件夹
             </a-button>
@@ -147,6 +136,14 @@
             </template>
           </a-list>
         </template>
+        <template v-else-if="value.type === 'Delable'">
+          <a-space>
+            {{ formState[key] || '-' }}
+            <CloseCircleOutlined
+              @click="value.onDeleted"
+            />
+          </a-space>
+        </template>
       </a-form-item>
     </template>
   </a-form>
@@ -155,11 +152,16 @@
 
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
-import { defineComponent, reactive, ref, watch } from 'vue'
-import { InfoCircleOutlined, UploadOutlined, FileAddOutlined, FolderAddOutlined } from '@ant-design/icons-vue'
+import { defineComponent, onMounted, reactive, ref } from 'vue'
+import {
+  InfoCircleOutlined,
+  UploadOutlined,
+  FileAddOutlined,
+  FolderAddOutlined,
+  CloseCircleOutlined
+} from '@ant-design/icons-vue'
 import EditableTable from './EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { getProperty } from '@/utils'
 
 export default defineComponent({
   name: 'FormDialog',
@@ -168,7 +170,8 @@ export default defineComponent({
     InfoCircleOutlined,
     UploadOutlined,
     FileAddOutlined,
-    FolderAddOutlined
+    FolderAddOutlined,
+    CloseCircleOutlined
   },
   props: {
     show: { type: Boolean, required: true },
@@ -181,6 +184,7 @@ export default defineComponent({
     emitter: { type: Emitter, default: null }
   },
   emits: [
+    'initialize',
     'update:show',
     'submit'
   ],
@@ -205,14 +209,29 @@ export default defineComponent({
         emit('update:show', show)
       })
     }
+    onMounted(() => emit('initialize'))
 
     function isDisplay (key: string): boolean {
       const display = props.mapper[key].display
       if (typeof display === 'boolean') {
         return display as boolean
-      } else {
-        return (display as Cond).isValid(formState)
+      } else if (display && display.length) {
+        return display
+          .map((cond: Cond) => cond.isValid(formState))
+          .reduce((a: boolean, b: boolean) => a && b)
       }
+      return true
+    }
+    function isDisabled (key: string): boolean {
+      const disabled = props.mapper[key].disabled
+      if (typeof disabled === 'boolean') {
+        return disabled as boolean
+      } else if (disabled && disabled.length) {
+        return disabled
+          .map((cond: Cond) => cond.isValid(formState))
+          .reduce((a: boolean, b: boolean) => a && b)
+      }
+      return false
     }
     async function onOkClick () {
       try {
@@ -250,14 +269,27 @@ export default defineComponent({
       onOkClick,
       onCclClick,
       isDisplay,
+      isDisabled,
       onUploadClicked
     }
   }
 })
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .w-100 {
   width: 100%;
+}
+
+.dynamic-delete-button {
+  cursor: pointer;
+  position: relative;
+  top: 4px;
+  font-size: 24px;
+  color: #999;
+  transition: all 0.3s;
+}
+.dynamic-delete-button:hover {
+  color: #777;
 }
 </style>

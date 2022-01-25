@@ -38,27 +38,66 @@
     color: 'white',
     'background-color': color
   }"
-  :bodyStyle="{ border: '1px solid #f0f0f0' }"
+  :bodyStyle="{
+    position: 'relative',
+    border: '1px solid #f0f0f0',
+  }"
   hoverable
   @click="$emit('click:card')"
+  @mouseenter="$emit('mouseenter')"
+  @mouseleave="$emit('mouseleave')"
 >
   <a-row type="flex">
-    <a-col flex="10px">
-      <a-tag
-        v-for="input in node.inputs"
-        :key="input.key" color="#108ee9"
-      >{{ input.name }}</a-tag>
+    <a-col flex="20px">
+      <div style="position: relative">
+        <div :style="{
+          position: 'absolute',
+          'z-index': 100,
+          right: 0
+        }">
+          <a-tag
+            v-for="input in node.inputs"
+            :key="input.key"
+            class="b-0"
+            :class="{ 'filled-input': input.value }"
+            color="#108ee9"
+          >
+            <template v-if="input.value">
+              {{ input.value }}&nbsp;
+              <RightOutlined />
+              &nbsp;{{ input.name }}
+            </template>
+            <template v-else>
+              <LoginOutlined />
+              &nbsp;{{ input.name }}
+            </template>
+          </a-tag>
+        </div>
+      </div>
     </a-col>
     <a-col flex="auto">
-      <a-card style="margin: 0 12px; height: 100%">
-        <p>Code</p>
+      <a-card :bordered="false">
+        {{ node.desc || '输入节点描述' }}
       </a-card>
     </a-col>
-    <a-col flex="10px">
-      <a-tag
-        v-for="output in node.outputs"
-        :key="output.key" color="#87d068"
-      >{{ output.name }}</a-tag>
+    <a-col flex="20px">
+      <div style="position: relative">
+        <div :style="{
+          position: 'absolute',
+          'z-index': 100,
+          left: '10px'
+        }">
+          <a-tag
+            v-for="output in node.outputs"
+            :key="output.key"
+            class="b-0"
+            color="#87d068"
+          >
+            {{ output.name }}&nbsp;
+            <LogoutOutlined />
+          </a-tag>
+        </div>
+      </div>
     </a-col>
   </a-row>
 </a-card>
@@ -101,7 +140,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
-import { PlusOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
 import {
   AddBtnHlfWH,
   ArrowHeight,
@@ -119,10 +158,15 @@ export default defineComponent({
   name: 'NodeCard',
   emits: [
     'click:card',
-    'click:addBtn'
+    'click:addBtn',
+    'mouseenter',
+    'mouseleave'
   ],
   components: {
-    PlusOutlined
+    PlusOutlined,
+    LoginOutlined,
+    LogoutOutlined,
+    RightOutlined
   },
   props: {
     node: { type: Object, default: null },
@@ -228,3 +272,9 @@ export default defineComponent({
   }
 })
 </script>
+
+<style lang="less" scoped>
+.filled-input {
+  background: linear-gradient(to right, #87d068, #87d068 50%, #108ee9 51%, #108ee9 100%);
+}
+</style>
