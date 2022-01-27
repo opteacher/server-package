@@ -1,17 +1,21 @@
-import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt, ArrowHlfHgt } from '@/common'
+import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt, ArrowHlfHgt, Project } from '@/common'
 import { reqDelete, reqGet, reqLink, reqPost, reqPut, getKey, makeRequest, skipIgnores } from '@/utils'
-import { EditNodeMapper } from '@/views/Flow'
+import { EditNodeMapper, RouteMapper } from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
+import router from '@/router'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
+type Nodes = { [key: string]: Node }
 type RouteState = {
   route: Route,
   nodes: NodesInPnl,
   width: number,
   node: Node,
-  visible: boolean,
-  joinVsb: boolean
+  routeVsb: boolean,
+  nodeVsb: boolean,
+  joinVsb: boolean,
+  temps: Nodes
 }
 
 function getNextKeys (node: Node): string[] {
@@ -53,8 +57,10 @@ export default {
     nodes: {} as NodesInPnl,
     width: 0,
     node: new Node(),
-    visible: false,
-    joinVsb: false
+    routeVsb: false,
+    nodeVsb: false,
+    joinVsb: false,
+    temps: {} as Nodes
   } as RouteState),
   mutations: {
     SET_WIDTH (state: RouteState, width: number) {
@@ -99,10 +105,13 @@ export default {
           .map((locVar: Variable) => locVar.name)
       }
       EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
-      state.visible = true
+      state.nodeVsb = true
     },
-    SET_INVISIBLE (state: RouteState) {
-      state.visible = false
+    SET_NODE_INVSB (state: RouteState) {
+      state.nodeVsb = false
+    },
+    SET_ROUTE_VSB (state: RouteState, payload?: boolean) {
+      state.routeVsb = typeof payload !== 'undefined' ? payload : false
     },
     RESET_NODE (state: RouteState) {
       state.node.reset()
@@ -113,24 +122,31 @@ export default {
   },
   actions: {
     async refresh (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
-      payload?: { rid?: string, force?: boolean }
+      { state, dispatch }: { state: RouteState, dispatch: Dispatch }, force?: boolean
     ) {
-      if (!payload) {
-        payload = {}
+      if (!router.currentRoute.value.params.rid) {
+        return
       }
-      if (typeof payload.force === 'undefined') {
-        payload.force = true
+      const rid = router.currentRoute.value.params.rid
+      if (typeof force === 'undefined') {
+        force = true
       }
-      Route.copy((await reqGet('route', payload.rid || state.route.key)).data, state.route)
+      const pid = router.currentRoute.value.params.pid
+      const project = Project.copy((await reqGet('project', pid)).data)
+      RouteMapper['path'].prefix = `/${project.name}`
+      Route.copy((await reqGet('route', rid)).data, state.route)
       if (state && state.route.flow) {
         const rootKey = state.route.flow.key
-        if (payload.force) {
+        if (force) {
           await dispatch('readNodes', rootKey)
         }
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
+      } else {
+        state.nodes = {}
+        state.temps = {}
+        state.node.reset()
       }
     },
     async fixWidth ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }) {
@@ -191,7 +207,7 @@ export default {
         const relNode = state.nodes[node.relative]
         node.posLT[0] = relNode.posLT[0]
         let maxHeight = 0
-        function traverse (node: NodeInPnl) {
+        const traverse = (node: NodeInPnl) => {
           if (node.key === ndKey) {
             return
           }
@@ -232,7 +248,23 @@ export default {
         return dispatch('refresh')
       }
       //新增节点
+      const orgNode = Node.copy(node)
       let tailNode = Node.copy((await reqPost('node', node, options)).data, node)
+      // 如果是从模板节点复制过来，则应该有inputs和outputs
+      for (const input of orgNode.inputs) {
+        const newIpt = (await reqPost('variable', input)).data
+        await reqLink({
+          parent: ['node', node.key],
+          child: ['inputs', newIpt._id]
+        })
+      }
+      for (const output of orgNode.outputs) {
+        const newOpt = (await reqPost('variable', output)).data
+        await reqLink({
+          parent: ['node', node.key],
+          child: ['outputs', newOpt._id]
+        })
+      }
       switch (node.type) {
       case 'condNode': { // 对于条件节点，找出条件根节点对应的结束节点
         const rootNode = getPrevious(state, node)
@@ -436,22 +468,16 @@ export default {
       const ret = [] as string[]
       for (const nxtKey of getNextKeys(payload.node)) {
         const nxtNode = Node.copy(state.nodes[nxtKey])
-        switch (nxtNode.type) {
-        case 'endNode':
-          if (nxtNode.relative === payload.orgKey) {
-            return getNextKeys(nxtNode)
-          }
-        case 'normal':
-        case 'condition':
-        case 'condNode':
-        case 'traversal':
-          delete state.nodes[nxtKey]
-          await reqDelete('node', nxtKey)
-          ret.push(...await dispatch('delBlock', {
-            node: nxtNode,
-            orgKey: payload.orgKey
-          }))
+        if (nxtNode.type === 'endNode'
+        && nxtNode.relative === payload.orgKey) {
+          return getNextKeys(nxtNode)
         }
+        delete state.nodes[nxtKey]
+        await reqDelete('node', nxtKey)
+        ret.push(...await dispatch('delBlock', {
+          node: nxtNode,
+          orgKey: payload.orgKey
+        }))
       }
       return ret
     },
@@ -523,8 +549,23 @@ export default {
       await dispatch('rfshNode', state.node.key)
       await dispatch('rfshTemps')
     },
-    async rfshTemps () {
+    async rfshTemps ({ state }: { state: RouteState }) {
       const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
+      state.temps = {}
+      for (const rawNode of Object.values(resp.result).flat() as any[]) {
+        if (rawNode._id in state.temps) {
+          Node.copy(rawNode, state.temps[rawNode._id])
+        } else {
+          state.temps[rawNode._id] = Node.copy(rawNode)
+        }
+        const node = state.temps[rawNode._id]
+        for (let i = 0; i < rawNode.inputs.length; ++i) {
+          Variable.copy((await reqGet('variable', rawNode.inputs[i])).data, node.inputs[i])
+        }
+        for (let i = 0; i < rawNode.outputs.length; ++i) {
+          Variable.copy((await reqGet('variable', rawNode.outputs[i])).data, node.outputs[i])
+        }
+      }
       EditNodeMapper['temp'].options = Object.entries(resp.result).map(([group, nodes]) => ({
         label: group,
         value: group,
@@ -536,18 +577,20 @@ export default {
     }
   },
   getters: {
-    route: (state: RouteState): Route => state.route,
+    ins: (state: RouteState): Route => state.route,
     nodes: (state: RouteState): NodesInPnl => state.nodes,
     width: (state: RouteState): number => state.width,
     node: (state: RouteState) => (key: string): NodesInPnl => state.nodes[key],
     editNode: (state: RouteState): Node => state.node,
-    visible: (state: RouteState): boolean => state.visible,
+    nodeVsb: (state: RouteState): boolean => state.nodeVsb,
     locVars: (state: RouteState) => (nd?: Node): Variable[] => {
       return getLocVars(state, nd ? nd.previous : state.node.previous)
         .concat(Variable.copy({ name: 'params', type: 'Object' }))
         .concat(Variable.copy({ name: 'query', type: 'Object' }))
         .concat(Variable.copy({ name: 'body', type: 'Object' }))
     },
-    joinVsb: (state: RouteState): boolean => state.joinVsb
+    joinVsb: (state: RouteState): boolean => state.joinVsb,
+    routeVsb: (state: RouteState): boolean => state.routeVsb,
+    temps: (state: RouteState) => (key: string): Node => state.temps[key]
   }
 }

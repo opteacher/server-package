@@ -7,10 +7,20 @@ import Model from '../models/model.js'
 import DataBase from '../models/database.js'
 import Property from '../models/property.js'
 import Route from '../models/route.js'
+import Node from '../models/node.js'
 import { spawn, spawnSync } from 'child_process'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
+
+async function recuNode (key: string, indent?: number): Promise<string[]> {
+  const node = await db.select(Node, { _index: key })
+  return [
+    `// ${node.title}\n${''.padStart(indent || 0, ' ')}${node.code}`
+  ].concat(
+    node.nexts.length ? await recuNode(node.nexts[0]._id) : []
+  )
+}
 
 export async function sync (pid: string): Promise<any> {
   console.log('从数据库获取项目实例……')
@@ -77,13 +87,37 @@ export async function sync (pid: string): Promise<any> {
   copyDir(vwsTmp, vwsGen)
 
   const mdlPath = Path.join(genPath, 'models')
+  const rotPath = Path.join(genPath, 'routes')
+  const svcPath = Path.join(genPath, 'services')
   fs.mkdirSync(mdlPath)
+  fs.mkdirSync(svcPath)
+  fs.mkdirSync(rotPath)
   const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
+  const svcTmp = Path.join(tmpPath, 'services', 'temp.js')
+  const rotTmp = Path.join(tmpPath, 'routes', 'temp.js')
   const mdlData = fs.readFileSync(mdlTmp)
+  const svcData = fs.readFileSync(svcTmp)
+  const rotData = fs.readFileSync(rotTmp)
   for (const model of project.models) {
+    const routes = model.routes.filter((route: any) => route.service)
+    model.routes = model.routes.filter((route: any) => !route.service)
+
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
+
+    for (const route of routes) {
+      const pathPfx = route.path.substring(0, route.path.indexOf('/:'))
+      const rotGen = Path.join(rotPath, pathPfx)
+      fs.mkdirSync(rotGen, { recursive: true })
+      console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
+      adjustFile(rotData, `${rotGen}/index.js`, { route })
+
+      const svcGen = Path.join(svcPath, route.service + '.js')
+      console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
+      const nodes = await recuNode(route.flow, 2)
+      adjustFile(svcData, svcGen, { route, nodes })
+    }
   }
 
   console.log('更新项目的进程ID……')

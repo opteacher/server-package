@@ -54,6 +54,9 @@ export class Mapper {
     reset?: boolean
     onChange?: (record: any, to: any, from?: any) => void
 
+    // type = Input
+    prefix?: string
+
     // type = Textarea
     maxRows?: number
 
@@ -95,6 +98,7 @@ export class Mapper {
         expanded: typeof value.expanded !== 'undefined' ? value.expanded : false,
         onChange: value.onChange || (() => { console.log() }),
         reset: typeof value.reset !== 'undefined' ? true : value.reset,
+        prefix: value.prefix || '',
         maxRows: value.maxRows || 4,
         options: value.options ? value.options.map((opn: any) => {
           if (typeof opn === 'string') {
@@ -522,12 +526,16 @@ export class Route {
   method: string
   path: string | undefined
   flow: Node | null
+  service: string
+  interface: string
 
   constructor () {
     this.key = ''
     this.method = ''
     this.path = undefined
     this.flow = null
+    this.service = ''
+    this.interface = ''
   }
 
   reset () {
@@ -535,6 +543,8 @@ export class Route {
     this.method = ''
     this.path = undefined
     this.flow = null
+    this.service = ''
+    this.interface = ''
   }
 
   static copy (src: any, tgt?: Route): Route {
@@ -546,6 +556,13 @@ export class Route {
       tgt.flow = Node.copy(src.flow)
     } else {
       tgt.flow = null
+    }
+    if (src.service && src.service.length === 2) {
+      tgt.service = src.service[0]
+      tgt.interface = src.service[1]
+    } else {
+      tgt.service = src.service || tgt.service
+      tgt.interface = src.interface || tgt.interface
     }
     return tgt
   }

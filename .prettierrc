@@ -6,6 +6,7 @@
   "printWidth": 100,
   "proseWrap": "never",
   "arrowParens": "avoid",
+  "fallthrough": true,
   "htmlWhitespaceSensitivity": "ignore",
   "overrides": [
     {

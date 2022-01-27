@@ -47,6 +47,9 @@
   @mouseenter="$emit('mouseenter')"
   @mouseleave="$emit('mouseleave')"
 >
+  <template v-if="node.group" #extra>
+    <span style="color: white">{{ node.group }}</span>
+  </template>
   <a-row type="flex">
     <a-col flex="20px">
       <div style="position: relative">

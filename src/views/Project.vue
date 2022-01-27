@@ -45,15 +45,15 @@
               <CloseOutlined class="editable-cell-icon" style="right: 0" @click="onPathSaved(false)"/>
             </div>
             <div v-else class="editable-cell-text-wrapper">
-              {{ route.path || genMdlPath(project, model, route) }}
+              {{ route.path || genMdlPath(model, route) }}
               <EditOutlined class="editable-cell-icon" style="right: 0"
-                @click="onPathEdited(project, model, route)"
+                @click="onPathEdited(model, route)"
               />
             </div>
           </div>
         </template>
         <template #flow="{ record: route }">
-          <a-button @click="() => router.push(`/server-package/flow/${route.key}`)">
+          <a-button @click="() => router.push(`/server-package/project/${pid}/flow/${route.key}`)">
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
         </template>
@@ -140,7 +140,7 @@ export default defineComponent({
     }
     async function onRouteSave (route: Route, mid: string) {
       if (!route.path) {
-        route.path = RouteTable.genMdlPath(project.value, mid, route)
+        route.path = RouteTable.genMdlPath(store.getters['project/model'](mid), route)
       }
       await store.dispatch('project/update', {
         opera: route,
@@ -165,9 +165,9 @@ export default defineComponent({
       editRoute.reset()
       emitter.emit('refresh')
     }
-    function onPathEdited (project: Project, model: Model, route: Route) {
+    function onPathEdited (model: Model, route: Route) {
       editRoute.key = route.key
-      editRoute.path = route.path || RouteTable.genMdlPath(project, model, route)
+      editRoute.path = route.path || RouteTable.genMdlPath(model, route)
     }
     return {
       Model,

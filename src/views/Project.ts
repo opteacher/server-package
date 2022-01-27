@@ -121,7 +121,7 @@ export class RouteTable {
   constructor() {
     this.columns = [
       new Column('访问方式', 'method'),
-      new Column('路径', 'path'),
+      new Column('路径（带项目名前缀）', 'path'),
       new Column('编辑', 'flow')
     ]
     this.mapper = new Mapper({
@@ -137,19 +137,16 @@ export class RouteTable {
     })
   }
 
-  static genMdlPath (project: Project, model: Model | string, route: Route): string {
-    if (typeof model === 'string') {
-      model = Model.copy(project.models.find(mdl => mdl.key === model))
-    }
+  static genMdlPath (model: Model, route: Route): string {
     switch (route.method) {
     case 'POST':
-      return `${project.path}/${model.name}`
+      return `/mdl/v1/${model.name}`
     case 'DELETE':
     case 'PUT':
     case 'GET':
-      return `${project.path}/${model.name}/:index`
+      return `/mdl/v1/${model.name}/:index`
     case 'ALL':
-      return `${project.path}/${model.name}s`
+      return `/mdl/v1/${model.name}s`
     default:
       return ''
     }
@@ -170,7 +167,6 @@ export class DeployForm {
         rules: [],
         onChange: (record: Deploy, to: string) => {
           if (to) {
-            console.log(to)
             const nameSfx = to.split('/').pop()
             record.name = nameSfx?.substring(0, nameSfx.lastIndexOf('.')) as string
           }

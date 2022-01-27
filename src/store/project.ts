@@ -51,7 +51,7 @@ export default {
       await dispatch('refresh')
     },
     async setRoutePath ({ dispatch }: { dispatch: Dispatch }, route: Route) {
-      await reqPut('route', route.key, { path: route.path }, { ignores: ['flow'] })
+      await reqPut('route', route.key, { path: route.path })
       await dispatch('refresh')
     },
     async del ({ state }: { state: Project }) {
@@ -69,7 +69,7 @@ export default {
 
       const h = setInterval(async () => {
         try {
-          let host = ''
+          let host = `http://127.0.0.1:${state.port}`
           if (process.env.ENV === 'prod') {
             host = `http://${state.name}:${state.port}`
           }
@@ -146,6 +146,9 @@ export default {
     }
   },
   getters: {
-    ins: (state: Project): Project => state
+    ins: (state: Project): Project => state,
+    model: (state: Project) => (mkey: string): Model => {
+      return state.models.find((mdl: Model) => mdl.key === mkey) as Model
+    }
   }
 }

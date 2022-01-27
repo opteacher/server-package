@@ -2,7 +2,7 @@ import store from '@/store'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
-import { Mapper, Cond, Variable, Column, baseTypes, Node, NodeTypeMapper } from '../common'
+import { Mapper, Cond, Variable, Column, baseTypes, Node, NodeTypeMapper, routeMethods } from '../common'
 
 export const EditNodeMapper = new Mapper({
   temp: {
@@ -13,7 +13,10 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '==', val: '' }),
     ],
     onChange (addNode: Node, to: [string, string]) {
-
+      const temp = Node.copy(store.getters['route/temps'](to[1]))
+      temp.key = ''
+      Node.copy(temp, addNode)
+      addNode.temp = to
     }
   },
   title: {
@@ -127,7 +130,6 @@ export const EditNodeMapper = new Mapper({
     label: '代码',
     type: 'Textarea',
     display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
     ]
@@ -176,11 +178,36 @@ export const EditNodeMapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          store.commit('route/SET_INVISIBLE')
+          store.commit('route/SET_NODE_INVSB')
           await store.dispatch('route/delNode', node.key)
           store.commit('route/RESET_NODE')
         },
       })
     }
+  }
+})
+
+export const RouteMapper = new Mapper({
+  path: {
+    label: '路由',
+    type: 'Input',
+    prefix: ''
+  },
+  method: {
+    label: '访问方式',
+    type: 'Select',
+    options: routeMethods.map(mthd => ({
+      label: mthd, value: mthd
+    }))
+  },
+  service: {
+    label: '绑定服务',
+    type: 'SelOrIpt',
+    options: [],
+    mode: ref('select')
+  },
+  interface: {
+    label: '接口',
+    type: 'Input'
   }
 })

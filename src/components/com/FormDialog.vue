@@ -27,6 +27,7 @@
           v-if="value.type === 'Input'"
           v-model:value="formState[key]"
           :disabled="isDisabled(key) || !editable"
+          :addon-before="value.prefix"
           @change="(e) => value.onChange(formState, e.target.value)"
         />
         <a-input-number
@@ -67,7 +68,10 @@
           :options="value.options"
           v-model:value="formState[key]"
           :disabled="isDisabled(key) || !editable"
-          @change="(e) => value.onChange(formState, e.target)"
+          @change="async (e) => {
+            await value.onChange(formState, e)
+            tblEmitter.emit('refresh')
+          }"
         />
         <a-button
           v-else-if="value.type === 'Button'"
@@ -79,9 +83,7 @@
           :loading="value.loading"
           @click="() => value.onClick(formState)"
         >{{ value.inner }}</a-button>
-        <a-form-item-rest
-          v-else-if="value.type === 'Table'"
-        >
+        <a-form-item-rest v-else-if="value.type === 'Table'">
           <EditableTable
             class="w-100"
             size="small"
@@ -136,14 +138,37 @@
             </template>
           </a-list>
         </template>
-        <template v-else-if="value.type === 'Delable'">
-          <a-space>
-            {{ formState[key] || '-' }}
-            <CloseCircleOutlined
-              @click="value.onDeleted"
+        <a-space v-else-if="value.type === 'Delable'">
+          {{ formState[key] || '-' }}
+          <CloseCircleOutlined
+            @click="value.onDeleted"
+          />
+        </a-space>
+        <a-row v-else-if="value.type === 'SelOrIpt'" type="flex">
+          <a-col flex="auto">
+            <a-select
+              v-if="value.mode === 'select'"
+              style="width: 98%"
+              :options="value.options"
+              v-model:value="formState[key]"
             />
-          </a-space>
-        </template>
+            <a-input
+              v-else
+              style="width: 98%"
+              v-model:value="formState[key]"
+            />
+          </a-col>
+          <a-col flex="32px">
+            <a-button @click="() => {
+              value.mode = value.mode === 'select' ? 'input' : 'select'
+            }">
+              <template #icon>
+                <SelectOutlined v-if="value.mode === 'select'" />
+                <EditOutlined v-else />
+              </template>
+            </a-button>
+          </a-col>
+        </a-row>
       </a-form-item>
     </template>
   </a-form>
@@ -152,13 +177,15 @@
 
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,
   UploadOutlined,
   FileAddOutlined,
   FolderAddOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  SelectOutlined,
+  EditOutlined
 } from '@ant-design/icons-vue'
 import EditableTable from './EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -171,7 +198,9 @@ export default defineComponent({
     UploadOutlined,
     FileAddOutlined,
     FolderAddOutlined,
-    CloseCircleOutlined
+    CloseCircleOutlined,
+    SelectOutlined,
+    EditOutlined
   },
   props: {
     show: { type: Boolean, required: true },
@@ -190,7 +219,7 @@ export default defineComponent({
   ],
   setup (props, { emit }) {
     const formRef = ref()
-    const formState = reactive(props.object || props.copy({}))
+    const formState = reactive(props.copy({}))
     const formRules = Object.fromEntries(
       Object.entries(props.mapper).map((entry) => {
         return [entry[0], entry[1].rules]
@@ -210,6 +239,11 @@ export default defineComponent({
       })
     }
     onMounted(() => emit('initialize'))
+    watch(() => props.show, (show: boolean) => {
+      if (show) {
+        props.copy(props.object, formState)
+      }
+    })
 
     function isDisplay (key: string): boolean {
       const display = props.mapper[key].display

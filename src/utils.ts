@@ -52,10 +52,7 @@ export function reqPost (path: string, body: any, options?: RequestOptions): Pro
     options.ignores.push('key')
   }
   return makeRequest(axios.post(
-    `/server-package/mdl/v1/${path}`,
-    Object.fromEntries(
-      Object.entries(body).filter((pair: [string, any]) => !options?.ignores?.includes(pair[0]))
-    )
+    `/server-package/mdl/v1/${path}`, skipIgnores(body, options.ignores)
   ), options)
 }
 
@@ -94,10 +91,7 @@ export function reqPut (path: string, iden: any, body: any, options?: RequestOpt
     options.ignores.push('key')
   }
   return makeRequest(axios.put(
-    `/server-package/mdl/v1/${path}/${iden}`,
-    Object.fromEntries(
-      Object.entries(body).filter((pair: [string, any]) => !options?.ignores?.includes(pair[0]))
-    )
+    `/server-package/mdl/v1/${path}/${iden}`, skipIgnores(body, options.ignores)
   ), options)
 }
 

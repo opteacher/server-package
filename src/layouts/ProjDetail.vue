@@ -7,6 +7,13 @@
     :sub-title="project.desc"
     @back="() => router.go(-1)"
   >
+    <template #tags>
+      <template v-if="project.status === 'starting'">
+        <a-spin size="small"/>&nbsp;启动中……
+      </template>
+      <a-tag v-else-if="project.thread" color="#87d068">运行中</a-tag>
+      <a-tag v-else color="#f50">已停止</a-tag>
+    </template>
     <template #extra>
       <a-button @click="() => { projForm.show = true }">
         <SettingOutlined/>
@@ -72,26 +79,14 @@
       />
     </template>
     <a-descriptions size="small" :column="3">
-      <!-- <a-descriptions-item label="描述">
-        {{ project.desc }}
-      </a-descriptions-item> -->
       <a-descriptions-item label="占用端口">
         {{ project.port }}
       </a-descriptions-item>
-      <a-descriptions-item label="API前缀">
+      <a-descriptions-item label="模型API前缀">
         {{ project.path }}
       </a-descriptions-item>
       <a-descriptions-item label="数据库">
         {{ project.database.join('/') }}
-      </a-descriptions-item>
-      <a-descriptions-item label="状态">
-        <template v-if="project.status === 'starting'">
-          <a-spin size="small"/>&nbsp;启动中……
-        </template>
-        <a-badge v-else
-          :status="project.thread ? 'processing' : 'default'"
-          :text="project.thread ? '运行中' : '已停止'"
-        />
       </a-descriptions-item>
     </a-descriptions>
   </a-page-header>

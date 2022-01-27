@@ -1,13 +1,6 @@
 <template>
 <FlowDesign>
   <div class="flow-panel" ref="panelRef">
-    <LibraryCard v-if="EditNodeMapper['temp'].options?.length" :style="{
-      position: 'fixed',
-      top: '150px',
-      left: '100px',
-      'z-index': 1000,
-      'background-color': 'white'
-    }"/>
     <div v-show="locVars.length" :style="{
       position: 'fixed',
       width: '15vw',
@@ -47,10 +40,10 @@
     width="70vw"
     :column="[2, 22]"
     :copy="Node.copy"
-    :show="$store.getters['route/visible']"
+    :show="$store.getters['route/nodeVsb']"
     :mapper="EditNodeMapper"
     :object="$store.getters['route/editNode']"
-    @update:show="(show) => $store.commit('route/SET_INVISIBLE')"
+    @update:show="() => $store.commit('route/SET_NODE_INVSB')"
     @submit="onNodeSaved"
     @initialize="onEdtDlgInit"
   />
@@ -60,7 +53,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, nextTick, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node, Variable } from '../common'
@@ -68,7 +60,6 @@ import FormDialog from '../components/com/FormDialog.vue'
 import { EditNodeMapper } from './Flow'
 import { useStore } from 'vuex'
 import JoinDialog from '../components/JoinDialog.vue'
-import LibraryCard from '../components/LibraryCard.vue'
 
 export default defineComponent({
   name: 'Flow',
@@ -76,11 +67,9 @@ export default defineComponent({
     FlowDesign,
     NodeCard,
     FormDialog,
-    JoinDialog,
-    LibraryCard
+    JoinDialog
   },
   setup () {
-    const route = useRoute()
     const store = useStore()
     const panelRef = ref()
     const node = computed(() => store.getters['route/editNode'])
@@ -96,9 +85,7 @@ export default defineComponent({
     })
     const rszObs = new ResizeObserver(async () => {
       store.commit('route/SET_WIDTH', panelRef.value?.clientWidth)
-      await store.dispatch('route/refresh', {
-        rid: route.params.rid as string
-      })
+      await store.dispatch('route/refresh')
     })
     const locVars = reactive([] as Variable[])
 
