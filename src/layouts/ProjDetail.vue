@@ -82,8 +82,8 @@
       <a-descriptions-item label="占用端口">
         {{ project.port }}
       </a-descriptions-item>
-      <a-descriptions-item label="模型API前缀">
-        {{ project.path }}
+      <a-descriptions-item label="API前缀">
+        /{{ project.name }}
       </a-descriptions-item>
       <a-descriptions-item label="数据库">
         {{ project.database.join('/') }}

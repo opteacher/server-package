@@ -14,7 +14,7 @@
           <h4 class="mb-0">可用变量：</h4>
         </template>
         <template #renderItem="{ item: locVar }">
-          <a-list-item>{{ locVar.name }}</a-list-item>
+          <a-list-item>-&nbsp;{{ locVar.name }}:&nbsp;{{ locVar.type }}</a-list-item>
         </template>
       </a-list>
     </div>
@@ -43,6 +43,7 @@
     :show="$store.getters['route/nodeVsb']"
     :mapper="EditNodeMapper"
     :object="$store.getters['route/editNode']"
+    :emitter="EditNodeEmitter"
     @update:show="() => $store.commit('route/SET_NODE_INVSB')"
     @submit="onNodeSaved"
     @initialize="onEdtDlgInit"
@@ -57,7 +58,7 @@ import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node, Variable } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
-import { EditNodeMapper } from './Flow'
+import { EditNodeEmitter, EditNodeMapper } from './Flow'
 import { useStore } from 'vuex'
 import JoinDialog from '../components/JoinDialog.vue'
 
@@ -120,6 +121,7 @@ export default defineComponent({
 
       nodes,
       EditNodeMapper,
+      EditNodeEmitter,
       panelRef,
       editTitle,
       locVars,

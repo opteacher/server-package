@@ -1,4 +1,18 @@
-import { Node, NodeInPnl, Route, CardWidth, ArrowHeight, Variable, CardGutter, CardHlfWid, CardHlfGutter, NodeTypeMapper, CardMinHgt, ArrowHlfHgt, Project } from '@/common'
+import {
+  Node,
+  NodeInPnl,
+  Route,
+  CardWidth,
+  ArrowHeight,
+  Variable,
+  CardGutter,
+  CardHlfWid,
+  CardHlfGutter,
+  NodeTypeMapper,
+  ArrowHlfHgt,
+  Project,
+  SelectMapper
+} from '@/common'
 import { reqDelete, reqGet, reqLink, reqPost, reqPut, getKey, makeRequest, skipIgnores } from '@/utils'
 import { EditNodeMapper, RouteMapper } from '@/views/Flow'
 import axios from 'axios'
@@ -99,10 +113,12 @@ export default {
       EditNodeMapper.inputs.dsKey = `route/nodes.${state.node.key}.inputs`
       if (EditNodeMapper.inputs.mapper) {
         EditNodeMapper.inputs.mapper['value'].options = getLocVars(state, state.node.previous)
-          .concat(Variable.copy({ name: 'params', type: 'Object' }))
-          .concat(Variable.copy({ name: 'query', type: 'Object' }))
-          .concat(Variable.copy({ name: 'body', type: 'Object' }))
-          .map((locVar: Variable) => locVar.name)
+          .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
+          .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
+          .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
+          .map((locVar: Variable) => ({
+            label: locVar.name, value: locVar.name
+          }))
       }
       EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
@@ -284,7 +300,7 @@ export default {
       break
       case 'condition': { // 对于条件根节点，在其后同时创建一个条件节点和结束节点
         const condNode = Node.copy((await reqPost('node', {
-          title: '条件节点1',
+          title: `条件节点${node.nexts.length + 1}`,
           type: 'condNode'
         }, options)).data)
         await Promise.all([
@@ -298,7 +314,7 @@ export default {
           }),
         ])
         const endNode = Node.copy((await reqPost('node', {
-          title: '条件结束节点1',
+          title: node.title,
           type: 'endNode',
           relative: node.key
         }, options)).data)
@@ -318,10 +334,11 @@ export default {
       break
       case 'traversal': { // 对于循环根节点，在其后同时创建一个结束节点
         const endNode = Node.copy((await reqPost('node', {
-          title: '循环结束节点1',
+          title: node.title,
           type: 'endNode',
           relative: node.key
         }, options)).data)
+        await reqPut('node', node.key, { relative: endNode.key })
         await Promise.all([
           reqLink({
             parent: ['node', node.key],
@@ -481,34 +498,40 @@ export default {
       }
       return ret
     },
-    async rfshNode ({ state }: { state: RouteState }, key: string) {
-      Node.copy((await reqGet('node', key)).data, state.nodes[key])
+    async rfshNode ({ state }: { state: RouteState }, key?: string) {
+      const nkey = key || state.node.key
+      Node.copy((await reqGet('node', nkey)).data, state.nodes[nkey])
+      if (!key) {
+        Node.copy(state.nodes[nkey], state.node)
+      }
     },
-    async saveInOutput ({ dispatch }: { dispatch: Dispatch }, payload: {
-      name: string, ndKey: string, edited: Variable
-    }) {
+    async saveInOutput (
+      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      payload: { name: string, edited: Variable }
+    ) {
       if (!payload.edited.key) {
         const addIOpt = Variable.copy(
           (await reqPost('variable', payload.edited)).data
         )
         await reqLink({
-          parent: ['node', payload.ndKey],
+          parent: ['node', state.node.key],
           child: [`${payload.name}s`, addIOpt.key]
         })
       } else {
         await reqPut('variable', payload.edited.key, payload.edited)
       }
-      await dispatch('rfshNode', payload.ndKey)
+      await dispatch('rfshNode')
     },
-    async delInOutput ({ dispatch }: { dispatch: Dispatch }, payload: {
-      name: string, ndKey: string, delKey: string
-    }) {
+    async delInOutput (
+      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      payload: { name: string, delKey: string }
+    ) {
       await reqLink({
-        parent: ['node', payload.ndKey],
+        parent: ['node', state.node.key],
         child: [`${payload.name}s`, payload.delKey]
       }, false)
       await reqDelete('variable', payload.delKey)
-      await dispatch('rfshNode', payload.ndKey)
+      await dispatch('rfshNode')
     },
     async joinLibrary ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, group: string) {
       const baseURL = '/server-package/api/v1/node/temp'
@@ -527,7 +550,7 @@ export default {
       const newTemp = Node.copy((await makeRequest(
         axios.post(baseURL, Object.assign(skipIgnores(state.node, [
           'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative'
-        ]), { group })),
+        ]), { group, isTemp: true })),
       )).result)
       if (!temp || !temp.key) {
         for (const input of inputs) {
@@ -546,7 +569,7 @@ export default {
       state.joinVsb = false
       await reqPut('node', state.node.key, { group })
       state.node.group = group
-      await dispatch('rfshNode', state.node.key)
+      await dispatch('rfshNode')
       await dispatch('rfshTemps')
     },
     async rfshTemps ({ state }: { state: RouteState }) {
@@ -585,9 +608,9 @@ export default {
     nodeVsb: (state: RouteState): boolean => state.nodeVsb,
     locVars: (state: RouteState) => (nd?: Node): Variable[] => {
       return getLocVars(state, nd ? nd.previous : state.node.previous)
-        .concat(Variable.copy({ name: 'params', type: 'Object' }))
-        .concat(Variable.copy({ name: 'query', type: 'Object' }))
-        .concat(Variable.copy({ name: 'body', type: 'Object' }))
+        .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
+        .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
+        .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
     },
     joinVsb: (state: RouteState): boolean => state.joinVsb,
     routeVsb: (state: RouteState): boolean => state.routeVsb,

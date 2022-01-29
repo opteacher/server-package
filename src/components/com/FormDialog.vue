@@ -82,23 +82,43 @@
           ghost
           :loading="value.loading"
           @click="() => value.onClick(formState)"
-        >{{ value.inner }}</a-button>
-        <a-form-item-rest v-else-if="value.type === 'Table'">
-          <EditableTable
-            class="w-100"
-            size="small"
-            :dsKey="value.dsKey"
-            :copy="value.copy"
+        >
+          {{ value.inner }}
+        </a-button>
+        <a-date-picker
+          v-else-if="value.type === 'DateTime'"
+          class="w-100"
+          show-time
+          :disabled="isDisabled(key) || !editable"
+          v-model:value="formState[key]"
+        />
+        <template v-else-if="value.type === 'Table'">
+          <a-button type="primary" @click="value.show = true">新增</a-button>
+          <FormDialog
+            :show="value.show"
             :mapper="value.mapper"
-            :columns="value.columns"
-            :emitter="tblEmitter"
-            @save="async (editing) => {
-              await value.onSaved(editing)
-              tblEmitter.emit('refresh')
-            }"
-            @delete="value.onDeleted"
+            :copy="value.copy"
+            :emitter="value.emitter"
+            @update:show="value.show = false"
+            @submit="value.onSaved"
           />
-        </a-form-item-rest>
+          <a-table
+            class="mt-3"
+            v-show="formState[key] && formState[key].length"
+            :columns="value.columns.concat([new Column('操作', 'opera')])"
+            :data-source="formState[key]"
+            :pagination="false"
+            size="small"
+          >
+            <template #opera="{ record }">
+              <a-popconfirm title="确定删除该字段"
+                @confirm="value.onDeleted(record.key)"
+              >
+                <a-button danger size="small">删除</a-button>
+              </a-popconfirm>
+            </template>
+          </a-table>
+        </template>
         <template v-else-if="value.type === 'Upload'">
           <a-dropdown class="w-100" :disabled="isDisabled(key) || !editable">
             <a-button>
@@ -176,7 +196,7 @@
 </template>
 
 <script lang="ts">
-import { Cond, Mapper } from '@/common'
+import { Column, Cond, Mapper } from '@/common'
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,
@@ -187,13 +207,11 @@ import {
   SelectOutlined,
   EditOutlined
 } from '@ant-design/icons-vue'
-import EditableTable from './EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export default defineComponent({
   name: 'FormDialog',
   components: {
-    EditableTable,
     InfoCircleOutlined,
     UploadOutlined,
     FileAddOutlined,
@@ -237,10 +255,16 @@ export default defineComponent({
       props.emitter.on('update:show', (show: boolean) => {
         emit('update:show', show)
       })
+      props.emitter.on('update:data', (data: any) => {
+        props.copy(data, formState)
+      })
+      props.emitter.on('update:mapper', (mapper: any) => {
+        Mapper.copy(mapper, formMapper)
+      })
     }
     onMounted(() => emit('initialize'))
     watch(() => props.show, (show: boolean) => {
-      if (show) {
+      if (show && props.object) {
         props.copy(props.object, formState)
       }
     })
@@ -292,6 +316,8 @@ export default defineComponent({
       }
     }
     return {
+      Column,
+
       formRef,
       formState,
       formRules,

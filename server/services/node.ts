@@ -3,10 +3,7 @@ import { db } from '../utils/index.js'
 
 export async function temps () {
   const groups = {} as { [key: string]: any }
-  for (const temp of await db.select(Node, {
-    previous: { $exists: false },
-    nexts: { $size: 0 },
-  })) {
+  for (const temp of await db.select(Node, { isTemp: true })) {
     if (!temp.group) {
       continue
     }
@@ -24,11 +21,7 @@ function skipIgnores (obj: { [key: string]: any }, ignores: string[]): any {
 }
 
 export async function newTemp (node: any): Promise<any> {
-  const temp = await db.select(Node, {
-    group: node.group,
-    previous: { $exists: false },
-    nexts: { $size: 0 },
-  })
+  const temp = await db.select(Node, { group: node.group, isTemp: true })
   if (temp.length) {
     return db.save(Node, skipIgnores(node, ['previous', 'nexts']), { _index: temp[0]._id })
   } else {
@@ -37,9 +30,5 @@ export async function newTemp (node: any): Promise<any> {
 }
 
 export function temp (group: string): Promise<any> {
-  return db.select(Node, {
-    group,
-    previous: { $exists: false },
-    nexts: { $size: 0 },
-  })
+  return db.select(Node, { group, isTemp: true })
 }

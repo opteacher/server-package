@@ -35,7 +35,7 @@ export default defineComponent({
     const route = useRoute()
     const store = useStore()
     const columns = reactive([] as Column[])
-    const mapper = reactive(new Mapper({}))
+    const mapper = reactive(new Mapper())
     const emitter = new Emitter()
 
     onMounted(refresh)

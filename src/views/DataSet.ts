@@ -6,7 +6,7 @@ export class DtStTable {
 
   constructor () {
     this.columns = []
-    this.mapper = new Mapper({})
+    this.mapper = new Mapper()
   }
 
   setModel (model: Model) {

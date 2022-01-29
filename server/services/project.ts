@@ -13,13 +13,106 @@ import { spawn, spawnSync } from 'child_process'
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
 
-async function recuNode (key: string, indent?: number): Promise<string[]> {
-  const node = await db.select(Node, { _index: key })
-  return [
-    `// ${node.title}\n${''.padStart(indent || 0, ' ')}${node.code}`
-  ].concat(
-    node.nexts.length ? await recuNode(node.nexts[0]._id) : []
-  )
+function genAnnotation (node: {
+  title: string,
+  inputs: { type: string, remark: string, name: string }[],
+  outputs: { type: string, remark: string }[]
+}, indents: string): string {
+  return (node.inputs.length || node.outputs.length ? [
+    indents + `/** ${node.title}`,
+    node.inputs.map(input => indents + ` * @param {${input.type}} ${input.name} ${input.remark}`).join('\n'),
+    node.outputs.map(output => indents + ` * @returns {${output.type}} ${output.remark}`).join('\n'),
+    indents + '**/',
+  ] : [indents + `// ${node.title}`]).filter(line => line).join('\n')
+}
+
+async function toNext (node: { nexts: any[] }, indent: number, endKey?: string) {
+  return node.nexts.length ? await recuNode(node.nexts[0].id, indent, endKey) : []
+}
+
+function fmtCode (node: { code: string, inputs: any[], outputs: any[] }, indents?: string): string {
+  let ret = node.code
+  if (typeof indents !== 'undefined') {
+    ret = ret.split('\n').map((line: string) => indents + line).join('\n')
+  }
+  for (const input of node.inputs) {
+    ret = ret.replaceAll(new RegExp(`\W${input.name}\W`, 'g'), fmtInput(input))
+  }
+  for (const output of node.outputs) {
+    ret = ret.replaceAll(new RegExp(`\W${output.name}\W`, 'g'), output.name)
+  }
+  return ret
+}
+
+function fmtInput (variable: {
+  name: string,
+  type: string,
+  value: any,
+  prop?: string
+}): string {
+  const value = variable.value || variable.name
+  switch (variable.type) {
+  case 'String':
+    return `'${value}'`
+  case 'Array':
+    return `[${value}]`
+  case 'Object':
+    return `${value}.${variable.prop}`
+  case 'Number':
+  case 'Boolean':
+  default:
+    return value
+  }
+}
+
+async function recuNode (key: string, indent: number, endKey?: string): Promise<string[]> {
+  const node = await db.select(Node, { _index: key }, { ext: true })
+  const indents = ''.padStart(indent, ' ')
+  switch (node.type) {
+  case 'normal': {
+    return [[
+      genAnnotation(node, indents), fmtCode(node, indents)
+    ].join('\n')].concat(await toNext(node, indent, endKey))
+  }
+  case 'condition': {
+    const ret = [genAnnotation(node, indents)]
+    for (let i = 0; i < node.nexts.length; ++i) {
+      const nxtNode = await db.select(Node, { _index: node.nexts[i] }, { ext: true })
+      ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
+      if (nxtNode.nexts.length) {
+        ret.push(...await recuNode(nxtNode.nexts[0].id, indent + 2, node.relative))
+      }
+      if (i === node.nexts.length - 1) {
+        ret.push(indents + '}')
+      }
+    }
+    return ret.concat(await recuNode(node.relative, indent, endKey))
+  }
+  case 'traversal': {
+    if (!node.inputs.length) {
+      return ([] as string[]).concat(await toNext(node, indent, endKey))
+    }
+    const input = node.inputs[0]
+    const ret = [[
+      genAnnotation(node, indents),
+      indents + `for (const index in ${fmtInput(input)}) {`,
+      indents + `  const item = ${fmtInput(input)}[index]`
+    ].join('\n')]
+    if (node.nexts.length) {
+      ret.push(...await recuNode(node.nexts[0].id, indent + 2, node.relative))
+    }
+    ret.push(indents + '}')
+    return ret.concat(await toNext(node, indent, endKey))
+  }
+  case 'endNode':
+    if (node.id === endKey || !node.nexts.length) {
+      return []
+    } else {
+      return await recuNode(node.nexts[0].id, indent, endKey)
+    }
+  default:
+    return []
+  }
 }
 
 export async function sync (pid: string): Promise<any> {
@@ -94,7 +187,7 @@ export async function sync (pid: string): Promise<any> {
   fs.mkdirSync(rotPath)
   const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
   const svcTmp = Path.join(tmpPath, 'services', 'temp.js')
-  const rotTmp = Path.join(tmpPath, 'routes', 'temp.js')
+  const rotTmp = Path.join(tmpPath, 'routes', 'index.js')
   const mdlData = fs.readFileSync(mdlTmp)
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)

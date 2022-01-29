@@ -3,11 +3,10 @@
   <EditableTable
     title="模型"
     dsKey="project/ins.models"
-    :columns="modelTable.columns"
-    :mapper="modelTable.mapper"
+    :columns="ModelColumns"
+    :mapper="ModelMapper"
     :copy="Model.copy"
     :emitter="emitter"
-    v-model:expanded-row-keys="modelTable.expandeds"
     @save="onModelSave"
     @delete="onModelDel"
   >
@@ -20,8 +19,8 @@
       <EditableTable
         title="字段"
         :dsKey="`project/ins.models.[${model.key}].props`"
-        :columns="propTable.columns"
-        :mapper="propTable.mapper"
+        :columns="PropColumns"
+        :mapper="PropMapper"
         :copy="Property.copy"
         :emitter="emitter"
         @save="(prop) => onPropSave(prop, model.key)"
@@ -30,8 +29,8 @@
       <EditableTable
         title="接口"
         :dsKey="`project/ins.models.[${model.key}].routes`"
-        :columns="routeTable.columns"
-        :mapper="routeTable.mapper"
+        :columns="RouteColumns"
+        :mapper="RouteMapper"
         :copy="Route.copy"
         :emitter="emitter"
         @save="(route) => onRouteSave(route, model.key)"
@@ -39,21 +38,47 @@
       >
         <template #path="{ record: route }">
           <div class="editable-cell">
-            <div v-if="editRoute.key === route.key" class="editable-cell-input-wrapper">
-              <a-input v-model:value="editRoute.path" @pressEnter="onPathSaved(true)" />
-              <CheckOutlined class="editable-cell-icon" style="right: 20px" @click="onPathSaved(true)" />
-              <CloseOutlined class="editable-cell-icon" style="right: 0" @click="onPathSaved(false)"/>
+            <div
+              v-if="editRoute.key === route.key"
+              class="editable-cell-input-wrapper"
+            >
+              <a-input
+                v-model:value="editRoute.path"
+                @pressEnter="onPathSaved(true)"
+              />
+              <CheckOutlined
+                class="editable-cell-icon"
+                style="right: 20px"
+                @click="onPathSaved(true)"
+              />
+              <CloseOutlined
+                class="editable-cell-icon"
+                style="right: 0"
+                @click="onPathSaved(false)"
+              />
             </div>
             <div v-else class="editable-cell-text-wrapper">
-              {{ route.path || genMdlPath(model, route) }}
-              <EditOutlined class="editable-cell-icon" style="right: 0"
-                @click="onPathEdited(model, route)"
+              {{ route.path || '-' }}
+              <EditOutlined
+                v-if="!route.isModel"
+                class="editable-cell-icon"
+                style="right: 0"
+                @click="onPathEdited(route)"
               />
             </div>
           </div>
         </template>
+        <template #bind="{ record: route }">
+          <template v-if="route.service && route.interface">
+            {{ route.service }}&nbsp;/&nbsp;{{ route.interface }}
+          </template>
+          <template v-else-if="!route.isModel">[在流程设计中配置]</template>
+          <template v-else>-</template>
+        </template>
         <template #flow="{ record: route }">
-          <a-button @click="() => router.push(`/server-package/project/${pid}/flow/${route.key}`)">
+          <a-button :disabled="route.isModel" @click="() => {
+            router.push(`/server-package/project/${pid}/flow/${route.key}`)
+          }">
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
         </template>
@@ -64,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import { Model, Project, Property, Route } from '@/common'
+import { Column, Model, Project, Property, Route } from '@/common'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import {
   ApartmentOutlined,
@@ -76,7 +101,12 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
 import ProjDetail from '../layouts/ProjDetail.vue'
-import { ModelTable, PropTable, RouteTable } from './Project'
+import {
+  ModelColumns, ModelMapper,
+  PropColumns, PropMapper,
+  RouteColumns, RouteMapper,
+  genMdlPath,
+} from './Project'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
@@ -98,9 +128,6 @@ export default defineComponent({
     const emitter = new Emitter()
     const pid = route.params.pid as string
     const project = computed(() => store.getters['project/ins'] as Project)
-    const modelTable = reactive(new ModelTable())
-    const propTable = reactive(new PropTable())
-    const routeTable = reactive(new RouteTable())
     const editRoute = reactive(new Route())
 
     onMounted(() => store.dispatch('project/refresh', pid))
@@ -140,7 +167,7 @@ export default defineComponent({
     }
     async function onRouteSave (route: Route, mid: string) {
       if (!route.path) {
-        route.path = RouteTable.genMdlPath(store.getters['project/model'](mid), route)
+        route.path = genMdlPath(route)
       }
       await store.dispatch('project/update', {
         opera: route,
@@ -165,22 +192,28 @@ export default defineComponent({
       editRoute.reset()
       emitter.emit('refresh')
     }
-    function onPathEdited (model: Model, route: Route) {
+    function onPathEdited (route: Route) {
       editRoute.key = route.key
-      editRoute.path = route.path || RouteTable.genMdlPath(model, route)
+      editRoute.path = route.path || genMdlPath(route)
+    }
+    function onIsMdlChanged (route: Route, checked: boolean) {
+      route.path = checked ? genMdlPath(route) : ''
     }
     return {
       Model,
       Property,
       Route,
 
+      ModelColumns,
+      ModelMapper,
+      PropColumns,
+      PropMapper,
+      RouteColumns,
+      RouteMapper,
       pid,
       router,
       emitter,
       project,
-      modelTable,
-      propTable,
-      routeTable,
       editRoute,
 
       onModelSave,
@@ -189,9 +222,9 @@ export default defineComponent({
       onPropDel,
       onRouteSave,
       onRouteDel,
-      genMdlPath: RouteTable.genMdlPath,
       onPathSaved,
-      onPathEdited
+      onPathEdited,
+      onIsMdlChanged
     }
   }
 })

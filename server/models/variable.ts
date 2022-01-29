@@ -5,8 +5,10 @@ export default db.defineModel({
   name: db.PropTypes.String,
   type: db.PropTypes.String,
   value: db.PropTypes.Any,
+  prop: db.PropTypes.String,
   default: db.PropTypes.Any,
-  required: db.PropTypes.Boolean
+  required: db.PropTypes.Boolean,
+  remark: db.PropTypes.String,
 }, {
   router: {
     methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT']

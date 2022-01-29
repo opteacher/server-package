@@ -66,13 +66,10 @@
             color="#108ee9"
           >
             <template v-if="input.value">
-              {{ input.value }}&nbsp;
-              <RightOutlined />
-              &nbsp;{{ input.name }}
+              {{ input.value }}&nbsp;<RightOutlined />&nbsp;{{ input.name }}
             </template>
             <template v-else>
-              <LoginOutlined />
-              &nbsp;{{ input.name }}
+              <LoginOutlined />&nbsp;{{ input.name }}
             </template>
           </a-tag>
         </div>
@@ -80,7 +77,11 @@
     </a-col>
     <a-col flex="auto">
       <a-card :bordered="false">
-        {{ node.desc || '输入节点描述' }}
+        <template v-if="node.desc">{{ node.desc }}</template>
+        <template v-else-if="node.code">
+          <pre class="mb-0">{{ node.code }}</pre>
+        </template>
+        <template v-else>输入节点描述</template>
       </a-card>
     </a-col>
     <a-col flex="20px">
@@ -255,6 +256,9 @@ export default defineComponent({
       }
       return last.posLT[0] - first.posLT[0]
     }
+    function fmtCode (code: string): string {
+      return code.replaceAll('\n', '&#10;')
+    }
     return {
       CardWidth,
       CardHlfWid,
@@ -270,7 +274,9 @@ export default defineComponent({
       arwBtmSvgPosLT,
       arwBtmSvgSizeW,
       arwTopSvgPosLT,
-      arwTopSvgSizeW
+      arwTopSvgSizeW,
+
+      fmtCode
     }
   }
 })

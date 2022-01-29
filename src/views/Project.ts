@@ -1,4 +1,4 @@
-import { baseTypes, Column, Cond, Deploy, Mapper, Model, Project, Route, routeMethods, Transfer } from '@/common'
+import { baseTypes, Column, Deploy, Mapper, Route, routeMethods, Transfer } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -27,129 +27,122 @@ export function onStop () {
     onOk: () => store.dispatch('project/stop')
   })
 }
-export class ModelTable {
-  columns: Column[]
-  mapper: Mapper
-  expandeds: string[]
 
-  constructor() {
-    this.columns = [
-      new Column('模型名', 'name'),
-      new Column('描述', 'desc'),
-      new Column('记录时间', 'logTime'),
-      new Column('数据集', 'dataset')
-    ]
-    this.mapper = new Mapper({
-      name: {
-        label: '模型名',
-        type: 'Input',
-        rules: [{ required: true, message: '请输入模型名！', trigger: 'blur' }]
-      },
-      desc: {
-        type: 'Input'
-      },
-      logTime: {
-        label: '是否记录新增时间和更新时间',
-        type: 'Switch'
-      },
-      dataset: {
-        type: 'Unknown'
-      },
-      props: {
-        expanded: true
+export const ModelColumns = [
+  new Column('模型名', 'name'),
+  new Column('描述', 'desc'),
+  new Column('记录时间', 'logTime'),
+  new Column('数据集', 'dataset')
+]
+
+export const ModelMapper = new Mapper({
+  name: {
+    label: '模型名',
+    type: 'Input',
+    rules: [{ required: true, message: '请输入模型名！', trigger: 'blur' }]
+  },
+  desc: {
+    type: 'Input'
+  },
+  logTime: {
+    label: '是否记录新增时间和更新时间',
+    type: 'Switch'
+  },
+  dataset: {},
+  props: {
+    expanded: true
+  }
+})
+
+export const PropColumns = [
+  new Column('字段名', 'name'),
+  new Column('标签', 'label'),
+  new Column('字段类型', 'type'),
+  new Column('是否为索引', 'index'),
+  new Column('是否唯一', 'unique'),
+  new Column('是否可访问', 'visible'),
+  new Column('备注', 'remark')
+]
+
+export const PropMapper = new Mapper({
+  name: {
+    label: '字段名',
+    type: 'Input',
+    rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
+  },
+  label: {
+    label: '标签',
+    type: 'Input',
+    rules: [{ required: true, message: '请输入标签！', trigger: 'blur' }]
+  },
+  type: {
+    label: '字段类型',
+    type: 'Select',
+    options: baseTypes.map(bsTyp => ({
+      label: bsTyp, value: bsTyp
+    })),
+    rules: [{ type: 'array', required: true, message: '请选择字段类型！', trigger: 'change' }]
+  },
+  index: {
+    label: '是否为索引',
+    type: 'Switch'
+  },
+  unique: {
+    label: '是否唯一',
+    type: 'Switch'
+  },
+  visible: {
+    label: '是否可访问',
+    type: 'Switch'
+  },
+  remark: {
+    label: '备注',
+    type: 'Input'
+  },
+})
+
+export const RouteColumns = [
+  new Column('模型路由', 'isModel'),
+  new Column('访问方式', 'method'),
+  new Column('路径（带项目名前缀）', 'path'),
+  new Column('服务接口', 'bind'),
+  new Column('流程', 'flow')
+]
+
+export const RouteMapper = new Mapper({
+  isModel: {
+    type: 'Switch',
+    onChange: (route: Route, to: boolean) => {
+      if (to) {
+        route.path = genMdlPath(route)
       }
-    })
-    this.expandeds = []
-  }
-}
-
-export class PropTable {
-  columns: Column[]
-  mapper: Mapper
-
-  constructor() {
-    this.columns = [
-      new Column('字段名', 'name'),
-      new Column('标签', 'label'),
-      new Column('字段类型', 'type'),
-      new Column('是否为索引', 'index'),
-      new Column('是否唯一', 'unique'),
-      new Column('是否可访问', 'visible'),
-      new Column('备注', 'remark')
-    ]
-    this.mapper = new Mapper({
-      name: {
-        label: '字段名',
-        type: 'Input',
-        rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
-      },
-      label: {
-        label: '标签',
-        type: 'Input',
-        rules: [{ required: true, message: '请输入标签！', trigger: 'blur' }]
-      },
-      type: {
-        label: '字段类型',
-        type: 'Select',
-        options: baseTypes,
-        rules: [{ type: 'array', required: true, message: '请选择字段类型！', trigger: 'change' }]
-      },
-      index: {
-        label: '是否为索引',
-        type: 'Switch'
-      },
-      unique: {
-        label: '是否唯一',
-        type: 'Switch'
-      },
-      visible: {
-        label: '是否可访问',
-        type: 'Switch'
-      },
-      remark: {
-        label: '备注',
-        type: 'Input'
-      },
-    })
-  }
-}
-
-export class RouteTable {
-  columns: Column[]
-  mapper: Mapper
-
-  constructor() {
-    this.columns = [
-      new Column('访问方式', 'method'),
-      new Column('路径（带项目名前缀）', 'path'),
-      new Column('编辑', 'flow')
-    ]
-    this.mapper = new Mapper({
-      method: {
-        label: '访问方式',
-        type: 'Select',
-        options: routeMethods
-      },
-      path: {
-        type: 'Text'
-      },
-      flow: {}
-    })
-  }
-
-  static genMdlPath (model: Model, route: Route): string {
-    switch (route.method) {
-    case 'POST':
-      return `/mdl/v1/${model.name}`
-    case 'DELETE':
-    case 'PUT':
-    case 'GET':
-      return `/mdl/v1/${model.name}/:index`
-    case 'ALL':
-      return `/mdl/v1/${model.name}s`
-    default:
-      return ''
     }
+  },
+  method: {
+    type: 'Select',
+    options: routeMethods.map(mthd => ({
+      label: mthd, value: mthd
+    }))
+  },
+  path: {
+    type: 'Text'
+  },
+  bind: {},
+  flow: {}
+})
+
+export function genMdlPath (route: Route): string {
+  switch (route.method) {
+  case 'POST':
+    return `/mdl/v1/${route.model}`
+  case 'DELETE':
+  case 'PUT':
+  case 'GET':
+    return `/mdl/v1/${route.model}/:index`
+  case 'ALL':
+    return `/mdl/v1/${route.model}s`
+  default:
+    return ''
   }
 }
 

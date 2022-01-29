@@ -24,6 +24,8 @@
           v-if="record.key === editing.key"
           v-model:value="editing[key]"
           :placeholder="`输入${value.label}`"
+          :addon-before="value.prefix"
+          @change="(e) => value.onChange(editing, e.target.value)"
         />
         <template v-else-if="$slots[key]">
           <slot :name="key" v-bind="{ record }"/>
@@ -31,20 +33,14 @@
         <template v-else>{{text || '-'}}</template>
       </template>
       <template v-else-if="value.type === 'Select'">
-        <a-select class="w-100"
+        <a-select
           v-if="record.key === editing.key"
+          class="w-100"
+          :options="value.options"
           v-model:value="editing[key]"
           :placeholder="`选择${value.label}`"
-          @change="(opn) => value.onChange(editing, opn, editing[key])"
-        >
-          <a-select-option
-            v-for="item in value.options"
-            :key="typeof item === 'string' ? item : item.value"
-            :value="typeof item === 'string' ? item : item.value"
-          >
-            {{typeof item === 'string' ? item : item.title}}
-          </a-select-option>
-        </a-select>
+          @change="(opn) => value.onChange(editing, opn, editing[key], emitter)"
+        />
         <template v-else-if="$slots[key]">
           <slot :name="key" v-bind="{ record }"/>
         </template>
@@ -55,6 +51,7 @@
           v-if="record.key === editing.key"
           v-model="editing[key]"
           :options="value.options"
+          @change="(val) => value.onChange(editing, val.target.checked)"
         />
         <template v-else-if="$slots[key]">
           <slot :name="key" v-bind="{ record }"/>
@@ -65,6 +62,7 @@
         <a-checkbox
           v-if="record.key === editing.key"
           v-model:checked="editing[key]"
+          @change="(val) => value.onChange(editing, val.target.checked)"
         >
           {{editing[key] ? (
             value.chkLabels ? value.chkLabels[1] : '是'
@@ -89,6 +87,7 @@
           v-model:value="editing[key]"
           :options="value.options"
           :placeholder="`选择${value.label}`"
+          @change="(val) => value.onChange(editing, val)"
         />
         <template v-else-if="$slots[key]">
           <slot :name="key" v-bind="{ record }"/>
