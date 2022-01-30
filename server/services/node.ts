@@ -1,7 +1,7 @@
 import Node from '../models/node.js'
 import { db } from '../utils/index.js'
 
-export async function temps () {
+export async function tempNodes () {
   const groups = {} as { [key: string]: any }
   for (const temp of await db.select(Node, { isTemp: true })) {
     if (!temp.group) {

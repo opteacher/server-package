@@ -4,9 +4,13 @@
   :title="title"
   :width="width"
   :confirmLoading="!editable"
-  @ok="onOkClick"
+  :footer="viewOnly ? null : undefined"
   @cancel="onCclClick"
 >
+  <template #footer>
+    <a-button type="default" @click="onCclClick">取消</a-button>
+    <a-button type="primary" @click="onOkClick">确定</a-button>
+  </template>
   <a-form
     ref="formRef"
     :model="formState"
@@ -23,172 +27,213 @@
             <InfoCircleOutlined />
           </a-tooltip>
         </template>
-        <a-input
-          v-if="value.type === 'Input'"
-          v-model:value="formState[key]"
-          :disabled="isDisabled(key) || !editable"
-          :addon-before="value.prefix"
-          @change="(e) => value.onChange(formState, e.target.value)"
-        />
-        <a-input-number
-          v-else-if="value.type === 'Number'"
-          class="w-100"
-          v-model:value="formState[key]"
-          :disabled="isDisabled(key) || !editable"
-          @change="(val) => value.onChange(formState, val)"
-        />
-        <a-select
-          v-else-if="value.type === 'Select'"
-          class="w-100"
-          :options="value.options"
-          v-model:value="formState[key]"
-          :disabled="isDisabled(key) || !editable"
-          @change="(val) => value.onChange(formState, val)"
-        />
-        <a-checkbox
-          v-else-if="value.type === 'Checkbox'"
-          :name="key"
-          v-model:checked="formState[key]"
-          :disabled="isDisabled(key) || !editable"
-          @change="(val) => value.onChange(formState, val)"
-        >
-          {{formState[key]
-            ? (value.chkLabels ? value.chkLabels[1] : '是')
-            : (value.chkLabels ? value.chkLabels[0] : '否')}}
-        </a-checkbox>
-        <a-textarea
-          v-else-if="value.type === 'Textarea'"
-          v-model:value="formState[key]"
-          :rows="value.maxRows"
-          :disabled="isDisabled(key) || !editable"
-          @change="(val) => value.onChange(formState, val)"
-        />
-        <a-cascader
-          v-else-if="value.type === 'Cascader'"
-          :options="value.options"
-          v-model:value="formState[key]"
-          :disabled="isDisabled(key) || !editable"
-          @change="async (e) => {
-            await value.onChange(formState, e)
-            tblEmitter.emit('refresh')
-          }"
-        />
-        <a-button
-          v-else-if="value.type === 'Button'"
-          class="w-100"
-          :disabled="isDisabled(key) || !editable"
-          :danger="value.danger"
-          :type="value.primary ? 'primary' : 'default'"
-          ghost
-          :loading="value.loading"
-          @click="() => value.onClick(formState)"
-        >
-          {{ value.inner }}
-        </a-button>
-        <a-date-picker
-          v-else-if="value.type === 'DateTime'"
-          class="w-100"
-          show-time
-          :disabled="isDisabled(key) || !editable"
-          v-model:value="formState[key]"
-        />
-        <template v-else-if="value.type === 'Table'">
-          <a-button type="primary" @click="value.show = true">新增</a-button>
-          <FormDialog
-            :show="value.show"
-            :mapper="value.mapper"
-            :copy="value.copy"
-            :emitter="value.emitter"
-            @update:show="value.show = false"
-            @submit="value.onSaved"
-          />
-          <a-table
-            class="mt-3"
-            v-show="formState[key] && formState[key].length"
-            :columns="value.columns.concat([new Column('操作', 'opera')])"
-            :data-source="formState[key]"
-            :pagination="false"
-            size="small"
-          >
-            <template #opera="{ record }">
-              <a-popconfirm title="确定删除该字段"
-                @confirm="value.onDeleted(record.key)"
-              >
-                <a-button danger size="small">删除</a-button>
-              </a-popconfirm>
-            </template>
-          </a-table>
-        </template>
-        <template v-else-if="value.type === 'Upload'">
-          <a-dropdown class="w-100" :disabled="isDisabled(key) || !editable">
-            <a-button>
-              <UploadOutlined/>&nbsp;选择上传的文件或文件夹
-            </a-button>
-            <template #overlay>
-              <a-upload
-                name="file"
-                :multiple="false"
-                :directory="upldDir"
-                :showUploadList="false"
-                v-model:file-list="formState[key]"
-                action="/server-package/api/v1/temp/file"
-                @change="(info) => value.onChange(formState, info)"
-              >
-                <a-menu @click="onUploadClicked">
-                  <a-menu-item key="file">
-                    <FileAddOutlined/>&nbsp;上传文件
-                  </a-menu-item>
-                  <a-menu-item key="folder">
-                    <FolderAddOutlined />&nbsp;上传文件夹
-                  </a-menu-item>
-                </a-menu>
-              </a-upload>
-            </template>
-          </a-dropdown>
-          <a-list
-            v-show="formState[key].length"
-            style="margin-top: 5px"
-            size="small"
-            :data-source="formState[key]"
-          >
-            <template #renderItem="{ item: file }">
-              <a-list-item>
-                {{ file.originFileObj.webkitRelativePath || file.name }}
-              </a-list-item>
-            </template>
-          </a-list>
-        </template>
-        <a-space v-else-if="value.type === 'Delable'">
-          {{ formState[key] || '-' }}
-          <CloseCircleOutlined
-            @click="value.onDeleted"
-          />
-        </a-space>
-        <a-row v-else-if="value.type === 'SelOrIpt'" type="flex">
-          <a-col flex="auto">
-            <a-select
-              v-if="value.mode === 'select'"
-              style="width: 98%"
-              :options="value.options"
-              v-model:value="formState[key]"
+        <template v-if="viewOnly || value.type === 'Button'">
+          <template v-if="
+            value.type === 'Input' ||
+            value.type === 'Number' ||
+            value.type === 'Delable' ||
+            value.type === 'SelOrIpt' ||
+            value.type === 'DateTime'
+          ">
+            {{ formState[key] }}
+          </template>
+          <template v-else-if="
+            value.type === 'Textarea'
+          ">
+            <pre>{{ formState[key] }}</pre>
+          </template>
+          <template v-else-if="
+            value.type === 'Select' ||
+            value.type === 'Cascader'
+          ">
+            {{ fmtDrpdwnValue(value.options, formState[key]) }}
+          </template>
+          <template v-else-if="
+            value.type === 'Checkbox'
+          ">
+            {{
+              formState[key]
+              ? (value.chkLabels ? value.chkLabels[1] : '是')
+              : (value.chkLabels ? value.chkLabels[0] : '否')
+            }}
+          </template>
+          <template v-else-if="
+            value.type === 'Table'
+          ">
+            <a-table
+              v-show="formState[key] && formState[key].length"
+              :columns="value.columns"
+              :data-source="formState[key]"
+              :pagination="false"
+              size="small"
             />
-            <a-input
-              v-else
-              style="width: 98%"
-              v-model:value="formState[key]"
+          </template>
+        </template>
+        <template v-else>
+          <a-input
+            v-if="value.type === 'Input'"
+            v-model:value="formState[key]"
+            :disabled="isDisabled(key) || !editable"
+            :addon-before="value.prefix"
+            @change="(e) => value.onChange(formState, e.target.value)"
+          />
+          <a-input-number
+            v-else-if="value.type === 'Number'"
+            class="w-100"
+            v-model:value="formState[key]"
+            :disabled="isDisabled(key) || !editable"
+            @change="(val) => value.onChange(formState, val)"
+          />
+          <a-select
+            v-else-if="value.type === 'Select'"
+            class="w-100"
+            :options="value.options"
+            v-model:value="formState[key]"
+            :disabled="isDisabled(key) || !editable"
+            @change="(val) => value.onChange(formState, val)"
+          />
+          <a-checkbox
+            v-else-if="value.type === 'Checkbox'"
+            :name="key"
+            v-model:checked="formState[key]"
+            :disabled="isDisabled(key) || !editable"
+            @change="(val) => value.onChange(formState, val)"
+          >
+            {{formState[key]
+              ? (value.chkLabels ? value.chkLabels[1] : '是')
+              : (value.chkLabels ? value.chkLabels[0] : '否')}}
+          </a-checkbox>
+          <a-textarea
+            v-else-if="value.type === 'Textarea'"
+            v-model:value="formState[key]"
+            :rows="value.maxRows"
+            :disabled="isDisabled(key) || !editable"
+            @change="(val) => value.onChange(formState, val)"
+          />
+          <a-cascader
+            v-else-if="value.type === 'Cascader'"
+            :options="value.options"
+            v-model:value="formState[key]"
+            :disabled="isDisabled(key) || !editable"
+            @change="(e) => value.onChange(formState, e)"
+          />
+          <a-button
+            v-else-if="value.type === 'Button'"
+            class="w-100"
+            :disabled="isDisabled(key) || !editable"
+            :danger="value.danger"
+            :type="value.primary ? 'primary' : 'default'"
+            ghost
+            :loading="value.loading"
+            @click="() => value.onClick(formState)"
+          >
+            {{ value.inner }}
+          </a-button>
+          <a-date-picker
+            v-else-if="value.type === 'DateTime'"
+            class="w-100"
+            show-time
+            :disabled="isDisabled(key) || !editable"
+            v-model:value="formState[key]"
+          />
+          <template v-else-if="value.type === 'Table'">
+            <a-button type="primary" @click="value.show = true">新增</a-button>
+            <FormDialog
+              :show="value.show"
+              :mapper="value.mapper"
+              :copy="value.copy"
+              :emitter="value.emitter"
+              @update:show="value.show = false"
+              @submit="value.onSaved"
             />
-          </a-col>
-          <a-col flex="32px">
-            <a-button @click="() => {
-              value.mode = value.mode === 'select' ? 'input' : 'select'
-            }">
-              <template #icon>
-                <SelectOutlined v-if="value.mode === 'select'" />
-                <EditOutlined v-else />
+            <a-table
+              class="mt-3"
+              v-show="formState[key] && formState[key].length"
+              :columns="value.columns.concat([new Column('操作', 'opera', { width: 80 })])"
+              :data-source="formState[key]"
+              :pagination="false"
+              size="small"
+            >
+              <template #opera="{ record }">
+                <a-popconfirm title="确定删除该字段"
+                  @confirm="value.onDeleted(record.key)"
+                >
+                  <a-button danger size="small">删除</a-button>
+                </a-popconfirm>
               </template>
-            </a-button>
-          </a-col>
-        </a-row>
+            </a-table>
+          </template>
+          <template v-else-if="value.type === 'Upload'">
+            <a-dropdown class="w-100" :disabled="isDisabled(key) || !editable">
+              <a-button>
+                <UploadOutlined/>&nbsp;选择上传的文件或文件夹
+              </a-button>
+              <template #overlay>
+                <a-upload
+                  name="file"
+                  :multiple="false"
+                  :directory="upldDir"
+                  :showUploadList="false"
+                  v-model:file-list="formState[key]"
+                  action="/server-package/api/v1/temp/file"
+                  @change="(info) => value.onChange(formState, info)"
+                >
+                  <a-menu @click="onUploadClicked">
+                    <a-menu-item key="file">
+                      <FileAddOutlined/>&nbsp;上传文件
+                    </a-menu-item>
+                    <a-menu-item key="folder">
+                      <FolderAddOutlined />&nbsp;上传文件夹
+                    </a-menu-item>
+                  </a-menu>
+                </a-upload>
+              </template>
+            </a-dropdown>
+            <a-list
+              v-show="formState[key].length"
+              style="margin-top: 5px"
+              size="small"
+              :data-source="formState[key]"
+            >
+              <template #renderItem="{ item: file }">
+                <a-list-item>
+                  {{ file.originFileObj.webkitRelativePath || file.name }}
+                </a-list-item>
+              </template>
+            </a-list>
+          </template>
+          <a-space v-else-if="value.type === 'Delable'">
+            {{ formState[key] || '-' }}
+            <CloseCircleOutlined
+              @click="value.onDeleted"
+            />
+          </a-space>
+          <a-row v-else-if="value.type === 'SelOrIpt'" type="flex">
+            <a-col flex="auto">
+              <a-select
+                v-if="value.mode === 'select'"
+                style="width: 98%"
+                :options="value.options"
+                v-model:value="formState[key]"
+              />
+              <a-input
+                v-else
+                style="width: 98%"
+                v-model:value="formState[key]"
+              />
+            </a-col>
+            <a-col flex="32px">
+              <a-button @click="() => {
+                value.mode = value.mode === 'select' ? 'input' : 'select'
+              }">
+                <template #icon>
+                  <SelectOutlined v-if="value.mode === 'select'" />
+                  <EditOutlined v-else />
+                </template>
+              </a-button>
+            </a-col>
+          </a-row>
+        </template>
       </a-form-item>
     </template>
   </a-form>
@@ -196,7 +241,7 @@
 </template>
 
 <script lang="ts">
-import { Column, Cond, Mapper } from '@/common'
+import { Column, Cond, Mapper, OpnType } from '@/common'
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,
@@ -245,8 +290,8 @@ export default defineComponent({
     )
     const formMapper = reactive(props.mapper)
     const editable = ref(true)
-    const tblEmitter = new Emitter()
     const upldDir = ref(false)
+    const viewOnly = ref(false)
 
     if (props.emitter) {
       props.emitter.on('editable', (edtb: boolean) => {
@@ -260,6 +305,9 @@ export default defineComponent({
       })
       props.emitter.on('update:mapper', (mapper: any) => {
         Mapper.copy(mapper, formMapper)
+      })
+      props.emitter.on('viewOnly', (vwOnly: boolean) => {
+        viewOnly.value = vwOnly
       })
     }
     onMounted(() => emit('initialize'))
@@ -296,7 +344,7 @@ export default defineComponent({
         await formRef.value.validate()
         emit('submit', formState, () => {
           formRef.value.resetFields()
-          formState.reset()
+          formState.reset && formState.reset()
         })
         emit('update:show', false)
       } catch (e) {
@@ -305,7 +353,7 @@ export default defineComponent({
     }
     function onCclClick () {
       formRef.value.resetFields()
-      formState.reset()
+      formState.reset && formState.reset()
       emit('update:show', false)
     }
     function onUploadClicked (item: { key: string }) {
@@ -313,6 +361,23 @@ export default defineComponent({
         upldDir.value = true
       } else {
         upldDir.value = false
+      }
+    }
+    function fmtDrpdwnValue (options: OpnType[], value: any | any[]) {
+      if (value instanceof Array) {
+        const vals = []
+        let opns = options
+        for (let i = 0; i < value.length; ++i) {
+          const opn = opns.find((opn: OpnType) => opn.value === value[i])
+          vals.push(opn?.label)
+          if (i === value.length - 1) {
+            break
+          }
+          opns = opn?.children as OpnType[]
+        }
+        return vals.join(' / ')
+      } else {
+        return options.find((opn: OpnType) => opn.value === value)?.label
       }
     }
     return {
@@ -323,14 +388,15 @@ export default defineComponent({
       formRules,
       formMapper,
       editable,
-      tblEmitter,
       upldDir,
+      viewOnly,
 
       onOkClick,
       onCclClick,
       isDisplay,
       isDisabled,
-      onUploadClicked
+      onUploadClicked,
+      fmtDrpdwnValue
     }
   }
 })

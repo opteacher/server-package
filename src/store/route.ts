@@ -11,10 +11,19 @@ import {
   NodeTypeMapper,
   ArrowHlfHgt,
   Project,
-  SelectMapper
+  Dependency,
 } from '@/common'
-import { reqDelete, reqGet, reqLink, reqPost, reqPut, getKey, makeRequest, skipIgnores } from '@/utils'
-import { EditNodeMapper, RouteMapper } from '@/views/Flow'
+import {
+  reqDelete,
+  reqGet,
+  reqLink,
+  reqPost,
+  reqPut,
+  getKey,
+  makeRequest,
+  skipIgnores
+} from '@/utils'
+import { EditNodeEmitter, EditNodeMapper, RouteMapper } from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'
@@ -26,10 +35,13 @@ type RouteState = {
   nodes: NodesInPnl,
   width: number,
   node: Node,
+  locVars: Variable[],
   routeVsb: boolean,
   nodeVsb: boolean,
   joinVsb: boolean,
-  temps: Nodes
+  tempNodes: Nodes,
+  tempVsb: boolean,
+  deps: { [name: string]: string[] }
 }
 
 function getNextKeys (node: Node): string[] {
@@ -64,6 +76,17 @@ function getLocVars (state: RouteState, nd: string | Node | null): Variable[] {
   return ret.concat(node.outputs)
 }
 
+async function newDep (name: string, exports: string[]): Promise<string> {
+  const resp = (await makeRequest(axios.get(
+    `/server-package/api/v1/dep/name/${name}`
+  ))).data
+  const dep = new Dependency()
+  if (!resp || !resp._id) {
+    Dependency.copy((await reqPost('dependency', { name, exports })).data, dep)
+  }
+  return dep.key
+}
+
 export default {
   namespaced: true,
   state: () => ({
@@ -71,10 +94,13 @@ export default {
     nodes: {} as NodesInPnl,
     width: 0,
     node: new Node(),
+    locVars: [] as Variable[],
     routeVsb: false,
     nodeVsb: false,
     joinVsb: false,
-    temps: {} as Nodes
+    tempNodes: {} as Nodes,
+    tempVsb: false,
+    deps: {}
   } as RouteState),
   mutations: {
     SET_WIDTH (state: RouteState, width: number) {
@@ -83,12 +109,14 @@ export default {
     SET_ND_SIZE (state: RouteState, payload: { ndKey: string, size: [number, number] }) {
       state.nodes[payload.ndKey].size = payload.size
     },
-    SET_NODE (state: RouteState, node?: Node) {
-      if (!node) {
-        node = new Node()
+    SET_NODE (state: RouteState, payload?: { node?: Node, viewOnly?: boolean }) {
+      if (!payload) {
+        payload = { node: new Node(), viewOnly: false }
+      } else if (!payload.node) {
+        payload.node = new Node()
       }
       state.node.reset()
-      Node.copy(node, state.node)
+      Node.copy(payload.node, state.node)
       if (state.node.previous && state.node.previous instanceof Node
       && state.node.previous.type === 'condition') { // 添加修改条件节点
         state.node.type = 'condNode'
@@ -122,6 +150,7 @@ export default {
       }
       EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
+      EditNodeEmitter.emit('viewOnly', payload.viewOnly)
     },
     SET_NODE_INVSB (state: RouteState) {
       state.nodeVsb = false
@@ -134,6 +163,19 @@ export default {
     },
     SET_JOIN_VSB (state: RouteState, payload?: boolean) {
       state.joinVsb = typeof payload !== 'undefined' ? payload : false
+    },
+    SET_TEMP_VSB (state: RouteState, payload?: boolean) {
+      state.tempVsb = typeof payload !== 'undefined' ? payload : false
+    },
+    UPDATE_LOCVARS (state: RouteState, payload?: Node) {
+      if (!payload) {
+        state.locVars = []
+      } else {
+        state.locVars = getLocVars(state, payload ? payload.previous : state.node.previous)
+          .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
+          .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
+          .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
+      }
     }
   },
   actions: {
@@ -161,7 +203,7 @@ export default {
         await dispatch('fixWidth')
       } else {
         state.nodes = {}
-        state.temps = {}
+        state.tempNodes = {}
         state.node.reset()
       }
     },
@@ -206,6 +248,11 @@ export default {
         Node.copy(
           (await reqGet('node', key)).data, state.nodes[key]
         )
+      }
+      for (const dep of state.nodes[key].deps) {
+        if (!(dep.name in state.deps)) {
+          state.deps[dep.name] = dep.exports
+        }
       }
       for (const nxtNode of state.nodes[key].nexts) {
         await dispatch('readNodes', getKey(nxtNode))
@@ -265,19 +312,31 @@ export default {
       }
       //新增节点
       const orgNode = Node.copy(node)
+      const modKeys = []
+      if (!node.previous) {
+        modKeys.push(await newDep('WebModule', ['params', 'query', 'body']))
+        modKeys.push(await newDep('DbModule', ['db']))
+      }
       let tailNode = Node.copy((await reqPost('node', node, options)).data, node)
+      const nodeKey = tailNode.key
+      for (const modKey of modKeys) {
+        await reqLink({
+          parent: ['node', nodeKey],
+          child: ['deps', modKey]
+        })
+      }
       // 如果是从模板节点复制过来，则应该有inputs和outputs
       for (const input of orgNode.inputs) {
         const newIpt = (await reqPost('variable', input)).data
         await reqLink({
-          parent: ['node', node.key],
+          parent: ['node', nodeKey],
           child: ['inputs', newIpt._id]
         })
       }
       for (const output of orgNode.outputs) {
         const newOpt = (await reqPost('variable', output)).data
         await reqLink({
-          parent: ['node', node.key],
+          parent: ['node', nodeKey],
           child: ['outputs', newOpt._id]
         })
       }
@@ -287,12 +346,12 @@ export default {
         const endNode = state.nodes[rootNode.relative]
         await Promise.all([
           reqLink({
-            parent: ['node', node.key],
+            parent: ['node', nodeKey],
             child: ['nexts', endNode.key]
           }),
           reqLink({
             parent: ['node', endNode.key],
-            child: ['previous', node.key]
+            child: ['previous', nodeKey]
           })
         ])
         tailNode = endNode
@@ -305,20 +364,20 @@ export default {
         }, options)).data)
         await Promise.all([
           reqLink({
-            parent: ['node', node.key],
+            parent: ['node', nodeKey],
             child: ['nexts', condNode.key]
           }),
           reqLink({
             parent: ['node', condNode.key],
-            child: ['previous', node.key]
+            child: ['previous', nodeKey]
           }),
         ])
         const endNode = Node.copy((await reqPost('node', {
           title: node.title,
           type: 'endNode',
-          relative: node.key
+          relative: nodeKey
         }, options)).data)
-        await reqPut('node', node.key, { relative: endNode.key })
+        await reqPut('node', nodeKey, { relative: endNode.key })
         await Promise.all([
           reqLink({
             parent: ['node', condNode.key],
@@ -336,17 +395,17 @@ export default {
         const endNode = Node.copy((await reqPost('node', {
           title: node.title,
           type: 'endNode',
-          relative: node.key
+          relative: nodeKey
         }, options)).data)
-        await reqPut('node', node.key, { relative: endNode.key })
+        await reqPut('node', nodeKey, { relative: endNode.key })
         await Promise.all([
           reqLink({
-            parent: ['node', node.key],
+            parent: ['node', nodeKey],
             child: ['nexts', endNode.key]
           }),
           reqLink({
             parent: ['node', endNode.key],
-            child: ['previous', node.key]
+            child: ['previous', nodeKey]
           })
         ])
         tailNode = endNode
@@ -357,7 +416,7 @@ export default {
         // 绑定根节点
         await reqLink({
           parent: ['route', state.route.key],
-          child: ['flow', node.key]
+          child: ['flow', nodeKey]
         })
       } else {
         // 绑定非根节点
@@ -387,10 +446,10 @@ export default {
         await Promise.all([
           reqLink({
             parent: ['node', previous.key],
-            child: ['nexts', node.key]
+            child: ['nexts', nodeKey]
           }),
           reqLink({
-            parent: ['node', node.key],
+            parent: ['node', nodeKey],
             child: ['previous', previous.key]
           })
         ])
@@ -535,12 +594,17 @@ export default {
     },
     async joinLibrary ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, group: string) {
       const baseURL = '/server-package/api/v1/node/temp'
-      const temp = Node.copy((await makeRequest(axios.get(`${baseURL}/${group}`))).result)
+      let temp = null
+      try {
+        temp = Node.copy((await makeRequest(axios.get(`${baseURL}/${group}`))).result)
+      } catch (e) {
+        console.log()
+      }
       const inputs = [], outputs = []
       if (!temp || !temp.key) {
         for (const input of state.node.inputs) {
           inputs.push(Variable.copy((await reqPost('variable', input, {
-            ignores: ['value']
+            ignores: ['value', 'prop']
           })).data).key)
         }
         for (const output of state.node.outputs) {
@@ -549,7 +613,7 @@ export default {
       }
       const newTemp = Node.copy((await makeRequest(
         axios.post(baseURL, Object.assign(skipIgnores(state.node, [
-          'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative'
+          'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative', 'deps'
         ]), { group, isTemp: true })),
       )).result)
       if (!temp || !temp.key) {
@@ -574,14 +638,14 @@ export default {
     },
     async rfshTemps ({ state }: { state: RouteState }) {
       const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
-      state.temps = {}
+      state.tempNodes = {}
       for (const rawNode of Object.values(resp.result).flat() as any[]) {
-        if (rawNode._id in state.temps) {
-          Node.copy(rawNode, state.temps[rawNode._id])
+        if (rawNode._id in state.tempNodes) {
+          Node.copy(rawNode, state.tempNodes[rawNode._id])
         } else {
-          state.temps[rawNode._id] = Node.copy(rawNode)
+          state.tempNodes[rawNode._id] = Node.copy(rawNode)
         }
-        const node = state.temps[rawNode._id]
+        const node = state.tempNodes[rawNode._id]
         for (let i = 0; i < rawNode.inputs.length; ++i) {
           Variable.copy((await reqGet('variable', rawNode.inputs[i])).data, node.inputs[i])
         }
@@ -606,14 +670,15 @@ export default {
     node: (state: RouteState) => (key: string): NodesInPnl => state.nodes[key],
     editNode: (state: RouteState): Node => state.node,
     nodeVsb: (state: RouteState): boolean => state.nodeVsb,
-    locVars: (state: RouteState) => (nd?: Node): Variable[] => {
-      return getLocVars(state, nd ? nd.previous : state.node.previous)
-        .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
-        .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
-        .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
-    },
+    locVars: (state: RouteState) => state.locVars,
     joinVsb: (state: RouteState): boolean => state.joinVsb,
     routeVsb: (state: RouteState): boolean => state.routeVsb,
-    temps: (state: RouteState) => (key: string): Node => state.temps[key]
+    tempNode: (state: RouteState) => (key: string): Node => state.tempNodes[key],
+    tempNodes: (state: RouteState): Nodes => state.tempNodes,
+    tempVsb: (state: RouteState): boolean => state.tempVsb,
+    deps: (state: RouteState): Dependency[] => {
+      return Object.entries(state.deps)
+        .map(([name, exports]) => Dependency.copy({ name, exports }))
+    }
   }
 }

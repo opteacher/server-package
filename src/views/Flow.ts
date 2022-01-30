@@ -21,7 +21,7 @@ const InputMapper = new Mapper({
   name: {
     label: '参数名',
     type: 'Input',
-    prefix: 'X'
+    prefix: 'I'
   },
   type: {
     label: '类型',
@@ -98,7 +98,7 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '==', val: '' }),
     ],
     onChange (addNode: Node, to: [string, string]) {
-      const temp = Node.copy(store.getters['route/temps'](to[1]))
+      const temp = Node.copy(store.getters['route/tempNode'](to[1]))
       temp.key = ''
       Node.copy(temp, addNode)
       addNode.temp = to
@@ -176,6 +176,11 @@ export const EditNodeMapper = new Mapper({
         label: '返回名',
         type: 'Input',
         prefix: 'O'
+      },
+      value: {
+        label: '重命名',
+        desc: '之后该输出将被替换为该名称',
+        type: 'Input'
       }
     }),
     dsKey: '',
@@ -226,7 +231,8 @@ export const EditNodeMapper = new Mapper({
     label: '节点库',
     type: 'Delable',
     display: [
-      Cond.copy({ key: 'group', cmp: '!=', val: '' })
+      Cond.copy({ key: 'group', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'isTemp', cmp: '!=', val: true })
     ],
   },
   delete: {
@@ -279,3 +285,8 @@ export const RouteMapper = new Mapper({
     type: 'Input'
   }
 })
+
+export async function onNodeSaved (node: Node, next: () => void) {
+  await store.dispatch('route/saveNode', Node.copy(node))
+  next()
+}

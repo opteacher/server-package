@@ -26,13 +26,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { SettingOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { RouteMapper } from '../views/Flow'
-import { Route } from '@/common'
+import { Route, Node } from '@/common'
 import { reqPut } from '@/utils'
 
 export default defineComponent({
@@ -47,21 +47,27 @@ export default defineComponent({
     const route = computed(() => store.getters['route/ins'])
 
     async function onConfig (rtForm: any) {
-      await reqPut('route',
-        route.value.key,
-        Route.copy(rtForm),
-        { ignores: ['flow'] }
-      )
+      await reqPut('route', route.value.key, Route.copy(rtForm), { ignores: ['flow'] })
     }
     return {
+      Node,
       Route,
 
       route,
       router,
       RouteMapper,
 
-      onConfig
+      onConfig,
     }
   }
 })
 </script>
+
+<style lang="less">
+.collapse-ptb-0 {
+  .ant-collapse-content-box {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+</style>

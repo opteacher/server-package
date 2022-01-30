@@ -287,12 +287,14 @@ export class Column {
   title: string
   dataIndex: string
   key: string
+  width?: number
   slots: {
     title?: string
     customRender: string
   }
 
   constructor (title: string, dataIdx: string, options?: {
+    width?: number
     slotTitle?: string
   }) {
     this.title = title
@@ -301,6 +303,9 @@ export class Column {
     this.slots = { customRender: dataIdx }
     if (options && options.slotTitle) {
       this.slots.title = options.slotTitle
+    }
+    if (options && options.width) {
+      this.width = options.width
     }
   }
 
@@ -314,6 +319,7 @@ export class Column {
     if (src.slots && src.slots.title) {
       tgt.slots.title = src.slots.title
     }
+    tgt.width = src.width || tgt.width
     return tgt
   }
 }
@@ -607,6 +613,7 @@ export class Node extends StrIterable {
   nexts: (Node | string)[]
   relative: string
   temp: string[]
+  deps: Dependency[]
 
   constructor () {
     super()
@@ -623,6 +630,7 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   reset () {
@@ -639,6 +647,7 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   static copy (src: any, tgt?: Node, recu = true): Node {
@@ -671,6 +680,9 @@ export class Node extends StrIterable {
     }
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
+    if (src.deps && src.deps.length) {
+      tgt.deps = src.deps.map((dep: any) => Dependency.copy(dep))
+    }
     return tgt
   }
 }
@@ -852,6 +864,26 @@ export class Transfer {
     tgt.file = src.file || tgt.file
     tgt.dest = src.dest || tgt.dest
     tgt.project = src.project || tgt.project
+    return tgt
+  }
+}
+
+export class Dependency {
+  key: string
+  name: string
+  exports: string[]
+
+  constructor () {
+    this.key = ''
+    this.name = ''
+    this.exports = []
+  }
+
+  static copy (src: any, tgt?: Dependency): Dependency {
+    tgt = tgt || new Dependency()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.name = src.name || tgt.name
+    tgt.exports = src.exports || tgt.exports
     return tgt
   }
 }

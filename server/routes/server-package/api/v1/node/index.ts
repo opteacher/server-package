@@ -1,11 +1,11 @@
 import Router from 'koa-router'
-import { temps, newTemp, temp } from '../../../../../services/node.js'
+import { tempNodes, newTemp, temp } from '../../../../../services/node.js'
 
 const router = new Router()
 
 router.get('/temps', async ctx => {
   ctx.body = {
-    result: await temps()
+    result: await tempNodes()
   }
 })
 
