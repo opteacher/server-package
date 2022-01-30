@@ -51,7 +51,7 @@
     @update:show="() => $store.commit('route/SET_JOIN_VSB', false)"
     @initialize="async () => {
       await $store.dispatch('route/rfshTemps')
-      JoinMapper['group'].options = EditNodeMapper['temp'].options
+      JoinMapper['group'].options = $store.getters['route/tempGrps']
     }"
   />
 </FlowDesign>
@@ -63,20 +63,11 @@ import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node, Mapper } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
-import { EditNodeEmitter, EditNodeMapper, onNodeSaved } from './Flow'
+import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow'
 import { useStore } from 'vuex'
 import DepsPanel from '../components/DepsPanel.vue'
 import VarsPanel from '../components/VarsPanel.vue'
 import TmpNdPanel from '../components/TmpNdPanel.vue'
-
-const JoinMapper = new Mapper({
-  group: {
-    label: '节点组',
-    type: 'SelOrIpt',
-    options: [],
-    mode: 'select'
-  }
-})
 
 export default defineComponent({
   name: 'Flow',

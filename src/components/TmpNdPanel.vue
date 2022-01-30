@@ -1,8 +1,7 @@
 <template>
 <div v-if="hasTmpNds" :style="{
   position: 'fixed',
-  width: '5vw',
-  bottom: '150px',
+  bottom: '50px',
   right: '100px',
   'z-index': 1000,
 }">
@@ -75,15 +74,17 @@ export default defineComponent({
         rfshGroup()
       }
     })
+    watch(() => store.getters['route/tempNodes'], () => rfshGroup(false))
 
-    async function rfshGroup () {
-      await store.dispatch('route/rfshTemps')
+    async function rfshGroup (force = true) {
+      if (force) {
+        await store.dispatch('route/rfshTemps')
+      }
       const tempNodes = store.getters['route/tempNodes']
-      const allNdTmps = Object.values(tempNodes)
       for (const prop in tmpNdsByGp) {
         delete tmpNdsByGp[prop]
       }
-      for (const ndTemp of allNdTmps) {
+      for (const ndTemp of tempNodes) {
         const tempNode = Node.copy(ndTemp)
         if (tempNode.group in tmpNdsByGp) {
           tmpNdsByGp[tempNode.group].push(tempNode)
@@ -91,9 +92,9 @@ export default defineComponent({
           tmpNdsByGp[tempNode.group] = [tempNode]
         }
       }
-      hasTmpNds.value = allNdTmps.length !== 0
+      hasTmpNds.value = tempNodes.length !== 0
       if (hasTmpNds.value) {
-        actNdGrp.value = (allNdTmps[0] as Node).group
+        actNdGrp.value = (tempNodes[0] as Node).group
       }
     }
     return {

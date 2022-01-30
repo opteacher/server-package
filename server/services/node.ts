@@ -1,34 +1,14 @@
 import Node from '../models/node.js'
-import { db } from '../utils/index.js'
+import { db, skipIgnores } from '../utils/index.js'
 
-export async function tempNodes () {
-  const groups = {} as { [key: string]: any }
-  for (const temp of await db.select(Node, { isTemp: true })) {
-    if (!temp.group) {
-      continue
-    }
-    if (!(temp.group in groups)) {
-      groups[temp.group] = [temp]
-    } else {
-      groups[temp.group].push(temp)
-    }
-  }
-  return groups
+export function tempNodes () {
+  return db.select(Node, { isTemp: true }, { ext: true })
 }
 
-function skipIgnores (obj: { [key: string]: any }, ignores: string[]): any {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
+export function newTemp (node: any): Promise<any> {
+  return db.save(Node, skipIgnores(node, ['previous', 'nexts']))
 }
 
-export async function newTemp (node: any): Promise<any> {
-  const temp = await db.select(Node, { group: node.group, isTemp: true })
-  if (temp.length) {
-    return db.save(Node, skipIgnores(node, ['previous', 'nexts']), { _index: temp[0]._id })
-  } else {
-    return db.save(Node, skipIgnores(node, ['previous', 'nexts']), { group: node.group })
-  }
-}
-
-export function temp (group: string): Promise<any> {
-  return db.select(Node, { group, isTemp: true })
+export function tempByGrpAndTtl (group: string, title: string): Promise<any> {
+  return db.select(Node, { group, title, isTemp: true }, { ext: true })
 }

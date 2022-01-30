@@ -36,10 +36,10 @@ function fmtCode (node: { code: string, inputs: any[], outputs: any[] }, indents
     ret = ret.split('\n').map((line: string) => indents + line).join('\n')
   }
   for (const input of node.inputs) {
-    ret = ret.replaceAll(new RegExp(`\W${input.name}\W`, 'g'), fmtInput(input))
+    ret = ret.replaceAll(new RegExp(`\\b${input.name}\\b`, 'g'), fmtInput(input))
   }
   for (const output of node.outputs) {
-    ret = ret.replaceAll(new RegExp(`\W${output.name}\W`, 'g'), output.name)
+    ret = ret.replaceAll(new RegExp(`\\b${output.name}\\b`, 'g'), output.name)
   }
   return ret
 }

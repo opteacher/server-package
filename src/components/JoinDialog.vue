@@ -56,9 +56,7 @@ export default defineComponent({
     onMounted(async () => {
       await store.dispatch('route/rfshTemps')
       options.splice(0, options.length)
-      options.push(...(EditNodeMapper['temp'].options as OpnType[])
-        .map(({ label, value }: OpnType) => reactive({ label, value }))
-      )
+      options.push(...store.getters['route/tempGrps'])
     })
     return {
       mode,

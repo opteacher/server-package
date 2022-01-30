@@ -53,7 +53,8 @@ const InputMapper = new Mapper({
         break
       case 'Object':
         InputMapper['value'].type = 'Select'
-        InputMapper['value'].options = store.getters['route/locVars']()
+        store.commit('route/UPD_EDT_LOCVARS')
+        InputMapper['value'].options = store.getters['route/locVars']
           .map((locVar: Variable) => ({
             label: locVar.name,
             value: locVar.name
@@ -73,7 +74,7 @@ const InputMapper = new Mapper({
       if (input.type !== 'Object') {
         return
       }
-      const locVars = store.getters['route/locVars']()
+      const locVars = store.getters['route/locVars']
       const selVar = locVars.find((v: any) => v.name === to)
       input.type = selVar.type
     }
@@ -98,10 +99,10 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '==', val: '' }),
     ],
     onChange (addNode: Node, to: [string, string]) {
-      const temp = Node.copy(store.getters['route/tempNode'](to[1]))
+      const temp = Node.copy(store.getters['route/node'](to[1]))
       temp.key = ''
+      temp.isTemp = false
       Node.copy(temp, addNode)
-      addNode.temp = to
     }
   },
   title: {
@@ -234,6 +235,10 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'group', cmp: '!=', val: '' }),
       Cond.copy({ key: 'isTemp', cmp: '!=', val: true })
     ],
+    onDeleted: async (key: string) => {
+      await store.dispatch('route/saveNode', { key, group: '' })
+      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+    }
   },
   delete: {
     label: '操作',
@@ -290,3 +295,12 @@ export async function onNodeSaved (node: Node, next: () => void) {
   await store.dispatch('route/saveNode', Node.copy(node))
   next()
 }
+
+export const JoinMapper = new Mapper({
+  group: {
+    label: '节点组',
+    type: 'SelOrIpt',
+    options: [],
+    mode: 'select'
+  }
+})

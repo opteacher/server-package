@@ -12,6 +12,7 @@ import {
   ArrowHlfHgt,
   Project,
   Dependency,
+  OpnType,
 } from '@/common'
 import {
   reqDelete,
@@ -27,6 +28,8 @@ import { EditNodeEmitter, EditNodeMapper, RouteMapper } from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'
+import { notification } from 'ant-design-vue'
+import { reactive } from 'vue'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type Nodes = { [key: string]: Node }
@@ -39,7 +42,6 @@ type RouteState = {
   routeVsb: boolean,
   nodeVsb: boolean,
   joinVsb: boolean,
-  tempNodes: Nodes,
   tempVsb: boolean,
   deps: { [name: string]: string[] }
 }
@@ -98,7 +100,6 @@ export default {
     routeVsb: false,
     nodeVsb: false,
     joinVsb: false,
-    tempNodes: {} as Nodes,
     tempVsb: false,
     deps: {}
   } as RouteState),
@@ -167,11 +168,17 @@ export default {
     SET_TEMP_VSB (state: RouteState, payload?: boolean) {
       state.tempVsb = typeof payload !== 'undefined' ? payload : false
     },
+    UPD_EDT_LOCVARS (state: RouteState) {
+      state.locVars = getLocVars(state, state.node.previous)
+        .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
+        .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
+        .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
+    },
     UPDATE_LOCVARS (state: RouteState, payload?: Node) {
       if (!payload) {
         state.locVars = []
       } else {
-        state.locVars = getLocVars(state, payload ? payload.previous : state.node.previous)
+        state.locVars = getLocVars(state, payload.previous)
           .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
           .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
           .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
@@ -203,14 +210,13 @@ export default {
         await dispatch('fixWidth')
       } else {
         state.nodes = {}
-        state.tempNodes = {}
         state.node.reset()
       }
     },
     async fixWidth ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }) {
       let left = 0
       let right = 0
-      for (const node of Object.values(state.nodes)) {
+      for (const node of Object.values(state.nodes).filter(nd => !nd.isTemp)) {
         if (node.posLT[0] < left) {
           left = node.posLT[0]
         }
@@ -308,7 +314,7 @@ export default {
       const options = { ignores: ['key', 'previous', 'nexts', 'inputs', 'outputs'] }
       if (node.key) { // 更新节点
         await reqPut('node', node.key, node, options)
-        return dispatch('refresh')
+        return dispatch('rfshNode')
       }
       //新增节点
       const orgNode = Node.copy(node)
@@ -482,53 +488,52 @@ export default {
       }
       const node = state.nodes[key]
       // 清空节点信息
-      switch (node.type) {
-      case 'normal':
-        await dispatch('clsNmlNode', key)
-      }
-      // 解绑的节点和父节点的关系
-      let pvsKey = ''
-      if (node.previous) {
-        const previous = node.previous as Node
-        pvsKey = getKey(previous)
-        await reqLink({
-          parent: ['node', pvsKey],
-          child: ['nexts', node.key]
-        }, false)
-      } else { // 删除根节点
-        await reqLink({
-          parent: ['route', state.route.key],
-          child: ['flow', node.key]
-        }, false)
-      }
-      // 删除节点的子节点或解绑子节点
-      const nexts = [] as string[]
-      if (node.type === 'condNode') {
-        // 如果是条件节点或循环根节点，删除对应的块
-        nexts.push(...await dispatch('delBlock', { node, orgKey: pvsKey }))
-      } else if (node.type === 'traversal') {
-        nexts.push(...await dispatch('delBlock', { node, orgKey: key }))
-      } else if (node.type === 'condition') {
-        // 如果是条件根节点，则依次删除其子条件节点
-        for (const nxtKey of getNextKeys(node)) {
-          await dispatch('delNode', nxtKey)
+      await dispatch('clsNmlNode', key)
+      if (!node.isTemp) {
+        // 解绑的节点和父节点的关系
+        let pvsKey = ''
+        if (node.previous) {
+          const previous = node.previous as Node
+          pvsKey = getKey(previous)
+          await reqLink({
+            parent: ['node', pvsKey],
+            child: ['nexts', node.key]
+          }, false)
+        } else { // 删除根节点
+          await reqLink({
+            parent: ['route', state.route.key],
+            child: ['flow', node.key]
+          }, false)
         }
-      } else {
-        // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
-        nexts.push(...getNextKeys(node))
-      }
-      if (pvsKey) {
-        for (const nxtKey of nexts) {
-          await Promise.all([
-            reqLink({
-              parent: ['node', nxtKey],
-              child: ['previous', pvsKey]
-            }),
-            reqLink({
-              parent: ['node', pvsKey],
-              child: ['nexts', nxtKey]
-            })
-          ])
+        // 删除节点的子节点或解绑子节点
+        const nexts = [] as string[]
+        if (node.type === 'condNode') {
+          // 如果是条件节点或循环根节点，删除对应的块
+          nexts.push(...await dispatch('delBlock', { node, orgKey: pvsKey }))
+        } else if (node.type === 'traversal') {
+          nexts.push(...await dispatch('delBlock', { node, orgKey: key }))
+        } else if (node.type === 'condition') {
+          // 如果是条件根节点，则依次删除其子条件节点
+          for (const nxtKey of getNextKeys(node)) {
+            await dispatch('delNode', nxtKey)
+          }
+        } else {
+          // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
+          nexts.push(...getNextKeys(node))
+        }
+        if (pvsKey) {
+          for (const nxtKey of nexts) {
+            await Promise.all([
+              reqLink({
+                parent: ['node', nxtKey],
+                child: ['previous', pvsKey]
+              }),
+              reqLink({
+                parent: ['node', pvsKey],
+                child: ['nexts', nxtKey]
+              })
+            ])
+          }
         }
       }
       // 最后删除节点自身
@@ -594,78 +599,69 @@ export default {
     },
     async joinLibrary ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, group: string) {
       const baseURL = '/server-package/api/v1/node/temp'
-      let temp = null
-      try {
-        temp = Node.copy((await makeRequest(axios.get(`${baseURL}/${group}`))).result)
-      } catch (e) {
-        console.log()
+      // 组和标题与数据库中模板节点相等的，判定为不可入库
+      if ((await makeRequest(axios.get(`${baseURL}/exists`, {
+        params: { group, title: state.node.title }
+      }))).result.length) {
+        notification.error({
+          message: '加入模板库错误！',
+          description: '模板库已有相应节点存在，如需修改，点击模板节点库查看修改',
+        })
+        return
       }
-      const inputs = [], outputs = []
-      if (!temp || !temp.key) {
-        for (const input of state.node.inputs) {
-          inputs.push(Variable.copy((await reqPost('variable', input, {
-            ignores: ['value', 'prop']
-          })).data).key)
-        }
-        for (const output of state.node.outputs) {
-          outputs.push(Variable.copy((await reqPost('variable', output)).data).key)
-        }
-      }
-      const newTemp = Node.copy((await makeRequest(
+      const tempNode = Node.copy((await makeRequest(
         axios.post(baseURL, Object.assign(skipIgnores(state.node, [
           'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative', 'deps'
         ]), { group, isTemp: true })),
       )).result)
-      if (!temp || !temp.key) {
-        for (const input of inputs) {
-          await reqLink({
-            parent: ['node', newTemp.key],
-            child: ['inputs', input]
-          })
-        }
-        for (const output of outputs) {
-          await reqLink({
-            parent: ['node', newTemp.key],
-            child: ['outputs', output]
-          })
-        }
+      for (const input of state.node.inputs) {
+        await reqLink({
+          parent: ['node', tempNode.key],
+          child: ['inputs', (await reqPost('variable', input, {
+            ignores: ['value', 'prop']
+          })).data._id]
+        })
+      }
+      for (const output of state.node.outputs) {
+        await reqLink({
+          parent: ['node', tempNode.key],
+          child: ['outputs', (await reqPost('variable', output)).data._id]
+        })
       }
       state.joinVsb = false
       await reqPut('node', state.node.key, { group })
-      state.node.group = group
-      await dispatch('rfshNode')
       await dispatch('rfshTemps')
+      await dispatch('rfshNode')
     },
     async rfshTemps ({ state }: { state: RouteState }) {
       const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
-      state.tempNodes = {}
-      for (const rawNode of Object.values(resp.result).flat() as any[]) {
-        if (rawNode._id in state.tempNodes) {
-          Node.copy(rawNode, state.tempNodes[rawNode._id])
+      for (const node of resp.result.map((tmpNd: any) => Node.copy(tmpNd))) {
+        state.nodes[node.key] = node
+      }
+      const groups = {} as { [group: string]: Node[] }
+      for (const tmpNd of Object.values(state.nodes).filter((nd: Node) => nd.isTemp)) {
+        if (tmpNd.group in groups) {
+          groups[tmpNd.group].push(tmpNd)
         } else {
-          state.tempNodes[rawNode._id] = Node.copy(rawNode)
-        }
-        const node = state.tempNodes[rawNode._id]
-        for (let i = 0; i < rawNode.inputs.length; ++i) {
-          Variable.copy((await reqGet('variable', rawNode.inputs[i])).data, node.inputs[i])
-        }
-        for (let i = 0; i < rawNode.outputs.length; ++i) {
-          Variable.copy((await reqGet('variable', rawNode.outputs[i])).data, node.outputs[i])
+          groups[tmpNd.group] = [tmpNd]
         }
       }
-      EditNodeMapper['temp'].options = Object.entries(resp.result).map(([group, nodes]) => ({
+      EditNodeMapper['temp'].options = Object.entries(groups).map(([group, nodes]) => ({
         label: group,
         value: group,
         children: nodes ? (nodes as any[]).map((node: any) => ({
           label: node.title,
-          value: node._id
+          value: node.key
         })) : []
       }))
     }
   },
   getters: {
     ins: (state: RouteState): Route => state.route,
-    nodes: (state: RouteState): NodesInPnl => state.nodes,
+    nodes: (state: RouteState): NodesInPnl => {
+      return Object.fromEntries(Object.entries(state.nodes)
+        .filter(([_key, node]) => !node.isTemp))
+    },
     width: (state: RouteState): number => state.width,
     node: (state: RouteState) => (key: string): NodesInPnl => state.nodes[key],
     editNode: (state: RouteState): Node => state.node,
@@ -673,12 +669,14 @@ export default {
     locVars: (state: RouteState) => state.locVars,
     joinVsb: (state: RouteState): boolean => state.joinVsb,
     routeVsb: (state: RouteState): boolean => state.routeVsb,
-    tempNode: (state: RouteState) => (key: string): Node => state.tempNodes[key],
-    tempNodes: (state: RouteState): Nodes => state.tempNodes,
+    tempNodes: (state: RouteState): Node[] => {
+      return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
+    },
     tempVsb: (state: RouteState): boolean => state.tempVsb,
     deps: (state: RouteState): Dependency[] => {
       return Object.entries(state.deps)
         .map(([name, exports]) => Dependency.copy({ name, exports }))
-    }
+    },
+    tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

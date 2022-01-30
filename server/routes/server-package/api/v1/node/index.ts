@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { tempNodes, newTemp, temp } from '../../../../../services/node.js'
+import { tempNodes, newTemp, tempByGrpAndTtl } from '../../../../../services/node.js'
 
 const router = new Router()
 
@@ -15,9 +15,19 @@ router.post('/temp', async ctx => {
   }
 })
 
-router.get('/temp/:gid', async ctx => {
+router.get('/temp/exists', async ctx => {
+  const query = ctx.request.query
+  if (!query.group || !query.title) {
+    ctx.body = {
+      error: '需要给出group参数和title参数'
+    }
+    return
+  }
   ctx.body = {
-    result: await temp(ctx.params.gid)
+    result: await tempByGrpAndTtl(
+      query.group as string,
+      query.title as string
+    )
   }
 })
 

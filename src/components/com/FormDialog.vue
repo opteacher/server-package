@@ -27,7 +27,7 @@
             <InfoCircleOutlined />
           </a-tooltip>
         </template>
-        <template v-if="viewOnly || value.type === 'Button'">
+        <template v-if="viewOnly">
           <template v-if="
             value.type === 'Input' ||
             value.type === 'Number' ||
@@ -204,9 +204,7 @@
           </template>
           <a-space v-else-if="value.type === 'Delable'">
             {{ formState[key] || '-' }}
-            <CloseCircleOutlined
-              @click="value.onDeleted"
-            />
+            <CloseCircleOutlined @click="value.onDeleted(formState.key)"/>
           </a-space>
           <a-row v-else-if="value.type === 'SelOrIpt'" type="flex">
             <a-col flex="auto">

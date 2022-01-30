@@ -653,7 +653,7 @@ export class Node extends StrIterable {
   static copy (src: any, tgt?: Node, recu = true): Node {
     tgt = tgt || new Node()
     tgt.key = src.key || src._id || tgt.key
-    tgt.isTemp = src.isTemp || tgt.isTemp
+    tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : tgt.isTemp
     tgt.group = src.group || tgt.group
     tgt.title = src.title || tgt.title
     tgt.desc = src.desc || tgt.desc

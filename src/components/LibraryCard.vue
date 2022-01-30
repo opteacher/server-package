@@ -35,7 +35,7 @@ export default defineComponent({
     onMounted(async () => {
       await store.dispatch('route/rfshTemps')
       groups.splice(0, groups.length)
-      groups.push(...(EditNodeMapper['temp'].options as OpnType[]).map(reactive))
+      groups.push(...store.getters['route/tempGrps'])
     })
     return {
       group,
