@@ -1,11 +1,11 @@
 <template>
 <div v-if="hasTmpNds" :style="{
   position: 'fixed',
-  bottom: '50px',
-  right: '100px',
+  top: '150px',
+  left: '100px',
   'z-index': 1000,
 }">
-  <a-button type="primary" ghost
+  <a-button type="primary"
     @click="$store.commit('route/SET_TEMP_VSB', true)"
   >
     <GoldOutlined />&nbsp;节点库

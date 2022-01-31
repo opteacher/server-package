@@ -57,6 +57,17 @@ function getNextKeys (node: Node): string[] {
   return []
 }
 
+function getNextNodes (state: { nodes: NodesInPnl }, node: Node): Node[] {
+  if (node.nexts.length) {
+    if (typeof node.nexts[0] === 'string') {
+      return (node.nexts as string[]).map((nxtKey: string) => state.nodes[nxtKey])
+    } else {
+      return node.nexts as Node[]
+    }
+  }
+  return []
+}
+
 function getNode (state: { nodes: NodesInPnl }, node: string | Node): NodeInPnl {
   return typeof node === 'string' ? state.nodes[node] : state.nodes[node.key]
 }
@@ -67,7 +78,7 @@ function getPrevious (state: { nodes: NodesInPnl }, node: Node): Node {
 }
 
 function getLocVars (state: RouteState, nd: string | Node | null): Variable[] {
-  if (!nd) {
+  if (!nd || !getKey(nd) || !(getKey(nd) in state.nodes)) {
     return []
   }
   const node = state.nodes[getKey(nd)]
@@ -87,6 +98,31 @@ async function newDep (name: string, exports: string[]): Promise<string> {
     Dependency.copy((await reqPost('dependency', { name, exports })).data, dep)
   }
   return dep.key
+}
+
+function scanNextss (
+  state: { nodes: NodesInPnl },
+  node: Node,
+  rootKey: string
+): {
+  endNode: Node | null, allNodes: Nodes
+} {
+  let endNode = null
+  const allNodes = {} as Nodes
+  for (const nxtNode of getNextNodes(state, node)) {
+    if (nxtNode.type === 'endNode' && nxtNode.relative === rootKey) {
+      return { endNode: nxtNode, allNodes }
+    }
+    allNodes[nxtNode.key] = nxtNode
+    const ret = scanNextss(state, nxtNode, rootKey)
+    for (const [key, node] of Object.entries(ret.allNodes)) {
+      allNodes[key] = node
+    }
+    if (ret.endNode) {
+      endNode = ret.endNode
+    }
+  }
+  return { endNode, allNodes }
 }
 
 export default {
@@ -320,6 +356,7 @@ export default {
       const orgNode = Node.copy(node)
       const modKeys = []
       if (!node.previous) {
+        // @_@: 应为表单选择添加依赖
         modKeys.push(await newDep('WebModule', ['params', 'query', 'body']))
         modKeys.push(await newDep('DbModule', ['db']))
       }
@@ -462,7 +499,7 @@ export default {
       }
       await dispatch('refresh')
     },
-    async clsNmlNode ({ state }: { state: RouteState }, key: string) {
+    async clrNmlNode ({ state }: { state: RouteState }, key: string) {
       const node = state.nodes[key]
       // 删除节点的输入和输出
       for (const input of node.inputs) {
@@ -488,7 +525,7 @@ export default {
       }
       const node = state.nodes[key]
       // 清空节点信息
-      await dispatch('clsNmlNode', key)
+      await dispatch('clrNmlNode', key)
       if (!node.isTemp) {
         // 解绑的节点和父节点的关系
         let pvsKey = ''
@@ -507,19 +544,61 @@ export default {
         }
         // 删除节点的子节点或解绑子节点
         const nexts = [] as string[]
-        if (node.type === 'condNode') {
+        switch (node.type) {
+        case 'condNode': {
           // 如果是条件节点或循环根节点，删除对应的块
-          nexts.push(...await dispatch('delBlock', { node, orgKey: pvsKey }))
-        } else if (node.type === 'traversal') {
-          nexts.push(...await dispatch('delBlock', { node, orgKey: key }))
-        } else if (node.type === 'condition') {
-          // 如果是条件根节点，则依次删除其子条件节点
-          for (const nxtKey of getNextKeys(node)) {
-            await dispatch('delNode', nxtKey)
+          const endNode = Node.copy(await dispatch('delBlock', {
+            node, rootKey: pvsKey, delRoot: false, delEnd: false
+          }))
+          if (state.nodes[pvsKey].nexts.length === 1) {
+            await reqLink({
+              parent: ['node', pvsKey],
+              child: ['nexts', endNode.key],
+            })
           }
-        } else {
+        }
+        break
+        case 'traversal': {
+          const endNode = Node.copy(await dispatch('delBlock', {
+            node, rootKey: key, delRoot: false, delEnd: true
+          }))
+          nexts.push(...getNextKeys(endNode))
+        }
+        break
+        case 'condition': {
+          // 如果是条件根节点，则依次删除其子条件节点
+          const endNxtKeys = [] as string[]
+          const nxtNodes = getNextNodes(state, node)
+          if (nxtNodes.length === 1 && nxtNodes[0].type === 'endNode') {
+            // 如果条件根节点直接接着结束节点，则删除节点并把结束节点的子节点抛出去
+            nexts.push(...getNextKeys(nxtNodes[0]))
+            const endKey = nxtNodes[0].key
+            delete state.nodes[endKey]
+            await reqDelete('node', endKey)
+            break
+          }
+          for (let i = 0; i < nxtNodes.length; ++i) {
+            const nxtNode = nxtNodes[i]
+            const endNode = Node.copy(await dispatch('delBlock', {
+              node: nxtNode,
+              rootKey: node.key,
+              delRoot: true,
+              delEnd: i === nxtNodes.length - 1
+            }))
+            endNxtKeys.push(...getNextKeys(endNode))
+            await reqLink({
+              parent: ['node', node.key],
+              child: ['nexts', nxtNode.key]
+            }, false)
+          }
+          // 结束节点后的子节点接到该节点下
+          nexts.push(...Array.from(new Set(endNxtKeys)))
+        }
+        break
+        default:
           // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
           nexts.push(...getNextKeys(node))
+          break
         }
         if (pvsKey) {
           for (const nxtKey of nexts) {
@@ -543,24 +622,49 @@ export default {
     },
     async delBlock (
       { state, dispatch }: { state: RouteState, dispatch: Dispatch },
-      payload: { node: Node, orgKey: string }
+      payload: { node: Node, rootKey: string, delRoot?: boolean, delEnd?: boolean }
     ) {
-      // 从该节点之后删除到与该节点对应的end节点（注意：不会删除起始节点）
-      const ret = [] as string[]
-      for (const nxtKey of getNextKeys(payload.node)) {
-        const nxtNode = Node.copy(state.nodes[nxtKey])
-        if (nxtNode.type === 'endNode'
-        && nxtNode.relative === payload.orgKey) {
-          return getNextKeys(nxtNode)
-        }
-        delete state.nodes[nxtKey]
-        await reqDelete('node', nxtKey)
-        ret.push(...await dispatch('delBlock', {
-          node: nxtNode,
-          orgKey: payload.orgKey
-        }))
+      const clsNode = async (ndKey: string) => {
+        await dispatch('clrNmlNode', ndKey)
+        delete state.nodes[ndKey]
+        await reqDelete('node', ndKey)
       }
-      return ret
+      // 从该节点之后删除到与该节点对应的end节点（注意：不会删除起始节点）
+      // 先收集所有需要删除的节点
+      const nxtss = scanNextss(state, payload.node, payload.rootKey)
+      for (const node of Object.values(nxtss.allNodes)) {
+        await clsNode(node.key)
+      }
+      const endNode = nxtss.endNode as Node
+      if (payload.delRoot) {
+        await clsNode(payload.node.key)
+      } else {
+        // 清空rootNode所有子节点，并将endNode的子节点全部变为rootNode
+        for (const nxtKey of getNextKeys(payload.node)) {
+          await reqLink({
+            parent: ['node', payload.node.key],
+            child: ['nexts', nxtKey]
+          }, false)
+        }
+        if (payload.delEnd) {
+          for (const nxtKey of getNextKeys(endNode)) {
+            await reqLink({
+              parent: ['node', payload.node.key],
+              child: ['nexts', nxtKey]
+            })
+          }
+        } else {
+          await reqLink({
+            parent: ['node', payload.node.key],
+            child: ['nexts', endNode.key]
+          })
+        }
+      }
+      if (payload.delEnd) {
+        // 清空删除endNode
+        await clsNode(endNode.key)
+      }
+      return endNode
     },
     async rfshNode ({ state }: { state: RouteState }, key?: string) {
       const nkey = key || state.node.key

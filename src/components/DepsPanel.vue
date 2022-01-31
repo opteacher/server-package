@@ -1,8 +1,8 @@
 <template>
 <div :style="{
   position: 'fixed',
-  top: '150px',
-  left: '100px',
+  bottom: '50px',
+  right: '100px',
   'z-index': 1000,
   'background-color': 'white'
 }">

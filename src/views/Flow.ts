@@ -109,7 +109,7 @@ export const EditNodeMapper = new Mapper({
     label: '标题',
     type: 'Input',
     display: [
-      Cond.copy({ key: 'type', cmp: '!=', val: 'condNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
     ]
   },
   desc: {
