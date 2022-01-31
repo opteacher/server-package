@@ -14,10 +14,10 @@
         v-for="node in Object.values(nodes)"
         :key="node.key"
         :node="node"
-        @click:card="() => $store.commit('route/SET_NODE', { node })"
+        @click:card="() => $store.commit('service/SET_NODE', { node })"
         @click:addBtn="onAddBtnClicked"
-        @mouseenter="$store.commit('route/UPDATE_LOCVARS', node)"
-        @mouseleave="$store.commit('route/UPDATE_LOCVARS')"
+        @mouseenter="$store.commit('service/UPDATE_LOCVARS', node)"
+        @mouseleave="$store.commit('service/UPDATE_LOCVARS')"
       />
     </template>
   </div>
@@ -26,18 +26,18 @@
     width="70vw"
     :column="[2, 22]"
     :copy="Node.copy"
-    :show="$store.getters['route/nodeVsb']"
+    :show="$store.getters['service/nodeVsb']"
     :mapper="EditNodeMapper"
-    :object="$store.getters['route/editNode']"
+    :object="$store.getters['service/editNode']"
     :emitter="EditNodeEmitter"
-    @update:show="() => $store.commit('route/SET_NODE_INVSB')"
+    @update:show="() => $store.commit('service/SET_NODE_INVSB')"
     @submit="onNodeSaved"
-    @initialize="$store.dispatch('route/rfshTemps')"
+    @initialize="$store.dispatch('service/rfshTemps')"
   />
   <FormDialog
     title="选择组"
     width="35vw"
-    :show="$store.getters['route/joinVsb']"
+    :show="$store.getters['service/joinVsb']"
     :mapper="JoinMapper"
     :copy="(src, tgt) => {
       tgt = tgt || { group: '' }
@@ -45,20 +45,20 @@
       return tgt
     }"
     @submit="async (edited) => {
-      await $store.dispatch('route/joinLibrary', edited.group)
+      await $store.dispatch('service/joinLibrary', edited.group)
       EditNodeEmitter.emit('refresh')
     }"
-    @update:show="() => $store.commit('route/SET_JOIN_VSB', false)"
+    @update:show="() => $store.commit('service/SET_JOIN_VSB', false)"
     @initialize="async () => {
-      await $store.dispatch('route/rfshTemps')
-      JoinMapper['group'].options = $store.getters['route/tempGrps']
+      await $store.dispatch('service/rfshTemps')
+      JoinMapper['group'].options = $store.getters['service/tempGrps']
     }"
   />
 </FlowDesign>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onBeforeMount, onMounted, reactive, ref } from 'vue'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node, Mapper } from '../common'
@@ -82,7 +82,7 @@ export default defineComponent({
   setup () {
     const store = useStore()
     const panelRef = ref()
-    const node = computed(() => store.getters['route/editNode'])
+    const node = computed(() => store.getters['service/editNode'])
     const editTitle = computed(() => {
       if (node.value.key) {
         if (node.value.isTemp) {
@@ -96,19 +96,22 @@ export default defineComponent({
         return '在根节点后新增节点'
       }
     })
-    const nodes = computed(() => store.getters['route/nodes'])
+    const nodes = computed(() => store.getters['service/nodes'])
     const rszObs = new ResizeObserver(async () => {
-      store.commit('route/SET_WIDTH', panelRef.value?.clientWidth)
-      await store.dispatch('route/refresh')
+      store.commit('service/SET_WIDTH', panelRef.value?.clientWidth)
+      await store.dispatch('service/refresh')
     })
 
+    onBeforeMount(() => {
+      store.commit('service/RESET_STATE')
+    })
     onMounted(() => {
       rszObs.observe(panelRef.value)
     })
 
     function onAddBtnClicked (previous: Node) {
       node.value.reset()
-      store.commit('route/SET_NODE', {
+      store.commit('service/SET_NODE', {
         node: previous ? { previous } : undefined
       })
     }

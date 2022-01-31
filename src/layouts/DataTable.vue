@@ -6,7 +6,11 @@
     @back="() => router.go(-1)"
   >
     <a-descriptions size="small" :column="5">
-      <a-descriptions-item v-for="prop in model.props" :key="prop.key" :label="prop.name">
+      <a-descriptions-item
+        v-for="prop in model.props"
+        :key="prop.key"
+        :label="prop.name"
+      >
         {{ prop.type }}
       </a-descriptions-item>
     </a-descriptions>

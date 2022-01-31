@@ -1,8 +1,8 @@
 import Router from 'koa-router'
-/*return `import { ${route.interface} } from '${route.path.substring(0, route.path.indexOf('/:') === -1 ? route.path.length : route.path.indexOf('/:')).split('/').map(() => '..').join('/')}/services/${route.service}.js'`*/
+/*return `import { ${api.interface} } from '../${api.path.substring(0, api.path.indexOf('/:') === -1 ? api.path.length : api.path.indexOf('/:')).split('/').map(() => '..').join('/')}/services/${api.name}.js'`*/
 
 const router = new Router()
 
-/*return `router.${route.method.toLowerCase()}('${(() => { const ret = route.path.substring(route.path.indexOf('/:')); return ret === route.path ? '/' : ret })()}', async ctx => {\n  ctx.body = {\n    result: await ${route.interface}(ctx.params, ctx.request.query, ctx.request.body)\n  }\n})`*/
+/*return `router.${api.method.toLowerCase()}('${(() => { const ret = api.path.substring(api.path.indexOf('/:')); return ret === api.path ? '/' : ret })()}', async ctx => {\n  ctx.body = {\n    result: await ${api.interface}(ctx.params, ctx.request.query, ctx.request.body)\n  }\n})`*/
 
 export default router

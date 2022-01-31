@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import model from './model'
 import project from './project'
-import route from './route'
+import service from './service'
 
 export default createStore({
   state: {},
@@ -9,7 +9,7 @@ export default createStore({
   actions: {},
   modules: {
     project,
-    route,
+    service,
     model
   },
 })

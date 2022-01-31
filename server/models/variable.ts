@@ -6,6 +6,8 @@ export default db.defineModel({
   type: db.PropTypes.String,
   value: db.PropTypes.Any,
   prop: db.PropTypes.String,
+  index: db.PropTypes.String,
+  idxType: db.PropTypes.String,
   default: db.PropTypes.Any,
   required: db.PropTypes.Boolean,
   remark: db.PropTypes.String,

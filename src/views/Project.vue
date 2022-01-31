@@ -11,7 +11,9 @@
     @delete="onModelDel"
   >
     <template #dataset="{ record: model }">
-      <a-button @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)">
+      <a-button
+        @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+      >
         <template #icon><DatabaseOutlined /></template>&nbsp;数据浏览
       </a-button>
     </template>
@@ -28,59 +30,35 @@
       />
       <EditableTable
         title="接口"
-        :dsKey="`project/ins.models.[${model.key}].routes`"
-        :columns="RouteColumns"
-        :mapper="RouteMapper"
-        :copy="Route.copy"
+        :dsKey="`project/ins.models.[${model.key}].apis`"
+        :columns="ApiColumns"
+        :mapper="ApiMapper"
+        :copy="Service.copy"
         :emitter="emitter"
-        @save="(route) => onRouteSave(route, model.key)"
-        @delete="(key) => onRouteDel(key, model.key)"
+        @add="(api) => {
+          api.model = model.name
+          ApiMapper['path'].prefix = `/${project.name}`
+        }"
+        @edit="() => ApiMapper['path'].prefix = `/${project.name}`"
+        @save="(api) => onApiSave(api, model.key)"
+        @delete="(key) => onApiDel(key, model.key)"
       >
-        <template #path="{ record: route }">
-          <div class="editable-cell">
-            <div
-              v-if="editRoute.key === route.key"
-              class="editable-cell-input-wrapper"
-            >
-              <a-input
-                v-model:value="editRoute.path"
-                @pressEnter="onPathSaved(true)"
-              />
-              <CheckOutlined
-                class="editable-cell-icon"
-                style="right: 20px"
-                @click="onPathSaved(true)"
-              />
-              <CloseOutlined
-                class="editable-cell-icon"
-                style="right: 0"
-                @click="onPathSaved(false)"
-              />
-            </div>
-            <div v-else class="editable-cell-text-wrapper">
-              {{ route.path || '-' }}
-              <EditOutlined
-                v-if="!route.isModel"
-                class="editable-cell-icon"
-                style="right: 0"
-                @click="onPathEdited(route)"
-              />
-            </div>
-          </div>
+        <template #path="{ record: api }">
+          /{{ project.name }}{{ api.path }}
         </template>
-        <template #bind="{ record: route }">
-          <template v-if="route.service && route.interface">
-            {{ route.service }}&nbsp;/&nbsp;{{ route.interface }}
+        <template #bind="{ record: api }">
+          <template v-if="api.name && api.interface">
+            {{ api.name }}&nbsp;/&nbsp;{{ api.interface }}
           </template>
-          <template v-else-if="!route.isModel">[在流程设计中配置]</template>
           <template v-else>-</template>
         </template>
-        <template #flow="{ record: route }">
-          <a-button :disabled="route.isModel" @click="() => {
-            router.push(`/server-package/project/${pid}/flow/${route.key}`)
+        <template #flow="{ record: api }">
+          <a-button v-if="api.key && !api.isModel" @click="() => {
+            router.push(`/server-package/project/${pid}/flow/${api.key}`)
           }">
             <template #icon><ApartmentOutlined /></template>&nbsp;流程设计
           </a-button>
+          <template v-else>-</template>
         </template>
       </EditableTable>
     </template>
@@ -89,7 +67,7 @@
 </template>
 
 <script lang="ts">
-import { Column, Model, Project, Property, Route } from '@/common'
+import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import {
   ApartmentOutlined,
@@ -104,7 +82,7 @@ import ProjDetail from '../layouts/ProjDetail.vue'
 import {
   ModelColumns, ModelMapper,
   PropColumns, PropMapper,
-  RouteColumns, RouteMapper,
+  ApiColumns, ApiMapper,
   genMdlPath,
 } from './Project'
 import { useStore } from 'vuex'
@@ -128,7 +106,7 @@ export default defineComponent({
     const emitter = new Emitter()
     const pid = route.params.pid as string
     const project = computed(() => store.getters['project/ins'] as Project)
-    const editRoute = reactive(new Route())
+    const edtApi = reactive(new Service())
 
     onMounted(() => store.dispatch('project/refresh', pid))
 
@@ -137,7 +115,7 @@ export default defineComponent({
         opera: model,
         parent: ['project', pid],
         child: ['models', 'model'],
-        ignores: ['props', 'routes']
+        ignores: ['props', 'apis']
       })
       emitter.emit('refresh')
     }
@@ -165,66 +143,51 @@ export default defineComponent({
       })
       emitter.emit('refresh')
     }
-    async function onRouteSave (route: Route, mid: string) {
-      if (!route.path) {
-        route.path = genMdlPath(route)
+    async function onApiSave (api: Service, mid: string) {
+      if (!api.path) {
+        api.path = genMdlPath(api)
       }
+      const model = project.value.models.find((mdl: any) => mdl.key === mid)
+      api.model = model?.name as string
       await store.dispatch('project/update', {
-        opera: route,
+        opera: api,
         parent: ['model', mid],
-        child: ['routes', 'route'],
-        ignores: ['flow']
+        child: ['apis', 'service'],
+        ignores: ['flow', 'deps']
       })
       emitter.emit('refresh')
     }
-    async function onRouteDel (key: any, mid: string) {
+    async function onApiDel (key: any, mid: string) {
       await store.dispatch('project/update', {
-        opera: 'route',
+        opera: 'service',
         parent: ['model', mid],
-        child: ['routes', key],
+        child: ['apis', key],
       })
       emitter.emit('refresh')
-    }
-    async function onPathSaved (save: boolean) {
-      if (save) {
-        await store.dispatch('project/setRoutePath', editRoute)
-      }
-      editRoute.reset()
-      emitter.emit('refresh')
-    }
-    function onPathEdited (route: Route) {
-      editRoute.key = route.key
-      editRoute.path = route.path || genMdlPath(route)
-    }
-    function onIsMdlChanged (route: Route, checked: boolean) {
-      route.path = checked ? genMdlPath(route) : ''
     }
     return {
       Model,
       Property,
-      Route,
+      Service,
 
       ModelColumns,
       ModelMapper,
       PropColumns,
       PropMapper,
-      RouteColumns,
-      RouteMapper,
+      ApiColumns,
+      ApiMapper,
       pid,
       router,
       emitter,
       project,
-      editRoute,
+      edtApi,
 
       onModelSave,
       onModelDel,
       onPropSave,
       onPropDel,
-      onRouteSave,
-      onRouteDel,
-      onPathSaved,
-      onPathEdited,
-      onIsMdlChanged
+      onApiSave,
+      onApiDel,
     }
   }
 })

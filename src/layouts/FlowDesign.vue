@@ -2,21 +2,21 @@
 <div class="container">
   <a-page-header
     style="border: 1px solid rgb(235, 237, 240)"
-    :title="route.method"
-    :sub-title="route.path"
+    :title="api.method"
+    :sub-title="`/${project.name}${api.path}`"
     @back="() => router.go(-1)"
   >
     <template #extra>
-      <a-button @click="$store.commit('route/SET_ROUTE_VSB', true)">
+      <a-button @click="$store.commit('service/SET_API_VSB', true)">
         <SettingOutlined />
       </a-button>
       <FormDialog
         title="配置流程"
-        :copy="Route.copy"
-        :show="$store.getters['route/routeVsb']"
-        :mapper="RouteMapper"
-        :object="route"
-        @update:show="(show) => $store.commit('route/SET_ROUTE_VSB', show)"
+        :copy="Service.copy"
+        :show="$store.getters['service/apiVsb']"
+        :mapper="ApiMapper"
+        :object="api"
+        @update:show="(show) => $store.commit('service/SET_API_VSB', show)"
         @submit="onConfig"
       />
     </template>
@@ -26,14 +26,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, defineComponent, onMounted, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { SettingOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
-import { RouteMapper } from '../views/Flow'
-import { Route, Node } from '@/common'
-import { reqPut } from '@/utils'
+import { ApiMapper } from '../views/Flow'
+import { Service, Node, Project } from '@/common'
+import { reqGet, reqPut } from '@/utils'
 
 export default defineComponent({
   name: 'FlowDesign',
@@ -43,19 +43,26 @@ export default defineComponent({
   },
   setup () {
     const store = useStore()
+    const route = useRoute()
     const router = useRouter()
-    const route = computed(() => store.getters['route/ins'])
+    const api = computed(() => store.getters['service/ins'])
+    const project = reactive(new Project())
+
+    onMounted(async () => {
+      Project.copy((await reqGet('project', route.params.pid)).data, project)
+    })
 
     async function onConfig (rtForm: any) {
-      await reqPut('route', route.value.key, Route.copy(rtForm), { ignores: ['flow'] })
+      await reqPut('service', api.value.key, rtForm, { ignores: ['flow'] })
     }
     return {
       Node,
-      Route,
+      Service,
 
-      route,
       router,
-      RouteMapper,
+      project,
+      api,
+      ApiMapper,
 
       onConfig,
     }

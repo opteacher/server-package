@@ -184,7 +184,7 @@ export default defineComponent({
       props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
       props.node.posLT[1] + props.node.size[1] + ArrowHlfHgt - AddBtnHlfWH
     ] : [
-      (store.getters['route/width'] >> 1) - AddBtnHlfWH, 0
+      (store.getters['service/width'] >> 1) - AddBtnHlfWH, 0
     ])
     const arwBtmSvgPosLT = computed(() => props.node ? [
       props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
@@ -205,10 +205,10 @@ export default defineComponent({
       }
     })
     const nexts = computed(() => props.node.nexts.map((next: Node) => {
-      return next && next.key ? store.getters['route/node'](next.key) : undefined
+      return next && next.key ? store.getters['service/node'](next.key) : undefined
     }).filter((node: any) => node))
     const multiCond = computed(() => {
-      const relative = store.getters['route/node'](props.node.relative)
+      const relative = store.getters['service/node'](props.node.relative)
       return props.node.type === 'endNode' && relative.nexts.length > 1
     })
     const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node as Node))
@@ -218,7 +218,7 @@ export default defineComponent({
     ])
     const arwTopSvgSizeW = computed(() => {
       if (props.node.type === 'endNode') {
-        return getWidByNexts(store.getters['route/node'](props.node.relative))
+        return getWidByNexts(store.getters['service/node'](props.node.relative))
       } else {
         return CardWidth
       }
@@ -228,14 +228,14 @@ export default defineComponent({
       if (!props.node) {
         return
       }
-      store.commit('route/SET_ND_SIZE', {
+      store.commit('service/SET_ND_SIZE', {
         ndKey: props.node.key,
         size: nodeRef.value ? [
           nodeRef.value.$el.clientWidth,
           nodeRef.value.$el.clientHeight
         ] : [CardWidth, CardMinHgt]
       })
-      await store.dispatch('route/refresh')
+      await store.dispatch('service/refresh')
     })
 
     function getKey (obj: { key: string } | string): string {
@@ -248,8 +248,8 @@ export default defineComponent({
       const lstIdx = node.nexts.length - 1
       const fstKey = getKey(node.nexts[0])
       const lstKey = getKey(node.nexts[lstIdx])
-      const first = store.getters['route/node'](fstKey)
-      const last = store.getters['route/node'](lstKey)
+      const first = store.getters['service/node'](fstKey)
+      const last = store.getters['service/node'](lstKey)
       if (!first || !first.posLT || !last ||!last.posLT
       || last.posLT[0] <= first.posLT[0]) {
         return CardWidth

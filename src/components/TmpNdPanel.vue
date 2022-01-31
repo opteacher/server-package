@@ -6,14 +6,14 @@
   'z-index': 1000,
 }">
   <a-button type="primary"
-    @click="$store.commit('route/SET_TEMP_VSB', true)"
+    @click="$store.commit('service/SET_TEMP_VSB', true)"
   >
     <GoldOutlined />&nbsp;节点库
   </a-button>
   <a-modal
     title="节点库" :footer="null"
-    :visible="$store.getters['route/tempVsb']"
-    @cancel="$store.commit('route/SET_TEMP_VSB')"
+    :visible="$store.getters['service/tempVsb']"
+    @cancel="$store.commit('service/SET_TEMP_VSB')"
   >
     <a-collapse v-model:activeKey="actNdGrp" accordion>
       <a-collapse-panel
@@ -28,7 +28,7 @@
               <a-list-item-meta :description="node.desc">
                 <template #title>
                   <a href="#" @click="() => {
-                    $store.commit('route/SET_NODE', {
+                    $store.commit('service/SET_NODE', {
                       node, viewOnly: true
                     })
                   }">
@@ -37,7 +37,7 @@
                 </template>
               </a-list-item-meta>
               <template #actions>
-                <a-button @click="$store.commit('route/SET_NODE', { node })">
+                <a-button @click="$store.commit('service/SET_NODE', { node })">
                   <EditOutlined />
                 </a-button>
               </template>
@@ -69,18 +69,18 @@ export default defineComponent({
     const tmpNdsByGp = reactive({} as { [group: string]: Node[] })
 
     onMounted(rfshGroup)
-    watch(() => store.getters['route/tempVsb'], (show: boolean) => {
+    watch(() => store.getters['service/tempVsb'], (show: boolean) => {
       if (show) {
         rfshGroup()
       }
     })
-    watch(() => store.getters['route/tempNodes'], () => rfshGroup(false))
+    watch(() => store.getters['service/tempNodes'], () => rfshGroup(false))
 
     async function rfshGroup (force = true) {
       if (force) {
-        await store.dispatch('route/rfshTemps')
+        await store.dispatch('service/rfshTemps')
       }
-      const tempNodes = store.getters['route/tempNodes']
+      const tempNodes = store.getters['service/tempNodes']
       for (const prop in tmpNdsByGp) {
         delete tmpNdsByGp[prop]
       }

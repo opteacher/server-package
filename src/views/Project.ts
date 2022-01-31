@@ -1,4 +1,4 @@
-import { baseTypes, Column, Deploy, Mapper, Route, routeMethods, Transfer } from '@/common'
+import { baseTypes, Column, Deploy, Mapper, Service, routeMethods, Transfer, Cond } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -101,20 +101,20 @@ export const PropMapper = new Mapper({
   },
 })
 
-export const RouteColumns = [
+export const ApiColumns = [
   new Column('模型路由', 'isModel'),
   new Column('访问方式', 'method'),
   new Column('路径（带项目名前缀）', 'path'),
-  new Column('服务接口', 'bind'),
+  new Column('服务/接口', 'bind'),
   new Column('流程', 'flow')
 ]
 
-export const RouteMapper = new Mapper({
+export const ApiMapper = new Mapper({
   isModel: {
     type: 'Switch',
-    onChange: (route: Route, to: boolean) => {
+    onChange: (api: Service, to: boolean) => {
       if (to) {
-        route.path = genMdlPath(route)
+        api.path = genMdlPath(api)
       }
     }
   },
@@ -122,25 +122,33 @@ export const RouteMapper = new Mapper({
     type: 'Select',
     options: routeMethods.map(mthd => ({
       label: mthd, value: mthd
-    }))
+    })),
+    onChange: (api: Service) => {
+      if (api.isModel) {
+        api.path = genMdlPath(api)
+      }
+    }
   },
   path: {
-    type: 'Text'
+    type: 'Input',
+    disabled: [
+      Cond.copy({ key: 'isModel', cmp: '==', val: true })
+    ]
   },
   bind: {},
   flow: {}
 })
 
-export function genMdlPath (route: Route): string {
-  switch (route.method) {
+export function genMdlPath (api: Service): string {
+  switch (api.method) {
   case 'POST':
-    return `/mdl/v1/${route.model}`
+    return `/mdl/v1/${api.model}`
   case 'DELETE':
   case 'PUT':
   case 'GET':
-    return `/mdl/v1/${route.model}/:index`
+    return `/mdl/v1/${api.model}/:index`
   case 'ALL':
-    return `/mdl/v1/${route.model}s`
+    return `/mdl/v1/${api.model}s`
   default:
     return ''
   }

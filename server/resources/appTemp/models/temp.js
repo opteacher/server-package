@@ -5,6 +5,6 @@ export default db.defineModel({
   /*return model.props.map((prop) => `${prop.name}: db.PropTypes.${prop.type}`).join(',\n  ')*/
 }, {
   router: {
-    methods: ['ALL', /*return model.routes.map((route) => `\'${route.method}\'`).join(', ')*/]
+    methods: ['ALL', /*return model.apis.map((api) => `\'${api.method}\'`).join(', ')*/]
   }
 })

@@ -4,8 +4,8 @@ import { db } from '../../../../../utils/index.js'
 
 const router = new Router()
 
-router.get('/name/:depName', async ctx => {
-  const ress = await db.select(Dependency, { name: ctx.params.depName })
+router.get('/name/:name', async ctx => {
+  const ress = await db.select(Dependency, { name: ctx.params.name })
   ctx.body = {
     result: ress.length ? ress[0] : {}
   }

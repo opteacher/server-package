@@ -26,8 +26,8 @@ const InputMapper = new Mapper({
   type: {
     label: '类型',
     type: 'Select',
-    options: baseTypes.map(bsTyp => ({
-      label: bsTyp, value: bsTyp
+    options: baseTypes.map(bscType => ({
+      label: bscType, value: bscType
     })),
     onChange: (input: Variable, to: string) => {
       switch (to) {
@@ -53,8 +53,8 @@ const InputMapper = new Mapper({
         break
       case 'Object':
         InputMapper['value'].type = 'Select'
-        store.commit('route/UPD_EDT_LOCVARS')
-        InputMapper['value'].options = store.getters['route/locVars']
+        store.commit('service/UPD_EDT_LOCVARS')
+        InputMapper['value'].options = store.getters['service/locVars']
           .map((locVar: Variable) => ({
             label: locVar.name,
             value: locVar.name
@@ -74,17 +74,41 @@ const InputMapper = new Mapper({
       if (input.type !== 'Object') {
         return
       }
-      const locVars = store.getters['route/locVars']
+      const locVars = store.getters['service/locVars']
       const selVar = locVars.find((v: any) => v.name === to)
       input.type = selVar.type
     }
   },
   prop: {
     label: '对象值分量',
+    desc: '如果还定义索引，则默认索引在前，分量在后（e.g: object[index].prop）',
     type: 'Input',
     display: [
       Cond.copy({ key: 'type', cmp: '==', val: 'Object' })
     ]
+  },
+  index: {
+    label: '索引',
+    type: 'Input',
+    display: {
+      'OR': [
+        Cond.copy({ key: 'type', cmp: '==', val: 'Object' }),
+        Cond.copy({ key: 'type', cmp: '==', val: 'Array' })
+      ]
+    }
+  },
+  idxType: {
+    label: '索引类型',
+    type: 'Select',
+    options: baseTypes.map(bscType => ({
+      label: bscType, value: bscType
+    })),
+    display: {
+      'OR': [
+        Cond.copy({ key: 'type', cmp: '==', val: 'Object' }),
+        Cond.copy({ key: 'type', cmp: '==', val: 'Array' })
+      ]
+    }
   }
 })
 
@@ -99,7 +123,7 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '==', val: '' }),
     ],
     onChange (addNode: Node, to: [string, string]) {
-      const temp = Node.copy(store.getters['route/node'](to[1]))
+      const temp = Node.copy(store.getters['service/node'](to[1]))
       temp.key = ''
       temp.isTemp = false
       Node.copy(temp, addNode)
@@ -147,16 +171,16 @@ export const EditNodeMapper = new Mapper({
     dsKey: '',
     copy: Variable.copy,
     onSaved: async (input: Variable) => {
-      await store.dispatch('route/saveInOutput', {
+      await store.dispatch('service/saveInOutput', {
         name: 'input', edited: input
       })
-      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+      EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     },
     onDeleted: async (key: string) => {
-      await store.dispatch('route/delInOutput', {
+      await store.dispatch('service/delInOutput', {
         name: 'input', delKey: key
       })
-      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+      EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     }
   },
   outputs: {
@@ -187,16 +211,16 @@ export const EditNodeMapper = new Mapper({
     dsKey: '',
     copy: Variable.copy,
     onSaved: async (output: Variable) => {
-      await store.dispatch('route/saveInOutput', {
+      await store.dispatch('service/saveInOutput', {
         name: 'output', edited: output
       })
-      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+      EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     },
     onDeleted: async (key: string) => {
-      await store.dispatch('route/delInOutput', {
+      await store.dispatch('service/delInOutput', {
         name: 'output', delKey: key
       })
-      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+      EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     }
   },
   code: {
@@ -225,7 +249,7 @@ export const EditNodeMapper = new Mapper({
     primary: true,
     inner: '加入库',
     onClick: () => {
-      store.commit('route/SET_JOIN_VSB', true)
+      store.commit('service/SET_JOIN_VSB', true)
     }
   },
   group: {
@@ -236,8 +260,8 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'isTemp', cmp: '!=', val: true })
     ],
     onDeleted: async (key: string) => {
-      await store.dispatch('route/saveNode', { key, group: '' })
-      EditNodeEmitter.emit('update:data', store.getters['route/editNode'])
+      await store.dispatch('service/saveNode', { key, group: '' })
+      EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     }
   },
   delete: {
@@ -257,16 +281,16 @@ export const EditNodeMapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          store.commit('route/SET_NODE_INVSB')
-          await store.dispatch('route/delNode', node.key)
-          store.commit('route/RESET_NODE')
+          store.commit('service/SET_NODE_INVSB')
+          await store.dispatch('service/delNode', node.key)
+          store.commit('service/RESET_NODE')
         },
       })
     }
   }
 })
 
-export const RouteMapper = new Mapper({
+export const ApiMapper = new Mapper({
   path: {
     label: '路由',
     type: 'Input',
@@ -279,7 +303,7 @@ export const RouteMapper = new Mapper({
       label: mthd, value: mthd
     }))
   },
-  service: {
+  name: {
     label: '绑定服务',
     type: 'SelOrIpt',
     options: [],
@@ -292,7 +316,7 @@ export const RouteMapper = new Mapper({
 })
 
 export async function onNodeSaved (node: Node, next: () => void) {
-  await store.dispatch('route/saveNode', Node.copy(node))
+  await store.dispatch('service/saveNode', Node.copy(node))
   next()
 }
 

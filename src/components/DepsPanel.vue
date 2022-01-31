@@ -6,9 +6,9 @@
   'z-index': 1000,
   'background-color': 'white'
 }">
-  <a-collapse v-if="$store.getters['route/deps'].length">
+  <a-collapse v-if="$store.getters['service/deps'].length">
     <a-collapse-panel class="collapse-ptb-0" header="依赖模块：">
-      <a-list :data-source="$store.getters['route/deps']">
+      <a-list :data-source="$store.getters['service/deps']">
         <template #renderItem="{ item: dep }">
           <a-list-item>
             <template #actions>

@@ -1,7 +1,7 @@
 <template>
 <div class="white-bkgd mb-10">
   <a-space class="p-10">
-    <a-button v-if="addable" type="primary" @click="editing.key = ''">添加{{title}}</a-button>
+    <a-button v-if="addable" type="primary" @click="onAddClicked">添加{{title}}</a-button>
     <template v-if="description">
       <InfoCircleOutlined style="color: #1890ff"/>
       <p class="mb-0">{{description}}</p>
@@ -25,6 +25,7 @@
           v-model:value="editing[key]"
           :placeholder="`输入${value.label}`"
           :addon-before="value.prefix"
+          :disabled="validConds(value.disabled)"
           @change="(e) => value.onChange(editing, e.target.value)"
         />
         <template v-else-if="$slots[key]">
@@ -39,6 +40,7 @@
           :options="value.options"
           v-model:value="editing[key]"
           :placeholder="`选择${value.label}`"
+          :disabled="validConds(value.disabled)"
           @change="(opn) => value.onChange(editing, opn, editing[key], emitter)"
         />
         <template v-else-if="$slots[key]">
@@ -51,6 +53,7 @@
           v-if="record.key === editing.key"
           v-model="editing[key]"
           :options="value.options"
+          :disabled="validConds(value.disabled)"
           @change="(val) => value.onChange(editing, val.target.checked)"
         />
         <template v-else-if="$slots[key]">
@@ -62,6 +65,7 @@
         <a-checkbox
           v-if="record.key === editing.key"
           v-model:checked="editing[key]"
+          :disabled="validConds(value.disabled)"
           @change="(val) => value.onChange(editing, val.target.checked)"
         >
           {{editing[key] ? (
@@ -87,6 +91,7 @@
           v-model:value="editing[key]"
           :options="value.options"
           :placeholder="`选择${value.label}`"
+          :disabled="validConds(value.disabled)"
           @change="(val) => value.onChange(editing, val)"
         />
         <template v-else-if="$slots[key]">
@@ -147,7 +152,7 @@
 </template>
 
 <script lang="ts">
-import { Mapper } from '@/common'
+import { Cond, Mapper } from '@/common'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
@@ -156,7 +161,7 @@ import { getProperty } from '@/utils'
 
 export default defineComponent({
   name: 'edtableTable',
-  emits: ['add', 'save', 'delete'],
+  emits: ['add', 'edit', 'save', 'delete'],
   components: {
     InfoCircleOutlined
   },
@@ -212,6 +217,10 @@ export default defineComponent({
       }
       editing.key = '#'
     }
+    function onAddClicked () {
+      editing.key = ''
+      emit('add', editing)
+    }
     function onSaveSubmit () {
       emit('save', editing, refresh)
     }
@@ -220,6 +229,7 @@ export default defineComponent({
     }
     function onEditClicked (record: any) {
       props.copy(record, editing)
+      emit('edit')
     }
     function onDelSubmit (key: any) {
       emit('delete', key, refresh)
@@ -232,16 +242,46 @@ export default defineComponent({
       }
       return false
     }
+    function validConds (
+      value: boolean | Cond[] | { [cmpRel: string]: Cond[] },
+      dftVal = false
+    ): boolean {
+      if (typeof value === 'boolean') {
+        return value as boolean
+      } else if (value && value.length) {
+        return (value as Cond[])
+          .map((cond: Cond) => cond.isValid(editing))
+          .reduce((a: boolean, b: boolean) => a && b)
+      } else {
+        let ret = dftVal
+        for (const [cmpRel, conds] of Object.entries(value)) {
+          ret = ret && (conds as Cond[])
+            .map((cond: Cond) => cond.isValid(editing))
+            .reduce((a: boolean, b: boolean) => {
+              switch (cmpRel) {
+              case 'OR':
+                return a || b
+              case 'AND':
+              default:
+                return a && b
+              }
+            })
+        }
+        return ret
+      }
+    }
     return {
       cols,
       dataSrc,
       editing,
 
+      onAddClicked,
       onSaveSubmit,
       onCclClicked,
       onEditClicked,
       onDelSubmit,
       hasExpand,
+      validConds,
     }
   }
 })

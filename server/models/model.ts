@@ -6,7 +6,7 @@ export default db.defineModel({
   desc: db.PropTypes.String,
   logTime: db.PropTypes.Boolean,
   props: [{ type: db.PropTypes.Id, ref: 'property' }],
-  routes: [{ type: db.PropTypes.Id, ref: 'route' }],
+  apis: [{ type: db.PropTypes.Id, ref: 'service' }],
 }, {
   router: {
     methods: ['POST', 'DELETE', 'ALL', 'GET', 'LINK', 'PUT']

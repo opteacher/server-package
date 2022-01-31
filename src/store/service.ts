@@ -1,7 +1,7 @@
 import {
   Node,
   NodeInPnl,
-  Route,
+  Service,
   CardWidth,
   ArrowHeight,
   Variable,
@@ -24,7 +24,7 @@ import {
   makeRequest,
   skipIgnores
 } from '@/utils'
-import { EditNodeEmitter, EditNodeMapper, RouteMapper } from '@/views/Flow'
+import { EditNodeEmitter, EditNodeMapper, ApiMapper } from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'
@@ -33,17 +33,18 @@ import { reactive } from 'vue'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type Nodes = { [key: string]: Node }
-type RouteState = {
-  route: Route,
+type SvcState = {
+  api: Service,
   nodes: NodesInPnl,
   width: number,
   node: Node,
   locVars: Variable[],
-  routeVsb: boolean,
+  apiVsb: boolean,
   nodeVsb: boolean,
   joinVsb: boolean,
   tempVsb: boolean,
-  deps: { [name: string]: string[] }
+  // @_@: 依赖应该用api中的deps
+  deps: { [name: string]: Dependency }
 }
 
 function getNextKeys (node: Node): string[] {
@@ -77,7 +78,7 @@ function getPrevious (state: { nodes: NodesInPnl }, node: Node): Node {
     ? state.nodes[node.previous] : node.previous) as Node
 }
 
-function getLocVars (state: RouteState, nd: string | Node | null): Variable[] {
+function getLocVars (state: SvcState, nd: string | Node | null): Variable[] {
   if (!nd || !getKey(nd) || !(getKey(nd) in state.nodes)) {
     return []
   }
@@ -89,15 +90,15 @@ function getLocVars (state: RouteState, nd: string | Node | null): Variable[] {
   return ret.concat(node.outputs)
 }
 
-async function newDep (name: string, exports: string[]): Promise<string> {
-  const resp = (await makeRequest(axios.get(
+async function newDep (name: string, exports: string[]): Promise<Dependency> {
+  const result = (await makeRequest(axios.get(
     `/server-package/api/v1/dep/name/${name}`
-  ))).data
-  const dep = new Dependency()
-  if (!resp || !resp._id) {
-    Dependency.copy((await reqPost('dependency', { name, exports })).data, dep)
-  }
-  return dep.key
+  ))).result
+  return Dependency.copy(
+    !result || !result._id
+      ? (await reqPost('dependency', { name, exports })).data
+      : result
+  )
 }
 
 function scanNextss (
@@ -128,25 +129,25 @@ function scanNextss (
 export default {
   namespaced: true,
   state: () => ({
-    route: new Route(),
+    api: new Service(),
     nodes: {} as NodesInPnl,
     width: 0,
     node: new Node(),
     locVars: [] as Variable[],
-    routeVsb: false,
+    apiVsb: false,
     nodeVsb: false,
     joinVsb: false,
     tempVsb: false,
     deps: {}
-  } as RouteState),
+  } as SvcState),
   mutations: {
-    SET_WIDTH (state: RouteState, width: number) {
+    SET_WIDTH (state: SvcState, width: number) {
       state.width = width
     },
-    SET_ND_SIZE (state: RouteState, payload: { ndKey: string, size: [number, number] }) {
+    SET_ND_SIZE (state: SvcState, payload: { ndKey: string, size: [number, number] }) {
       state.nodes[payload.ndKey].size = payload.size
     },
-    SET_NODE (state: RouteState, payload?: { node?: Node, viewOnly?: boolean }) {
+    SET_NODE (state: SvcState, payload?: { node?: Node, viewOnly?: boolean }) {
       if (!payload) {
         payload = { node: new Node(), viewOnly: false }
       } else if (!payload.node) {
@@ -175,7 +176,7 @@ export default {
           value: key
         })).filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
-      EditNodeMapper.inputs.dsKey = `route/nodes.${state.node.key}.inputs`
+      EditNodeMapper.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
       if (EditNodeMapper.inputs.mapper) {
         EditNodeMapper.inputs.mapper['value'].options = getLocVars(state, state.node.previous)
           .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
@@ -185,32 +186,32 @@ export default {
             label: locVar.name, value: locVar.name
           }))
       }
-      EditNodeMapper.outputs.dsKey = `route/nodes.${state.node.key}.outputs`
+      EditNodeMapper.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
       EditNodeEmitter.emit('viewOnly', payload.viewOnly)
     },
-    SET_NODE_INVSB (state: RouteState) {
+    SET_NODE_INVSB (state: SvcState) {
       state.nodeVsb = false
     },
-    SET_ROUTE_VSB (state: RouteState, payload?: boolean) {
-      state.routeVsb = typeof payload !== 'undefined' ? payload : false
+    SET_API_VSB (state: SvcState, payload?: boolean) {
+      state.apiVsb = typeof payload !== 'undefined' ? payload : false
     },
-    RESET_NODE (state: RouteState) {
+    RESET_NODE (state: SvcState) {
       state.node.reset()
     },
-    SET_JOIN_VSB (state: RouteState, payload?: boolean) {
+    SET_JOIN_VSB (state: SvcState, payload?: boolean) {
       state.joinVsb = typeof payload !== 'undefined' ? payload : false
     },
-    SET_TEMP_VSB (state: RouteState, payload?: boolean) {
+    SET_TEMP_VSB (state: SvcState, payload?: boolean) {
       state.tempVsb = typeof payload !== 'undefined' ? payload : false
     },
-    UPD_EDT_LOCVARS (state: RouteState) {
+    UPD_EDT_LOCVARS (state: SvcState) {
       state.locVars = getLocVars(state, state.node.previous)
         .concat(Variable.copy({ key: '0', name: 'params', type: 'Object' }))
         .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
         .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
     },
-    UPDATE_LOCVARS (state: RouteState, payload?: Node) {
+    UPDATE_LOCVARS (state: SvcState, payload?: Node) {
       if (!payload) {
         state.locVars = []
       } else {
@@ -219,37 +220,47 @@ export default {
           .concat(Variable.copy({ key: '1', name: 'query', type: 'Object' }))
           .concat(Variable.copy({ key: '2', name: 'body', type: 'Object' }))
       }
+    },
+    RESET_STATE (state: SvcState) {
+      state.api.reset()
+      state.width = 0
+      state.nodes = {}
+      state.node.reset()
+      state.locVars = []
     }
   },
   actions: {
     async refresh (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch }, force?: boolean
+      { state, dispatch }: { state: SvcState, dispatch: Dispatch }, force?: boolean
     ) {
-      if (!router.currentRoute.value.params.rid) {
+      if (!router.currentRoute.value.params.aid) {
         return
       }
-      const rid = router.currentRoute.value.params.rid
+      const aid = router.currentRoute.value.params.aid
       if (typeof force === 'undefined') {
         force = true
       }
+      // @_@: 应为表单选择添加依赖
+      if (!('WebModule' in state.deps) || !('DbModule' in state.deps)) {
+        state.deps['WebModule'] = await newDep('WebModule', ['params', 'query', 'body'])
+        state.deps['DbModule'] = await newDep('DbModule', ['db'])
+      }
       const pid = router.currentRoute.value.params.pid
       const project = Project.copy((await reqGet('project', pid)).data)
-      RouteMapper['path'].prefix = `/${project.name}`
-      Route.copy((await reqGet('route', rid)).data, state.route)
-      if (state && state.route.flow) {
-        const rootKey = state.route.flow.key
+      ApiMapper['path'].prefix = `/${project.name}`
+      Service.copy((await reqGet('service', aid)).data, state.api)
+      if (state && state.api.flow) {
+        const rootKey = state.api.flow.key
         if (force) {
           await dispatch('readNodes', rootKey)
         }
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
-      } else {
-        state.nodes = {}
-        state.node.reset()
       }
+      await dispatch('rfshTemps')
     },
-    async fixWidth ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }) {
+    async fixWidth ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }) {
       let left = 0
       let right = 0
       for (const node of Object.values(state.nodes).filter(nd => !nd.isTemp)) {
@@ -265,7 +276,7 @@ export default {
         await dispatch('refresh', { force: false })
       }
     },
-    async fillPlaceholder ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
+    async fillPlaceholder ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }, key: string) {
       const node = state.nodes[key]
       for (let i = 0; i < node.nexts.length; ++i) {
         const nxt = node.nexts[i]
@@ -277,7 +288,7 @@ export default {
         await dispatch('fillPlaceholder', getKey(nxt))
       }
     },
-    async readNodes ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
+    async readNodes ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }, key: string) {
       if (!(key in state.nodes)) {
         state.nodes[key] = Object.assign(
           Node.copy((await reqGet('node', key)).data), {
@@ -291,17 +302,12 @@ export default {
           (await reqGet('node', key)).data, state.nodes[key]
         )
       }
-      for (const dep of state.nodes[key].deps) {
-        if (!(dep.name in state.deps)) {
-          state.deps[dep.name] = dep.exports
-        }
-      }
       for (const nxtNode of state.nodes[key].nexts) {
         await dispatch('readNodes', getKey(nxtNode))
       }
     },
     async buildNodes (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      { state, dispatch }: { state: SvcState, dispatch: Dispatch },
       { ndKey, height }: { ndKey: string, height: number }
     ) {
       const node = state.nodes[ndKey]
@@ -346,7 +352,7 @@ export default {
         })
       }
     },
-    async saveNode ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, node: Node) {
+    async saveNode ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }, node: Node) {
       const options = { ignores: ['key', 'previous', 'nexts', 'inputs', 'outputs'] }
       if (node.key) { // 更新节点
         await reqPut('node', node.key, node, options)
@@ -354,20 +360,8 @@ export default {
       }
       //新增节点
       const orgNode = Node.copy(node)
-      const modKeys = []
-      if (!node.previous) {
-        // @_@: 应为表单选择添加依赖
-        modKeys.push(await newDep('WebModule', ['params', 'query', 'body']))
-        modKeys.push(await newDep('DbModule', ['db']))
-      }
       let tailNode = Node.copy((await reqPost('node', node, options)).data, node)
       const nodeKey = tailNode.key
-      for (const modKey of modKeys) {
-        await reqLink({
-          parent: ['node', nodeKey],
-          child: ['deps', modKey]
-        })
-      }
       // 如果是从模板节点复制过来，则应该有inputs和outputs
       for (const input of orgNode.inputs) {
         const newIpt = (await reqPost('variable', input)).data
@@ -458,7 +452,7 @@ export default {
       if (!node.previous) {
         // 绑定根节点
         await reqLink({
-          parent: ['route', state.route.key],
+          parent: ['service', state.api.key],
           child: ['flow', nodeKey]
         })
       } else {
@@ -499,7 +493,7 @@ export default {
       }
       await dispatch('refresh')
     },
-    async clrNmlNode ({ state }: { state: RouteState }, key: string) {
+    async clrNmlNode ({ state }: { state: SvcState }, key: string) {
       const node = state.nodes[key]
       // 删除节点的输入和输出
       for (const input of node.inputs) {
@@ -519,7 +513,7 @@ export default {
         await reqDelete('variable', optKey)
       }
     },
-    async delNode ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, key: string) {
+    async delNode ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }, key: string) {
       if (!(key in state.nodes)) {
         return
       }
@@ -538,7 +532,7 @@ export default {
           }, false)
         } else { // 删除根节点
           await reqLink({
-            parent: ['route', state.route.key],
+            parent: ['service', state.api.key],
             child: ['flow', node.key]
           }, false)
         }
@@ -621,7 +615,7 @@ export default {
       await dispatch('refresh')
     },
     async delBlock (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      { state, dispatch }: { state: SvcState, dispatch: Dispatch },
       payload: { node: Node, rootKey: string, delRoot?: boolean, delEnd?: boolean }
     ) {
       const clsNode = async (ndKey: string) => {
@@ -666,7 +660,7 @@ export default {
       }
       return endNode
     },
-    async rfshNode ({ state }: { state: RouteState }, key?: string) {
+    async rfshNode ({ state }: { state: SvcState }, key?: string) {
       const nkey = key || state.node.key
       Node.copy((await reqGet('node', nkey)).data, state.nodes[nkey])
       if (!key) {
@@ -674,7 +668,7 @@ export default {
       }
     },
     async saveInOutput (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      { state, dispatch }: { state: SvcState, dispatch: Dispatch },
       payload: { name: string, edited: Variable }
     ) {
       if (!payload.edited.key) {
@@ -691,7 +685,7 @@ export default {
       await dispatch('rfshNode')
     },
     async delInOutput (
-      { state, dispatch }: { state: RouteState, dispatch: Dispatch },
+      { state, dispatch }: { state: SvcState, dispatch: Dispatch },
       payload: { name: string, delKey: string }
     ) {
       await reqLink({
@@ -701,7 +695,7 @@ export default {
       await reqDelete('variable', payload.delKey)
       await dispatch('rfshNode')
     },
-    async joinLibrary ({ state, dispatch }: { state: RouteState, dispatch: Dispatch }, group: string) {
+    async joinLibrary ({ state, dispatch }: { state: SvcState, dispatch: Dispatch }, group: string) {
       const baseURL = '/server-package/api/v1/node/temp'
       // 组和标题与数据库中模板节点相等的，判定为不可入库
       if ((await makeRequest(axios.get(`${baseURL}/exists`, {
@@ -715,7 +709,7 @@ export default {
       }
       const tempNode = Node.copy((await makeRequest(
         axios.post(baseURL, Object.assign(skipIgnores(state.node, [
-          'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative', 'deps'
+          'key', 'inputs', 'outputs', 'nexts', 'previous', 'relative'
         ]), { group, isTemp: true })),
       )).result)
       for (const input of state.node.inputs) {
@@ -737,7 +731,7 @@ export default {
       await dispatch('rfshTemps')
       await dispatch('rfshNode')
     },
-    async rfshTemps ({ state }: { state: RouteState }) {
+    async rfshTemps ({ state }: { state: SvcState }) {
       const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
       for (const node of resp.result.map((tmpNd: any) => Node.copy(tmpNd))) {
         state.nodes[node.key] = node
@@ -761,26 +755,23 @@ export default {
     }
   },
   getters: {
-    ins: (state: RouteState): Route => state.route,
-    nodes: (state: RouteState): NodesInPnl => {
+    ins: (state: SvcState): Service => state.api,
+    nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes)
         .filter(([_key, node]) => !node.isTemp))
     },
-    width: (state: RouteState): number => state.width,
-    node: (state: RouteState) => (key: string): NodesInPnl => state.nodes[key],
-    editNode: (state: RouteState): Node => state.node,
-    nodeVsb: (state: RouteState): boolean => state.nodeVsb,
-    locVars: (state: RouteState) => state.locVars,
-    joinVsb: (state: RouteState): boolean => state.joinVsb,
-    routeVsb: (state: RouteState): boolean => state.routeVsb,
-    tempNodes: (state: RouteState): Node[] => {
+    width: (state: SvcState): number => state.width,
+    node: (state: SvcState) => (key: string): NodesInPnl => state.nodes[key],
+    editNode: (state: SvcState): Node => state.node,
+    nodeVsb: (state: SvcState): boolean => state.nodeVsb,
+    locVars: (state: SvcState) => state.locVars,
+    joinVsb: (state: SvcState): boolean => state.joinVsb,
+    apiVsb: (state: SvcState): boolean => state.apiVsb,
+    tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
-    tempVsb: (state: RouteState): boolean => state.tempVsb,
-    deps: (state: RouteState): Dependency[] => {
-      return Object.entries(state.deps)
-        .map(([name, exports]) => Dependency.copy({ name, exports }))
-    },
+    tempVsb: (state: SvcState): boolean => state.tempVsb,
+    deps: (state: SvcState): Dependency[] => Object.values(state.deps),
     tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

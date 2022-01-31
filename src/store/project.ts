@@ -1,4 +1,5 @@
-import { Deploy, Model, Project, Route, Transfer } from '@/common'
+import { Deploy, Model, Project, Service, Transfer } from '@/common'
+import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
@@ -8,7 +9,11 @@ export default {
   state: new Project(),
   mutations: {},
   actions: {
-    async refresh ({ state }: { state: Project }, pid?: string) {
+    async refresh ({ state }: { state: Project }) {
+      if (!router.currentRoute.value.params.pid) {
+        return
+      }
+      const pid = router.currentRoute.value.params.pid
       Project.copy((await reqGet('project', pid || state.key)).data, state)
       for (const index in state.models) {
         const model = state.models[index]
@@ -50,8 +55,8 @@ export default {
       }, typeof payload.opera !== 'string')
       await dispatch('refresh')
     },
-    async setRoutePath ({ dispatch }: { dispatch: Dispatch }, route: Route) {
-      await reqPut('route', route.key, { path: route.path })
+    async setApiPath ({ dispatch }: { dispatch: Dispatch }, api: Service) {
+      await reqPut('service', api.key, { path: api.path })
       await dispatch('refresh')
     },
     async del ({ state }: { state: Project }) {

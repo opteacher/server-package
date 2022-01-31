@@ -43,14 +43,15 @@ export type OpnType = {
   children?: any[]
 }
 
+export type CmpRel = 'AND' | 'OR'
 export class BaseMapper extends StrIterable {
   label: string
   desc: string
   type: CompoType
   rules: any[]
-  disabled: boolean | Cond[]
+  disabled: boolean | Cond[] | { [cmpRel: string]: Cond[] }
   loading: boolean
-  display: boolean | Cond[]
+  display: boolean | Cond[] | { [cmpRel: string]: Cond[] }
   expanded: boolean
   reset: boolean
   onChange: (record: any, to: any, from?: any) => void
@@ -489,7 +490,7 @@ export class Model {
   desc: string
   logTime: boolean
   props: Property[]
-  routes: Route[]
+  apis: Service[]
 
   constructor () {
     this.key = ''
@@ -497,7 +498,7 @@ export class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.routes = []
+    this.apis = []
   }
 
   reset () {
@@ -506,7 +507,7 @@ export class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.routes = []
+    this.apis = []
   }
 
   static copy (src: any, tgt?: Model): Model {
@@ -527,13 +528,8 @@ export class Model {
         tgt.props.push(Property.copy(prop))
       }
     }
-    if (src.routes) {
-      tgt.routes = []
-      for (const route of src.routes) {
-        tgt.routes.push(Route.copy(Object.assign({
-          model: tgt.name
-        }, route)))
-      }
+    if (src.apis && src.apis.length) {
+      tgt.apis = src.apis.map((api: any) => Service.copy(api))
     }
     return tgt
   }
@@ -550,6 +546,8 @@ export class Variable {
   type: BaseTypes | Model
   value: any
   prop: string
+  index: string
+  idxType: BaseTypes
   default: any
   required: boolean
   remark: string
@@ -560,6 +558,8 @@ export class Variable {
     this.type = 'Unknown'
     this.value = undefined
     this.prop = ''
+    this.index = ''
+    this.idxType = 'Unknown'
     this.default = undefined
     this.required = false
     this.remark = ''
@@ -571,6 +571,8 @@ export class Variable {
     this.type = 'Unknown'
     this.value = undefined
     this.prop = ''
+    this.index = ''
+    this.idxType = 'Unknown'
     this.default = undefined
     this.required = false
     this.remark = ''
@@ -583,6 +585,8 @@ export class Variable {
     tgt.type = src.type || tgt.type
     tgt.value = src.value || tgt.value
     tgt.prop = src.prop || tgt.prop
+    tgt.index = src.index || tgt.index
+    tgt.idxType = src.idxType || tgt.idxType
     tgt.default = src.default || tgt.default
     tgt.required = src.required || tgt.required
     tgt.remark = src.remark || tgt.remark
@@ -613,7 +617,6 @@ export class Node extends StrIterable {
   nexts: (Node | string)[]
   relative: string
   temp: string[]
-  deps: Dependency[]
 
   constructor () {
     super()
@@ -630,7 +633,6 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
-    this.deps = []
   }
 
   reset () {
@@ -647,7 +649,6 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
-    this.deps = []
   }
 
   static copy (src: any, tgt?: Node, recu = true): Node {
@@ -680,9 +681,6 @@ export class Node extends StrIterable {
     }
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
-    if (src.deps && src.deps.length) {
-      tgt.deps = src.deps.map((dep: any) => Dependency.copy(dep))
-    }
     return tgt
   }
 }
@@ -702,57 +700,67 @@ export type NodeInPnl = Node & {
   size: [number, number],
   btmSvgHgt: number
 }
-export class Route {
+export class Service {
   key: string
+  name: string
+  interface: string
+  deps: Dependency[]
+  emit: string
+  flow: Node | null
   isModel: boolean
   model: string
   method: string
   path: string | undefined
-  flow: Node | null
-  service: string
-  interface: string
 
   constructor () {
     this.key = ''
+    this.name = ''
+    this.interface = ''
+    this.deps = []
+    this.emit = ''
+    this.flow = null
     this.isModel = false
     this.model = ''
     this.method = ''
     this.path = undefined
-    this.flow = null
-    this.service = ''
-    this.interface = ''
   }
 
   reset () {
     this.key = ''
+    this.name = ''
+    this.interface = ''
+    this.deps = []
+    this.emit = ''
+    this.flow = null
     this.isModel = false
     this.model = ''
     this.method = ''
     this.path = undefined
-    this.flow = null
-    this.service = ''
-    this.interface = ''
   }
 
-  static copy (src: any, tgt?: Route): Route {
-    tgt = tgt || new Route()
+  static copy (src: any, tgt?: Service): Service {
+    tgt = tgt || new Service()
     tgt.key = src.key || src._id || tgt.key
-    tgt.isModel = src.isModel || tgt.isModel
-    tgt.model = src.model || tgt.model
-    tgt.method = src.method || tgt.method
-    tgt.path = src.path || tgt.path
+    if (src.service && src.service.length === 2) {
+      tgt.name = src.service[0]
+      tgt.interface = src.service[1]
+    } else {
+      tgt.name = src.name || tgt.name
+      tgt.interface = src.interface || tgt.interface
+    }
+    if (src.deps && src.deps.length) {
+      tgt.deps = src.deps.map((dep: any) => Dependency.copy(dep))
+    }
+    tgt.emit = src.emit || tgt.emit
     if (src.flow) {
       tgt.flow = Node.copy(src.flow)
     } else {
       tgt.flow = null
     }
-    if (src.service && src.service.length === 2) {
-      tgt.service = src.service[0]
-      tgt.interface = src.service[1]
-    } else {
-      tgt.service = src.service || tgt.service
-      tgt.interface = src.interface || tgt.interface
-    }
+    tgt.isModel = src.isModel || tgt.isModel
+    tgt.model = src.model || tgt.model
+    tgt.method = src.method || tgt.method
+    tgt.path = src.path || tgt.path
     return tgt
   }
 }

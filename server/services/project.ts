@@ -6,7 +6,7 @@ import Project from '../models/project.js'
 import Model from '../models/model.js'
 import DataBase from '../models/database.js'
 import Property from '../models/property.js'
-import Route from '../models/route.js'
+import Route from '../models/service.js'
 import Node from '../models/node.js'
 import { spawn, spawnSync } from 'child_process'
 
@@ -48,7 +48,9 @@ function fmtInput (variable: {
   name: string,
   type: string,
   value: any,
-  prop?: string
+  prop?: string,
+  index?: string,
+  idxType?: string
 }): string {
   const value = variable.value || variable.name
   switch (variable.type) {
@@ -57,7 +59,13 @@ function fmtInput (variable: {
   case 'Array':
     return `[${value}]`
   case 'Object':
-    return `${value}.${variable.prop}`
+    return `${value}${
+      variable.index ? (
+        variable.idxType === 'String'
+          ? '`' + variable.index + '`'
+          : variable.index
+      ) : ''
+    }.${variable.prop}`
   case 'Number':
   case 'Boolean':
   default:
@@ -180,11 +188,11 @@ export async function sync (pid: string): Promise<any> {
   copyDir(vwsTmp, vwsGen)
 
   const mdlPath = Path.join(genPath, 'models')
-  const rotPath = Path.join(genPath, 'routes')
+  const rotPath = Path.join(genPath, 'routes', project.name)
   const svcPath = Path.join(genPath, 'services')
   fs.mkdirSync(mdlPath)
   fs.mkdirSync(svcPath)
-  fs.mkdirSync(rotPath)
+  fs.mkdirSync(rotPath, { recursive: true })
   const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
   const svcTmp = Path.join(tmpPath, 'services', 'temp.js')
   const rotTmp = Path.join(tmpPath, 'routes', 'index.js')
@@ -192,24 +200,25 @@ export async function sync (pid: string): Promise<any> {
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
   for (const model of project.models) {
-    const routes = model.routes.filter((route: any) => route.service)
-    model.routes = model.routes.filter((route: any) => !route.service)
+    const apis = model.apis.filter((api: any) => api.name)
+    model.apis = model.apis.filter((api: any) => !api.name)
 
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
 
-    for (const route of routes) {
-      const pathPfx = route.path.substring(0, route.path.indexOf('/:'))
+    for (const api of apis) {
+      const paramIdx = api.path.indexOf('/:')
+      const pathPfx = api.path.substring(0, paramIdx === -1 ? api.path.length : paramIdx)
       const rotGen = Path.join(rotPath, pathPfx)
       fs.mkdirSync(rotGen, { recursive: true })
       console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
-      adjustFile(rotData, `${rotGen}/index.js`, { route })
+      adjustFile(rotData, `${rotGen}/index.js`, { api })
 
-      const svcGen = Path.join(svcPath, route.service + '.js')
+      const svcGen = Path.join(svcPath, api.name + '.js')
       console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-      const nodes = await recuNode(route.flow, 2)
-      adjustFile(svcData, svcGen, { route, nodes })
+      const nodes = await recuNode(api.flow, 2)
+      adjustFile(svcData, svcGen, { api, nodes })
     }
   }
 

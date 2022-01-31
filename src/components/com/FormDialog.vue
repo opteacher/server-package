@@ -19,7 +19,7 @@
     :wrapper-col="{ span: column[1] }"
   >
     <template v-for="(value, key) in formMapper" :key="key">
-      <a-form-item v-show="isDisplay(key)" :ref="key" :name="key">
+      <a-form-item v-show="validConds(value.display, true)" :ref="key" :name="key">
         <template #label>
           {{value.label}}&nbsp;
           <a-tooltip v-if="value.desc">
@@ -73,7 +73,7 @@
           <a-input
             v-if="value.type === 'Input'"
             v-model:value="formState[key]"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             :addon-before="value.prefix"
             @change="(e) => value.onChange(formState, e.target.value)"
           />
@@ -81,7 +81,7 @@
             v-else-if="value.type === 'Number'"
             class="w-100"
             v-model:value="formState[key]"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             @change="(val) => value.onChange(formState, val)"
           />
           <a-select
@@ -89,14 +89,14 @@
             class="w-100"
             :options="value.options"
             v-model:value="formState[key]"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             @change="(val) => value.onChange(formState, val)"
           />
           <a-checkbox
             v-else-if="value.type === 'Checkbox'"
             :name="key"
             v-model:checked="formState[key]"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             @change="(val) => value.onChange(formState, val)"
           >
             {{formState[key]
@@ -107,20 +107,20 @@
             v-else-if="value.type === 'Textarea'"
             v-model:value="formState[key]"
             :rows="value.maxRows"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             @change="(val) => value.onChange(formState, val)"
           />
           <a-cascader
             v-else-if="value.type === 'Cascader'"
             :options="value.options"
             v-model:value="formState[key]"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             @change="(e) => value.onChange(formState, e)"
           />
           <a-button
             v-else-if="value.type === 'Button'"
             class="w-100"
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             :danger="value.danger"
             :type="value.primary ? 'primary' : 'default'"
             ghost
@@ -133,7 +133,7 @@
             v-else-if="value.type === 'DateTime'"
             class="w-100"
             show-time
-            :disabled="isDisabled(key) || !editable"
+            :disabled="validConds(value.disabled) || !editable"
             v-model:value="formState[key]"
           />
           <template v-else-if="value.type === 'Table'">
@@ -164,7 +164,9 @@
             </a-table>
           </template>
           <template v-else-if="value.type === 'Upload'">
-            <a-dropdown class="w-100" :disabled="isDisabled(key) || !editable">
+            <a-dropdown class="w-100"
+              :disabled="validConds(value.disabled) || !editable"
+            >
               <a-button>
                 <UploadOutlined/>&nbsp;选择上传的文件或文件夹
               </a-button>
@@ -315,27 +317,33 @@ export default defineComponent({
       }
     })
 
-    function isDisplay (key: string): boolean {
-      const display = props.mapper[key].display
-      if (typeof display === 'boolean') {
-        return display as boolean
-      } else if (display && display.length) {
-        return display
+    function validConds (
+      value: boolean | Cond[] | { [cmpRel: string]: Cond[] },
+      dftVal = false
+    ): boolean {
+      if (typeof value === 'boolean') {
+        return value as boolean
+      } else if (value && value.length) {
+        return (value as Cond[])
           .map((cond: Cond) => cond.isValid(formState))
           .reduce((a: boolean, b: boolean) => a && b)
+      } else {
+        let ret = dftVal
+        for (const [cmpRel, conds] of Object.entries(value)) {
+          ret = ret && (conds as Cond[])
+            .map((cond: Cond) => cond.isValid(formState))
+            .reduce((a: boolean, b: boolean) => {
+              switch (cmpRel) {
+              case 'OR':
+                return a || b
+              case 'AND':
+              default:
+                return a && b
+              }
+            })
+        }
+        return ret
       }
-      return true
-    }
-    function isDisabled (key: string): boolean {
-      const disabled = props.mapper[key].disabled
-      if (typeof disabled === 'boolean') {
-        return disabled as boolean
-      } else if (disabled && disabled.length) {
-        return disabled
-          .map((cond: Cond) => cond.isValid(formState))
-          .reduce((a: boolean, b: boolean) => a && b)
-      }
-      return false
     }
     async function onOkClick () {
       try {
@@ -391,8 +399,7 @@ export default defineComponent({
 
       onOkClick,
       onCclClick,
-      isDisplay,
-      isDisabled,
+      validConds,
       onUploadClicked,
       fmtDrpdwnValue
     }
