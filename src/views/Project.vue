@@ -71,10 +71,7 @@ import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import {
   ApartmentOutlined,
-  CheckOutlined,
-  EditOutlined,
   DatabaseOutlined,
-  CloseOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
@@ -94,10 +91,7 @@ export default defineComponent({
     EditableTable,
     ProjDetail,
     ApartmentOutlined,
-    CheckOutlined,
-    EditOutlined,
     DatabaseOutlined,
-    CloseOutlined
   },
   setup () {
     const route = useRoute()
