@@ -10,22 +10,22 @@ export class Cond {
   cmp?: '=' | '!=' | 'in'
   val: any
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.val = undefined
   }
 
-  isValid (object: StrIterable) {
+  isValid(object: StrIterable) {
     switch (this.cmp) {
-    case '!=':
-      return getProperty(object, this.key) !== this.val
-    case '=':
-    default:
-      return getProperty(object, this.key) === this.val
+      case '!=':
+        return getProperty(object, this.key) !== this.val
+      case '=':
+      default:
+        return getProperty(object, this.key) === this.val
     }
   }
 
-  static copy (src: any, tgt?: Cond): Cond {
+  static copy(src: any, tgt?: Cond): Cond {
     tgt = tgt || new Cond()
     tgt.key = src.key || tgt.key
     tgt.cmp = src.cmp || tgt.cmp
@@ -34,7 +34,25 @@ export class Cond {
   }
 }
 
-export type CompoType = 'Text' | 'Block' | 'Input' | 'Number' | 'Button' | 'Select' | 'DateTime' | 'Checkbox' | 'Textarea' | 'Cascader' | 'Unknown'
+export type CompoType =
+  | 'Text'
+  | 'Block'
+  | 'Input'
+  | 'Number'
+  | 'Button'
+  | 'Select'
+  | 'DateTime'
+  | 'Checkbox'
+  | 'Switch'
+  | 'Button'
+  | 'Table'
+  | 'Textarea'
+  | 'Delable'
+  | 'SelOrIpt'
+  | 'Upload'
+  | 'Cascader'
+  | 'ListSelect'
+  | 'Unknown'
 
 export type OpnType = {
   label: string
@@ -56,7 +74,7 @@ export class BaseMapper extends StrIterable {
   reset: boolean
   onChange: (record: any, to: any, from?: any) => void
 
-  constructor () {
+  constructor() {
     super()
     this.label = ''
     this.desc = ''
@@ -70,18 +88,24 @@ export class BaseMapper extends StrIterable {
     this.onChange = () => console.log()
   }
 
-  static copy (src: any, tgt?: BaseMapper): BaseMapper {
+  static copy(src: any, tgt?: BaseMapper): BaseMapper {
     tgt = tgt || new BaseMapper()
     tgt.label = src.label || tgt.label
     tgt.desc = src.desc || tgt.desc
     tgt.type = src.type || tgt.type
     tgt.rules = src.rules || tgt.rules
-    tgt.disabled = src.disabled && src.disabled.length
-      ? src.disabled.map((el: any) => Cond.copy(el))
-      : (typeof src.disabled !== 'undefined' ? src.disabled : tgt.disabled)
-    tgt.display = src.display && src.display.length
-      ? src.display.map((el: any) => Cond.copy(el))
-      : (typeof src.display !== 'undefined' ? src.display : tgt.display)
+    tgt.disabled =
+      src.disabled && src.disabled.length
+        ? src.disabled.map((el: any) => Cond.copy(el))
+        : typeof src.disabled !== 'undefined'
+        ? src.disabled
+        : tgt.disabled
+    tgt.display =
+      src.display && src.display.length
+        ? src.display.map((el: any) => Cond.copy(el))
+        : typeof src.display !== 'undefined'
+        ? src.display
+        : tgt.display
     tgt.expanded = typeof src.expanded !== 'undefined' ? src.expanded : tgt.expanded
     tgt.onChange = src.onChange || tgt.onChange
     return tgt
@@ -91,12 +115,12 @@ export class BaseMapper extends StrIterable {
 export class InputMapper extends BaseMapper {
   prefix: string
 
-  constructor () {
+  constructor() {
     super()
     this.prefix = ''
   }
 
-  static copy (src: any, tgt?: InputMapper): InputMapper {
+  static copy(src: any, tgt?: InputMapper): InputMapper {
     tgt = tgt || new InputMapper()
     BaseMapper.copy(src, tgt)
     tgt.prefix = src.prefix || tgt.prefix
@@ -107,12 +131,12 @@ export class InputMapper extends BaseMapper {
 export class TextareaMapper extends BaseMapper {
   maxRows: number
 
-  constructor () {
+  constructor() {
     super()
     this.maxRows = 3
   }
 
-  static copy (src: any, tgt?: TextareaMapper): TextareaMapper {
+  static copy(src: any, tgt?: TextareaMapper): TextareaMapper {
     tgt = tgt || new TextareaMapper()
     BaseMapper.copy(src, tgt)
     tgt.maxRows = src.maxRows || tgt.maxRows
@@ -123,26 +147,28 @@ export class TextareaMapper extends BaseMapper {
 export class SelectMapper extends BaseMapper {
   options: string[] | OpnType[]
 
-  constructor () {
+  constructor() {
     super()
     this.options = []
   }
 
-  static copy (src: any, tgt?: SelectMapper): SelectMapper {
+  static copy(src: any, tgt?: SelectMapper): SelectMapper {
     tgt = tgt || new SelectMapper()
     BaseMapper.copy(src, tgt)
-    tgt.options = src.options ? src.options.map((opn: any) => {
-      if (typeof opn === 'string') {
-        return opn
-      } else {
-        return {
-          title: opn.title,
-          value: opn.value,
-          subTitle: opn.subTitle || '',
-          children: opn.children || []
-        }
-      }
-    }) : tgt.options
+    tgt.options = src.options
+      ? src.options.map((opn: any) => {
+          if (typeof opn === 'string') {
+            return opn
+          } else {
+            return {
+              title: opn.title,
+              value: opn.value,
+              subTitle: opn.subTitle || '',
+              children: opn.children || []
+            }
+          }
+        })
+      : tgt.options
     return tgt
   }
 }
@@ -151,12 +177,12 @@ export class CheckboxMapper extends BaseMapper {
   // 0为false，1为true
   chkLabels: [string, string]
 
-  constructor () {
+  constructor() {
     super()
     this.chkLabels = ['否', '是']
   }
 
-  static copy (src: any, tgt?: CheckboxMapper): CheckboxMapper {
+  static copy(src: any, tgt?: CheckboxMapper): CheckboxMapper {
     tgt = tgt || new CheckboxMapper()
     BaseMapper.copy(src, tgt)
     tgt.chkLabels = src.chkLabels || tgt.chkLabels
@@ -170,7 +196,7 @@ export class ButtonMapper extends BaseMapper {
   primary: boolean
   onClick: () => void
 
-  constructor () {
+  constructor() {
     super()
     this.inner = ''
     this.danger = false
@@ -178,7 +204,7 @@ export class ButtonMapper extends BaseMapper {
     this.onClick = () => console.log()
   }
 
-  static copy (src: any, tgt?: ButtonMapper): ButtonMapper {
+  static copy(src: any, tgt?: ButtonMapper): ButtonMapper {
     tgt = tgt || new ButtonMapper()
     BaseMapper.copy(src, tgt)
     tgt.inner = src.inner || tgt.inner
@@ -198,7 +224,7 @@ export class TableMapper extends BaseMapper {
   onSaved: (record: any, extra?: any) => void
   onDeleted: (key: any, extra?: any) => void
 
-  constructor () {
+  constructor() {
     super()
     this.show = false
     this.mapper = new Mapper()
@@ -209,7 +235,7 @@ export class TableMapper extends BaseMapper {
     this.onDeleted = () => console.log()
   }
 
-  static copy (src: any, tgt?: TableMapper): TableMapper {
+  static copy(src: any, tgt?: TableMapper): TableMapper {
     tgt = tgt || new TableMapper()
     BaseMapper.copy(src, tgt)
     tgt.show = src.show || tgt.show
@@ -226,12 +252,12 @@ export class TableMapper extends BaseMapper {
 export class SelOrIptMapper extends BaseMapper {
   mode: 'select' | 'input'
 
-  constructor () {
+  constructor() {
     super()
     this.mode = 'input'
   }
 
-  static copy (src: any, tgt?: SelOrIptMapper): SelOrIptMapper {
+  static copy(src: any, tgt?: SelOrIptMapper): SelOrIptMapper {
     tgt = tgt || new SelOrIptMapper()
     BaseMapper.copy(src, tgt)
     tgt.mode = src.mode || tgt.mode
@@ -239,27 +265,67 @@ export class SelOrIptMapper extends BaseMapper {
   }
 }
 
+export class LstOpnType {
+  key: string
+  title: string
+  subTitle?: string
+  avatar?: string
+  href?: string
+
+  constructor() {
+    this.key = ''
+    this.title = ''
+  }
+
+  static copy(src: any, tgt?: LstOpnType): LstOpnType {
+    tgt = tgt || new LstOpnType()
+    tgt.title = src.title || tgt.title
+    tgt.key = src.key || tgt.key
+    tgt.subTitle = src.subTitle || tgt.subTitle
+    tgt.avatar = src.avatar || tgt.avatar
+    tgt.href = src.href || tgt.href
+    return tgt
+  }
+}
+
+export class LstSelMapper extends BaseMapper {
+  options: LstOpnType[]
+
+  constructor() {
+    super()
+    this.options = []
+  }
+
+  static copy(src: any, tgt?: LstSelMapper): LstSelMapper {
+    tgt = tgt || new LstSelMapper()
+    BaseMapper.copy(src, tgt)
+    tgt.options = src.options ? src.options.map((opn: any) => LstOpnType.copy(opn)) : tgt.options
+    return tgt
+  }
+}
+
 const EleTypeCopies = {
-  'Unknown': BaseMapper.copy,
-  'Input': InputMapper.copy,
-  'Number': InputMapper.copy,
-  'Textarea': TextareaMapper.copy,
-  'Select': SelectMapper.copy,
-  'Cascader': SelectMapper.copy,
-  'Checkbox': CheckboxMapper.copy,
-  'Switch': CheckboxMapper.copy,
-  'Button': ButtonMapper.copy,
-  'Table': TableMapper.copy,
-  'Text': BaseMapper.copy,
-  'Delable': TableMapper.copy,
-  'SelOrIpt': SelOrIptMapper.copy,
-  'Upload': BaseMapper.copy,
-  'DateTime': BaseMapper.copy,
+  Unknown: BaseMapper.copy,
+  Input: InputMapper.copy,
+  Number: InputMapper.copy,
+  Textarea: TextareaMapper.copy,
+  Select: SelectMapper.copy,
+  Cascader: SelectMapper.copy,
+  Checkbox: CheckboxMapper.copy,
+  Switch: CheckboxMapper.copy,
+  Button: ButtonMapper.copy,
+  Table: TableMapper.copy,
+  Text: BaseMapper.copy,
+  Delable: TableMapper.copy,
+  SelOrIpt: SelOrIptMapper.copy,
+  Upload: BaseMapper.copy,
+  DateTime: BaseMapper.copy,
+  ListSelect: LstSelMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 export class Mapper {
   [prop: string]: BaseMapper
 
-  constructor (init?: any) {
+  constructor(init?: any) {
     if (init) {
       for (const [key, val] of Object.entries(init)) {
         const value = val as BaseMapper
@@ -271,7 +337,7 @@ export class Mapper {
     }
   }
 
-  static copy (src: any, tgt?: Mapper): Mapper {
+  static copy(src: any, tgt?: Mapper): Mapper {
     tgt = tgt || new Mapper()
     for (const [key, val] of Object.entries(src)) {
       const value = val as BaseMapper
@@ -294,10 +360,14 @@ export class Column {
     customRender: string
   }
 
-  constructor (title: string, dataIdx: string, options?: {
-    width?: number
-    slotTitle?: string
-  }) {
+  constructor(
+    title: string,
+    dataIdx: string,
+    options?: {
+      width?: number
+      slotTitle?: string
+    }
+  ) {
     this.title = title
     this.dataIndex = dataIdx
     this.key = dataIdx
@@ -310,7 +380,7 @@ export class Column {
     }
   }
 
-  static copy (src: any, tgt?: Column): Column {
+  static copy(src: any, tgt?: Column): Column {
     tgt = tgt || new Column('', '')
     tgt.title = src.title || tgt.title
     tgt.dataIndex = src.dataIndex || tgt.dataIndex
@@ -336,7 +406,7 @@ export class Project {
   models: Model[]
   status: 'starting' | 'stopping' | 'running' | 'stopped' | 'deploying' | 'transferring'
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.desc = ''
@@ -347,7 +417,7 @@ export class Project {
     this.status = 'stopped'
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.desc = ''
@@ -358,7 +428,7 @@ export class Project {
     this.status = 'stopped'
   }
 
-  static copy (src: any, tgt?: Project): Project {
+  static copy(src: any, tgt?: Project): Project {
     tgt = tgt || new Project()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
@@ -387,14 +457,16 @@ export class Field {
   rules: any[]
   disabled: boolean
   display: boolean
-  options: string[] | {
-    title: string
-    subTitle?: string
-    value: any
-  }[]
+  options:
+    | string[]
+    | {
+        title: string
+        subTitle?: string
+        value: any
+      }[]
   chkLabels: [string, string]
 
-  constructor () {
+  constructor() {
     this.label = ''
     this.desc = ''
     this.type = ''
@@ -405,7 +477,7 @@ export class Field {
     this.chkLabels = ['', '']
   }
 
-  reset () {
+  reset() {
     this.label = ''
     this.desc = ''
     this.type = ''
@@ -416,7 +488,7 @@ export class Field {
     this.chkLabels = ['', '']
   }
 
-  static copy (src: any, tgt?: Field): Field {
+  static copy(src: any, tgt?: Field): Field {
     tgt = tgt || new Field()
     tgt.label = src.label || tgt.label
     tgt.desc = src.desc || tgt.desc
@@ -430,9 +502,7 @@ export class Field {
   }
 }
 
-export const baseTypes = [
-  'Id', 'String', 'Number', 'DateTime', 'Boolean', 'Array', 'Object'
-]
+export const baseTypes = ['Id', 'String', 'Number', 'DateTime', 'Boolean', 'Array', 'Object']
 
 export class Property {
   key: string
@@ -444,7 +514,7 @@ export class Property {
   visible: boolean
   remark: string
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.label = ''
@@ -455,7 +525,7 @@ export class Property {
     this.remark = ''
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.label = ''
@@ -466,7 +536,7 @@ export class Property {
     this.remark = ''
   }
 
-  static copy (src: any, tgt?: Property): Property {
+  static copy(src: any, tgt?: Property): Property {
     tgt = tgt || new Property()
     if (typeof src === 'string') {
       tgt.key = src
@@ -492,7 +562,7 @@ export class Model {
   props: Property[]
   apis: Service[]
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.desc = ''
@@ -501,7 +571,7 @@ export class Model {
     this.apis = []
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.desc = ''
@@ -510,7 +580,7 @@ export class Model {
     this.apis = []
   }
 
-  static copy (src: any, tgt?: Model): Model {
+  static copy(src: any, tgt?: Model): Model {
     tgt = tgt || new Model()
     if (typeof src === 'string') {
       tgt.key = src
@@ -535,9 +605,7 @@ export class Model {
   }
 }
 
-export const routeMethods = [
-  'POST', 'PUT', 'DELETE', 'GET'
-]
+export const routeMethods = ['POST', 'PUT', 'DELETE', 'GET']
 
 export type BaseTypes = 'Unknown' | 'Number' | 'String' | 'Boolean' | 'Array' | 'Object'
 export class Variable {
@@ -552,7 +620,7 @@ export class Variable {
   required: boolean
   remark: string
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.type = 'Unknown'
@@ -565,7 +633,7 @@ export class Variable {
     this.remark = ''
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.type = 'Unknown'
@@ -578,7 +646,7 @@ export class Variable {
     this.remark = ''
   }
 
-  static copy (src: any, tgt?: Variable): Variable {
+  static copy(src: any, tgt?: Variable): Variable {
     tgt = tgt || new Variable()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
@@ -597,11 +665,11 @@ export class Variable {
 export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
 
 export const NodeTypeMapper = {
-  'normal': '普通节点',
-  'condition': '条件根节点',
-  'condNode': '条件节点',
-  'traversal': '遍历节点',
-  'endNode': '结束节点',
+  normal: '普通节点',
+  condition: '条件根节点',
+  condNode: '条件节点',
+  traversal: '遍历节点',
+  endNode: '结束节点'
 }
 export class Node extends StrIterable {
   key: string
@@ -618,7 +686,7 @@ export class Node extends StrIterable {
   relative: string
   temp: string[]
 
-  constructor () {
+  constructor() {
     super()
     this.key = ''
     this.isTemp = false
@@ -635,7 +703,7 @@ export class Node extends StrIterable {
     this.temp = []
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.isTemp = false
     this.group = ''
@@ -651,7 +719,7 @@ export class Node extends StrIterable {
     this.temp = []
   }
 
-  static copy (src: any, tgt?: Node, recu = true): Node {
+  static copy(src: any, tgt?: Node, recu = true): Node {
     tgt = tgt || new Node()
     tgt.key = src.key || src._id || tgt.key
     tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : tgt.isTemp
@@ -696,8 +764,8 @@ export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
 
 export type NodeInPnl = Node & {
-  posLT: [number, number],
-  size: [number, number],
+  posLT: [number, number]
+  size: [number, number]
   btmSvgHgt: number
 }
 export class Service {
@@ -712,7 +780,7 @@ export class Service {
   method: string
   path: string | undefined
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.interface = ''
@@ -725,7 +793,7 @@ export class Service {
     this.path = undefined
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.interface = ''
@@ -738,7 +806,7 @@ export class Service {
     this.path = undefined
   }
 
-  static copy (src: any, tgt?: Service): Service {
+  static copy(src: any, tgt?: Service): Service {
     tgt = tgt || new Service()
     tgt.key = src.key || src._id || tgt.key
     if (src.service && src.service.length === 2) {
@@ -774,7 +842,7 @@ export class DataBase {
   username: string
   password: string
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.dbs = []
@@ -784,7 +852,7 @@ export class DataBase {
     this.password = ''
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.name = ''
     this.dbs = []
@@ -794,7 +862,7 @@ export class DataBase {
     this.password = ''
   }
 
-  static copy (src: any, tgt?: DataBase): DataBase {
+  static copy(src: any, tgt?: DataBase): DataBase {
     tgt = tgt || new DataBase()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
@@ -818,7 +886,7 @@ export class Deploy {
   // * 部署目录，【所在目录】：~/app/(assetsPath: public/${project.name}/*|indexPath: views/index.html)
   //    > 位于容器中，由docker container cp复制过去
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.gitURL = ''
     this.name = ''
@@ -827,7 +895,7 @@ export class Deploy {
     this.assetsPath = 'public/static'
   }
 
-  reset () {
+  reset() {
     this.key = ''
     this.gitURL = ''
     this.name = ''
@@ -836,7 +904,7 @@ export class Deploy {
     this.assetsPath = 'public/static'
   }
 
-  static copy (src: any, tgt?: Deploy): Deploy {
+  static copy(src: any, tgt?: Deploy): Deploy {
     tgt = tgt || new Deploy()
     tgt.key = src.key || src._id || tgt.key
     tgt.gitURL = src.gitURL || tgt.gitURL
@@ -857,17 +925,17 @@ export class Transfer {
   dest: string // 文件投放到docker容器的位置（基于/app）
   project?: string // 项目名，也是docker容器名
 
-  constructor () {
+  constructor() {
     this.file = []
     this.dest = ''
   }
 
-  reset () {
+  reset() {
     this.file = []
     this.dest = ''
   }
 
-  static copy (src: any, tgt?: Transfer): Transfer {
+  static copy(src: any, tgt?: Transfer): Transfer {
     tgt = tgt || new Transfer()
     tgt.file = src.file || tgt.file
     tgt.dest = src.dest || tgt.dest
@@ -880,18 +948,24 @@ export class Dependency {
   key: string
   name: string
   exports: string[]
+  from: string
+  default: boolean
 
-  constructor () {
+  constructor() {
     this.key = ''
     this.name = ''
     this.exports = []
+    this.from = ''
+    this.default = true
   }
 
-  static copy (src: any, tgt?: Dependency): Dependency {
+  static copy(src: any, tgt?: Dependency): Dependency {
     tgt = tgt || new Dependency()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.exports = src.exports || tgt.exports
+    tgt.from = src.from || tgt.from
+    tgt.default = typeof src.default !== 'undefined' ? src.default : tgt.default
     return tgt
   }
 }

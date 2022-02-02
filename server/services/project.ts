@@ -6,7 +6,7 @@ import Project from '../models/project.js'
 import Model from '../models/model.js'
 import DataBase from '../models/database.js'
 import Property from '../models/property.js'
-import Route from '../models/service.js'
+import Service from '../models/service.js'
 import Node from '../models/node.js'
 import { spawn, spawnSync } from 'child_process'
 
@@ -215,10 +215,11 @@ export async function sync (pid: string): Promise<any> {
       console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
       adjustFile(rotData, `${rotGen}/index.js`, { api })
 
+      const apiExt = await db.select(Service, { _index: api._id }, { ext: true })
       const svcGen = Path.join(svcPath, api.name + '.js')
       console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
       const nodes = await recuNode(api.flow, 2)
-      adjustFile(svcData, svcGen, { api, nodes })
+      adjustFile(svcData, svcGen, { api: apiExt, nodes })
     }
   }
 
@@ -371,8 +372,8 @@ export async function del (pid: string): Promise<any> {
     for (const ppid of model.props) {
       await db.del(Property, { _index: ppid })
     }
-    for (const rid of model.routes) {
-      await db.del(Route, { _index: rid })
+    for (const aid of model.apis) {
+      await db.del(Service, { _index: aid })
     }
     await db.del(Model, { _index: mid })
   }

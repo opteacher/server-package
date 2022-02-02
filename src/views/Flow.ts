@@ -10,7 +10,7 @@ import {
   baseTypes,
   Node,
   NodeTypeMapper,
-  routeMethods,
+  routeMethods
 } from '../common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
@@ -27,41 +27,43 @@ const InputMapper = new Mapper({
     label: '类型',
     type: 'Select',
     options: baseTypes.map(bscType => ({
-      label: bscType, value: bscType
+      label: bscType,
+      value: bscType
     })),
     onChange: (input: Variable, to: string) => {
       switch (to) {
-      case 'String':
-        InputMapper['value'].type = 'Input'
-        input.value = ''
-        break
-      case 'Number':
-        InputMapper['value'].type = 'Number'
-        input.value = 0
-        break
-      case 'Boolean':
-        InputMapper['value'].type = 'Checkbox'
-        input.value = false
-        break
-      case 'DateTime':
-        InputMapper['value'].type = 'DateTime'
-        input.value = ref<Moment>()
-        break
-      case 'Array':
-        InputMapper['value'].type = 'Input'
-        input.value = ''
-        break
-      case 'Object':
-        InputMapper['value'].type = 'Select'
-        store.commit('service/UPD_EDT_LOCVARS')
-        InputMapper['value'].options = store.getters['service/locVars']
-          .map((locVar: Variable) => ({
-            label: locVar.name,
-            value: locVar.name
-          }))
-        input.value = ''
-        input.prop = ''
-        break
+        case 'String':
+          InputMapper['value'].type = 'Input'
+          input.value = ''
+          break
+        case 'Number':
+          InputMapper['value'].type = 'Number'
+          input.value = 0
+          break
+        case 'Boolean':
+          InputMapper['value'].type = 'Checkbox'
+          input.value = false
+          break
+        case 'DateTime':
+          InputMapper['value'].type = 'DateTime'
+          input.value = ref<Moment>()
+          break
+        case 'Array':
+          InputMapper['value'].type = 'Input'
+          input.value = ''
+          break
+        case 'Object':
+          InputMapper['value'].type = 'Select'
+          store.commit('service/UPD_EDT_LOCVARS')
+          InputMapper['value'].options = store.getters['service/locVars'].map(
+            (locVar: Variable) => ({
+              label: locVar.name,
+              value: locVar.name
+            })
+          )
+          input.value = ''
+          input.prop = ''
+          break
       }
       InputEmitter.emit('update:mapper', InputMapper)
     }
@@ -83,15 +85,13 @@ const InputMapper = new Mapper({
     label: '对象值分量',
     desc: '如果还定义索引，则默认索引在前，分量在后（e.g: object[index].prop）',
     type: 'Input',
-    display: [
-      Cond.copy({ key: 'type', cmp: '==', val: 'Object' })
-    ]
+    display: [Cond.copy({ key: 'type', cmp: '==', val: 'Object' })]
   },
   index: {
     label: '索引',
     type: 'Input',
     display: {
-      'OR': [
+      OR: [
         Cond.copy({ key: 'type', cmp: '==', val: 'Object' }),
         Cond.copy({ key: 'type', cmp: '==', val: 'Array' })
       ]
@@ -101,10 +101,11 @@ const InputMapper = new Mapper({
     label: '索引类型',
     type: 'Select',
     options: baseTypes.map(bscType => ({
-      label: bscType, value: bscType
+      label: bscType,
+      value: bscType
     })),
     display: {
-      'OR': [
+      OR: [
         Cond.copy({ key: 'type', cmp: '==', val: 'Object' }),
         Cond.copy({ key: 'type', cmp: '==', val: 'Array' })
       ]
@@ -119,10 +120,8 @@ export const EditNodeMapper = new Mapper({
     label: '模板',
     type: 'Cascader',
     options: [],
-    display: [
-      Cond.copy({ key: 'key', cmp: '==', val: '' }),
-    ],
-    onChange (addNode: Node, to: [string, string]) {
+    display: [Cond.copy({ key: 'key', cmp: '==', val: '' })],
+    onChange(addNode: Node, to: [string, string]) {
       const temp = Node.copy(store.getters['service/node'](to[1]))
       temp.key = ''
       temp.isTemp = false
@@ -132,23 +131,20 @@ export const EditNodeMapper = new Mapper({
   title: {
     label: '标题',
     type: 'Input',
-    display: [
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
-    ]
+    display: [Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })]
   },
   desc: {
     label: '描述',
     type: 'Textarea',
-    display: [
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
-    ],
+    display: [Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })],
     maxRows: 2
   },
   type: {
     label: '类型',
     type: 'Select',
     options: Object.entries(NodeTypeMapper).map(([key, val]) => ({
-      label: val, value: key
+      label: val,
+      value: key
     }))
   },
   inputs: {
@@ -159,7 +155,7 @@ export const EditNodeMapper = new Mapper({
     display: [
       Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
     columns: [
       new Column('参数名', 'name'),
@@ -172,13 +168,15 @@ export const EditNodeMapper = new Mapper({
     copy: Variable.copy,
     onSaved: async (input: Variable) => {
       await store.dispatch('service/saveInOutput', {
-        name: 'input', edited: input
+        name: 'input',
+        edited: input
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     },
     onDeleted: async (key: string) => {
       await store.dispatch('service/delInOutput', {
-        name: 'input', delKey: key
+        name: 'input',
+        delKey: key
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     }
@@ -191,11 +189,9 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condNode' }),
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
-    columns: [
-      new Column('返回名', 'name')
-    ],
+    columns: [new Column('返回名', 'name')],
     mapper: new Mapper({
       name: {
         label: '返回名',
@@ -212,13 +208,15 @@ export const EditNodeMapper = new Mapper({
     copy: Variable.copy,
     onSaved: async (output: Variable) => {
       await store.dispatch('service/saveInOutput', {
-        name: 'output', edited: output
+        name: 'output',
+        edited: output
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     },
     onDeleted: async (key: string) => {
       await store.dispatch('service/delInOutput', {
-        name: 'output', delKey: key
+        name: 'output',
+        delKey: key
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
     }
@@ -229,7 +227,7 @@ export const EditNodeMapper = new Mapper({
     display: [
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' }),
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ]
   },
   previous: {
@@ -244,7 +242,7 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'group', cmp: '==', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
     primary: true,
     inner: '加入库',
@@ -267,9 +265,7 @@ export const EditNodeMapper = new Mapper({
   delete: {
     label: '操作',
     type: 'Button',
-    display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
-    ],
+    display: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
     inner: '删除节点',
     danger: true,
     onClick: (node: Node) => {
@@ -284,7 +280,7 @@ export const EditNodeMapper = new Mapper({
           store.commit('service/SET_NODE_INVSB')
           await store.dispatch('service/delNode', node.key)
           store.commit('service/RESET_NODE')
-        },
+        }
       })
     }
   }
@@ -300,7 +296,8 @@ export const ApiMapper = new Mapper({
     label: '访问方式',
     type: 'Select',
     options: routeMethods.map(mthd => ({
-      label: mthd, value: mthd
+      label: mthd,
+      value: mthd
     }))
   },
   name: {
@@ -312,10 +309,15 @@ export const ApiMapper = new Mapper({
   interface: {
     label: '接口',
     type: 'Input'
+  },
+  deps: {
+    label: '依赖',
+    type: 'ListSelect',
+    options: []
   }
 })
 
-export async function onNodeSaved (node: Node, next: () => void) {
+export async function onNodeSaved(node: Node, next: () => void) {
   await store.dispatch('service/saveNode', Node.copy(node))
   next()
 }

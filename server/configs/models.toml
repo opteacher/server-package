@@ -1,4 +1,4 @@
 version=1
 prefix="server-package"
 type="mongo"
-sync=true
+sync=false

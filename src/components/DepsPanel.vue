@@ -1,31 +1,37 @@
 <template>
-<div :style="{
-  position: 'fixed',
-  bottom: '50px',
-  right: '100px',
-  'z-index': 1000,
-  'background-color': 'white'
-}">
-  <a-collapse v-if="$store.getters['service/deps'].length">
-    <a-collapse-panel class="collapse-ptb-0" header="依赖模块：">
-      <a-list :data-source="$store.getters['service/deps']">
-        <template #renderItem="{ item: dep }">
-          <a-list-item>
-            <template #actions>
-              <a-tag
-                v-for="exp in dep.exports"
-                :key="exp" color="#87d068"
-              >
-                {{ exp }}
-              </a-tag>
-            </template>
-            -&nbsp;{{ dep.name }}
-          </a-list-item>
+  <div
+    :style="{
+      position: 'fixed',
+      bottom: '50px',
+      right: '100px',
+      'z-index': 1000,
+      'background-color': 'white'
+    }"
+  >
+    <a-collapse v-if="$store.getters['service/deps'].length">
+      <a-collapse-panel class="collapse-ptb-0">
+        <template #header>
+          依赖模块：
+          <a-badge
+            :count="$store.getters['service/deps'].length"
+            :number-style="{ backgroundColor: '#1890ff' }"
+          />
         </template>
-      </a-list>
-    </a-collapse-panel>
-  </a-collapse>
-</div>
+        <a-list :data-source="$store.getters['service/deps']">
+          <template #renderItem="{ item: dep }">
+            <a-list-item>
+              <template #actions>
+                <a-tag v-for="exp in dep.exports" :key="exp" color="#87d068">
+                  {{ exp }}
+                </a-tag>
+              </template>
+              -&nbsp;{{ dep.name }}
+            </a-list-item>
+          </template>
+        </a-list>
+      </a-collapse-panel>
+    </a-collapse>
+  </div>
 </template>
 
 <script lang="ts">
