@@ -49,8 +49,8 @@ export default defineComponent({
 
     onMounted(() => store.dispatch('service/refresh'))
 
-    async function onConfig(rtForm: any) {
-      await reqPut('service', api.value.key, rtForm, { ignores: ['flow', 'deps'] })
+    async function onConfig(svcForm: any) {
+      await reqPut('service', api.value.key, svcForm, { ignores: ['flow', 'deps'] })
       await reqLink(
         {
           parent: ['service', api.value.key],
@@ -58,19 +58,19 @@ export default defineComponent({
         },
         false
       )
-      for (const { key } of rtForm.deps) {
-        if (!store.getters['service/deps'].map((dep: Dependency) => dep.key).includes(key)) {
+      const depKeys = store.getters['service/deps'].map((dep: Dependency) => dep.key)
+      for (const { key } of svcForm.deps) {
+        if (!depKeys.includes(key)) {
           const model = (pjt.value as Project).models.find((mdl: Model) => mdl.key === key)
-          if (!model) {
-            continue
+          if (model) {
+            await reqPut('dependency', key, {
+              _id: key,
+              name: model.name,
+              exports: [model.name],
+              from: `../models/${model.name}.js`,
+              default: true
+            })
           }
-          await reqPut('dependency', key, {
-            _id: key,
-            name: model.name,
-            exports: [model.name],
-            from: `../models/${model.name}.js`,
-            default: true
-          })
         }
         await reqLink({
           parent: ['service', api.value.key],
