@@ -13,27 +13,43 @@ import { spawn, spawnSync } from 'child_process'
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
 
-function genAnnotation (node: {
-  title: string,
-  inputs: { type: string, remark: string, name: string }[],
-  outputs: { type: string, remark: string }[]
-}, indents: string): string {
-  return (node.inputs.length || node.outputs.length ? [
-    indents + `/** ${node.title}`,
-    node.inputs.map(input => indents + ` * @param {${input.type}} ${input.name} ${input.remark}`).join('\n'),
-    node.outputs.map(output => indents + ` * @returns {${output.type}} ${output.remark}`).join('\n'),
-    indents + '**/',
-  ] : [indents + `// ${node.title}`]).filter(line => line).join('\n')
+function genAnnotation(
+  node: {
+    title: string
+    inputs: { type: string; remark: string; name: string }[]
+    outputs: { type: string; remark: string }[]
+  },
+  indents: string
+): string {
+  return (
+    node.inputs.length || node.outputs.length
+      ? [
+          indents + `/** ${node.title}`,
+          node.inputs
+            .map(input => indents + ` * @param {${input.type}} ${input.name} ${input.remark}`)
+            .join('\n'),
+          node.outputs
+            .map(output => indents + ` * @returns {${output.type}} ${output.remark}`)
+            .join('\n'),
+          indents + '**/'
+        ]
+      : [indents + `// ${node.title}`]
+  )
+    .filter(line => line)
+    .join('\n')
 }
 
-async function toNext (node: { nexts: any[] }, indent: number, endKey?: string) {
+async function toNext(node: { nexts: any[] }, indent: number, endKey?: string) {
   return node.nexts.length ? await recuNode(node.nexts[0].id, indent, endKey) : []
 }
 
-function fmtCode (node: { code: string, inputs: any[], outputs: any[] }, indents?: string): string {
+function fmtCode(node: { code: string; inputs: any[]; outputs: any[] }, indents?: string): string {
   let ret = node.code
   if (typeof indents !== 'undefined') {
-    ret = ret.split('\n').map((line: string) => indents + line).join('\n')
+    ret = ret
+      .split('\n')
+      .map((line: string) => indents + line)
+      .join('\n')
   }
   for (const input of node.inputs) {
     ret = ret.replaceAll(new RegExp(`\\b${input.name}\\b`, 'g'), fmtInput(input))
@@ -44,86 +60,88 @@ function fmtCode (node: { code: string, inputs: any[], outputs: any[] }, indents
   return ret
 }
 
-function fmtInput (variable: {
-  name: string,
-  type: string,
-  value: any,
-  prop?: string,
-  index?: string,
+function fmtInput(variable: {
+  name: string
+  type: string
+  value: any
+  prop?: string
+  index?: string
   idxType?: string
 }): string {
   const value = variable.value || variable.name
   switch (variable.type) {
-  case 'String':
-    return `'${value}'`
-  case 'Array':
-    return `[${value}]`
-  case 'Object':
-    return `${value}${
-      variable.index ? (
-        variable.idxType === 'String'
-          ? '`' + variable.index + '`'
-          : variable.index
-      ) : ''
-    }.${variable.prop}`
-  case 'Number':
-  case 'Boolean':
-  default:
-    return value
+    case 'String':
+      return `'${value}'`
+    case 'Array':
+      return `[${value}]`
+    case 'Object':
+      return `${value}${
+        variable.index
+          ? variable.idxType === 'String'
+            ? '`' + variable.index + '`'
+            : variable.index
+          : ''
+      }.${variable.prop}`
+    case 'Number':
+    case 'Boolean':
+    default:
+      return value
   }
 }
 
-async function recuNode (key: string, indent: number, endKey?: string): Promise<string[]> {
+async function recuNode(key: string, indent: number, endKey?: string): Promise<string[]> {
   const node = await db.select(Node, { _index: key }, { ext: true })
   const indents = ''.padStart(indent, ' ')
   switch (node.type) {
-  case 'normal': {
-    return [[
-      genAnnotation(node, indents), fmtCode(node, indents)
-    ].join('\n')].concat(await toNext(node, indent, endKey))
-  }
-  case 'condition': {
-    const ret = [genAnnotation(node, indents)]
-    for (let i = 0; i < node.nexts.length; ++i) {
-      const nxtNode = await db.select(Node, { _index: node.nexts[i] }, { ext: true })
-      ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
-      if (nxtNode.nexts.length) {
-        ret.push(...await recuNode(nxtNode.nexts[0].id, indent + 2, node.relative))
+    case 'normal': {
+      return [[genAnnotation(node, indents), fmtCode(node, indents)].join('\n')].concat(
+        await toNext(node, indent, endKey)
+      )
+    }
+    case 'condition': {
+      const ret = [genAnnotation(node, indents)]
+      for (let i = 0; i < node.nexts.length; ++i) {
+        const nxtNode = await db.select(Node, { _index: node.nexts[i] }, { ext: true })
+        ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
+        if (nxtNode.nexts.length) {
+          ret.push(...(await recuNode(nxtNode.nexts[0].id, indent + 2, node.relative)))
+        }
+        if (i === node.nexts.length - 1) {
+          ret.push(indents + '}')
+        }
       }
-      if (i === node.nexts.length - 1) {
-        ret.push(indents + '}')
+      return ret.concat(await recuNode(node.relative, indent, endKey))
+    }
+    case 'traversal': {
+      if (!node.inputs.length) {
+        return ([] as string[]).concat(await toNext(node, indent, endKey))
       }
+      const input = node.inputs[0]
+      const ret = [
+        [
+          genAnnotation(node, indents),
+          indents + `for (const index in ${fmtInput(input)}) {`,
+          indents + `  const item = ${fmtInput(input)}[index]`
+        ].join('\n')
+      ]
+      if (node.nexts.length) {
+        ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
+      }
+      ret.push(indents + '}')
+      return ret.concat(await toNext(node, indent, endKey))
     }
-    return ret.concat(await recuNode(node.relative, indent, endKey))
-  }
-  case 'traversal': {
-    if (!node.inputs.length) {
-      return ([] as string[]).concat(await toNext(node, indent, endKey))
-    }
-    const input = node.inputs[0]
-    const ret = [[
-      genAnnotation(node, indents),
-      indents + `for (const index in ${fmtInput(input)}) {`,
-      indents + `  const item = ${fmtInput(input)}[index]`
-    ].join('\n')]
-    if (node.nexts.length) {
-      ret.push(...await recuNode(node.nexts[0].id, indent + 2, node.relative))
-    }
-    ret.push(indents + '}')
-    return ret.concat(await toNext(node, indent, endKey))
-  }
-  case 'endNode':
-    if (node.id === endKey || !node.nexts.length) {
+    case 'endNode':
+      if (node.id === endKey || !node.nexts.length) {
+        return []
+      } else {
+        return await recuNode(node.nexts[0].id, indent, endKey)
+      }
+    default:
       return []
-    } else {
-      return await recuNode(node.nexts[0].id, indent, endKey)
-    }
-  default:
-    return []
   }
 }
 
-export async function sync (pid: string): Promise<any> {
+export async function sync(pid: string): Promise<any> {
   console.log('从数据库获取项目实例……')
   const project = await db.select(Project, { _index: pid }, { ext: true })
   if (project.thread) {
@@ -207,6 +225,7 @@ export async function sync (pid: string): Promise<any> {
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
 
+    const services = {} as { [aname: string]: any[] }
     for (const api of apis) {
       const paramIdx = api.path.indexOf('/:')
       const pathPfx = api.path.substring(0, paramIdx === -1 ? api.path.length : paramIdx)
@@ -216,10 +235,18 @@ export async function sync (pid: string): Promise<any> {
       adjustFile(rotData, `${rotGen}/index.js`, { api })
 
       const apiExt = await db.select(Service, { _index: api._id }, { ext: true })
-      const svcGen = Path.join(svcPath, api.name + '.js')
+      apiExt.nodes = apiExt.flow ? await recuNode(apiExt.flow.key || apiExt.flow, 2) : []
+      if (!(api.name in services)) {
+        services[api.name] = [apiExt]
+      } else {
+        services[api.name].push(apiExt)
+      }
+    }
+
+    for (const [aname, apis] of Object.entries(services)) {
+      const svcGen = Path.join(svcPath, aname + '.js')
       console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-      const nodes = await recuNode(api.flow, 2)
-      adjustFile(svcData, svcGen, { api: apiExt, nodes })
+      adjustFile(svcData, svcGen, { apis })
     }
   }
 
@@ -232,7 +259,7 @@ export async function sync (pid: string): Promise<any> {
   return Promise.resolve(thread)
 }
 
-export async function run (pjt: string | { _id: string; name: string }): Promise<number> {
+export async function run(pjt: string | { _id: string; name: string }): Promise<number> {
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -244,28 +271,29 @@ export async function run (pjt: string | { _id: string; name: string }): Promise
     return Promise.resolve(-1)
   }
   try {
-    spawnSync([
-      `docker stop ${project.name}`,
-      'docker container prune -f'
-    ].join(' && '), {
+    spawnSync([`docker stop ${project.name}`, 'docker container prune -f'].join(' && '), {
       stdio: 'inherit',
-      shell: true,
+      shell: true
     })
   } catch (e) {
     console.log(`无运行中的${project.name}实例`)
   }
-  const childPcs = spawn([
-    `docker build -t ${project.name}:latest ${appPath}`,
-    'docker run --rm -itd ' + [
-      '--network server-package_default',
-      `-p 127.0.0.1:${project.port}:${project.port}`,
-      `--name ${project.name} ${project.name}`
-    ].join(' ')
-  ].join(' && '), {
-    stdio: 'inherit',
-    shell: true,
-    env: { ENV: '' } // 暂时不支持环境
-  }).on('error', err => {
+  const childPcs = spawn(
+    [
+      `docker build -t ${project.name}:latest ${appPath}`,
+      'docker run --rm -itd ' +
+        [
+          '--network server-package_default',
+          `-p 127.0.0.1:${project.port}:${project.port}`,
+          `--name ${project.name} ${project.name}`
+        ].join(' ')
+    ].join(' && '),
+    {
+      stdio: 'inherit',
+      shell: true,
+      env: { ENV: '' } // 暂时不支持环境
+    }
+  ).on('error', err => {
     console.log(err)
   })
   const thread = childPcs.pid
@@ -274,7 +302,7 @@ export async function run (pjt: string | { _id: string; name: string }): Promise
   return Promise.resolve(thread || 0)
 }
 
-async function adjAndRestartNginx (projects?: { name: string, port: number }[]): Promise<any> {
+async function adjAndRestartNginx(projects?: { name: string; port: number }[]): Promise<any> {
   if (process.env.ENV !== 'prod') {
     return Promise.resolve()
   }
@@ -288,27 +316,27 @@ async function adjAndRestartNginx (projects?: { name: string, port: number }[]):
 
   console.log('重启Nginx……')
   try {
-    spawnSync([
-      'docker stop nginx',
-      'docker container prune -f'
-    ].join(' && '), {
+    spawnSync(['docker stop nginx', 'docker container prune -f'].join(' && '), {
       stdio: 'inherit',
-      shell: true,
+      shell: true
     })
   } catch (e) {
     console.log('无运行中的Nginx实例')
   }
-  spawnSync([
-    'docker run --rm -itd --net host --name nginx nginx',
-    `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`,
-    'docker container restart nginx'
-  ].join(' && '), {
-    stdio: 'inherit',
-    shell: true,
-  })
+  spawnSync(
+    [
+      'docker run --rm -itd --net host --name nginx nginx',
+      `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`,
+      'docker container restart nginx'
+    ].join(' && '),
+    {
+      stdio: 'inherit',
+      shell: true
+    }
+  )
 }
 
-export async function runAll (): Promise<void> {
+export async function runAll(): Promise<void> {
   const projects = await db.select(Project)
   await adjAndRestartNginx(projects)
   projects.map((project: any) => {
@@ -318,7 +346,7 @@ export async function runAll (): Promise<void> {
   })
 }
 
-function adjustFile (
+function adjustFile(
   src: string | Buffer,
   dest?: string,
   args?: { [name: string]: any }
@@ -330,7 +358,7 @@ function adjustFile (
     src = fs.readFileSync(src)
   }
   const strData = src.toString()
-  const slotRegex = /(\/\*|\#\#).*\*\//mg
+  const slotRegex = /(\/\*|\#\#).*\*\//gm
   let resAry: RegExpExecArray | null = null
   const slots: [number, number][] = []
   while ((resAry = slotRegex.exec(strData)) !== null) {
@@ -342,7 +370,7 @@ function adjustFile (
     for (let i = 0; i < slots.length; ++i) {
       const slot = slots[i]
       let begIdx = slot[0]
-      if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === '\'\'') {
+      if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === "''") {
         begIdx -= 2
       } else if (slot[0] - 1 >= 0 && strData.substring(slot[0] - 1, slot[0]) === '0') {
         begIdx -= 1
@@ -362,7 +390,7 @@ function adjustFile (
   return dest ? fs.writeFileSync(dest, writeData) : writeData
 }
 
-export async function del (pid: string): Promise<any> {
+export async function del(pid: string): Promise<any> {
   const project = await db.select(Project, { _index: pid })
   if (project.thread) {
     await stop(project)
@@ -380,19 +408,19 @@ export async function del (pid: string): Promise<any> {
   return db.del(Project, { _index: pid })
 }
 
-export async function stop (pjt: string | { _id: string; thread: number }): Promise<any> {
+export async function stop(pjt: string | { _id: string; thread: number }): Promise<any> {
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
-  spawn([
-    `docker container stop ${project.name}`,
-    `docker container rm ${project.name}`
-  ].join(' && '), {
-    stdio: 'inherit',
-    shell: true
-  })
+  spawn(
+    [`docker container stop ${project.name}`, `docker container rm ${project.name}`].join(' && '),
+    {
+      stdio: 'inherit',
+      shell: true
+    }
+  )
   return db.save(Project, { thread: '' }, { _index: project._id }, { updMode: 'delete' })
 }
 
-export async function status (pid: string): Promise<any> {
+export async function status(pid: string): Promise<any> {
   const project = await db.select(Project, { _index: pid })
   if (!project.thread) {
     return Promise.resolve({
@@ -406,13 +434,16 @@ export async function status (pid: string): Promise<any> {
   }
 }
 
-export async function deploy (pid: string, cfg: {
-  gitURL: string
-  name: string
-  buildCmd: string
-  indexPath: string
-  assetsPath: string
-}): Promise<any> {
+export async function deploy(
+  pid: string,
+  cfg: {
+    gitURL: string
+    name: string
+    buildCmd: string
+    indexPath: string
+    assetsPath: string
+  }
+): Promise<any> {
   const project = await db.select(Project, { _index: pid })
   const genPath = Path.resolve(svrCfg.apps, project.name, 'temp')
   console.log(`生成页面缓存目录：${genPath}`)
@@ -423,23 +454,27 @@ export async function deploy (pid: string, cfg: {
   fs.mkdirSync(genPath, { recursive: true })
 
   console.log('开始部署……')
-  spawn([
-    `git clone ${cfg.gitURL} && cd *`,
-    'npm config set registry http://registry.npm.taobao.org',
-    'npm install --unsafe-perm=true --allow-root',
-    cfg.buildCmd,
-    `docker container cp ${cfg.indexPath} ${project.name}:/app/views/index.html`,
-    `docker container cp ${cfg.assetsPath} ${project.name}:/app/public/${project.name}/`
-  ].join(' && '), {
-    cwd: genPath,
-    stdio: 'inherit',
-    shell: true
-  })
+  spawn(
+    [
+      `git clone ${cfg.gitURL} && cd *`,
+      'npm config set registry http://registry.npm.taobao.org',
+      'npm install --unsafe-perm=true --allow-root',
+      cfg.buildCmd,
+      `docker container cp ${cfg.indexPath} ${project.name}:/app/views/index.html`,
+      `docker container cp ${cfg.assetsPath} ${project.name}:/app/public/${project.name}/`
+    ].join(' && '),
+    {
+      cwd: genPath,
+      stdio: 'inherit',
+      shell: true
+    }
+  )
 }
 
-export async function transfer (info: {
-  pid: string, name?: string,
-  files: { src: string, dest: string }[]
+export async function transfer(info: {
+  pid: string
+  name?: string
+  files: { src: string; dest: string }[]
 }) {
   if (!info.name) {
     const project = await db.select(Project, { _index: info.pid })
@@ -450,7 +485,7 @@ export async function transfer (info: {
   }
   const rootPath = `${info.name}:/app`
   console.log('开始传输文件……')
-  const cmds = info.files.map((file: { src: string, dest: string }) => {
+  const cmds = info.files.map((file: { src: string; dest: string }) => {
     console.log(`复制文件：${file.src} -> ${rootPath}${file.dest}`)
     const dir = Path.parse(`/app${file.dest}`).dir
     return [

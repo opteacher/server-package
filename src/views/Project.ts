@@ -133,7 +133,12 @@ export const ApiMapper = new Mapper({
     type: 'Input',
     disabled: [
       Cond.copy({ key: 'isModel', cmp: '==', val: true })
-    ]
+    ],
+    onChange: (api: Service, path: string) => {
+      if (!path.startsWith('/')) {
+        api.path = `/${path}`
+      }
+    }
   },
   bind: {},
   flow: {}
