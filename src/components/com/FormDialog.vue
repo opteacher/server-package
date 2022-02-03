@@ -241,7 +241,10 @@
                 :data-source="value.options"
                 size="small"
                 bordered
-                :style="{ 'max-height': 200 }"
+                :style="{
+                  'max-height': '200px',
+                  'overflow-y': 'auto'
+                }"
               >
                 <template #renderItem="{ item: option }">
                   <a-list-item>

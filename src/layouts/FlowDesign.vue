@@ -3,7 +3,7 @@
     <a-page-header
       style="border: 1px solid rgb(235, 237, 240)"
       :title="api.method"
-      :sub-title="`/${project.name}${api.path}`"
+      :sub-title="`/${pjt.name}${api.path}`"
       @back="() => router.go(-1)"
     >
       <template #extra>
@@ -32,8 +32,8 @@ import { useStore } from 'vuex'
 import { SettingOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ApiMapper } from '../views/Flow'
-import { Service, Node, Project } from '@/common'
-import { reqGet, reqLink, reqPut } from '@/utils'
+import { Service, Node, Project, Dependency, Model } from '@/common'
+import { reqGet, reqLink, reqPost, reqPut } from '@/utils'
 
 export default defineComponent({
   name: 'FlowDesign',
@@ -43,14 +43,11 @@ export default defineComponent({
   },
   setup() {
     const store = useStore()
-    const route = useRoute()
     const router = useRouter()
     const api = computed(() => store.getters['service/ins'])
-    const project = reactive(new Project())
+    const pjt = computed(() => store.getters['service/pjt'])
 
-    onMounted(async () => {
-      Project.copy((await reqGet('project', route.params.pid)).data, project)
-    })
+    onMounted(() => store.dispatch('service/refresh'))
 
     async function onConfig(rtForm: any) {
       await reqPut('service', api.value.key, rtForm, { ignores: ['flow', 'deps'] })
@@ -62,6 +59,19 @@ export default defineComponent({
         false
       )
       for (const { key } of rtForm.deps) {
+        if (!store.getters['service/deps'].map((dep: Dependency) => dep.key).includes(key)) {
+          const model = (pjt.value as Project).models.find((mdl: Model) => mdl.key === key)
+          if (!model) {
+            continue
+          }
+          await reqPut('dependency', key, {
+            _id: key,
+            name: model.name,
+            exports: [model.name],
+            from: `../models/${model.name}.js`,
+            default: true
+          })
+        }
         await reqLink({
           parent: ['service', api.value.key],
           child: ['deps', key]
@@ -74,7 +84,7 @@ export default defineComponent({
       Service,
 
       router,
-      project,
+      pjt,
       api,
       ApiMapper,
 

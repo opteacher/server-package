@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "name": "mongo",
+      "dbs": ["test"],
+      "host": "127.0.0.1",
+      "port": 27017,
+      "username": "root",
+      "password": "12345"
+    },
+    {
+      "name": "mysql",
+      "dbs": ["population-statistics"],
+      "host": "mysql",
+      "port": 3306,
+      "username": "root",
+      "password": "12345"
+    }
+  ]
+}

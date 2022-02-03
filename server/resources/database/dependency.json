@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "name": "DbModule",
+      "exports": ["db"],
+      "from": "../utils/index.js",
+      "default": false
+    },
+    {
+      "name": "Crypto",
+      "exports": ["crypto"],
+      "from": "crypto",
+      "default": true
+    },
+    {
+      "name": "JsonWebToken",
+      "exports": ["jwt"],
+      "from": "jsonwebtoken",
+      "default": true
+    },
+    {
+      "name": "UUID",
+      "exports": ["v4"],
+      "from": "uuid",
+      "default": false
+    },
+    {
+      "name": "WebModule",
+      "exports": ["params", "query", "body"],
+      "default": false
+    }
+  ]
+}

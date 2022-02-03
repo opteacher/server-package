@@ -13,7 +13,8 @@ import {
   Project,
   Dependency,
   OpnType,
-  LstOpnType
+  LstOpnType,
+  Model
 } from '@/common'
 import {
   reqDelete,
@@ -35,6 +36,7 @@ import { reactive } from 'vue'
 type NodesInPnl = { [key: string]: NodeInPnl }
 type Nodes = { [key: string]: Node }
 type SvcState = {
+  pjt: Project
   api: Service
   nodes: NodesInPnl
   width: number
@@ -77,16 +79,26 @@ function getPrevious(state: { nodes: NodesInPnl }, node: Node): Node {
   return (typeof node.previous === 'string' ? state.nodes[node.previous] : node.previous) as Node
 }
 
-function getLocVars(state: SvcState, nd: string | Node | null): Variable[] {
+function scanLocVars(state: SvcState, nd: string | Node | null): Variable[] {
   if (!nd || !getKey(nd) || !(getKey(nd) in state.nodes)) {
     return []
   }
   const node = state.nodes[getKey(nd)]
   const ret = [] as Variable[]
   if (node.previous) {
-    ret.push(...getLocVars(state, node.previous))
+    ret.push(...scanLocVars(state, node.previous))
   }
   return ret.concat(node.outputs)
+}
+
+function getLocVars(state: SvcState): Variable[] {
+  return state.api.deps
+    .map((dep: Dependency) => dep.exports)
+    .flat()
+    .map((exp: string, idx: number) =>
+      Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
+    )
+    .concat(scanLocVars(state, state.node.previous))
 }
 
 async function newDep(dep: any): Promise<Dependency> {
@@ -125,6 +137,7 @@ export default {
   namespaced: true,
   state: () =>
     ({
+      pjt: new Project(),
       api: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
@@ -185,17 +198,12 @@ export default {
       }
       EditNodeMapper.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
       if (EditNodeMapper.inputs.mapper) {
-        EditNodeMapper.inputs.mapper['value'].options = state.api.deps
-          .map((dep: Dependency) => dep.exports)
-          .flat()
-          .map((exp: string, idx: number) =>
-            Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
-          )
-          .concat(getLocVars(state, state.node.previous))
-          .map((locVar: Variable) => ({
+        EditNodeMapper.inputs.mapper['value'].options = getLocVars(state).map(
+          (locVar: Variable) => ({
             label: locVar.name,
             value: locVar.name
-          }))
+          })
+        )
       }
       EditNodeMapper.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
@@ -217,25 +225,13 @@ export default {
       state.tempVsb = typeof payload !== 'undefined' ? payload : false
     },
     UPD_EDT_LOCVARS(state: SvcState) {
-      state.locVars = state.api.deps
-        .map((dep: Dependency) => dep.exports)
-        .flat()
-        .map((exp: string, idx: number) =>
-          Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
-        )
-        .concat(getLocVars(state, state.node.previous))
+      state.locVars = getLocVars(state)
     },
     UPDATE_LOCVARS(state: SvcState, payload?: Node) {
       if (!payload) {
         state.locVars = []
       } else {
-        state.locVars = state.api.deps
-          .map((dep: Dependency) => dep.exports)
-          .flat()
-          .map((exp: string, idx: number) =>
-            Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
-          )
-          .concat(getLocVars(state, payload.previous))
+        state.locVars = getLocVars(state)
       }
     },
     RESET_STATE(state: SvcState) {
@@ -255,38 +251,12 @@ export default {
       if (typeof force === 'undefined') {
         force = true
       }
-      // @_@: 应为表单选择添加依赖
-      if (!('WebModule' in state.deps) || !('DbModule' in state.deps)) {
-        state.deps['WebModule'] = await newDep({
-          name: 'WebModule',
-          exports: ['params', 'query', 'body'],
-          default: false
-        })
-        state.deps['DbModule'] = await newDep({
-          name: 'DbModule',
-          exports: ['db'],
-          from: '../utils/index.js',
-          default: false
-        })
-        state.deps['Crypto'] = await newDep({
-          name: 'Crypto',
-          exports: ['crypto'],
-          from: 'crypto',
-          default: true
-        })
-        state.deps['JsonWebToken'] = await newDep({
-          name: 'JsonWebToken',
-          exports: ['jwt'],
-          from: 'jsonwebtoken',
-          default: true
-        })
-        state.deps['UUID'] = await newDep({
-          name: 'UUID',
-          exports: ['v4'],
-          from: 'uuid',
-          default: false
-        })
-      }
+
+      const pid = router.currentRoute.value.params.pid
+      Project.copy((await reqGet('project', pid)).data, state.pjt)
+      ApiMapper['path'].prefix = `/${state.pjt.name}`
+
+      await dispatch('rfshDpdcs')
       ApiMapper['deps'].options = Object.values(state.deps).map((dep: Dependency) =>
         LstOpnType.copy({
           key: dep.key,
@@ -298,9 +268,7 @@ export default {
           ].join('')
         })
       )
-      const pid = router.currentRoute.value.params.pid
-      const project = Project.copy((await reqGet('project', pid)).data)
-      ApiMapper['path'].prefix = `/${project.name}`
+
       Service.copy((await reqGet('service', aid)).data, state.api)
       if (state && state.api.flow) {
         const rootKey = state.api.flow.key
@@ -899,10 +867,27 @@ export default {
             }))
           : []
       }))
+    },
+    async rfshDpdcs({ state }: { state: SvcState }) {
+      state.deps = Object.fromEntries(
+        (await reqGet('dependencys')).data
+          .map((dep: any) => Dependency.copy(dep))
+          .concat(state.pjt.models.map((mdl: Model) => {
+            return Dependency.copy({
+              key: mdl.key,
+              name: mdl.name,
+              exports: [mdl.name],
+              from: `../models/${mdl.name}.js`,
+              default: true,
+            })
+          }))
+          .map((dep: Dependency) => [dep.key, dep])
+      )
     }
   },
   getters: {
     ins: (state: SvcState): Service => state.api,
+    pjt: (state: SvcState): Project => state.pjt,
     nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes).filter(([_key, node]) => !node.isTemp))
     },
