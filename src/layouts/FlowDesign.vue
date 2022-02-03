@@ -19,6 +19,10 @@
           @update:show="show => $store.commit('service/SET_API_VSB', show)"
           @submit="onConfig"
         />
+        <a-button @click="$store.commit('service/refresh')">
+          <ReloadOutlined />
+          &nbsp;刷新
+        </a-button>
       </template>
     </a-page-header>
     <slot />
@@ -26,20 +30,21 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, defineComponent, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { SettingOutlined } from '@ant-design/icons-vue'
+import { SettingOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ApiMapper } from '../views/Flow'
 import { Service, Node, Project, Dependency, Model } from '@/common'
-import { reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import { reqLink, reqPut } from '@/utils'
 
 export default defineComponent({
   name: 'FlowDesign',
   components: {
     FormDialog,
-    SettingOutlined
+    SettingOutlined,
+    ReloadOutlined
   },
   setup() {
     const store = useStore()

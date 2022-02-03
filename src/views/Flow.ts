@@ -10,7 +10,8 @@ import {
   baseTypes,
   Node,
   NodeTypeMapper,
-  routeMethods
+  routeMethods,
+  Service
 } from '../common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
@@ -207,6 +208,7 @@ export const EditNodeMapper = new Mapper({
     dsKey: '',
     copy: Variable.copy,
     onSaved: async (output: Variable) => {
+      output.type = 'Object'
       await store.dispatch('service/saveInOutput', {
         name: 'output',
         edited: output
@@ -290,7 +292,12 @@ export const ApiMapper = new Mapper({
   path: {
     label: '路由',
     type: 'Input',
-    prefix: ''
+    prefix: '',
+    onChange: (api: Service, path: string) => {
+      if (!path.startsWith('/')) {
+        api.path = `/${path}`
+      }
+    }
   },
   method: {
     label: '访问方式',
