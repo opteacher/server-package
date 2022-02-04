@@ -1,22 +1,36 @@
-import { baseTypes, Column, Deploy, Mapper, Service, routeMethods, Transfer, Cond } from '@/common'
+import {
+  baseTypes,
+  Column,
+  Deploy,
+  Mapper,
+  Service,
+  routeMethods,
+  Transfer,
+  Cond,
+  emitTypeOpns
+} from '@/common'
 import { Modal } from 'ant-design-vue'
-import { createVNode } from 'vue'
+import { createVNode, nextTick } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
-export function onSync () {
+export function onSync() {
   Modal.confirm({
     title: '确定同步项目到服务器？',
     icon: createVNode(ExclamationCircleOutlined),
-    content: createVNode('div', {
-      style: 'color:red;'
-    }, '同步过程中，该项目已有的API将暂时停用！'),
-    onOk: () => store.dispatch('project/sync'),
+    content: createVNode(
+      'div',
+      {
+        style: 'color:red;'
+      },
+      '同步过程中，该项目已有的API将暂时停用！'
+    ),
+    onOk: () => store.dispatch('project/sync')
   })
 }
 
-export function onStop () {
+export function onStop() {
   Modal.confirm({
     title: '是否停止项目？',
     icon: createVNode(ExclamationCircleOutlined),
@@ -27,6 +41,8 @@ export function onStop () {
     onOk: () => store.dispatch('project/stop')
   })
 }
+
+export const modelEmitter = new Emitter()
 
 export const ModelColumns = [
   new Column('模型名', 'name'),
@@ -54,6 +70,8 @@ export const ModelMapper = new Mapper({
   }
 })
 
+export const propEmitter = new Emitter()
+
 export const PropColumns = [
   new Column('字段名', 'name'),
   new Column('标签', 'label'),
@@ -79,7 +97,8 @@ export const PropMapper = new Mapper({
     label: '字段类型',
     type: 'Select',
     options: baseTypes.map(bsTyp => ({
-      label: bsTyp, value: bsTyp
+      label: bsTyp,
+      value: bsTyp
     })),
     rules: [{ type: 'array', required: true, message: '请选择字段类型！', trigger: 'change' }]
   },
@@ -98,64 +117,127 @@ export const PropMapper = new Mapper({
   remark: {
     label: '备注',
     type: 'Input'
-  },
+  }
 })
 
+export const apiEmitter = new Emitter()
+
 export const ApiColumns = [
+  new Column('激活方式', 'emit'),
   new Column('模型路由', 'isModel'),
   new Column('访问方式', 'method'),
   new Column('路径（带项目名前缀）', 'path'),
-  new Column('服务/接口', 'bind'),
+  new Column('服务', 'name'),
+  new Column('接口', 'interface'),
+  new Column('任务参数', 'emitCond'),
   new Column('流程', 'flow')
 ]
 
 export const ApiMapper = new Mapper({
+  emit: {
+    type: 'Select',
+    options: emitTypeOpns,
+    onChange: (api: Service, to: string) => {
+      ApiMapper['jobCond'].display = to === 'timeout' || to === 'interval'
+      apiEmitter.emit('update:mapper', ApiMapper)
+    }
+  },
   isModel: {
     type: 'Switch',
     onChange: (api: Service, to: boolean) => {
       if (to) {
         api.path = genMdlPath(api)
       }
-    }
+    },
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
   },
   method: {
     type: 'Select',
     options: routeMethods.map(mthd => ({
-      label: mthd, value: mthd
+      label: mthd,
+      value: mthd
     })),
     onChange: (api: Service) => {
       if (api.isModel) {
         api.path = genMdlPath(api)
       }
-    }
+    },
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
   },
   path: {
     type: 'Input',
-    disabled: [
-      Cond.copy({ key: 'isModel', cmp: '==', val: true })
-    ],
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
     onChange: (api: Service, path: string) => {
       if (!path.startsWith('/')) {
         api.path = `/${path}`
       }
     }
   },
-  bind: {},
+  emitCond: {
+    display: {
+      OR: [
+        Cond.copy({ key: 'emit', cmp: '==', val: 'timeout' }),
+        Cond.copy({ key: 'emit', cmp: '==', val: 'interval' })
+      ]
+    }
+  },
+  name: {
+    type: 'SelOrIpt'
+  },
+  interface: {
+    type: 'Input'
+  },
   flow: {}
 })
 
-export function genMdlPath (api: Service): string {
+export const timeUnit = [
+  {
+    label: '毫秒',
+    value: 'ms'
+  },
+  {
+    label: '秒',
+    value: 's'
+  },
+  {
+    label: '分钟',
+    value: 'm'
+  },
+  {
+    label: '小时',
+    value: 'h'
+  },
+  {
+    label: '天',
+    value: 'D'
+  },
+  {
+    label: '周',
+    value: 'W'
+  },
+  {
+    label: '月',
+    value: 'M'
+  },
+  {
+    label: '年',
+    value: 'Y'
+  }
+]
+
+export function genMdlPath(api: Service): string {
   switch (api.method) {
-  case 'POST':
-    return `/mdl/v1/${api.model}`
-  case 'DELETE':
-  case 'PUT':
-  case 'GET':
-    return `/mdl/v1/${api.model}/:index`
-  case 'ALL':
-    return `/mdl/v1/${api.model}s`
-  default:
-    return ''
+    case 'POST':
+      return `/mdl/v1/${api.model}`
+    case 'DELETE':
+    case 'PUT':
+    case 'GET':
+      return `/mdl/v1/${api.model}/:index`
+    case 'ALL':
+      return `/mdl/v1/${api.model}s`
+    default:
+      return ''
   }
 }
 
@@ -163,7 +245,7 @@ export class DeployForm {
   show: boolean
   mapper: Mapper
 
-  constructor () {
+  constructor() {
     this.show = false
     this.mapper = new Mapper({
       gitURL: {
@@ -208,7 +290,7 @@ export class TransferForm {
   emitter: Emitter
   mapper: Mapper
 
-  constructor () {
+  constructor() {
     this.show = false
     this.emitter = new Emitter()
     this.mapper = new Mapper({

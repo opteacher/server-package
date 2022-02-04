@@ -14,18 +14,19 @@
       :size="size"
       style="overflow-y: hidden"
       v-model:expandedRowKeys="expRowKeys"
-      :custom-row="record => ({ onClick: () => onRowExpand(record) })"
-      @expand="(expanded, record) => onRowExpand(record)"
+      :custom-row="(record: any) => ({ onClick: () => onRowExpand(record) })"
+      @expand="(_expanded: boolean, record: any) => onRowExpand(record)"
     >
-      <template v-for="(value, key) in mapper" :key="key" #[key]="{ text, record }">
-        <template v-if="value.type === 'Input'">
+      <template v-for="(value, key) in editMapper" :key="key" #[key]="{ text, record }">
+        <template v-if="record.key === editing.key && !validConds(value.display)">-</template>
+        <template v-else-if="value.type === 'Input'">
           <a-input
             v-if="record.key === editing.key"
             v-model:value="editing[key]"
             :placeholder="`输入${value.label}`"
             :addon-before="value.prefix"
             :disabled="validConds(value.disabled)"
-            @change="e => value.onChange(editing, e.target.value)"
+            @change="(e: any) => value.onChange(editing, e.target.value)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
@@ -40,12 +41,14 @@
             v-model:value="editing[key]"
             :placeholder="`选择${value.label}`"
             :disabled="validConds(value.disabled)"
-            @change="opn => value.onChange(editing, opn, editing[key], emitter)"
+            @change="(opn: any) => value.onChange(editing, opn, editing[key], emitter)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
           </template>
-          <template v-else>{{ text || '-' }}</template>
+          <template v-else>
+            {{ text ? value.options.find((opn: any) => opn.value === text).label : '-' }}
+          </template>
         </template>
         <template v-else-if="value.type === 'Checkbox'">
           <a-checkbox-group
@@ -53,7 +56,7 @@
             v-model="editing[key]"
             :options="value.options"
             :disabled="validConds(value.disabled)"
-            @change="val => value.onChange(editing, val.target.checked)"
+            @change="(val: any) => value.onChange(editing, val.target.checked)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
@@ -65,7 +68,7 @@
             v-if="record.key === editing.key"
             v-model:checked="editing[key]"
             :disabled="validConds(value.disabled)"
-            @change="val => value.onChange(editing, val.target.checked)"
+            @change="(val: any) => value.onChange(editing, val.target.checked)"
           >
             {{
               editing[key]
@@ -99,7 +102,7 @@
             :options="value.options"
             :placeholder="`选择${value.label}`"
             :disabled="validConds(value.disabled)"
-            @change="val => value.onChange(editing, val)"
+            @change="(val: any) => value.onChange(editing, val)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
@@ -108,8 +111,44 @@
             {{ text || '-' }}
           </template>
         </template>
+        <template v-else-if="value.type === 'SelOrIpt'">
+          <a-row v-if="record.key === editing.key" type="flex">
+            <a-col flex="auto">
+              <a-select
+                v-if="value.mode === 'select'"
+                style="width: 98%"
+                :options="value.options"
+                v-model:value="editing[key]"
+              />
+              <a-input v-else style="width: 98%" v-model:value="editing[key]" />
+            </a-col>
+            <a-col flex="32px">
+              <a-button
+                @click="
+                  () => {
+                    value.mode = value.mode === 'select' ? 'input' : 'select'
+                  }
+                "
+              >
+                <template #icon>
+                  <SelectOutlined v-if="value.mode === 'select'" />
+                  <EditOutlined v-else />
+                </template>
+              </a-button>
+            </a-col>
+          </a-row>
+          <template v-else-if="$slots[key]">
+            <slot :name="key" v-bind="{ record }" />
+          </template>
+          <template v-else>
+            {{ text || '-' }}
+          </template>
+        </template>
         <template v-else>
-          <template v-if="$slots[key]">
+          <template v-if="record.key === editing.key && $slots[`${key}Edit`]">
+            <slot :name="`${key}Edit`" v-bind="{ editing }" />
+          </template>
+          <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
           </template>
           <template v-else>
@@ -151,7 +190,7 @@
 <script lang="ts">
 import { Cond, Mapper } from '@/common'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import { InfoCircleOutlined, SelectOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { getProperty } from '@/utils'
@@ -160,7 +199,9 @@ export default defineComponent({
   name: 'edtableTable',
   emits: ['add', 'edit', 'save', 'delete'],
   components: {
-    InfoCircleOutlined
+    InfoCircleOutlined,
+    SelectOutlined,
+    EditOutlined
   },
   props: {
     dsKey: { type: String, required: true },
@@ -187,7 +228,8 @@ export default defineComponent({
             width: 80
           })
         : props.columns
-    const records = ref([] as any[])
+    const editMapper = reactive(props.mapper)
+    const records = ref([] as unknown[])
     const dataSrc = computed(() => {
       return (editing.key === '' ? [editing] : []).concat(records.value)
     })
@@ -201,6 +243,9 @@ export default defineComponent({
     )
     if (props.emitter) {
       props.emitter.on('refresh', () => refresh())
+      props.emitter.on('update:mapper', (mapper: any) => {
+        Mapper.copy(mapper, editMapper)
+      })
     }
 
     function getData() {
@@ -210,7 +255,7 @@ export default defineComponent({
       const data = getProperty(store.getters, props.dsKey)
       return data || []
     }
-    function refresh(data?: any[]) {
+    function refresh(data?: unknown[]) {
       if (typeof data !== 'undefined') {
         records.value = data
       } else {
@@ -231,25 +276,22 @@ export default defineComponent({
     function onCclClicked() {
       refresh()
     }
-    function onEditClicked(record: any) {
+    function onEditClicked(record: unknown) {
       props.copy(record, editing)
       emit('edit')
     }
-    function onDelSubmit(key: any) {
+    function onDelSubmit(key: unknown) {
       emit('delete', key, refresh)
     }
     function hasExpand() {
-      for (const [_key, value] of Object.entries(props.mapper)) {
+      for (const [_key, value] of Object.entries(editMapper)) {
         if (value.expanded) {
           return true
         }
       }
       return false
     }
-    function validConds(
-      value: boolean | Cond[] | { [cmpRel: string]: Cond[] },
-      dftVal = false
-    ): boolean {
+    function validConds(value: boolean | Cond[] | { [cmpRel: string]: Cond[] }): boolean {
       if (typeof value === 'boolean') {
         return value as boolean
       } else if (value && value.length) {
@@ -257,7 +299,7 @@ export default defineComponent({
           .map((cond: Cond) => cond.isValid(editing))
           .reduce((a: boolean, b: boolean) => a && b)
       } else {
-        let ret = dftVal
+        let ret = 'OR' in value ? true : false
         for (const [cmpRel, conds] of Object.entries(value)) {
           ret =
             ret &&
@@ -276,7 +318,7 @@ export default defineComponent({
         return ret
       }
     }
-    function onRowExpand(record: any) {
+    function onRowExpand(record: { key: string }) {
       if (expRowKeys.includes(record.key)) {
         expRowKeys.splice(expRowKeys.indexOf(record.key), 1)
       } else {
@@ -285,6 +327,7 @@ export default defineComponent({
     }
     return {
       cols,
+      editMapper,
       dataSrc,
       expRowKeys,
       editing,

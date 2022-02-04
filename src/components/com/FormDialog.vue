@@ -19,7 +19,7 @@
       :wrapper-col="{ span: column[1] }"
     >
       <template v-for="(value, key) in formMapper" :key="key">
-        <a-form-item v-show="validConds(value.display, true)" :ref="key" :name="key">
+        <a-form-item v-show="validConds(value.display)" :ref="key" :name="key">
           <template #label>
             {{ value.label }}&nbsp;
             <a-tooltip v-if="value.desc">
@@ -73,14 +73,14 @@
               :disabled="validConds(value.disabled) || !editable"
               :addon-before="value.prefix"
               :addon-after="value.suffix"
-              @change="e => value.onChange(formState, e.target.value)"
+              @change="(e: any) => value.onChange(formState, e.target.value)"
             />
             <a-input-number
               v-else-if="value.type === 'Number'"
               class="w-100"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             />
             <a-select
               v-else-if="value.type === 'Select'"
@@ -88,14 +88,14 @@
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             />
             <a-checkbox
               v-else-if="value.type === 'Checkbox'"
               :name="key"
               v-model:checked="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             >
               {{
                 formState[key]
@@ -112,14 +112,14 @@
               v-model:value="formState[key]"
               :rows="value.maxRows"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             />
             <a-cascader
               v-else-if="value.type === 'Cascader'"
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="e => value.onChange(formState, e)"
+              @change="(e: any) => value.onChange(formState, e)"
             />
             <a-button
               v-else-if="value.type === 'Button'"
@@ -169,7 +169,7 @@
                 :pagination="false"
                 size="small"
                 :custom-row="
-                  record => ({
+                  (record: any) => ({
                     onClick: () => {
                       value.emitter.emit('viewOnly', true)
                       value.show = true
@@ -199,7 +199,7 @@
                     :showUploadList="false"
                     v-model:file-list="formState[key]"
                     action="/server-package/api/v1/temp/file"
-                    @change="info => value.onChange(formState, info)"
+                    @change="(info: any) => value.onChange(formState, info)"
                   >
                     <a-menu @click="onUploadClicked">
                       <a-menu-item key="file">
@@ -284,8 +284,8 @@
                     </a-list-item-meta>
                     <template #actions>
                       <a-checkbox
-                        :checked="formState[key].map(itm => itm.key).includes(option.key)"
-                        @change="e => onLstSelChecked(e.target.checked, key, option.key)"
+                        :checked="formState[key].map((itm: any) => itm.key).includes(option.key)"
+                        @change="(e: any) => onLstSelChecked(e.target.checked, key as string, option.key)"
                       />
                     </template>
                   </a-list-item>
@@ -377,10 +377,7 @@ export default defineComponent({
       }
     )
 
-    function validConds(
-      value: boolean | Cond[] | { [cmpRel: string]: Cond[] },
-      dftVal = false
-    ): boolean {
+    function validConds(value: boolean | Cond[] | { [cmpRel: string]: Cond[] }): boolean {
       if (typeof value === 'boolean') {
         return value as boolean
       } else if (value && value.length) {
@@ -388,7 +385,7 @@ export default defineComponent({
           .map((cond: Cond) => cond.isValid(formState))
           .reduce((a: boolean, b: boolean) => a && b)
       } else {
-        let ret = dftVal
+        let ret = 'OR' in value ? true : false
         for (const [cmpRel, conds] of Object.entries(value)) {
           ret =
             ret &&
