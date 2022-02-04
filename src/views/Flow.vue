@@ -4,11 +4,7 @@
       <DepsPanel />
       <VarsPanel />
       <TmpNdPanel />
-      <NodeCard
-        v-if="Object.values(nodes).length === 0"
-        :first="true"
-        @click:addBtn="onAddBtnClicked"
-      />
+      <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
       <template v-else>
         <NodeCard
           v-for="node in Object.values(nodes)"
@@ -115,10 +111,10 @@ export default defineComponent({
       rszObs.observe(panelRef.value)
     })
 
-    function onAddBtnClicked(previous: Node) {
+    function onAddBtnClicked(pvsKey: string) {
       node.value.reset()
       store.commit('service/SET_NODE', {
-        node: previous ? { previous } : undefined
+        node: pvsKey ? { previous: pvsKey } : undefined
       })
     }
     return {

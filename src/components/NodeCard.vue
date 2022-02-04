@@ -23,7 +23,7 @@
     </template>
   </svg>
   <a-card
-    v-if="!first"
+    v-if="ndKey"
     :id="ndKey"
     size="small"
     ref="nodeRef"
@@ -116,12 +116,12 @@
       left: `${addBtnPosLT[0]}px`,
       top: `${addBtnPosLT[1]}px`
     }"
-    @click="$emit('click:addBtn', node)"
+    @click="$emit('click:addBtn', node.key)"
   >
     <template #icon><PlusOutlined /></template>
   </a-button>
   <svg
-    v-if="!first"
+    v-if="ndKey"
     :style="{
       position: 'absolute',
       'z-index': -100,
@@ -179,8 +179,7 @@ export default defineComponent({
     RightOutlined
   },
   props: {
-    ndKey: { type: String, default: '' },
-    first: { type: Boolean, default: false }
+    ndKey: { type: String, default: '' }
   },
   setup(props) {
     const store = useStore()
@@ -195,10 +194,14 @@ export default defineComponent({
           })
     )
     const title = computed(() => `# ${NodeTypeMapper[node.type as NodeType]} - ${node.title}`)
-    const addBtnPosLT = computed(() => [
-      node.posLT[0] + CardHlfWid - AddBtnHlfWH,
-      node.posLT[1] + node.size[1] + ArrowHlfHgt - AddBtnHlfWH
-    ])
+    const addBtnPosLT = computed(() =>
+      props.ndKey
+        ? [
+            node.posLT[0] + CardHlfWid - AddBtnHlfWH,
+            node.posLT[1] + node.size[1] + ArrowHlfHgt - AddBtnHlfWH
+          ]
+        : [(store.getters['service/width'] >> 1) - AddBtnHlfWH, 0]
+    )
     const arwBtmSvgPosLT = computed(() => [
       node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
       node.posLT[1] + node.size[1]
