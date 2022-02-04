@@ -114,16 +114,19 @@ export class BaseMapper extends StrIterable {
 
 export class InputMapper extends BaseMapper {
   prefix: string
+  suffix: string
 
   constructor() {
     super()
     this.prefix = ''
+    this.suffix = ''
   }
 
   static copy(src: any, tgt?: InputMapper): InputMapper {
     tgt = tgt || new InputMapper()
     BaseMapper.copy(src, tgt)
     tgt.prefix = src.prefix || tgt.prefix
+    tgt.suffix = src.suffix || tgt.suffix
     return tgt
   }
 }
@@ -502,7 +505,16 @@ export class Field {
   }
 }
 
-export const baseTypes = ['Id', 'String', 'Number', 'DateTime', 'Boolean', 'Array', 'Object']
+export const baseTypes = [
+  'Unknown',
+  'String',
+  'Number',
+  'DateTime',
+  'Boolean',
+  'Array',
+  'Object',
+  'Any'
+]
 
 export class Property {
   key: string
@@ -607,7 +619,15 @@ export class Model {
 
 export const routeMethods = ['POST', 'PUT', 'DELETE', 'GET']
 
-export type BaseTypes = 'Unknown' | 'Number' | 'String' | 'Boolean' | 'Array' | 'Object'
+export type BaseTypes =
+  | 'Unknown'
+  | 'Number'
+  | 'String'
+  | 'Boolean'
+  | 'DateTime'
+  | 'Array'
+  | 'Object'
+  | 'Any'
 export class Variable {
   key: string
   name: string
@@ -681,8 +701,8 @@ export class Node extends StrIterable {
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   code: string
-  previous: Node | string | null
-  nexts: (Node | string)[]
+  previous: string | null
+  nexts: string[]
   relative: string
   temp: string[]
 
@@ -719,7 +739,7 @@ export class Node extends StrIterable {
     this.temp = []
   }
 
-  static copy(src: any, tgt?: Node, recu = true): Node {
+  static copy(src: any, tgt?: Node): Node {
     tgt = tgt || new Node()
     tgt.key = src.key || src._id || tgt.key
     tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : tgt.isTemp
@@ -735,18 +755,9 @@ export class Node extends StrIterable {
     }
     tgt.code = src.code || tgt.code
     if (src.previous) {
-      tgt.previous = recu ? Node.copy(src.previous, undefined, false) : src.previous.key
+      tgt.previous = src.previous.key || src.previous._id || src.previous
     }
-    if (typeof src.nexts !== 'undefined') {
-      tgt.nexts = []
-      for (const nxt of src.nexts) {
-        if (typeof nxt === 'string') {
-          tgt.nexts.push(nxt)
-        } else {
-          tgt.nexts.push(recu ? Node.copy(nxt, undefined, false) : nxt.key)
-        }
-      }
-    }
+    tgt.nexts = (src.nexts && src.nexts.length) ? src.nexts.map((nxt: any) => nxt.key || nxt._id || nxt) : tgt.nexts
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
     return tgt
@@ -763,10 +774,32 @@ export const AddBtnHlfWH = AddBtnWH >> 1
 export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
 
-export type NodeInPnl = Node & {
+export class NodeInPnl extends Node {
   posLT: [number, number]
   size: [number, number]
   btmSvgHgt: number
+
+  constructor() {
+    super()
+    this.posLT = [0, 0]
+    this.size = [0, 0]
+    this.btmSvgHgt = ArrowHlfHgt
+  }
+
+  static copy(src: any, tgt?: NodeInPnl): NodeInPnl {
+    tgt = tgt || new NodeInPnl()
+    Node.copy(src, tgt)
+    if (src.posLT && src.posLT.length === 2) {
+      tgt.posLT[0] = src.posLT[0]
+      tgt.posLT[1] = src.posLT[1]
+    }
+    if (src.size && src.size.length === 2) {
+      tgt.size[0] = src.size[0]
+      tgt.size[1] = src.size[1]
+    }
+    tgt.btmSvgHgt = src.btmSvgHgt || tgt.btmSvgHgt
+    return tgt
+  }
 }
 export class Service {
   key: string

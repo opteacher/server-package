@@ -9,11 +9,11 @@ export interface RequestOptions {
   messages?: {
     loading?: string
     succeed?: string
-  },
+  }
   ignores?: string[]
 }
 
-export async function makeRequest (pms: Promise<any>, options?: RequestOptions): Promise<any> {
+export async function makeRequest(pms: Promise<any>, options?: RequestOptions): Promise<any> {
   options?.middles?.before && options?.middles?.before()
   message.loading(options?.messages?.loading || '加载中……')
   const resp = (await pms).data
@@ -25,15 +25,15 @@ export async function makeRequest (pms: Promise<any>, options?: RequestOptions):
   return Promise.resolve(resp)
 }
 
-export function reqAll (path: string, options?: RequestOptions): Promise<any> {
+export function reqAll(path: string, options?: RequestOptions): Promise<any> {
   return makeRequest(axios.get(`/server-package/mdl/v1/${path}s`), options)
 }
 
-export function reqGet (path: string, iden?: any, options?: RequestOptions): Promise<any> {
+export function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
   return makeRequest(axios.get(`/server-package/mdl/v1/${path}${iden ? '/' + iden : ''}`), options)
 }
 
-export function reqPost (path: string, body: any, options?: RequestOptions): Promise<any> {
+export function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -51,12 +51,13 @@ export function reqPost (path: string, body: any, options?: RequestOptions): Pro
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return makeRequest(axios.post(
-    `/server-package/mdl/v1/${path}`, skipIgnores(body, options.ignores)
-  ), options)
+  return makeRequest(
+    axios.post(`/server-package/mdl/v1/${path}`, skipIgnores(body, options.ignores)),
+    options
+  )
 }
 
-export function reqDelete (path: string, iden: any, options?: RequestOptions): Promise<any> {
+export function reqDelete(path: string, iden: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -72,7 +73,7 @@ export function reqDelete (path: string, iden: any, options?: RequestOptions): P
   return makeRequest(axios.delete(`/server-package/mdl/v1/${path}/${iden}`), options)
 }
 
-export function reqPut (path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
+export function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -90,15 +91,16 @@ export function reqPut (path: string, iden: any, body: any, options?: RequestOpt
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return makeRequest(axios.put(
-    `/server-package/mdl/v1/${path}/${iden}`, skipIgnores(body, options.ignores)
-  ), options)
+  return makeRequest(
+    axios.put(`/server-package/mdl/v1/${path}/${iden}`, skipIgnores(body, options.ignores)),
+    options
+  )
 }
 
-export function reqLink (
+export function reqLink(
   body: {
-    parent: [string, any],
-    child: [string, any],
+    parent: [string, any]
+    child: [string, any]
   },
   link = true,
   options?: RequestOptions
@@ -117,8 +119,10 @@ export function reqLink (
   }
   const url = [
     '/server-package/mdl/v1',
-    body.parent[0], body.parent[1],
-    body.child[0], body.child[1]
+    body.parent[0],
+    body.parent[1],
+    body.child[0],
+    body.child[1]
   ].join('/')
   if (link) {
     return makeRequest(axios.put(url), options)
@@ -127,16 +131,14 @@ export function reqLink (
   }
 }
 
-export function getProperty (obj: any, props: string | string[]): any {
+export function getProperty(obj: any, props: string | string[]): any {
   if (typeof props === 'string') {
     props = props.split('.')
   }
   for (const prop of props) {
     if (!obj) {
       return null
-    } else if (obj instanceof Array
-    && prop.startsWith('[')
-    && prop.endsWith(']')) {
+    } else if (obj instanceof Array && prop.startsWith('[') && prop.endsWith(']')) {
       const key = prop.substring(1, prop.length - 1)
       obj = obj.find(el => el.key === key)
     } else if (prop in obj) {
@@ -148,10 +150,16 @@ export function getProperty (obj: any, props: string | string[]): any {
   return obj
 }
 
-export function getKey (obj: { key: string } | string): string {
-  return typeof obj === 'string' ? obj : obj.key
+export function skipIgnores(obj: { [key: string]: any }, ignores: string[]): any {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
 }
 
-export function skipIgnores (obj: { [key: string]: any }, ignores: string[]): any {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
+export async function until(cdFun: () => boolean, lpLimit = 500) {
+  for (let i = 0; i < lpLimit; ++i) {
+    if (cdFun()) {
+      return Promise.resolve()
+    }
+    await new Promise(res => setTimeout(res, 200))
+  }
+  return Promise.reject()
 }

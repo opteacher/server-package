@@ -33,6 +33,7 @@ const InputMapper = new Mapper({
     })),
     onChange: (input: Variable, to: string) => {
       switch (to) {
+        case 'Any':
         case 'String':
           InputMapper['value'].type = 'Input'
           input.value = ''
@@ -51,6 +52,8 @@ const InputMapper = new Mapper({
           break
         case 'Array':
           InputMapper['value'].type = 'Input'
+          InputMapper['value'].prefix = '['
+          InputMapper['value'].suffix = ']'
           input.value = ''
           break
         case 'Object':
@@ -167,12 +170,13 @@ export const EditNodeMapper = new Mapper({
     mapper: InputMapper,
     dsKey: '',
     copy: Variable.copy,
-    onSaved: async (input: Variable) => {
+    onSaved: async (input: Variable, next: () => void) => {
       await store.dispatch('service/saveInOutput', {
         name: 'input',
         edited: input
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
+      next()
     },
     onDeleted: async (key: string) => {
       await store.dispatch('service/delInOutput', {
@@ -207,13 +211,14 @@ export const EditNodeMapper = new Mapper({
     }),
     dsKey: '',
     copy: Variable.copy,
-    onSaved: async (output: Variable) => {
+    onSaved: async (output: Variable, next: () => void) => {
       output.type = 'Object'
       await store.dispatch('service/saveInOutput', {
         name: 'output',
         edited: output
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
+      next()
     },
     onDeleted: async (key: string) => {
       await store.dispatch('service/delInOutput', {

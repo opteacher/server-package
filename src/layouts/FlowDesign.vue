@@ -19,7 +19,7 @@
           @update:show="show => $store.commit('service/SET_API_VSB', show)"
           @submit="onConfig"
         />
-        <a-button @click="$store.commit('service/refresh')">
+        <a-button @click="$store.dispatch('service/refresh')">
           <ReloadOutlined />
           &nbsp;刷新
         </a-button>
@@ -51,8 +51,6 @@ export default defineComponent({
     const router = useRouter()
     const api = computed(() => store.getters['service/ins'])
     const pjt = computed(() => store.getters['service/pjt'])
-
-    onMounted(() => store.dispatch('service/refresh'))
 
     async function onConfig(svcForm: any) {
       await reqPut('service', api.value.key, svcForm, { ignores: ['flow', 'deps'] })

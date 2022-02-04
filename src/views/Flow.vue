@@ -1,60 +1,66 @@
 <template>
-<FlowDesign>
-  <div class="flow-panel" ref="panelRef">
-    <DepsPanel/>
-    <VarsPanel/>
-    <TmpNdPanel/>
-    <NodeCard
-      v-if="Object.values(nodes).length === 0"
-      :first="true"
-      @click:addBtn="onAddBtnClicked"
-    />
-    <template v-else>
+  <FlowDesign>
+    <div class="flow-panel" ref="panelRef">
+      <DepsPanel />
+      <VarsPanel />
+      <TmpNdPanel />
       <NodeCard
-        v-for="node in Object.values(nodes)"
-        :key="node.key"
-        :node="node"
-        @click:card="() => $store.commit('service/SET_NODE', { node })"
+        v-if="Object.values(nodes).length === 0"
+        :first="true"
         @click:addBtn="onAddBtnClicked"
-        @mouseenter="$store.commit('service/UPDATE_LOCVARS', node)"
-        @mouseleave="$store.commit('service/UPDATE_LOCVARS')"
       />
-    </template>
-  </div>
-  <FormDialog
-    :title="editTitle"
-    width="70vw"
-    :column="[2, 22]"
-    :copy="Node.copy"
-    :show="$store.getters['service/nodeVsb']"
-    :mapper="EditNodeMapper"
-    :object="$store.getters['service/editNode']"
-    :emitter="EditNodeEmitter"
-    @update:show="() => $store.commit('service/SET_NODE_INVSB')"
-    @submit="onNodeSaved"
-    @initialize="$store.dispatch('service/rfshTemps')"
-  />
-  <FormDialog
-    title="选择组"
-    width="35vw"
-    :show="$store.getters['service/joinVsb']"
-    :mapper="JoinMapper"
-    :copy="(src, tgt) => {
-      tgt = tgt || { group: '' }
-      tgt.group = src.group || tgt.group
-      return tgt
-    }"
-    @submit="async (edited) => {
-      await $store.dispatch('service/joinLibrary', edited.group)
-      EditNodeEmitter.emit('refresh')
-    }"
-    @update:show="() => $store.commit('service/SET_JOIN_VSB', false)"
-    @initialize="async () => {
-      await $store.dispatch('service/rfshTemps')
-      JoinMapper['group'].options = $store.getters['service/tempGrps']
-    }"
-  />
-</FlowDesign>
+      <template v-else>
+        <NodeCard
+          v-for="node in Object.values(nodes)"
+          :key="node.key"
+          :nd-key="node.key"
+          @click:card="() => $store.commit('service/SET_NODE', { node })"
+          @click:addBtn="onAddBtnClicked"
+          @mouseenter="$store.commit('service/UPDATE_LOCVARS', node)"
+          @mouseleave="$store.commit('service/UPDATE_LOCVARS')"
+        />
+      </template>
+    </div>
+    <FormDialog
+      :title="editTitle"
+      width="70vw"
+      :column="[2, 22]"
+      :copy="Node.copy"
+      :show="$store.getters['service/nodeVsb']"
+      :mapper="EditNodeMapper"
+      :object="$store.getters['service/editNode']"
+      :emitter="EditNodeEmitter"
+      @update:show="() => $store.commit('service/SET_NODE_INVSB')"
+      @submit="onNodeSaved"
+      @initialize="$store.dispatch('service/rfshTemps')"
+    />
+    <FormDialog
+      title="选择组"
+      width="35vw"
+      :show="$store.getters['service/joinVsb']"
+      :mapper="JoinMapper"
+      :copy="
+        (src, tgt) => {
+          tgt = tgt || { group: '' }
+          tgt.group = src.group || tgt.group
+          return tgt
+        }
+      "
+      @submit="
+        async edited => {
+          await $store.dispatch('service/joinLibrary', edited.group)
+          EditNodeEmitter.emit('refresh')
+        }
+      "
+      @update:show="() => $store.commit('service/SET_JOIN_VSB', false)"
+      @initialize="
+        ;async () => {
+          await $store.dispatch('service/rfshTemps')
+          JoinMapper['group'].options = $store.getters['service/tempGrps']
+        }
+      "
+    />
+  </FlowDesign>
 </template>
 
 <script lang="ts">
@@ -77,9 +83,9 @@ export default defineComponent({
     FormDialog,
     DepsPanel,
     VarsPanel,
-    TmpNdPanel,
+    TmpNdPanel
   },
-  setup () {
+  setup() {
     const store = useStore()
     const panelRef = ref()
     const node = computed(() => store.getters['service/editNode'])
@@ -109,7 +115,7 @@ export default defineComponent({
       rszObs.observe(panelRef.value)
     })
 
-    function onAddBtnClicked (previous: Node) {
+    function onAddBtnClicked(previous: Node) {
       node.value.reset()
       store.commit('service/SET_NODE', {
         node: previous ? { previous } : undefined
@@ -127,7 +133,7 @@ export default defineComponent({
 
       reactive,
       onNodeSaved,
-      onAddBtnClicked,
+      onAddBtnClicked
     }
   }
 })

@@ -22,9 +22,9 @@ import {
   reqLink,
   reqPost,
   reqPut,
-  getKey,
   makeRequest,
-  skipIgnores
+  skipIgnores,
+  until
 } from '@/utils'
 import { EditNodeEmitter, EditNodeMapper, ApiMapper } from '@/views/Flow'
 import axios from 'axios'
@@ -32,12 +32,14 @@ import { Dispatch } from 'vuex'
 import router from '@/router'
 import { notification } from 'ant-design-vue'
 import { reactive } from 'vue'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type Nodes = { [key: string]: Node }
 type SvcState = {
   pjt: Project
   api: Service
+  emitter: Emitter
   nodes: NodesInPnl
   width: number
   node: Node
@@ -49,41 +51,11 @@ type SvcState = {
   deps: { [name: string]: Dependency }
 }
 
-function getNextKeys(node: Node): string[] {
-  if (node.nexts.length) {
-    if (typeof node.nexts[0] === 'string') {
-      return node.nexts as string[]
-    } else {
-      return node.nexts.map((nxt: any) => nxt.key)
-    }
-  }
-  return []
-}
-
-function getNextNodes(state: { nodes: NodesInPnl }, node: Node): Node[] {
-  if (node.nexts.length) {
-    if (typeof node.nexts[0] === 'string') {
-      return (node.nexts as string[]).map((nxtKey: string) => state.nodes[nxtKey])
-    } else {
-      return node.nexts as Node[]
-    }
-  }
-  return []
-}
-
-function getNode(state: { nodes: NodesInPnl }, node: string | Node): NodeInPnl {
-  return typeof node === 'string' ? state.nodes[node] : state.nodes[node.key]
-}
-
-function getPrevious(state: { nodes: NodesInPnl }, node: Node): Node {
-  return (typeof node.previous === 'string' ? state.nodes[node.previous] : node.previous) as Node
-}
-
-function scanLocVars(state: SvcState, nd: string | Node | null): Variable[] {
-  if (!nd || !getKey(nd) || !(getKey(nd) in state.nodes)) {
+function scanLocVars(state: SvcState, ndKey: string): Variable[] {
+  if (!(ndKey in state.nodes)) {
     return []
   }
-  const node = state.nodes[getKey(nd)]
+  const node = state.nodes[ndKey]
   const ret = [] as Variable[]
   if (node.previous) {
     ret.push(...scanLocVars(state, node.previous))
@@ -98,13 +70,7 @@ function getLocVars(state: SvcState): Variable[] {
     .map((exp: string, idx: number) =>
       Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
     )
-    .concat(scanLocVars(state, state.node.previous))
-}
-
-async function newDep(dep: any): Promise<Dependency> {
-  const result = (await makeRequest(axios.get(`/server-package/api/v1/dep/name/${dep.name}`)))
-    .result
-  return Dependency.copy(!result || !result._id ? (await reqPost('dependency', dep)).data : result)
+    .concat(state.node.previous ? scanLocVars(state, state.node.previous) : [])
 }
 
 function scanNextss(
@@ -117,7 +83,8 @@ function scanNextss(
 } {
   let endNode = null
   const allNodes = {} as Nodes
-  for (const nxtNode of getNextNodes(state, node)) {
+  for (const nxtKey of node.nexts) {
+    const nxtNode = state.nodes[nxtKey]
     if (nxtNode.type === 'endNode' && nxtNode.relative === rootKey) {
       return { endNode: nxtNode, allNodes }
     }
@@ -139,6 +106,7 @@ export default {
     ({
       pjt: new Project(),
       api: new Service(),
+      emitter: new Emitter(),
       nodes: {} as NodesInPnl,
       width: 0,
       node: new Node(),
@@ -153,9 +121,6 @@ export default {
     SET_WIDTH(state: SvcState, width: number) {
       state.width = width
     },
-    SET_ND_SIZE(state: SvcState, payload: { ndKey: string; size: [number, number] }) {
-      state.nodes[payload.ndKey].size = payload.size
-    },
     SET_NODE(state: SvcState, payload?: { node?: Node; viewOnly?: boolean }) {
       if (!payload) {
         payload = { node: new Node(), viewOnly: false }
@@ -164,11 +129,7 @@ export default {
       }
       state.node.reset()
       Node.copy(payload.node, state.node)
-      if (
-        state.node.previous &&
-        state.node.previous instanceof Node &&
-        state.node.previous.type === 'condition'
-      ) {
+      if (state.node.previous && state.nodes[state.node.previous].type === 'condition') {
         // 添加修改条件节点
         state.node.type = 'condNode'
         EditNodeMapper.delete.display = state.node.key !== ''
@@ -269,17 +230,17 @@ export default {
         })
       )
 
+      await dispatch('rfshTemps')
+
       Service.copy((await reqGet('service', aid)).data, state.api)
-      if (state && state.api.flow) {
+      if (state.api.flow) {
         const rootKey = state.api.flow.key
-        if (force) {
-          await dispatch('readNodes', rootKey)
-        }
+        await dispatch('readNodes', rootKey)
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
+        state.emitter.emit('refresh')
       }
-      await dispatch('rfshTemps')
     },
     async fixWidth({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
       let left = 0
@@ -302,28 +263,23 @@ export default {
       key: string
     ) {
       const node = state.nodes[key]
-      for (let i = 0; i < node.nexts.length; ++i) {
-        const nxt = node.nexts[i]
-        const nxtNode = getNode(state, nxt)
+      for (const nxtKey of node.nexts) {
+        const nxtNode = state.nodes[nxtKey]
         const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
         if (height > ArrowHeight) {
           node.btmSvgHgt = height - ArrowHlfHgt
         }
-        await dispatch('fillPlaceholder', getKey(nxt))
+        await dispatch('fillPlaceholder', nxtKey)
       }
     },
     async readNodes({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, key: string) {
       if (!(key in state.nodes)) {
-        state.nodes[key] = Object.assign(Node.copy((await reqGet('node', key)).data), {
-          posLT: [-1, -1],
-          size: [0, 0],
-          btmSvgHgt: ArrowHlfHgt
-        }) as NodeInPnl
+        state.nodes[key] = NodeInPnl.copy((await reqGet('node', key)).data)
       } else {
         Node.copy((await reqGet('node', key)).data, state.nodes[key])
       }
-      for (const nxtNode of state.nodes[key].nexts) {
-        await dispatch('readNodes', getKey(nxtNode))
+      for (const nxtKey of state.nodes[key].nexts) {
+        await dispatch('readNodes', nxtKey)
       }
     },
     async buildNodes(
@@ -331,43 +287,55 @@ export default {
       { ndKey, height }: { ndKey: string; height: number }
     ) {
       const node = state.nodes[ndKey]
-      if (!node.previous) {
-        node.posLT[0] = (state.width >> 1) - CardHlfWid
-        node.posLT[1] = height
-      } else if (node.type === 'endNode') {
-        const relNode = state.nodes[node.relative]
-        node.posLT[0] = relNode.posLT[0]
-        let maxHeight = 0
-        const traverse = (node: NodeInPnl) => {
-          if (node.key === ndKey) {
-            return
-          }
-          const height = node.posLT[1] + node.size[1] + ArrowHeight
-          maxHeight = height > maxHeight ? height : maxHeight
-          for (const nxt of node.nexts) {
-            traverse(getNode(state, nxt))
-          }
+      let domEle: null | HTMLElement = document.getElementById(ndKey)
+      await until(() => {
+        if (!domEle) {
+          domEle = document.getElementById(ndKey)
         }
-        traverse(relNode)
-        node.posLT[1] = maxHeight
-      } else {
-        const pvsNode = node.previous as Node
-        const nexts = pvsNode.nexts
-        const oddLen = nexts.length % 2
-        const pvsLft = state.nodes[pvsNode.key].posLT[0] + (oddLen ? 0 : CardHlfWid + CardHlfGutter)
-        const index = nexts.indexOf(node.key)
-        const midIdx = (nexts.length - (oddLen ? 1 : 0)) >> 1
-        const idxDif = index - midIdx
-        node.posLT[0] =
-          pvsLft +
-          // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
-          idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
-        // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
-        node.posLT[1] = height
+        return domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0
+      })
+      if (domEle) {
+        node.size[0] = domEle.clientWidth
+        node.size[1] = domEle.clientHeight
+        if (!node.previous) {
+          node.posLT[0] = (state.width >> 1) - CardHlfWid
+          node.posLT[1] = height
+        } else if (node.type === 'endNode') {
+          const relNode = state.nodes[node.relative]
+          node.posLT[0] = relNode.posLT[0]
+          let maxHeight = 0
+          const traverse = (node: NodeInPnl) => {
+            if (node.key === ndKey) {
+              return
+            }
+            const height = node.posLT[1] + node.size[1] + ArrowHeight
+            maxHeight = height > maxHeight ? height : maxHeight
+            for (const nxtKey of node.nexts) {
+              traverse(state.nodes[nxtKey])
+            }
+          }
+          traverse(relNode)
+          node.posLT[1] = maxHeight
+        } else {
+          const pvsNode = state.nodes[node.previous]
+          const nexts = pvsNode.nexts
+          const oddLen = nexts.length % 2
+          const pvsLft =
+            state.nodes[pvsNode.key].posLT[0] + (oddLen ? 0 : CardHlfWid + CardHlfGutter)
+          const index = nexts.indexOf(node.key)
+          const midIdx = (nexts.length - (oddLen ? 1 : 0)) >> 1
+          const idxDif = index - midIdx
+          node.posLT[0] =
+            pvsLft +
+            // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
+            idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
+          // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
+          node.posLT[1] = height
+        }
       }
-      for (const nxtNode of node.nexts) {
+      for (const nxtKey of node.nexts) {
         await dispatch('buildNodes', {
-          ndKey: getKey(nxtNode),
+          ndKey: nxtKey,
           height: node.posLT[1] + node.size[1] + ArrowHeight
         })
       }
@@ -377,7 +345,7 @@ export default {
       if (node.key) {
         // 更新节点
         await reqPut('node', node.key, node, options)
-        return dispatch('rfshNode')
+        return dispatch('refresh')
       }
       //新增节点
       const orgNode = Node.copy(node)
@@ -402,7 +370,7 @@ export default {
         case 'condNode':
           {
             // 对于条件节点，找出条件根节点对应的结束节点
-            const rootNode = getPrevious(state, node)
+            const rootNode = state.nodes[node.previous as string]
             const endNode = state.nodes[rootNode.relative]
             await Promise.all([
               reqLink({
@@ -508,9 +476,9 @@ export default {
         })
       } else {
         // 绑定非根节点
-        const previous = Node.copy((await reqGet('node', (node.previous as Node).key)).data)
+        const previous = Node.copy((await reqGet('node', node.previous)).data)
         if (previous.type !== 'condition' && previous.nexts.length) {
-          const nxtKey = (previous.nexts[0] as Node).key
+          const nxtKey = previous.nexts[0]
           // 解绑
           await reqLink(
             {
@@ -549,7 +517,7 @@ export default {
       const node = state.nodes[key]
       // 删除节点的输入和输出
       for (const input of node.inputs) {
-        const iptKey = getKey(input)
+        const iptKey = input.key
         await reqLink(
           {
             parent: ['node', node.key],
@@ -560,7 +528,7 @@ export default {
         await reqDelete('variable', iptKey)
       }
       for (const output of node.outputs) {
-        const optKey = getKey(output)
+        const optKey = output.key
         await reqLink(
           {
             parent: ['node', node.key],
@@ -582,8 +550,7 @@ export default {
         // 解绑的节点和父节点的关系
         let pvsKey = ''
         if (node.previous) {
-          const previous = node.previous as Node
-          pvsKey = getKey(previous)
+          pvsKey = node.previous
           await reqLink(
             {
               parent: ['node', pvsKey],
@@ -633,17 +600,17 @@ export default {
                   delEnd: true
                 })
               )
-              nexts.push(...getNextKeys(endNode))
+              nexts.push(...endNode.nexts)
             }
             break
           case 'condition':
             {
               // 如果是条件根节点，则依次删除其子条件节点
               const endNxtKeys = [] as string[]
-              const nxtNodes = getNextNodes(state, node)
+              const nxtNodes = node.nexts.map((nxtKey: string) => state.nodes[nxtKey])
               if (nxtNodes.length === 1 && nxtNodes[0].type === 'endNode') {
                 // 如果条件根节点直接接着结束节点，则删除节点并把结束节点的子节点抛出去
-                nexts.push(...getNextKeys(nxtNodes[0]))
+                nexts.push(...nxtNodes[0].nexts)
                 const endKey = nxtNodes[0].key
                 delete state.nodes[endKey]
                 await reqDelete('node', endKey)
@@ -659,7 +626,7 @@ export default {
                     delEnd: i === nxtNodes.length - 1
                   })
                 )
-                endNxtKeys.push(...getNextKeys(endNode))
+                endNxtKeys.push(...endNode.nexts)
                 await reqLink(
                   {
                     parent: ['node', node.key],
@@ -674,7 +641,7 @@ export default {
             break
           default:
             // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
-            nexts.push(...getNextKeys(node))
+            nexts.push(...node.nexts)
             break
         }
         if (pvsKey) {
@@ -717,7 +684,7 @@ export default {
         await clsNode(payload.node.key)
       } else {
         // 清空rootNode所有子节点，并将endNode的子节点全部变为rootNode
-        for (const nxtKey of getNextKeys(payload.node)) {
+        for (const nxtKey of payload.node.nexts) {
           await reqLink(
             {
               parent: ['node', payload.node.key],
@@ -727,7 +694,7 @@ export default {
           )
         }
         if (payload.delEnd) {
-          for (const nxtKey of getNextKeys(endNode)) {
+          for (const nxtKey of endNode.nexts) {
             await reqLink({
               parent: ['node', payload.node.key],
               child: ['nexts', nxtKey]
@@ -872,15 +839,17 @@ export default {
       state.deps = Object.fromEntries(
         (await reqGet('dependencys')).data
           .map((dep: any) => Dependency.copy(dep))
-          .concat(state.pjt.models.map((mdl: Model) => {
-            return Dependency.copy({
-              key: mdl.key,
-              name: mdl.name,
-              exports: [mdl.name],
-              from: `../models/${mdl.name}.js`,
-              default: true,
+          .concat(
+            state.pjt.models.map((mdl: Model) => {
+              return Dependency.copy({
+                key: mdl.key,
+                name: mdl.name,
+                exports: [mdl.name],
+                from: `../models/${mdl.name}.js`,
+                default: true
+              })
             })
-          }))
+          )
           .map((dep: Dependency) => [dep.key, dep])
       )
     }
@@ -888,6 +857,7 @@ export default {
   getters: {
     ins: (state: SvcState): Service => state.api,
     pjt: (state: SvcState): Project => state.pjt,
+    emitter: (state: SvcState): Emitter => state.emitter,
     nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes).filter(([_key, node]) => !node.isTemp))
     },

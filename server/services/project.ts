@@ -78,12 +78,13 @@ function fmtInput(variable: {
       return `${value}${
         variable.index
           ? variable.idxType === 'String'
-            ? "'" + variable.index + "'"
-            : variable.index
+            ? "['" + variable.index + "']"
+            : '[' + variable.index + ']'
           : ''
       }${variable.prop ? '.' + variable.prop : ''}`
     case 'Number':
     case 'Boolean':
+    case 'Any':
     default:
       return value
   }

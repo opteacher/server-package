@@ -72,6 +72,7 @@
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
               :addon-before="value.prefix"
+              :addon-after="value.suffix"
               @change="e => value.onChange(formState, e.target.value)"
             />
             <a-input-number
@@ -140,12 +141,23 @@
               v-model:value="formState[key]"
             />
             <template v-else-if="value.type === 'Table'">
-              <a-button type="primary" @click="value.show = true">新增</a-button>
+              <a-button
+                type="primary"
+                @click="
+                  () => {
+                    value.emitter.emit('viewOnly', false)
+                    value.show = true
+                  }
+                "
+              >
+                新增
+              </a-button>
               <FormDialog
                 :show="value.show"
                 :mapper="value.mapper"
                 :copy="value.copy"
                 :emitter="value.emitter"
+                :object="value.editing"
                 @update:show="value.show = false"
                 @submit="value.onSaved"
               />
@@ -156,6 +168,15 @@
                 :data-source="formState[key]"
                 :pagination="false"
                 size="small"
+                :custom-row="
+                  record => ({
+                    onClick: () => {
+                      value.emitter.emit('viewOnly', true)
+                      value.show = true
+                      value.emitter.emit('update:data', record)
+                    }
+                  })
+                "
               >
                 <template #opera="{ record }">
                   <a-popconfirm title="确定删除该字段" @confirm="value.onDeleted(record.key)">
@@ -318,7 +339,7 @@ export default defineComponent({
   emits: ['initialize', 'update:show', 'submit'],
   setup(props, { emit }) {
     const formRef = ref()
-    const formState = reactive(props.copy({}))
+    const formState = reactive(props.copy(props.object || {}))
     const formRules = Object.fromEntries(
       Object.entries(props.mapper).map(entry => {
         return [entry[0], entry[1].rules]
@@ -416,7 +437,11 @@ export default defineComponent({
         let opns = options
         for (let i = 0; i < value.length; ++i) {
           const opn = opns.find((opn: OpnType) => opn.value === value[i])
-          vals.push(opn?.label)
+          if (opn) {
+            vals.push(opn.label || opn.value)
+          } else {
+            vals.push(value[i])
+          }
           if (i === value.length - 1) {
             break
           }
@@ -424,7 +449,8 @@ export default defineComponent({
         }
         return vals.join(' / ')
       } else {
-        return options.find((opn: OpnType) => opn.value === value)?.label
+        const opn = options.find((opn: OpnType) => opn.value === value)
+        return opn ? opn.label || opn.value : value
       }
     }
     function onLstSelChecked(chk: boolean, propKey: string, opnKey: string) {
