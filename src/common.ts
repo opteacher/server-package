@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { getProperty } from './utils'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
@@ -572,7 +574,7 @@ export class Model {
   desc: string
   logTime: boolean
   props: Property[]
-  apis: Service[]
+  svcs: Service[]
 
   constructor() {
     this.key = ''
@@ -580,7 +582,7 @@ export class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.apis = []
+    this.svcs = []
   }
 
   reset() {
@@ -589,7 +591,7 @@ export class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.apis = []
+    this.svcs = []
   }
 
   static copy(src: any, tgt?: Model): Model {
@@ -610,8 +612,8 @@ export class Model {
         tgt.props.push(Property.copy(prop))
       }
     }
-    if (src.apis && src.apis.length) {
-      tgt.apis = src.apis.map((api: any) => Service.copy(api))
+    if (src.svcs && src.svcs.length) {
+      tgt.svcs = src.svcs.map((svc: any) => Service.copy(svc))
     }
     return tgt
   }
@@ -847,7 +849,7 @@ export class Service {
     this.name = ''
     this.interface = ''
     this.deps = []
-    this.emit = 'none'
+    this.emit = 'api'
     this.flow = null
     this.isModel = false
     this.model = ''
@@ -864,7 +866,7 @@ export class Service {
     this.name = ''
     this.interface = ''
     this.deps = []
-    this.emit = 'none'
+    this.emit = 'api'
     this.flow = null
     this.isModel = false
     this.model = ''

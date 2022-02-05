@@ -28,47 +28,56 @@
           @delete="key => onPropDel(key, model.key)"
         />
         <EditableTable
-          title="接口"
-          :dsKey="`project/ins.models.[${model.key}].apis`"
-          :columns="ApiColumns"
-          :mapper="ApiMapper"
+          title="服务"
+          :dsKey="`project/ins.models.[${model.key}].svcs`"
+          :columns="ServiceColumns"
+          :mapper="ServiceMapper"
           :copy="Service.copy"
-          :emitter="apiEmitter"
+          :emitter="svcEmitter"
           @add="
-            api => {
-              api.model = model.name
-              ApiMapper['path'].prefix = `/${project.name}`
+            svc => {
+              svc.model = model.name
+              ServiceMapper['path'].prefix = `/${project.name}`
             }
           "
-          @edit="() => (ApiMapper['path'].prefix = `/${project.name}`)"
-          @save="api => onApiSave(api, model.key)"
-          @delete="key => onApiDel(key, model.key)"
+          @edit="() => (ServiceMapper['path'].prefix = `/${project.name}`)"
+          @save="svc => onSvcSave(svc, model.key)"
+          @delete="key => onSvcDel(key, model.key)"
         >
-          <template #path="{ record: api }">/{{ project.name }}{{ api.path }}</template>
-          <template #emitCondEdit="{ editing: api }">
-            <a-input-number v-model:value="api.cdValue" :min="1" placeholder="输入时间段或时间点">
+          <template #path="{ record: svc }">/{{ project.name }}{{ svc.path }}</template>
+          <template #emitCondEdit="{ editing: svc }">
+            <a-input-number v-model:value="svc.cdValue" :min="1" placeholder="输入时间段或时间点">
               <template #addonAfter>
                 <a-select
                   :options="timeUnit"
-                  v-model:value="api.cdUnit"
+                  v-model:value="svc.cdUnit"
                   style="width: 80px"
                   placeholder="单位"
                 />
               </template>
             </a-input-number>
           </template>
-          <template #bind="{ record: api }">
-            <template v-if="api.name && api.interface">
-              {{ api.name }}&nbsp;/&nbsp;{{ api.interface }}
+          <template #emitCond="{ record: svc }">
+            {{
+              svc.emit === 'timeout'
+                ? `${svc.emitCond}后`
+                : svc.emit === 'interval'
+                ? `每${svc.emitCond}`
+                : '-'
+            }}
+          </template>
+          <template #bind="{ record: svc }">
+            <template v-if="svc.name && svc.interface">
+              {{ svc.name }}&nbsp;/&nbsp;{{ svc.interface }}
             </template>
             <template v-else>-</template>
           </template>
-          <template #flow="{ record: api }">
+          <template #flow="{ record: svc }">
             <a-button
-              v-if="api.key && !api.isModel"
+              v-if="svc.key && !svc.isModel"
               @click="
                 () => {
-                  router.push(`/server-package/project/${pid}/flow/${api.key}`)
+                  router.push(`/server-package/project/${pid}/flow/${svc.key}`)
                 }
               "
             >
@@ -77,6 +86,27 @@
             </a-button>
             <template v-else>-</template>
           </template>
+          <template #ctrl="{ record: svc }">
+            <template v-if="svc.emit === 'timeout' || svc.emit === 'interval'">
+              <ul class="unstyled-list">
+                <li class="mb-3">
+                  <a-button
+                    :size="svc.jobId ? 'small' : 'middle'"
+                    type="primary"
+                    @click="onSvcJobRest(svc)"
+                  >
+                    启动
+                  </a-button>
+                </li>
+                <li v-if="svc.jobId">
+                  <a-button size="small" danger @click="onSvcJobStop(svc)">停止</a-button>
+                </li>
+              </ul>
+            </template>
+            <template v-if="svc.emit === 'api'">
+              <a-button>测试</a-button>
+            </template>
+          </template>
         </EditableTable>
       </template>
     </EditableTable>
@@ -84,6 +114,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted } from 'vue'
 import { ApartmentOutlined, DatabaseOutlined } from '@ant-design/icons-vue'
@@ -97,9 +128,9 @@ import {
   propEmitter,
   PropColumns,
   PropMapper,
-  apiEmitter,
-  ApiColumns,
-  ApiMapper,
+  svcEmitter,
+  ServiceColumns,
+  ServiceMapper,
   genMdlPath,
   timeUnit
 } from './Project'
@@ -127,7 +158,7 @@ export default defineComponent({
         opera: model,
         parent: ['project', pid],
         child: ['models', 'model'],
-        ignores: ['props', 'apis']
+        ignores: ['props', 'svcs']
       })
       modelEmitter.emit('refresh')
     }
@@ -155,28 +186,36 @@ export default defineComponent({
       })
       propEmitter.emit('refresh')
     }
-    async function onApiSave(api: Service, mid: string) {
-      if (!api.path) {
-        api.path = genMdlPath(api)
+    async function onSvcSave(svc: Service, mid: string) {
+      if (!svc.path) {
+        svc.path = genMdlPath(svc)
       }
-      api.emitCond = `${api.cdValue}${api.cdUnit}`
+      svc.emitCond = `${svc.cdValue}${svc.cdUnit}`
       const model = project.value.models.find((mdl: any) => mdl.key === mid)
-      api.model = model?.name as string
+      svc.model = model?.name as string
       await store.dispatch('project/update', {
-        opera: api,
+        opera: svc,
         parent: ['model', mid],
-        child: ['apis', 'service'],
+        child: ['svcs', 'service'],
         ignores: ['flow', 'deps']
       })
-      apiEmitter.emit('refresh')
+      svcEmitter.emit('refresh')
     }
-    async function onApiDel(key: any, mid: string) {
+    async function onSvcDel(key: any, mid: string) {
       await store.dispatch('project/update', {
         opera: 'service',
         parent: ['model', mid],
-        child: ['apis', key]
+        child: ['svcs', key]
       })
-      apiEmitter.emit('refresh')
+      svcEmitter.emit('refresh')
+    }
+    async function onSvcJobRest(svc: Service) {
+      await store.dispatch('project/restartSvcJob', svc.key)
+      svcEmitter.emit('refresh')
+    }
+    async function onSvcJobStop(svc: Service) {
+      await store.dispatch('project/stopSvcJob', svc.key)
+      svcEmitter.emit('refresh')
     }
     return {
       Model,
@@ -189,9 +228,9 @@ export default defineComponent({
       propEmitter,
       PropColumns,
       PropMapper,
-      apiEmitter,
-      ApiColumns,
-      ApiMapper,
+      svcEmitter,
+      ServiceColumns,
+      ServiceMapper,
       pid,
       router,
       project,
@@ -201,8 +240,10 @@ export default defineComponent({
       onModelDel,
       onPropSave,
       onPropDel,
-      onApiSave,
-      onApiDel
+      onSvcSave,
+      onSvcDel,
+      onSvcJobRest,
+      onSvcJobStop
     }
   }
 })

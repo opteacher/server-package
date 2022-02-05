@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Path from 'path'
 import { readConfig } from '../lib/backend-library/utils/index.js'
 import { getDbByName } from '../lib/backend-library/databases/index.js'
@@ -8,6 +9,6 @@ const dbCfgPath = Path.join(cfgPath, 'db')
 
 export const db = await getDbByName(readConfig(mdlCfgPath).type, dbCfgPath)
 
-export function skipIgnores (obj: { [key: string]: any }, ignores: string[]): any {
+export function skipIgnores(obj: { [key: string]: any }, ignores: string[]): any {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
 }

@@ -1,97 +1,119 @@
 <template>
-<div class="project">
-  <a-page-header
-    class="demo-page-header"
-    style="border: 1px solid rgb(235, 237, 240)"
-    :title="project.name"
-    :sub-title="project.desc"
-    @back="() => router.go(-1)"
-  >
-    <template #tags>
-      <template v-if="project.status === 'starting'">
-        <a-spin size="small"/>&nbsp;启动中……
+  <div class="project">
+    <a-page-header
+      class="demo-page-header"
+      style="border: 1px solid rgb(235, 237, 240)"
+      :title="project.name"
+      :sub-title="project.desc"
+      @back="() => router.go(-1)"
+    >
+      <template #tags>
+        <template v-if="project.status === 'starting'">
+          <a-spin size="small" />
+          &nbsp;启动中……
+        </template>
+        <a-tag v-else-if="project.thread" color="#87d068">运行中</a-tag>
+        <a-tag v-else color="#f50">已停止</a-tag>
       </template>
-      <a-tag v-else-if="project.thread" color="#87d068">运行中</a-tag>
-      <a-tag v-else color="#f50">已停止</a-tag>
-    </template>
-    <template #extra>
-      <a-button @click="() => { projForm.show = true }">
-        <SettingOutlined/>
-      </a-button>
-      <FormDialog
-        title="配置项目"
-        :copy="Project.copy"
-        :show="projForm.show"
-        :mapper="projForm.mapper"
-        :object="project"
-        @update:show="(show) => { projForm.show = show }"
-        @submit="onConfig"
-      />
-      <a-button
-        type="primary"
-        :disabled="project.status === 'starting'"
-        :loading="project.status === 'starting'"
-        @click="onSync"
-      >
-        <template #icon><SyncOutlined/></template>&nbsp;同步
-      </a-button>
-      <a-tooltip>
-        <template #title>传输本地文件到项目实例中</template>
+      <template #extra>
+        <a-button
+          @click="
+            () => {
+              projForm.show = true
+            }
+          "
+        >
+          <SettingOutlined />
+        </a-button>
+        <FormDialog
+          title="配置项目"
+          :copy="Project.copy"
+          :show="projForm.show"
+          :mapper="projForm.mapper"
+          :object="project"
+          @update:show="
+            show => {
+              projForm.show = show
+            }
+          "
+          @submit="onConfig"
+        />
+        <a-button
+          type="primary"
+          :disabled="project.status === 'starting'"
+          :loading="project.status === 'starting'"
+          @click="onSync"
+        >
+          <template #icon><SyncOutlined /></template>
+          &nbsp;同步
+        </a-button>
+        <a-tooltip>
+          <template #title>传输本地文件到项目实例中</template>
+          <a-button
+            v-if="project.thread"
+            class="ml-5"
+            :disabled="project.status === 'stopping'"
+            :loading="project.status === 'stopping'"
+            @click="transferForm.show = true"
+          >
+            <template #icon><UploadOutlined /></template>
+            &nbsp;传输文件
+          </a-button>
+        </a-tooltip>
+        <FormDialog
+          title="投放文件"
+          :copy="Transfer.copy"
+          :show="transferForm.show"
+          :mapper="transferForm.mapper"
+          :emitter="transferForm.emitter"
+          @update:show="
+            show => {
+              transferForm.show = show
+            }
+          "
+          @submit="onTransfer"
+        />
         <a-button
           v-if="project.thread"
           class="ml-5"
+          danger
           :disabled="project.status === 'stopping'"
           :loading="project.status === 'stopping'"
-          @click="transferForm.show = true"
+          @click="onStop"
         >
-          <template #icon><UploadOutlined /></template>&nbsp;传输文件
+          <template #icon><PoweroffOutlined /></template>
+          &nbsp;停止
         </a-button>
-      </a-tooltip>
-      <FormDialog
-        title="投放文件"
-        :copy="Transfer.copy"
-        :show="transferForm.show"
-        :mapper="transferForm.mapper"
-        :emitter="transferForm.emitter"
-        @update:show="(show) => { transferForm.show = show }"
-        @submit="onTransfer"
-      />
-      <a-button
-        v-if="project.thread"
-        class="ml-5" danger
-        :disabled="project.status === 'stopping'"
-        :loading="project.status === 'stopping'"
-        @click="onStop"
-      >
-        <template #icon><PoweroffOutlined/></template>&nbsp;停止
-      </a-button>
-      <a-button v-show="false" class="ml-5" @click="deployForm.show = true">
-        <template #icon><BuildOutlined /></template>&nbsp;部署前端
-      </a-button>
-      <FormDialog
-        title="部署配置"
-        :copy="Deploy.copy"
-        :show="deployForm.show"
-        :mapper="deployForm.mapper"
-        :object="project.frontend"
-        @update:show="(show) => { deployForm.show = show }"
-        @submit="onDeploy"
-      />
-    </template>
-    <a-descriptions size="small" :column="3">
-      <a-descriptions-item label="占用端口">
-        {{ project.port }}
-      </a-descriptions-item>
-      <a-descriptions-item label="API前缀">
-        /{{ project.name }}
-      </a-descriptions-item>
-      <a-descriptions-item label="数据库">
-        {{ project.database.join('/') }}
-      </a-descriptions-item>
-    </a-descriptions>
-  </a-page-header>
-  <slot/>
-</div>
+        <a-button v-show="false" class="ml-5" @click="deployForm.show = true">
+          <template #icon><BuildOutlined /></template>
+          &nbsp;部署前端
+        </a-button>
+        <FormDialog
+          title="部署配置"
+          :copy="Deploy.copy"
+          :show="deployForm.show"
+          :mapper="deployForm.mapper"
+          :object="project.frontend"
+          @update:show="
+            show => {
+              deployForm.show = show
+            }
+          "
+          @submit="onDeploy"
+        />
+      </template>
+      <a-descriptions size="small" :column="3">
+        <a-descriptions-item label="占用端口">
+          {{ project.port }}
+        </a-descriptions-item>
+        <a-descriptions-item label="路由前缀">/{{ project.name }}</a-descriptions-item>
+        <a-descriptions-item label="数据库">
+          {{ project.database.join('/') }}
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-page-header>
+    <slot />
+  </div>
 </template>
 
 <script lang="ts">
@@ -99,7 +121,13 @@ import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProjForm } from '../views/Home'
 import { DeployForm, TransferForm } from '../views/Project'
-import { SyncOutlined, PoweroffOutlined, SettingOutlined, BuildOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import {
+  SyncOutlined,
+  PoweroffOutlined,
+  SettingOutlined,
+  BuildOutlined,
+  UploadOutlined
+} from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
 import { Project, Deploy, Transfer } from '@/common'
@@ -114,7 +142,7 @@ export default defineComponent({
     BuildOutlined,
     UploadOutlined
   },
-  setup () {
+  setup() {
     const router = useRouter()
     const store = useStore()
     const project = computed(() => store.getters['project/ins'] as Project)

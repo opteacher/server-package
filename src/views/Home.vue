@@ -17,7 +17,11 @@
             :show="projForm.show"
             :mapper="projForm.mapper"
             :object="projForm.editProj"
-            @update:show="(show) => { projForm.show = show }"
+            @update:show="
+              show => {
+                projForm.show = show
+              }
+            "
             @submit="onNewProjSubmit"
           />
         </div>
@@ -46,7 +50,7 @@
               <a :href="`/server-package/project/${item._id}`">{{ item.name }}</a>
             </template>
             <template #avatar>
-              <a-badge :status="item.thread ? 'processing' : 'default'"/>
+              <a-badge :status="item.thread ? 'processing' : 'default'" />
             </template>
           </a-list-item-meta>
           <div>{{ item.port }}</div>
@@ -69,31 +73,39 @@ export default defineComponent({
   components: {
     FormDialog
   },
-  setup () {
+  setup() {
     const projects = ref([])
     const projForm = reactive(new ProjForm())
     const loading = ref(false)
 
     onMounted(refresh)
 
-    async function refresh () {
+    async function refresh() {
       await projForm.initialize()
       projects.value = (await reqGet('projects')).data
     }
-    async function onNewProjSubmit (project: Project) {
+    async function onNewProjSubmit(project: Project) {
       await reqPost('project', project, {
         middles: {
-          before: () => { loading.value = true },
-          after: () => { loading.value = false }
+          before: () => {
+            loading.value = true
+          },
+          after: () => {
+            loading.value = false
+          }
         }
       })
       await refresh()
     }
-    async function onDelProjSubmit (pid: string) {
+    async function onDelProjSubmit(pid: string) {
       await makeRequest(axios.delete(`/server-package/api/v1/project/${pid}`), {
         middles: {
-          before: () => { loading.value = true },
-          after: () => { loading.value = false }
+          before: () => {
+            loading.value = true
+          },
+          after: () => {
+            loading.value = false
+          }
         }
       })
       await refresh()

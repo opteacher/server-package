@@ -300,6 +300,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Column, Cond, Mapper, OpnType } from '@/common'
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {

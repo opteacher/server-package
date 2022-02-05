@@ -11,5 +11,5 @@ export default createStore({
     project,
     service,
     model
-  },
+  }
 })

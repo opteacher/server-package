@@ -17,7 +17,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { defineComponent, onMounted, reactive } from 'vue'
 import DataTable from '../layouts/DataTable.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { useRoute } from 'vue-router'

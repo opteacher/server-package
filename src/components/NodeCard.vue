@@ -153,6 +153,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
 import {

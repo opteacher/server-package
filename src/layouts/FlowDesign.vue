@@ -2,21 +2,21 @@
   <div class="container">
     <a-page-header
       style="border: 1px solid rgb(235, 237, 240)"
-      :title="api.method"
-      :sub-title="`/${pjt.name}${api.path}`"
+      :title="svc.method"
+      :sub-title="`/${pjt.name}${svc.path}`"
       @back="() => router.go(-1)"
     >
       <template #extra>
-        <a-button @click="$store.commit('service/SET_API_VSB', true)">
+        <a-button @click="$store.commit('service/SET_SVC_VSB', true)">
           <SettingOutlined />
         </a-button>
         <FormDialog
           title="配置流程"
           :copy="Service.copy"
-          :show="$store.getters['service/apiVsb']"
-          :mapper="ApiMapper"
-          :object="api"
-          @update:show="show => $store.commit('service/SET_API_VSB', show)"
+          :show="$store.getters['service/svcVsb']"
+          :mapper="ServiceMapper"
+          :object="svc"
+          @update:show="show => $store.commit('service/SET_SVC_VSB', show)"
           @submit="onConfig"
         />
         <a-button @click="$store.dispatch('service/refresh')">
@@ -30,12 +30,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted } from 'vue'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { computed, defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { SettingOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
-import { ApiMapper } from '../views/Flow'
+import { ServiceMapper } from '../views/Flow'
 import { Service, Node, Project, Dependency, Model } from '@/common'
 import { reqLink, reqPut } from '@/utils'
 
@@ -49,14 +50,14 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const router = useRouter()
-    const api = computed(() => store.getters['service/ins'])
+    const svc = computed(() => store.getters['service/ins'])
     const pjt = computed(() => store.getters['service/pjt'])
 
     async function onConfig(svcForm: any) {
-      await reqPut('service', api.value.key, svcForm, { ignores: ['flow', 'deps'] })
+      await reqPut('service', svc.value.key, svcForm, { ignores: ['flow', 'deps'] })
       await reqLink(
         {
-          parent: ['service', api.value.key],
+          parent: ['service', svc.value.key],
           child: ['deps', '']
         },
         false
@@ -76,7 +77,7 @@ export default defineComponent({
           }
         }
         await reqLink({
-          parent: ['service', api.value.key],
+          parent: ['service', svc.value.key],
           child: ['deps', key]
         })
       }
@@ -88,8 +89,8 @@ export default defineComponent({
 
       router,
       pjt,
-      api,
-      ApiMapper,
+      svc,
+      ServiceMapper,
 
       onConfig
     }

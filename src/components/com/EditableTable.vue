@@ -188,6 +188,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Cond, Mapper } from '@/common'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined, SelectOutlined, EditOutlined } from '@ant-design/icons-vue'
@@ -284,7 +285,7 @@ export default defineComponent({
       emit('delete', key, refresh)
     }
     function hasExpand() {
-      for (const [_key, value] of Object.entries(editMapper)) {
+      for (const [, value] of Object.entries(editMapper)) {
         if (value.expanded) {
           return true
         }

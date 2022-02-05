@@ -60,10 +60,10 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
 import FlowDesign from '../layouts/FlowDesign.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { Node, Mapper } from '../common'
+import { Node } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
 import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow'
 import { useStore } from 'vuex'
@@ -127,7 +127,6 @@ export default defineComponent({
       EditNodeEmitter,
       EditNodeMapper,
 
-      reactive,
       onNodeSaved,
       onAddBtnClicked
     }

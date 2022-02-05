@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from '../views/Home.vue'
 import Project from '../views/Project.vue'
 import Flow from '../views/Flow.vue'

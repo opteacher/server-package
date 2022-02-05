@@ -9,7 +9,7 @@
 	},
 	"scripts": {
 		"start": "cross-env ENV=dev node ./app.js",
-		"start:dev": "tsc && cp -r ./configs/ ./dist/configs/ && cp -r ./resources/ ./dist/resources/ && cd ./dist/ && cross-env ENV=dev node ./app.js",
+		"start:dev": "tsc && cd ./dist/ && cross-env ENV=dev node ./app.js",
 		"build": "tsc",
 		"test": "cross-env ENV=dev jest",
 		"test-c": "cross-env ENV=dev jest --coverage"
@@ -17,6 +17,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"axios": "^0.25.0",
 		"jsonwebtoken": "^8.5.1",
 		"koa": "^2.13.1",
 		"koa-body": "^4.2.0",

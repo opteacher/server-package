@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs'
 import Path from 'path'
 import { db } from '../utils/index.js'
@@ -161,7 +163,9 @@ export async function sync(pid: string): Promise<any> {
   try {
     fs.accessSync(genPath)
     delDir(genPath)
-  } catch (e) {}
+  } catch (e) {
+    console.log()
+  }
   fs.mkdirSync(genPath, { recursive: true })
 
   fs.mkdirSync(Path.join(genPath, 'configs'))
@@ -219,35 +223,36 @@ export async function sync(pid: string): Promise<any> {
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
   for (const model of project.models) {
-    const apis = model.apis.filter((api: any) => api.name)
-    model.apis = model.apis.filter((api: any) => !api.name)
+    const svcs = model.svcs.filter((svc: any) => svc.name)
+    model.svcs = model.svcs.filter((svc: any) => !svc.name)
 
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
 
     const services = {} as { [aname: string]: any[] }
-    for (const api of apis) {
-      const paramIdx = api.path.indexOf('/:')
-      const pathPfx = api.path.substring(0, paramIdx === -1 ? api.path.length : paramIdx)
+    for (const svc of svcs) {
+      let pamIdx = svc.path.indexOf('/:')
+      pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
+      const pathPfx = svc.path.substring(0, pamIdx)
       const rotGen = Path.join(rotPath, pathPfx)
       fs.mkdirSync(rotGen, { recursive: true })
       console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
-      adjustFile(rotData, `${rotGen}/index.js`, { api })
+      adjustFile(rotData, `${rotGen}/index.js`, { svc, pamIdx })
 
-      const apiExt = await db.select(Service, { _index: api._id }, { ext: true })
-      apiExt.nodes = apiExt.flow ? await recuNode(apiExt.flow.key || apiExt.flow, 2) : []
-      if (!(api.name in services)) {
-        services[api.name] = [apiExt]
+      const svcExt = await db.select(Service, { _index: svc._id }, { ext: true })
+      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.key || svcExt.flow, 2) : []
+      if (!(svc.name in services)) {
+        services[svc.name] = [svcExt]
       } else {
-        services[api.name].push(apiExt)
+        services[svc.name].push(svcExt)
       }
     }
 
-    for (const [aname, apis] of Object.entries(services)) {
+    for (const [aname, svcs] of Object.entries(services)) {
       const svcGen = Path.join(svcPath, aname + '.js')
       console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-      adjustFile(svcData, svcGen, { apis })
+      adjustFile(svcData, svcGen, { svcs })
     }
   }
 
@@ -359,7 +364,7 @@ function adjustFile(
     src = fs.readFileSync(src)
   }
   const strData = src.toString()
-  const slotRegex = /(\/\*|\#\#).*\*\//gm
+  const slotRegex = /(\/\*|##).*\*\//gm
   let resAry: RegExpExecArray | null = null
   const slots: [number, number][] = []
   while ((resAry = slotRegex.exec(strData)) !== null) {
@@ -401,8 +406,8 @@ export async function del(pid: string): Promise<any> {
     for (const ppid of model.props) {
       await db.del(Property, { _index: ppid })
     }
-    for (const aid of model.apis) {
-      await db.del(Service, { _index: aid })
+    for (const sid of model.svcs) {
+      await db.del(Service, { _index: sid })
     }
     await db.del(Model, { _index: mid })
   }
@@ -451,7 +456,9 @@ export async function deploy(
   try {
     fs.accessSync(genPath)
     delDir(genPath)
-  } catch (e) {}
+  } catch (e) {
+    console.log()
+  }
   fs.mkdirSync(genPath, { recursive: true })
 
   console.log('开始部署……')

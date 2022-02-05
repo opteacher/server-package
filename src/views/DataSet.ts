@@ -1,18 +1,19 @@
-import { Column, Mapper, Model } from "@/common"
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Column, Mapper, Model } from '@/common'
 
 export class DtStTable {
   columns: Column[]
   mapper: Mapper
 
-  constructor () {
+  constructor() {
     this.columns = []
     this.mapper = new Mapper()
   }
 
-  setModel (model: Model) {
+  setModel(model: Model) {
     this.columns = model.props.map(prop => new Column(prop.label, prop.name))
-    this.mapper = new Mapper(Object.fromEntries(
-      model.props.map(prop => [prop.name, { type: 'Unknown' }])
-    ))
+    this.mapper = new Mapper(
+      Object.fromEntries(model.props.map(prop => [prop.name, { type: 'Unknown' }]))
+    )
   }
 }

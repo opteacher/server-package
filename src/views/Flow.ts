@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
@@ -293,14 +295,14 @@ export const EditNodeMapper = new Mapper({
   }
 })
 
-export const ApiMapper = new Mapper({
+export const ServiceMapper = new Mapper({
   path: {
     label: '路由',
     type: 'Input',
     prefix: '',
-    onChange: (api: Service, path: string) => {
+    onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {
-        api.path = `/${path}`
+        svc.path = `/${path}`
       }
     }
   },

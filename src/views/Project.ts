@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   baseTypes,
   Column,
@@ -10,7 +12,7 @@ import {
   emitTypeOpns
 } from '@/common'
 import { Modal } from 'ant-design-vue'
-import { createVNode, nextTick } from 'vue'
+import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -24,7 +26,7 @@ export function onSync() {
       {
         style: 'color:red;'
       },
-      '同步过程中，该项目已有的API将暂时停用！'
+      '同步过程中，该项目已有的服务将暂时停用！'
     ),
     onOk: () => store.dispatch('project/sync')
   })
@@ -34,7 +36,7 @@ export function onStop() {
   Modal.confirm({
     title: '是否停止项目？',
     icon: createVNode(ExclamationCircleOutlined),
-    content: '项目实例所提供的API服务也将同时停止！',
+    content: '项目实例所提供的服务也将同时停止！',
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
@@ -120,9 +122,9 @@ export const PropMapper = new Mapper({
   }
 })
 
-export const apiEmitter = new Emitter()
+export const svcEmitter = new Emitter()
 
-export const ApiColumns = [
+export const ServiceColumns = [
   new Column('激活方式', 'emit'),
   new Column('模型路由', 'isModel'),
   new Column('访问方式', 'method'),
@@ -130,23 +132,41 @@ export const ApiColumns = [
   new Column('服务', 'name'),
   new Column('接口', 'interface'),
   new Column('任务参数', 'emitCond'),
-  new Column('流程', 'flow')
+  new Column('流程', 'flow'),
+  new Column('控制', 'ctrl')
 ]
 
-export const ApiMapper = new Mapper({
+export const ServiceMapper = new Mapper({
   emit: {
     type: 'Select',
     options: emitTypeOpns,
-    onChange: (api: Service, to: string) => {
-      ApiMapper['jobCond'].display = to === 'timeout' || to === 'interval'
-      apiEmitter.emit('update:mapper', ApiMapper)
+    onChange: (svc: Service, to: string) => {
+      switch (to) {
+        case 'timeout':
+        case 'interval':
+          svc.method = ''
+          svc.path = `/job/v1/${svc.model}`
+          break
+        case 'api':
+          svc.cdUnit = 's'
+          svc.cdValue = 1
+          svc.emitCond = ''
+          svc.path = ''
+          break
+        default:
+          svc.method = ''
+          svc.path = ''
+          svc.cdUnit = 's'
+          svc.cdValue = 1
+          svc.emitCond = ''
+      }
     }
   },
   isModel: {
     type: 'Switch',
-    onChange: (api: Service, to: boolean) => {
+    onChange: (svc: Service, to: boolean) => {
       if (to) {
-        api.path = genMdlPath(api)
+        svc.path = genMdlPath(svc)
       }
     },
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
@@ -157,9 +177,9 @@ export const ApiMapper = new Mapper({
       label: mthd,
       value: mthd
     })),
-    onChange: (api: Service) => {
-      if (api.isModel) {
-        api.path = genMdlPath(api)
+    onChange: (svc: Service) => {
+      if (svc.isModel) {
+        svc.path = genMdlPath(svc)
       }
     },
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
@@ -168,9 +188,9 @@ export const ApiMapper = new Mapper({
     type: 'Input',
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
     disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
-    onChange: (api: Service, path: string) => {
+    onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {
-        api.path = `/${path}`
+        svc.path = `/${path}`
       }
     }
   },
@@ -188,7 +208,8 @@ export const ApiMapper = new Mapper({
   interface: {
     type: 'Input'
   },
-  flow: {}
+  flow: {},
+  ctrl: {}
 })
 
 export const timeUnit = [
@@ -226,16 +247,16 @@ export const timeUnit = [
   }
 ]
 
-export function genMdlPath(api: Service): string {
-  switch (api.method) {
+export function genMdlPath(svc: Service): string {
+  switch (svc.method) {
     case 'POST':
-      return `/mdl/v1/${api.model}`
+      return `/mdl/v1/${svc.model}`
     case 'DELETE':
     case 'PUT':
     case 'GET':
-      return `/mdl/v1/${api.model}/:index`
+      return `/mdl/v1/${svc.model}/:index`
     case 'ALL':
-      return `/mdl/v1/${api.model}s`
+      return `/mdl/v1/${svc.model}s`
     default:
       return ''
   }

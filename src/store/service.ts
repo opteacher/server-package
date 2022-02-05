@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   Node,
   NodeInPnl,
@@ -26,7 +28,7 @@ import {
   skipIgnores,
   until
 } from '@/utils'
-import { EditNodeEmitter, EditNodeMapper, ApiMapper } from '@/views/Flow'
+import { EditNodeEmitter, EditNodeMapper, ServiceMapper } from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'
@@ -38,13 +40,13 @@ type NodesInPnl = { [key: string]: NodeInPnl }
 type Nodes = { [key: string]: Node }
 type SvcState = {
   pjt: Project
-  api: Service
+  svc: Service
   emitter: Emitter
   nodes: NodesInPnl
   width: number
   node: Node
   locVars: Variable[]
-  apiVsb: boolean
+  svcVsb: boolean
   nodeVsb: boolean
   joinVsb: boolean
   tempVsb: boolean
@@ -64,7 +66,7 @@ function scanLocVars(state: SvcState, ndKey: string): Variable[] {
 }
 
 function getLocVars(state: SvcState): Variable[] {
-  return state.api.deps
+  return state.svc.deps
     .map((dep: Dependency) => dep.exports)
     .flat()
     .map((exp: string, idx: number) =>
@@ -105,13 +107,13 @@ export default {
   state: () =>
     ({
       pjt: new Project(),
-      api: new Service(),
+      svc: new Service(),
       emitter: new Emitter(),
       nodes: {} as NodesInPnl,
       width: 0,
       node: new Node(),
       locVars: [] as Variable[],
-      apiVsb: false,
+      svcVsb: false,
       nodeVsb: false,
       joinVsb: false,
       tempVsb: false,
@@ -173,8 +175,8 @@ export default {
     SET_NODE_INVSB(state: SvcState) {
       state.nodeVsb = false
     },
-    SET_API_VSB(state: SvcState, payload?: boolean) {
-      state.apiVsb = typeof payload !== 'undefined' ? payload : false
+    SET_SVC_VSB(state: SvcState, payload?: boolean) {
+      state.svcVsb = typeof payload !== 'undefined' ? payload : false
     },
     RESET_NODE(state: SvcState) {
       state.node.reset()
@@ -196,7 +198,7 @@ export default {
       }
     },
     RESET_STATE(state: SvcState) {
-      state.api.reset()
+      state.svc.reset()
       state.width = 0
       state.nodes = {}
       state.node.reset()
@@ -215,10 +217,10 @@ export default {
 
       const pid = router.currentRoute.value.params.pid
       Project.copy((await reqGet('project', pid)).data, state.pjt)
-      ApiMapper['path'].prefix = `/${state.pjt.name}`
+      ServiceMapper['path'].prefix = `/${state.pjt.name}`
 
       await dispatch('rfshDpdcs')
-      ApiMapper['deps'].options = Object.values(state.deps).map((dep: Dependency) =>
+      ServiceMapper['deps'].options = Object.values(state.deps).map((dep: Dependency) =>
         LstOpnType.copy({
           key: dep.key,
           title: dep.name,
@@ -232,9 +234,9 @@ export default {
 
       await dispatch('rfshTemps')
 
-      Service.copy((await reqGet('service', aid)).data, state.api)
-      if (state.api.flow) {
-        const rootKey = state.api.flow.key
+      Service.copy((await reqGet('service', aid)).data, state.svc)
+      if (state.svc.flow) {
+        const rootKey = state.svc.flow.key
         await dispatch('readNodes', rootKey)
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
@@ -471,7 +473,7 @@ export default {
       if (!node.previous) {
         // 绑定根节点
         await reqLink({
-          parent: ['service', state.api.key],
+          parent: ['service', state.svc.key],
           child: ['flow', nodeKey]
         })
       } else {
@@ -562,7 +564,7 @@ export default {
           // 删除根节点
           await reqLink(
             {
-              parent: ['service', state.api.key],
+              parent: ['service', state.svc.key],
               child: ['flow', node.key]
             },
             false
@@ -855,11 +857,11 @@ export default {
     }
   },
   getters: {
-    ins: (state: SvcState): Service => state.api,
+    ins: (state: SvcState): Service => state.svc,
     pjt: (state: SvcState): Project => state.pjt,
     emitter: (state: SvcState): Emitter => state.emitter,
     nodes: (state: SvcState): NodesInPnl => {
-      return Object.fromEntries(Object.entries(state.nodes).filter(([_key, node]) => !node.isTemp))
+      return Object.fromEntries(Object.entries(state.nodes).filter(([, node]) => !node.isTemp))
     },
     width: (state: SvcState): number => state.width,
     node:
@@ -870,12 +872,12 @@ export default {
     nodeVsb: (state: SvcState): boolean => state.nodeVsb,
     locVars: (state: SvcState) => state.locVars,
     joinVsb: (state: SvcState): boolean => state.joinVsb,
-    apiVsb: (state: SvcState): boolean => state.apiVsb,
+    svcVsb: (state: SvcState): boolean => state.svcVsb,
     tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
     tempVsb: (state: SvcState): boolean => state.tempVsb,
-    deps: (state: SvcState): Dependency[] => state.api.deps,
+    deps: (state: SvcState): Dependency[] => state.svc.deps,
     tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

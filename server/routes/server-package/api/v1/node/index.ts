@@ -24,10 +24,7 @@ router.get('/temp/exists', async ctx => {
     return
   }
   ctx.body = {
-    result: await tempByGrpAndTtl(
-      query.group as string,
-      query.title as string
-    )
+    result: await tempByGrpAndTtl(query.group as string, query.title as string)
   }
 })
 

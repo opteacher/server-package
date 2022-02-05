@@ -1,8 +1,12 @@
 import Router from 'koa-router'
-/*return `import { ${api.interface} } from '../${api.path.substring(0, api.path.indexOf('/:') === -1 ? api.path.length : api.path.indexOf('/:')).split('/').map(() => '..').join('/')}/services/${api.name}.js'`*/
+/*return `import { ${svc.interface} } from '../${svc.path.substring(0, pamIdx).split('/').map(() => '..').join('/')}/services/${svc.name}.js'`*/
 
 const router = new Router()
 
-/*return `router.${api.method.toLowerCase()}('${(() => { const ret = api.path.substring(api.path.indexOf('/:')); return ret === api.path ? '/' : ret })()}', async ctx => {\n  ctx.body = {\n    result: await ${api.interface}(ctx.params, ctx.request.query, ctx.request.body)\n  }\n})`*/
+/*return svc.emit === 'api' ? `router.${svc.method.toLowerCase()}('${svc.path.substring(pamIdx) || '/'}', async ctx => {\n  ctx.body = {\n    result: await ${svc.interface}(ctx.params, ctx.request.query, ctx.request.body)\n  }\n})` : ''*/
+
+/*return svc.emit === 'timeout' ? `router.post('/', async ctx => {\n  ctx.body = {\n    result: parseInt(setTimeout(async () => await ${svc.interface}(), parseInt(ctx.request.query.timestamp)))\n  }\n})\n\nrouter.delete('/:tmot', async ctx => {\n  ctx.body = {\n    result: clearTimeout(ctx.params.tmot)\n  }\n})` : ''*/
+
+/*return svc.emit === 'interval' ? `router.post('/', async ctx => {\n  ctx.body = {\n    result: parseInt(setInterval(async () => await ${svc.interface}(), parseInt(ctx.request.query.timestamp)))\n  }\n})\n\nrouter.delete('/:tmot', async ctx => {\n  ctx.body = {\n    result: clearInterval(ctx.params.tmot)\n  }\n})` : ''*/
 
 export default router

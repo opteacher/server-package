@@ -1,53 +1,62 @@
 <template>
-<div v-if="hasTmpNds" :style="{
-  position: 'fixed',
-  top: '150px',
-  left: '100px',
-  'z-index': 1000,
-}">
-  <a-button type="primary"
-    @click="$store.commit('service/SET_TEMP_VSB', true)"
+  <div
+    v-if="hasTmpNds"
+    :style="{
+      position: 'fixed',
+      top: '150px',
+      left: '100px',
+      'z-index': 1000
+    }"
   >
-    <GoldOutlined />&nbsp;节点库
-  </a-button>
-  <a-modal
-    title="节点库" :footer="null"
-    :visible="$store.getters['service/tempVsb']"
-    @cancel="$store.commit('service/SET_TEMP_VSB')"
-  >
-    <a-collapse v-model:activeKey="actNdGrp" accordion>
-      <a-collapse-panel
-        v-for="[group, tmpNds] of Object.entries(tmpNdsByGp)"
-        :key="group"
-        :header="group"
-        class="collapse-ptb-0"
-      >
-        <a-list :bordered="false" :data-source="tmpNds">
-          <template #renderItem="{ item: node }">
-            <a-list-item>
-              <a-list-item-meta :description="node.desc">
-                <template #title>
-                  <a href="#" @click="() => {
-                    $store.commit('service/SET_NODE', {
-                      node, viewOnly: true
-                    })
-                  }">
-                    {{ node.title }}
-                  </a>
+    <a-button type="primary" @click="$store.commit('service/SET_TEMP_VSB', true)">
+      <GoldOutlined />
+      &nbsp;节点库
+    </a-button>
+    <a-modal
+      title="节点库"
+      :footer="null"
+      :visible="$store.getters['service/tempVsb']"
+      @cancel="$store.commit('service/SET_TEMP_VSB')"
+    >
+      <a-collapse v-model:activeKey="actNdGrp" accordion>
+        <a-collapse-panel
+          v-for="[group, tmpNds] of Object.entries(tmpNdsByGp)"
+          :key="group"
+          :header="group"
+          class="collapse-ptb-0"
+        >
+          <a-list :bordered="false" :data-source="tmpNds">
+            <template #renderItem="{ item: node }">
+              <a-list-item>
+                <a-list-item-meta :description="node.desc">
+                  <template #title>
+                    <a
+                      href="#"
+                      @click="
+                        () => {
+                          $store.commit('service/SET_NODE', {
+                            node,
+                            viewOnly: true
+                          })
+                        }
+                      "
+                    >
+                      {{ node.title }}
+                    </a>
+                  </template>
+                </a-list-item-meta>
+                <template #actions>
+                  <a-button @click="$store.commit('service/SET_NODE', { node })">
+                    <EditOutlined />
+                  </a-button>
                 </template>
-              </a-list-item-meta>
-              <template #actions>
-                <a-button @click="$store.commit('service/SET_NODE', { node })">
-                  <EditOutlined />
-                </a-button>
-              </template>
-            </a-list-item>
-          </template>
-        </a-list>
-      </a-collapse-panel>
-    </a-collapse>
-  </a-modal>
-</div>
+              </a-list-item>
+            </template>
+          </a-list>
+        </a-collapse-panel>
+      </a-collapse>
+    </a-modal>
+  </div>
 </template>
 
 <script lang="ts">
@@ -62,21 +71,27 @@ export default defineComponent({
     GoldOutlined,
     EditOutlined
   },
-  setup () {
+  setup() {
     const store = useStore()
     const actNdGrp = ref('')
     const hasTmpNds = ref(false)
     const tmpNdsByGp = reactive({} as { [group: string]: Node[] })
 
     onMounted(rfshGroup)
-    watch(() => store.getters['service/tempVsb'], (show: boolean) => {
-      if (show) {
-        rfshGroup()
+    watch(
+      () => store.getters['service/tempVsb'],
+      (show: boolean) => {
+        if (show) {
+          rfshGroup()
+        }
       }
-    })
-    watch(() => store.getters['service/tempNodes'], () => rfshGroup(false))
+    )
+    watch(
+      () => store.getters['service/tempNodes'],
+      () => rfshGroup(false)
+    )
 
-    async function rfshGroup (force = true) {
+    async function rfshGroup(force = true) {
       if (force) {
         await store.dispatch('service/rfshTemps')
       }
@@ -100,7 +115,7 @@ export default defineComponent({
     return {
       actNdGrp,
       hasTmpNds,
-      tmpNdsByGp,
+      tmpNdsByGp
     }
   }
 })
