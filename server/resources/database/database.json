@@ -2,8 +2,8 @@
   "data": [
     {
       "name": "mongo",
-      "dbs": ["test"],
-      "host": "127.0.0.1",
+      "dbs": ["test", "stock-crawler"],
+      "host": "mongo",
       "port": 27017,
       "username": "root",
       "password": "12345"

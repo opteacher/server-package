@@ -8,6 +8,7 @@ export default db.defineModel(
     port: db.PropTypes.Number,
     thread: db.PropTypes.Number,
     database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
+    commands: db.PropTypes.Array,
     frontend: { type: db.PropTypes.Id, ref: 'deploy' },
     models: [{ type: db.PropTypes.Id, ref: 'model' }]
   },

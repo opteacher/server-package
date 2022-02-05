@@ -38,6 +38,10 @@ export class ProjForm {
         options: [],
         rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }]
       },
+      commands: {
+        label: '前置命令',
+        type: 'EditList'
+      },
       operation: {
         label: '操作项目',
         display: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],

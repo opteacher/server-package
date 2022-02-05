@@ -292,6 +292,53 @@
                 </template>
               </a-list>
             </a-form-item-rest>
+            <template v-else-if="value.type === 'EditList'">
+              <a-button
+                class="w-100"
+                type="primary"
+                ghost
+                @click="
+                  () => {
+                    formState[key].unshift('')
+                    value.addMod = true
+                  }
+                "
+              >
+                添加{{ value.label }}
+              </a-button>
+              <a-list
+                v-show="formState[key].length"
+                style="margin-top: 5px"
+                size="small"
+                bordered
+                :data-source="formState[key]"
+              >
+                <template #renderItem="{ item, index }">
+                  <a-list-item>
+                    <template #actions>
+                      <template v-if="value.addMod && !index">
+                        <a @click="value.addMod = false">确定</a>
+                        <a
+                          @click="
+                            () => {
+                              formState[key].shift()
+                              value.addMod = false
+                            }
+                          "
+                        >
+                          取消
+                        </a>
+                      </template>
+                      <a v-else @click="formState[key].splice(index, 1)">删除</a>
+                    </template>
+                    <template v-if="value.addMod && !index">
+                      <a-input v-model:value="formState[key][0]" />
+                    </template>
+                    <template v-else>{{ item }}</template>
+                  </a-list-item>
+                </template>
+              </a-list>
+            </template>
           </template>
         </a-form-item>
       </template>

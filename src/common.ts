@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { getProperty } from './utils'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { ref, Ref } from 'vue'
 
 export class StrIterable {
   [idx: string]: any
@@ -54,6 +55,7 @@ export type CompoType =
   | 'Upload'
   | 'Cascader'
   | 'ListSelect'
+  | 'EditList'
   | 'Unknown'
 
 export type OpnType = {
@@ -309,6 +311,24 @@ export class LstSelMapper extends BaseMapper {
   }
 }
 
+export class EditListMapper extends BaseMapper {
+  addMod: Ref<boolean>
+
+  constructor() {
+    super()
+    this.addMod = ref(false)
+  }
+
+  static copy(src: any, tgt?: EditListMapper): EditListMapper {
+    tgt = tgt || new EditListMapper()
+    BaseMapper.copy(src, tgt)
+    if (src.addMod) {
+      tgt.addMod.value = src.addMod.value || src.addMod || tgt.addMod.value
+    }
+    return tgt
+  }
+}
+
 const EleTypeCopies = {
   Unknown: BaseMapper.copy,
   Input: InputMapper.copy,
@@ -325,7 +345,8 @@ const EleTypeCopies = {
   SelOrIpt: SelOrIptMapper.copy,
   Upload: BaseMapper.copy,
   DateTime: BaseMapper.copy,
-  ListSelect: LstSelMapper.copy
+  ListSelect: LstSelMapper.copy,
+  EditList: EditListMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 export class Mapper {
   [prop: string]: BaseMapper
@@ -407,6 +428,7 @@ export class Project {
   port: number
   thread: number
   database: string[]
+  commands: string[]
   frontend?: Deploy
   models: Model[]
   status: 'starting' | 'stopping' | 'running' | 'stopped' | 'deploying' | 'transferring'
@@ -418,6 +440,7 @@ export class Project {
     this.port = 0
     this.thread = 0
     this.database = []
+    this.commands = []
     this.models = []
     this.status = 'stopped'
   }
@@ -429,6 +452,7 @@ export class Project {
     this.port = 0
     this.thread = 0
     this.database = []
+    this.commands = []
     this.models = []
     this.status = 'stopped'
   }
@@ -441,6 +465,7 @@ export class Project {
     tgt.port = src.port || tgt.port
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
+    tgt.commands = src.commands || tgt.commands
     if (src.frontend) {
       Deploy.copy(src.frontend, tgt.frontend)
     }

@@ -1,6 +1,11 @@
 {
   "data": [
     {
+      "name": "WebModule",
+      "exports": ["params", "query", "body"],
+      "default": false
+    },
+    {
       "name": "DbModule",
       "exports": ["db"],
       "from": "../utils/index.js",
@@ -25,9 +30,10 @@
       "default": false
     },
     {
-      "name": "WebModule",
-      "exports": ["params", "query", "body"],
-      "default": false
+      "name": "Puppeteer",
+      "exports": ["puppeteer"],
+      "from": "puppeteer",
+      "default": true
     }
   ]
 }
