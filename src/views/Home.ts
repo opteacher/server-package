@@ -38,9 +38,13 @@ export class ProjForm {
         options: [],
         rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }]
       },
+      dropDbs: {
+        label: '同步时清空数据库',
+        type: 'Checkbox'
+      },
       commands: {
         label: '前置命令',
-        type: 'EditList'
+        type: 'Textarea'
       },
       operation: {
         label: '操作项目',

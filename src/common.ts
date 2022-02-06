@@ -428,7 +428,8 @@ export class Project {
   port: number
   thread: number
   database: string[]
-  commands: string[]
+  dropDbs: boolean
+  commands: string
   frontend?: Deploy
   models: Model[]
   status: 'starting' | 'stopping' | 'running' | 'stopped' | 'deploying' | 'transferring'
@@ -440,7 +441,8 @@ export class Project {
     this.port = 0
     this.thread = 0
     this.database = []
-    this.commands = []
+    this.dropDbs = false
+    this.commands = ''
     this.models = []
     this.status = 'stopped'
   }
@@ -452,7 +454,8 @@ export class Project {
     this.port = 0
     this.thread = 0
     this.database = []
-    this.commands = []
+    this.dropDbs = false
+    this.commands = ''
     this.models = []
     this.status = 'stopped'
   }
@@ -465,6 +468,7 @@ export class Project {
     tgt.port = src.port || tgt.port
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
+    tgt.dropDbs = src.dropDbs || tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
     if (src.frontend) {
       Deploy.copy(src.frontend, tgt.frontend)

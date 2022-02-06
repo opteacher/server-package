@@ -1,4 +1,4 @@
 version=1
 prefix="/*return project.name*/"
 type="/*return project.database[0]*/"
-sync=true
+sync=0##return project.dropDbs*/
