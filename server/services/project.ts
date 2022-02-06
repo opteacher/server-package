@@ -272,6 +272,7 @@ export async function run(pjt: string | { _id: string; name: string }): Promise<
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
   try {
+    console.log(appFile)
     fs.accessSync(appFile)
   } catch (e) {
     // 如果项目的可执行文件不存在，则同步后重启
