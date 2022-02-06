@@ -117,7 +117,7 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
     }
     case 'traversal': {
       if (!node.inputs.length) {
-        return ([] as string[]).concat(await toNext(node.relative, indent, endKey))
+        return ([] as string[]).concat(await recuNode(node.relative, indent))
       }
       const input = node.inputs[0]
       const output = node.outputs[0]
@@ -132,7 +132,7 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
       }
       ret.push(indents + '}')
-      return ret.concat(await toNext(node.relative, indent, endKey))
+      return ret.concat(await recuNode(node.relative, indent))
     }
     case 'endNode':
       if (node.id === endKey || !node.nexts.length) {
