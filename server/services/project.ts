@@ -123,9 +123,9 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
       const ret = [
         [
           genAnnotation(node, indents),
-          indents + `for (const index in ${fmtInput(input)}) {`,
-          indents + `  const item = ${fmtInput(input)}[index]`
-        ].join('\n')
+          '\n' + indents,
+          `for (const item of ${fmtInput(input)}) {`
+        ].join('')
       ]
       if (node.nexts.length) {
         ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
@@ -266,6 +266,7 @@ export async function sync(pid: string): Promise<any> {
 }
 
 export async function run(pjt: string | { _id: string; name: string }): Promise<number> {
+  console.trace(typeof pjt === 'string' ? pjt : pjt._id, 'run')
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -322,7 +323,7 @@ async function adjAndRestartNginx(projects?: { name: string; port: number }[]): 
 
   console.log('重启Nginx……')
   try {
-    spawnSync('docker stop nginx', {
+    spawnSync(['docker stop nginx', 'docker container prune -f'].join(' && '), {
       stdio: 'inherit',
       shell: true
     })
