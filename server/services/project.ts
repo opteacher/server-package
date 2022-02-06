@@ -322,7 +322,7 @@ async function adjAndRestartNginx(projects?: { name: string; port: number }[]): 
 
   console.log('重启Nginx……')
   try {
-    spawnSync(['docker stop nginx', 'docker container prune -f'].join(' && '), {
+    spawnSync('docker stop nginx', {
       stdio: 'inherit',
       shell: true
     })
