@@ -125,7 +125,7 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         [
           genAnnotation(node, indents),
           '\n' + indents,
-          `for (const ${output} of ${fmtInput(input)}) {`
+          `for (const ${output.value || output.name} of ${fmtInput(input)}) {`
         ].join('')
       ]
       if (node.nexts.length) {
