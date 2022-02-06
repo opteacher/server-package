@@ -248,10 +248,7 @@ export default defineComponent({
     })
     const nexts = computed(() =>
       node.nexts
-        .map((next: Node) => {
-          return next && next.key ? store.getters['service/node'](next.key) : undefined
-        })
-        .filter((node: any) => node)
+        .map((next: Node) => store.getters['service/node'](next))
     )
     const multiCond = computed(() => {
       const relative = store.getters['service/node'](node.relative)
