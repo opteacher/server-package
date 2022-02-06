@@ -63,8 +63,8 @@ const InputMapper = new Mapper({
           store.commit('service/UPD_EDT_LOCVARS')
           InputMapper['value'].options = store.getters['service/locVars'].map(
             (locVar: Variable) => ({
-              label: locVar.name,
-              value: locVar.name
+              label: locVar.value || locVar.name,
+              value: locVar.value || locVar.name
             })
           )
           input.value = ''
@@ -83,7 +83,7 @@ const InputMapper = new Mapper({
         return
       }
       const locVars = store.getters['service/locVars']
-      const selVar = locVars.find((v: any) => v.name === to)
+      const selVar = locVars.find((v: any) => v.value === to || v.name === to)
       input.type = selVar.type
     }
   },
@@ -116,6 +116,10 @@ const InputMapper = new Mapper({
         Cond.copy({ key: 'type', cmp: '==', val: 'Array' })
       ]
     }
+  },
+  remark: {
+    label: '备注',
+    type: 'Input'
   }
 })
 
@@ -153,6 +157,15 @@ export const EditNodeMapper = new Mapper({
       value: key
     }))
   },
+  loop: {
+    label: '循环类型',
+    type: 'Select',
+    display: [Cond.copy({ key: 'type', cmp: '==', val: 'traversal' })],
+    options: [
+      { label: 'for-in循环', value: 'for-in' },
+      { label: 'for-of循环', value: 'for-of' }
+    ]
+  },
   inputs: {
     label: '输入',
     type: 'Table',
@@ -167,7 +180,8 @@ export const EditNodeMapper = new Mapper({
       new Column('参数名', 'name'),
       new Column('参数类型', 'type'),
       new Column('传入变量', 'value'),
-      new Column('变量分量', 'prop')
+      new Column('变量分量', 'prop'),
+      new Column('备注', 'remark')
     ],
     mapper: InputMapper,
     dsKey: '',
@@ -186,7 +200,9 @@ export const EditNodeMapper = new Mapper({
         delKey: key
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
-    }
+    },
+    addable: [Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' })],
+    delable: [Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' })]
   },
   outputs: {
     label: '输出',
@@ -198,7 +214,11 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'type', cmp: '!=', val: 'condNode' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
-    columns: [new Column('返回名', 'name')],
+    columns: [
+      new Column('返回名', 'name'),
+      new Column('重名为', 'value'),
+      new Column('备注', 'remark')
+    ],
     mapper: new Mapper({
       name: {
         label: '返回名',
@@ -208,6 +228,10 @@ export const EditNodeMapper = new Mapper({
       value: {
         label: '重命名',
         desc: '之后该输出将被替换为该名称',
+        type: 'Input'
+      },
+      remark: {
+        label: '备注',
         type: 'Input'
       }
     }),
@@ -228,7 +252,8 @@ export const EditNodeMapper = new Mapper({
         delKey: key
       })
       EditNodeEmitter.emit('update:data', store.getters['service/editNode'])
-    }
+    },
+    delable: [Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' })]
   },
   code: {
     label: '代码',
@@ -237,7 +262,8 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
-    ]
+    ],
+    maxRows: 6
   },
   previous: {
     label: '父节点',

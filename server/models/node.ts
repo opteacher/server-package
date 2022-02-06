@@ -8,6 +8,7 @@ export default db.defineModel(
     title: db.PropTypes.String,
     desc: db.PropTypes.String,
     type: db.PropTypes.String,
+    loop: db.PropTypes.String,
     inputs: [{ type: db.PropTypes.Id, ref: 'variable' }],
     outputs: [{ type: db.PropTypes.Id, ref: 'variable' }],
     code: db.PropTypes.String,

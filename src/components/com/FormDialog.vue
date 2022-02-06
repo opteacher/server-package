@@ -142,6 +142,7 @@
             />
             <template v-else-if="value.type === 'Table'">
               <a-button
+                v-if="validConds(value.addable)"
                 type="primary"
                 @click="
                   () => {
@@ -171,16 +172,16 @@
                 :custom-row="
                   (record: any) => ({
                     onClick: () => {
-                      value.emitter.emit('viewOnly', true)
+                      value.emitter.emit('viewOnly', !value.edtable)
                       value.show = true
                       value.emitter.emit('update:data', record)
                     }
                   })
                 "
               >
-                <template #opera="{ record }">
-                  <a-popconfirm title="确定删除该字段" @confirm="value.onDeleted(record.key)">
-                    <a-button danger size="small">删除</a-button>
+                <template v-if="validConds(value.delable)" #opera="{ record }">
+                  <a-popconfirm title="确定删除该字段" @confirm.stop="value.onDeleted(record.key)">
+                    <a-button danger size="small" @click.stop="() => {}">删除</a-button>
                   </a-popconfirm>
                 </template>
               </a-table>

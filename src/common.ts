@@ -230,6 +230,9 @@ export class TableMapper extends BaseMapper {
   copy: (one: any) => any
   onSaved: (record: any, extra?: any) => void
   onDeleted: (key: any, extra?: any) => void
+  addable: boolean | Cond[] | { [cmpRel: string]: Cond[] }
+  edtable: boolean | Cond[] | { [cmpRel: string]: Cond[] }
+  delable: boolean | Cond[] | { [cmpRel: string]: Cond[] }
 
   constructor() {
     super()
@@ -240,6 +243,9 @@ export class TableMapper extends BaseMapper {
     this.copy = () => console.log()
     this.onSaved = () => console.log()
     this.onDeleted = () => console.log()
+    this.addable = true
+    this.edtable = true
+    this.delable = true
   }
 
   static copy(src: any, tgt?: TableMapper): TableMapper {
@@ -252,6 +258,9 @@ export class TableMapper extends BaseMapper {
     tgt.copy = src.copy || tgt.copy
     tgt.onSaved = src.onSaved || tgt.onSaved
     tgt.onDeleted = src.onDeleted || tgt.onDeleted
+    tgt.addable = src.addable || tgt.addable
+    tgt.edtable = src.edtable || tgt.edtable
+    tgt.delable = src.delable || tgt.delable
     return tgt
   }
 }
@@ -714,6 +723,9 @@ export class Variable {
 }
 
 export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
+export type LoopType = 'for-of' | 'for-in'
+
+export const loopTypes = ['for-of', 'for-in']
 
 export const NodeTypeMapper = {
   normal: '普通节点',
@@ -729,6 +741,7 @@ export class Node extends StrIterable {
   title: string
   desc: string
   type: NodeType
+  loop: LoopType
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   code: string
@@ -745,6 +758,7 @@ export class Node extends StrIterable {
     this.title = ''
     this.desc = ''
     this.type = 'normal'
+    this.loop = 'for-of'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -761,6 +775,7 @@ export class Node extends StrIterable {
     this.title = ''
     this.desc = ''
     this.type = 'normal'
+    this.loop = 'for-of'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -778,6 +793,7 @@ export class Node extends StrIterable {
     tgt.title = src.title || tgt.title
     tgt.desc = src.desc || tgt.desc
     tgt.type = src.type || tgt.type
+    tgt.loop = src.loop || tgt.loop
     if (typeof src.inputs !== 'undefined') {
       tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
     }

@@ -15,7 +15,7 @@
         <h4 class="mb-0">可用变量：</h4>
       </template>
       <template #renderItem="{ item: locVar }">
-        <a-list-item>-&nbsp;{{ locVar.name }}</a-list-item>
+        <a-list-item>-&nbsp;{{ locVar.value || locVar.name }}</a-list-item>
       </template>
     </a-list>
   </div>

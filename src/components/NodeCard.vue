@@ -99,9 +99,22 @@
               left: '10px'
             }"
           >
-            <a-tag v-for="output in node.outputs" :key="output.key" class="b-0" color="#87d068">
-              {{ output.name }}&nbsp;
-              <LogoutOutlined />
+            <a-tag
+              v-for="output in node.outputs"
+              :key="output.key"
+              class="b-0"
+              :class="{ 'filled-output': output.value }"
+              color="#108ee9"
+            >
+              <template v-if="output.value">
+                {{ output.name }}&nbsp;
+                <RightOutlined />
+                &nbsp;{{ output.value }}
+              </template>
+              <template v-else>
+                {{ output.name }}&nbsp;
+                <LogoutOutlined />
+              </template>
             </a-tag>
           </div>
         </div>
@@ -298,5 +311,9 @@ export default defineComponent({
 <style lang="less" scoped>
 .filled-input {
   background: linear-gradient(to right, #87d068, #87d068 50%, #108ee9 51%, #108ee9 100%);
+}
+
+.filled-output {
+  background: linear-gradient(to right, #108ee9, #108ee9 50%, #87d068 51%, #87d068 100%);
 }
 </style>

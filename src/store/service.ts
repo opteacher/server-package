@@ -163,8 +163,8 @@ export default {
       if (EditNodeMapper.inputs.mapper) {
         EditNodeMapper.inputs.mapper['value'].options = getLocVars(state).map(
           (locVar: Variable) => ({
-            label: locVar.name,
-            value: locVar.name
+            label: locVar.value || locVar.name,
+            value: locVar.value || locVar.name
           })
         )
       }
@@ -441,6 +441,49 @@ export default {
           break
         case 'traversal':
           {
+            const list = Variable.copy((await reqPost(
+              'variable',
+              {
+                name: 'array',
+                type: 'Array',
+                required: true,
+                remark: '集合'
+              }
+            )).data)
+            await reqLink({
+              parent: ['node', nodeKey],
+              child: ['inputs', list.key]
+            })
+            // 根据循环类型，生成输入和输出
+            if (node.loop === 'for-in') {
+              const index = Variable.copy((await reqPost(
+                'variable',
+                {
+                  name: 'index',
+                  type: 'Number',
+                  required: true,
+                  remark: '集合项'
+                }
+              )).data)
+              await reqLink({
+                parent: ['node', nodeKey],
+                child: ['outputs', index.key]
+              })
+            } else if (node.loop === 'for-of') {
+              const item = Variable.copy((await reqPost(
+                'variable',
+                Variable.copy({
+                  name: 'item',
+                  type: 'Any',
+                  required: true,
+                  remark: '索引'
+                })
+              )).data)
+              await reqLink({
+                parent: ['node', nodeKey],
+                child: ['outputs', item.key]
+              })
+            }
             // 对于循环根节点，在其后同时创建一个结束节点
             const endNode = Node.copy(
               (
