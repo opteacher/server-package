@@ -104,16 +104,16 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
     case 'condition': {
       const ret = [genAnnotation(node, indents)]
       for (let i = 0; i < node.nexts.length; ++i) {
-        const nxtNode = await db.select(Node, { _index: node.nexts[i] }, { ext: true })
+        const nxtNode = await db.select(Node, { _index: node.nexts[i] })
         ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
         if (nxtNode.nexts.length) {
-          ret.push(...(await recuNode(nxtNode.nexts[0].id, indent + 2, node.relative)))
+          ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, node.relative)))
         }
         if (i === node.nexts.length - 1) {
           ret.push(indents + '}')
         }
       }
-      return ret.concat(await recuNode(node.relative, indent, endKey))
+      return ret.concat(await recuNode(node.relative, indent))
     }
     case 'traversal': {
       if (!node.inputs.length) {
