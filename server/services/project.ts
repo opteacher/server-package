@@ -11,6 +11,7 @@ import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
 import { spawn, spawnSync } from 'child_process'
+import axios from 'axios'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
@@ -511,4 +512,15 @@ export async function transfer(info: {
     stdio: 'inherit',
     shell: true
   })
+}
+
+export async function getData(pid: string, mid: string) {
+  const project = await db.select(Project, { _index: pid })
+  const model = await db.select(Model, { _index: mid })
+  const baseURL = process.env.ENV === 'prod' ? 'opteacher.top' : `127.0.0.1:${project.port}`
+  const resp = await axios.get(`http://${baseURL}/${project.name}/mdl/v1/${model.name}s`)
+  if (resp.status !== 200) {
+    return { error: '访问不到目标项目，请确认项目正常运行！' }
+  }
+  return resp.data.data
 }

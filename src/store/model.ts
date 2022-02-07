@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Model, Project } from '@/common'
+import { Model } from '@/common'
 import router from '@/router'
 import { makeRequest, reqGet } from '@/utils'
 import axios from 'axios'
@@ -22,13 +22,7 @@ export default {
       const mid = router.currentRoute.value.params.mid
       Model.copy((await reqGet('model', mid)).data, state.model)
       const pid = router.currentRoute.value.params.pid
-      const project = Project.copy((await reqGet('project', pid)).data)
-      const baseURL = process.env.ENV === 'prod' ? 'opteacher.top' : `127.0.0.1:${project.port}`
-      state.dataset = (
-        await makeRequest(
-          axios.get(`http://${baseURL}/${project.name}/mdl/v1/${state.model.name}s`)
-        )
-      ).data
+      state.dataset = (await makeRequest(axios.get(`/server-package/api/v1/project/${pid}/model/${mid}/data`))).result
     }
   },
   getters: {
