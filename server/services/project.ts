@@ -53,9 +53,16 @@ function fmtCode(node: { code: string; inputs: any[]; outputs: any[] }, indents?
     ret = ret.replaceAll(new RegExp(`\\b${input.name}\\b`, 'g'), fmtInput(input))
   }
   for (const output of node.outputs) {
-    ret = ret.replaceAll(new RegExp(`\\b${output.name}\\b`, 'g'), output.name)
+    ret = ret.replaceAll(new RegExp(`\\b${output.name}\\b`, 'g'), fmtOutput(output))
   }
   return ret
+}
+
+function fmtOutput(variable: {
+  name: string,
+  value: any
+}): string {
+  return variable.value || variable.name
 }
 
 function fmtInput(variable: {
@@ -89,18 +96,18 @@ function fmtInput(variable: {
 }
 
 async function recuNode(key: string, indent: number, endKey?: string): Promise<string[]> {
-  const node = await db.select(Node, { _index: key })
+  const node = await db.select(Node, { _index: key }, { ext: true })
   const indents = ''.padStart(indent, ' ')
   switch (node.type) {
     case 'normal': {
       return [[genAnnotation(node, indents), fmtCode(node, indents)].join('\n')].concat(
-        node.nexts.length ? await recuNode(node.nexts[0], indent, endKey) : []
+        node.nexts.length ? await recuNode(node.nexts[0].id, indent, endKey) : []
       )
     }
     case 'condition': {
       const ret = [genAnnotation(node, indents)]
       for (let i = 0; i < node.nexts.length; ++i) {
-        const nxtNode = await db.select(Node, { _index: node.nexts[i] })
+        const nxtNode = await db.select(Node, { _index: node.nexts[i].id })
         ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
         if (nxtNode.nexts.length) {
           ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, node.relative)))
@@ -121,11 +128,11 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         [
           genAnnotation(node, indents),
           '\n' + indents,
-          `for (const ${output.value || output.name} of ${fmtInput(input)}) {`
+          `for (const ${fmtOutput(output)} of ${fmtInput(input)}) {`
         ].join('')
       ]
       if (node.nexts.length) {
-        ret.push(...(await recuNode(node.nexts[0], indent + 2, node.relative)))
+        ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
       }
       ret.push(indents + '}')
       return ret.concat(await recuNode(node.relative, indent, endKey))
@@ -134,7 +141,7 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
       if (node.id === endKey || !node.nexts.length) {
         return []
       } else {
-        return await recuNode(node.nexts[0], indent, endKey)
+        return await recuNode(node.nexts[0].id, indent, endKey)
       }
     default:
       return []
