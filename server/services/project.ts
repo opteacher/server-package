@@ -46,17 +46,26 @@ function fmtCode(
   node: { code: string; isFun: boolean; inputs: any[]; outputs: any[] },
   indents?: string
 ): string {
-  if (typeof indents !== 'undefined') {
+  if (!indents) {
     indents = ''
   }
   if (node.isFun) {
-    let ret = indents + `const { ${node.outputs.map(fmtOutput).join(', ')} } = `
-    ret += `await (async (${node.inputs.map((input: any) => input.name).join(', ')}) => {\n`
-    ret += node.code
-      .split('\n')
-      .filter((line: string) => line)
-      .map((line: string) => indents + '  ' + line)
-      .join('\n')
+    let ret = indents
+    if (node.outputs.length) {
+      ret += `const { ${node.outputs
+        .map((opt: any) => opt.name + (opt.value ? `: ${opt.value}` : ''))
+        .join(', ')} } = `
+    }
+    ret += `await (async (${node.inputs.map((ipt: any) => ipt.name).join(', ')}) => {\n`
+    ret +=
+      node.code
+        .split('\n')
+        .filter((line: string) => line)
+        .map((line: string) => indents + '  ' + line)
+        .join('\n') + '\n'
+    if (node.outputs.length) {
+      ret += indents + '  ' + `return { ${node.outputs.map((opt: any) => opt.name).join(', ')} }\n`
+    }
     ret += indents + `})(${node.inputs.map(fmtInput).join(', ')})`
     return ret
   } else {
