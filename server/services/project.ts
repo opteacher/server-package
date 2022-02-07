@@ -268,7 +268,7 @@ export async function sync(pid: string): Promise<any> {
       adjustFile(rotData, `${rotGen}/index.js`, { svc, pamIdx })
 
       const svcExt = await db.select(Service, { _index: svc._id }, { ext: true })
-      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.key || svcExt.flow, 2) : []
+      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.key || svcExt.flow, 4) : []
       if (!(svc.name in services)) {
         services[svc.name] = [svcExt]
       } else {
