@@ -23,14 +23,10 @@ export default {
       Model.copy((await reqGet('model', mid)).data, state.model)
       const pid = router.currentRoute.value.params.pid
       const project = Project.copy((await reqGet('project', pid)).data)
-      const host = process.env.ENV === 'prod' ? project.name : '127.0.0.1'
+      const baseURL = process.env.ENV === 'prod' ? 'opteacher.top' : `127.0.0.1:${project.port}`
       state.dataset = (
         await makeRequest(
-          axios.get(
-            [`http://${host}:${project.port}`, `/${project.name}/mdl/v1/${state.model.name}s`].join(
-              ''
-            )
-          )
+          axios.get(`http://${baseURL}/${project.name}/mdl/v1/${state.model.name}s`)
         )
       ).data
     }
