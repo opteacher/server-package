@@ -15,12 +15,13 @@ export default {
   },
   mutations: {},
   actions: {
-    async refresh({ state }: { state: ModelState }, mid?: string) {
-      if (!router.currentRoute.value.params.pid) {
+    async refresh({ state }: { state: ModelState }) {
+      if (!router.currentRoute.value.params.pid || !router.currentRoute.value.params.mid) {
         return
       }
+      const mid = router.currentRoute.value.params.mid
+      Model.copy((await reqGet('model', mid)).data, state.model)
       const pid = router.currentRoute.value.params.pid
-      Model.copy((await reqGet('model', mid || state.model.key)).data, state.model)
       const project = Project.copy((await reqGet('project', pid)).data)
       const host = process.env.ENV === 'prod' ? project.name : '127.0.0.1'
       state.dataset = (
