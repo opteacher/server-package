@@ -744,6 +744,7 @@ export class Node extends StrIterable {
   loop: LoopType
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
+  isFun: boolean
   code: string
   previous: string | null
   nexts: string[]
@@ -762,6 +763,7 @@ export class Node extends StrIterable {
     this.inputs = []
     this.outputs = []
     this.code = ''
+    this.isFun = true
     this.previous = null
     this.nexts = []
     this.relative = ''
@@ -779,6 +781,7 @@ export class Node extends StrIterable {
     this.inputs = []
     this.outputs = []
     this.code = ''
+    this.isFun = true
     this.previous = null
     this.nexts = []
     this.relative = ''
@@ -801,6 +804,7 @@ export class Node extends StrIterable {
       tgt.outputs = src.outputs.map((opt: any) => Variable.copy(opt))
     }
     tgt.code = src.code || tgt.code
+    tgt.isFun = typeof src.isFun !== 'undefined' ? src.isFun : tgt.isFun
     if (src.previous) {
       tgt.previous = src.previous.key || src.previous._id || src.previous
     }

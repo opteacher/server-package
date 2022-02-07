@@ -13,7 +13,8 @@ import {
   Node,
   NodeTypeMapper,
   routeMethods,
-  Service
+  Service,
+  NodeType
 } from '../common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
@@ -155,7 +156,12 @@ export const EditNodeMapper = new Mapper({
     options: Object.entries(NodeTypeMapper).map(([key, val]) => ({
       label: val,
       value: key
-    }))
+    })),
+    onChange: (node: Node, to: NodeType) => {
+      if (to === 'condNode') {
+        node.isFun = false
+      }
+    }
   },
   loop: {
     label: '循环类型',
@@ -264,6 +270,17 @@ export const EditNodeMapper = new Mapper({
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
     maxRows: 6
+  },
+  isFun: {
+    label: '是否为函数式',
+    desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
+    type: 'Checkbox',
+    disabled: [Cond.copy({ key: 'type', cmp: '==', val: 'condNode' })],
+    display: [
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
+    ]
   },
   previous: {
     label: '父节点',

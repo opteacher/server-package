@@ -7,7 +7,7 @@ module.exports = {
       '/server-package/(mdl|api)': {
         target: 'http://localhost:4000',
         ws: true,
-        changeOrigin: true,
+        changeOrigin: true
       }
     }
   }

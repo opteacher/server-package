@@ -42,27 +42,40 @@ function genAnnotation(
     .join('\n')
 }
 
-function fmtCode(node: { code: string; inputs: any[]; outputs: any[] }, indents?: string): string {
-  let ret = node.code
+function fmtCode(
+  node: { code: string; isFun: boolean; inputs: any[]; outputs: any[] },
+  indents?: string
+): string {
   if (typeof indents !== 'undefined') {
-    ret = ret
+    indents = ''
+  }
+  if (node.isFun) {
+    let ret = indents + `const { ${node.outputs.map(fmtOutput).join(', ')} } = `
+    ret += `await (async (${node.inputs.map((input: any) => input.name).join(', ')}) => {\n`
+    ret += node.code
       .split('\n')
+      .filter((line: string) => line)
+      .map((line: string) => indents + '  ' + line)
+      .join('\n')
+    ret += indents + `})(${node.inputs.map(fmtInput).join(', ')})`
+    return ret
+  } else {
+    let ret = node.code
+      .split('\n')
+      .filter((line: string) => line)
       .map((line: string) => indents + line)
       .join('\n')
+    for (const input of node.inputs) {
+      ret = ret.replaceAll(new RegExp(`\\b${input.name}\\b`, 'g'), fmtInput(input))
+    }
+    for (const output of node.outputs) {
+      ret = ret.replaceAll(new RegExp(`\\b${output.name}\\b`, 'g'), fmtOutput(output))
+    }
+    return ret
   }
-  for (const input of node.inputs) {
-    ret = ret.replaceAll(new RegExp(`\\b${input.name}\\b`, 'g'), fmtInput(input))
-  }
-  for (const output of node.outputs) {
-    ret = ret.replaceAll(new RegExp(`\\b${output.name}\\b`, 'g'), fmtOutput(output))
-  }
-  return ret
 }
 
-function fmtOutput(variable: {
-  name: string,
-  value: any
-}): string {
+function fmtOutput(variable: { name: string; value: any }): string {
   return variable.value || variable.name
 }
 
@@ -388,8 +401,8 @@ function adjustFile(
       } else if (slot[0] - 1 >= 0 && strData.substring(slot[0] - 1, slot[0]) === '0') {
         begIdx -= 1
       }
-      const fmtCode = strData.substring(slot[0] + 2, slot[1] - 2)
-      const func = new Function(...Object.keys(args), fmtCode)
+      const adjCode = strData.substring(slot[0] + 2, slot[1] - 2)
+      const func = new Function(...Object.keys(args), adjCode)
       writeData += [
         strData.substring(curIdx, begIdx),
         func(...Object.values(args)),

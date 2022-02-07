@@ -11,6 +11,7 @@ export default db.defineModel(
     loop: db.PropTypes.String,
     inputs: [{ type: db.PropTypes.Id, ref: 'variable' }],
     outputs: [{ type: db.PropTypes.Id, ref: 'variable' }],
+    isFun: db.PropTypes.Boolean,
     code: db.PropTypes.String,
     previous: { type: db.PropTypes.Id, ref: 'node' },
     nexts: [{ type: db.PropTypes.Id, ref: 'node' }],

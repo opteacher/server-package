@@ -13,6 +13,8 @@
     "importHelpers": true,
     // 接受JavaScript做为输入
     "allowJs": true,
+    // 是否检测JS的语法,例如下面的语法编辑器会报错
+    "checkJs": false,
     // 决定如何处理模块, 默认"Classic", "Node"对于Node.js/io.js
     "moduleResolution": "node",
     // 接受Json做为输入
@@ -37,10 +39,14 @@
       "@/*": ["./*", "./dist/*"]
     },
     // 编译过程中需要引入的库文件的列表
-    "lib": ["esnext"]
+    "lib": ["esnext"],
+    // 打印输出的文件
+    "listEmittedFiles": true,
+    // 打印编译的文件（包括引用的声明文件）
+    "listFiles": true,
   },
   // 包含文件
-  "include": ["./**/*.js", "./**/*.ts", "./**/*.tsx", "./package.json", "./configs/*.toml"],
+  "include": ["./**/*.js", "./**/*.ts", "./**/*.tsx", "./package.json"],
   // 排除文件
-  "exclude": ["./dist", "./node_modules", "./resources", "./tests", "./lib/tests"]
+  "exclude": ["./dist", "./node_modules", "./tests", "./resources", "./lib/tests"]
 }
