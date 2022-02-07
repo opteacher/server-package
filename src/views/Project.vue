@@ -46,16 +46,16 @@
         >
           <template #path="{ record: svc }">/{{ project.name }}{{ svc.path }}</template>
           <template #emitCondEdit="{ editing: svc }">
-            <a-input-number v-model:value="svc.cdValue" :min="1" placeholder="输入时间段或时间点">
+            <a-input v-model:value="svc.cdValue" :min="1" placeholder="输入时间段或时间点">
               <template #addonAfter>
                 <a-select
-                  :options="timeUnit"
+                  :options="timeUnits"
                   v-model:value="svc.cdUnit"
                   style="width: 80px"
                   placeholder="单位"
                 />
               </template>
-            </a-input-number>
+            </a-input>
           </template>
           <template #emitCond="{ record: svc }">
             {{
@@ -82,7 +82,7 @@
               "
             >
               <template #icon><ApartmentOutlined /></template>
-              &nbsp;流程设计
+              &nbsp;设计
             </a-button>
             <template v-else>-</template>
           </template>
@@ -132,7 +132,7 @@ import {
   ServiceColumns,
   ServiceMapper,
   genMdlPath,
-  timeUnit
+  timeUnits
 } from './Project'
 import { useStore } from 'vuex'
 
@@ -234,7 +234,7 @@ export default defineComponent({
       pid,
       router,
       project,
-      timeUnit,
+      timeUnits,
 
       onModelSave,
       onModelDel,

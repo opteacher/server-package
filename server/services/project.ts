@@ -41,10 +41,6 @@ function genAnnotation(
     .join('\n')
 }
 
-async function toNext(node: { nexts: any[] }, indent: number, endKey?: string) {
-  return node.nexts.length ? await recuNode(node.nexts[0].id, indent, endKey) : []
-}
-
 function fmtCode(node: { code: string; inputs: any[]; outputs: any[] }, indents?: string): string {
   let ret = node.code
   if (typeof indents !== 'undefined') {
@@ -93,12 +89,12 @@ function fmtInput(variable: {
 }
 
 async function recuNode(key: string, indent: number, endKey?: string): Promise<string[]> {
-  const node = await db.select(Node, { _index: key }, { ext: true })
+  const node = await db.select(Node, { _index: key })
   const indents = ''.padStart(indent, ' ')
   switch (node.type) {
     case 'normal': {
       return [[genAnnotation(node, indents), fmtCode(node, indents)].join('\n')].concat(
-        await toNext(node, indent, endKey)
+        node.nexts.length ? await recuNode(node.nexts[0], indent, endKey) : []
       )
     }
     case 'condition': {
@@ -113,7 +109,7 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
           ret.push(indents + '}')
         }
       }
-      return ret.concat(await recuNode(node.relative, indent))
+      return ret.concat(await recuNode(node.relative, indent, endKey))
     }
     case 'traversal': {
       if (!node.inputs.length) {
@@ -129,16 +125,16 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         ].join('')
       ]
       if (node.nexts.length) {
-        ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
+        ret.push(...(await recuNode(node.nexts[0], indent + 2, node.relative)))
       }
       ret.push(indents + '}')
-      return ret.concat(await recuNode(node.relative, indent))
+      return ret.concat(await recuNode(node.relative, indent, endKey))
     }
     case 'endNode':
       if (node.id === endKey || !node.nexts.length) {
         return []
       } else {
-        return await recuNode(node.nexts[0].id, indent, endKey)
+        return await recuNode(node.nexts[0], indent, endKey)
       }
     default:
       return []

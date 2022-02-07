@@ -128,7 +128,7 @@ export const ServiceColumns = [
   new Column('激活方式', 'emit'),
   new Column('模型路由', 'isModel'),
   new Column('访问方式', 'method'),
-  new Column('路径（带项目名前缀）', 'path'),
+  new Column('路径', 'path'),
   new Column('服务', 'name'),
   new Column('接口', 'interface'),
   new Column('任务参数', 'emitCond'),
@@ -212,7 +212,7 @@ export const ServiceMapper = new Mapper({
   ctrl: {}
 })
 
-export const timeUnit = [
+export const timeUnits = [
   {
     label: '毫秒',
     value: 'ms'

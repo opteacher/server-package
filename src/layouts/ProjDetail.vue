@@ -1,5 +1,5 @@
 <template>
-  <div class="project">
+  <div class="container">
     <a-page-header
       class="demo-page-header"
       style="border: 1px solid rgb(235, 237, 240)"
@@ -177,10 +177,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less" scoped>
-.project {
-  height: 100%;
-  padding: 50px 100px;
-}
-</style>
