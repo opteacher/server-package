@@ -441,7 +441,7 @@ export class Project {
   commands: string
   frontend?: Deploy
   models: Model[]
-  status: 'starting' | 'stopping' | 'running' | 'stopped' | 'deploying' | 'transferring'
+  status: 'loading' | 'running' | 'stopped'
 
   constructor() {
     this.key = ''

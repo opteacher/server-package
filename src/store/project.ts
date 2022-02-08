@@ -22,6 +22,7 @@ export default {
         const model = state.models[index]
         Model.copy((await reqGet('model', model.key)).data, model)
       }
+      dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
       await reqPut('project', state.key, project, { ignores: ['models'] })
@@ -70,7 +71,7 @@ export default {
       await axios.delete(`/server-package/api/v1/project/${state.key}`)
     },
     async sync({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
-      state.status = 'starting'
+      state.status = 'loading'
       await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/sync`), {
         messages: {
           loading: '同步中……',
@@ -78,7 +79,6 @@ export default {
         }
       })
       await dispatch('refresh')
-      dispatch('chkStatus')
     },
     chkStatus({ state }: { state: Project }) {
       let countdown = 0
@@ -109,7 +109,7 @@ export default {
       await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/stop`), {
         middles: {
           before: () => {
-            state.status = 'stopping'
+            state.status = 'loading'
           },
           after: () => {
             state.status = 'stopped'
@@ -127,7 +127,7 @@ export default {
       await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/deploy`, config), {
         middles: {
           before: () => {
-            state.status = 'deploying'
+            state.status = 'loading'
           },
           after: () => {
             state.status = orgSts
@@ -158,7 +158,7 @@ export default {
         {
           middles: {
             before: () => {
-              state.status = 'transferring'
+              state.status = 'loading'
             },
             after: () => {
               state.status = orgSts

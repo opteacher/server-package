@@ -8,7 +8,7 @@
       @back="() => router.go(-1)"
     >
       <template #tags>
-        <template v-if="project.status === 'starting'">
+        <template v-if="project.status === 'loading'">
           <a-spin size="small" />
           &nbsp;启动中……
         </template>
@@ -40,8 +40,8 @@
         />
         <a-button
           type="primary"
-          :disabled="project.status === 'starting' || project.status === 'stopping'"
-          :loading="project.status === 'starting' || project.status === 'stopping'"
+          :disabled="project.status === 'loading'"
+          :loading="project.status === 'loading'"
           @click="onSync"
         >
           <template #icon><SyncOutlined /></template>
@@ -52,8 +52,8 @@
           <a-button
             v-if="project.thread"
             class="ml-5"
-            :disabled="project.status === 'stopping'"
-            :loading="project.status === 'stopping'"
+            :disabled="project.status === 'loading'"
+            :loading="project.status === 'loading'"
             @click="transferForm.show = true"
           >
             <template #icon><UploadOutlined /></template>
@@ -77,8 +77,8 @@
           v-if="project.thread"
           class="ml-5"
           danger
-          :disabled="project.status === 'stopping'"
-          :loading="project.status === 'stopping'"
+          :disabled="project.status === 'loading'"
+          :loading="project.status === 'loading'"
           @click="onStop"
         >
           <template #icon><PoweroffOutlined /></template>
