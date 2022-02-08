@@ -22,7 +22,6 @@ export default {
         const model = state.models[index]
         Model.copy((await reqGet('model', model.key)).data, model)
       }
-      dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
       await reqPut('project', state.key, project, { ignores: ['models'] })
@@ -79,9 +78,10 @@ export default {
         }
       })
       await dispatch('refresh')
+      dispatch('chkStatus')
     },
     chkStatus({ state }: { state: Project }) {
-      state.status = 'stopping'
+      let countdown = 0
       const h = setInterval(async () => {
         try {
           await axios.get(
@@ -91,6 +91,13 @@ export default {
           )
         } catch (e) {
           console.log(`等待项目${state.name}启动……`)
+          if (countdown > 15 * 60) {
+            console.log('已超过15分钟，项目启动失败！')
+            state.status = 'stopped'
+            clearInterval(h)
+          } else {
+            ++countdown
+          }
           return
         }
         clearInterval(h)
