@@ -10,6 +10,7 @@ import DataBase from '../models/database.js'
 import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
+import Dependency from '../models/dependency.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
 
@@ -215,10 +216,23 @@ export async function sync(pid: string): Promise<any> {
   console.log(`调整Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
 
+  const depMapper: { [depId: string]: any } = {}
+  for (const model of project.models) {
+    for (const service of model.svcs) {
+      for (const depId of service.deps) {
+        if (!(depId in depMapper)) {
+          depMapper[depId] = await db.select(Dependency, { _index: depId })
+        }
+      }
+    }
+  }
   const pkgTmp = Path.join(tmpPath, 'package.json')
   const pkgGen = Path.join(genPath, 'package.json')
   console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
-  adjustFile(pkgTmp, pkgGen, { project })
+  adjustFile(pkgTmp, pkgGen, {
+    project,
+    pkgDeps: Object.values(depMapper).filter((depIns: any) => depIns.version)
+  })
 
   const libTmp = Path.resolve('lib')
   const libGen = Path.join(genPath, 'lib')

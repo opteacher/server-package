@@ -11,7 +11,10 @@
       @delete="onModelDel"
     >
       <template #dataset="{ record: model }">
-        <a-button @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)">
+        <a-button
+          :disabled="project.status !== 'running'"
+          @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+        >
           <template #icon><DatabaseOutlined /></template>
           &nbsp;数据浏览
         </a-button>
@@ -93,18 +96,26 @@
                   <a-button
                     :size="svc.jobId ? 'small' : 'middle'"
                     type="primary"
+                    :disabled="project.status !== 'running'"
                     @click="onSvcJobRest(svc)"
                   >
                     启动
                   </a-button>
                 </li>
                 <li v-if="svc.jobId">
-                  <a-button size="small" danger @click="onSvcJobStop(svc)">停止</a-button>
+                  <a-button
+                    size="small"
+                    danger
+                    :disabled="project.status !== 'running'"
+                    @click="onSvcJobStop(svc)"
+                  >
+                    停止
+                  </a-button>
                 </li>
               </ul>
             </template>
             <template v-if="svc.emit === 'api'">
-              <a-button>测试</a-button>
+              <a-button :disabled="project.status !== 'running'">测试</a-button>
             </template>
           </template>
         </EditableTable>

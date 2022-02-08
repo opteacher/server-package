@@ -1,11 +1,6 @@
 {
   "data": [
     {
-      "name": "WebModule",
-      "exports": ["params", "query", "body"],
-      "default": false
-    },
-    {
       "name": "DbModule",
       "exports": ["db"],
       "from": "../utils/index.js",
@@ -21,19 +16,29 @@
       "name": "JsonWebToken",
       "exports": ["jwt"],
       "from": "jsonwebtoken",
-      "default": true
+      "default": true,
+      "version": "8.5.1"
     },
     {
       "name": "UUID",
       "exports": ["v4"],
       "from": "uuid",
-      "default": false
+      "default": false,
+      "version": "8.3.2"
     },
     {
       "name": "Puppeteer",
       "exports": ["puppeteer"],
       "from": "puppeteer",
-      "default": true
+      "default": true,
+      "version": "13.1.3"
+    },
+    {
+      "name": "Qiniu",
+      "exports": ["qiniu"],
+      "from": "qiniu",
+      "default": true,
+      "version": "7.4.0"
     }
   ]
 }

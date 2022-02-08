@@ -40,8 +40,8 @@
         />
         <a-button
           type="primary"
-          :disabled="project.status === 'starting'"
-          :loading="project.status === 'starting'"
+          :disabled="project.status === 'starting' || project.status === 'stopping'"
+          :loading="project.status === 'starting' || project.status === 'stopping'"
           @click="onSync"
         >
           <template #icon><SyncOutlined /></template>

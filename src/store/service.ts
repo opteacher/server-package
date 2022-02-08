@@ -72,6 +72,7 @@ function getLocVars(state: SvcState): Variable[] {
     .map((exp: string, idx: number) =>
       Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
     )
+    .concat(Variable.copy({ key: 'context', name: 'ctx', type: 'Object' }))
     .concat(state.node.previous ? scanLocVars(state, state.node.previous) : [])
 }
 

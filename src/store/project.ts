@@ -3,6 +3,7 @@
 import { Deploy, Model, Project, Transfer } from '@/common'
 import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import { modelEmitter, propEmitter, svcEmitter } from '@/views/Project'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 
@@ -11,7 +12,7 @@ export default {
   state: new Project(),
   mutations: {},
   actions: {
-    async refresh({ state }: { state: Project }) {
+    async refresh({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       if (!router.currentRoute.value.params.pid) {
         return
       }
@@ -21,6 +22,7 @@ export default {
         const model = state.models[index]
         Model.copy((await reqGet('model', model.key)).data, model)
       }
+      dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
       await reqPut('project', state.key, project, { ignores: ['models'] })
@@ -77,14 +79,16 @@ export default {
         }
       })
       await dispatch('refresh')
-
+    },
+    chkStatus({ state }: { state: Project }) {
+      state.status = 'stopping'
       const h = setInterval(async () => {
         try {
-          let host = `http://127.0.0.1:${state.port}`
-          if (process.env.ENV === 'prod') {
-            host = `http://${state.name}:${state.port}`
-          }
-          await axios.get(`${host}/${state.name}/mdl/v1`)
+          await axios.get(
+            `${
+              process.env.ENV === 'prod' ? 'http://opteacher.top' : 'http://127.0.0.1:' + state.port
+            }/${state.name}/mdl/v1`
+          )
         } catch (e) {
           console.log(`等待项目${state.name}启动……`)
           return
