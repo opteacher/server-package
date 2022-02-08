@@ -7,6 +7,7 @@ export interface RequestOptions {
     after?: (resp: any) => void
   }
   messages?: {
+    notShow?: boolean
     loading?: string
     succeed?: string
   }
@@ -15,9 +16,13 @@ export interface RequestOptions {
 
 export async function makeRequest(pms: Promise<any>, options?: RequestOptions): Promise<any> {
   options?.middles?.before && options?.middles?.before()
-  message.loading(options?.messages?.loading || '加载中……')
+  if (!options?.messages?.notShow) {
+    message.loading(options?.messages?.loading || '加载中……')
+  }
   const resp = (await pms).data
-  message.destroy()
+  if (!options?.messages?.notShow) {
+    message.destroy()
+  }
   options?.middles?.after && options?.middles?.after(resp)
   if (options?.messages?.succeed) {
     message.success(options?.messages?.succeed)

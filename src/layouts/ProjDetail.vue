@@ -120,7 +120,7 @@
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProjForm } from '../views/Home'
-import { DeployForm, TransferForm } from '../views/Project'
+import { DeployForm, onStop, onSync, TransferForm } from '../views/Project'
 import {
   SyncOutlined,
   PoweroffOutlined,
@@ -166,8 +166,8 @@ export default defineComponent({
       transferForm,
 
       onConfig: (pjt: Project) => store.dispatch('project/save', pjt),
-      onSync: () => store.dispatch('project/sync'),
-      onStop: () => store.dispatch('project/stop'),
+      onSync,
+      onStop,
       onDeploy: (config: Deploy) => store.dispatch('project/deploy', config),
       onTransfer: async (info: Transfer, reset: () => void) => {
         await store.dispatch('project/transfer', info)

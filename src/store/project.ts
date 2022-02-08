@@ -83,14 +83,13 @@ export default {
     chkStatus({ state }: { state: Project }) {
       let countdown = 0
       const h = setInterval(async () => {
-        try {
-          await axios.get(
-            `${
-              process.env.ENV === 'prod' ? 'http://opteacher.top' : 'http://127.0.0.1:' + state.port
-            }/${state.name}/mdl/v1`
-          )
-        } catch (e) {
-          console.log(`等待项目${state.name}启动……`)
+        state.status = (
+          await makeRequest(axios.get(`/server-package/api/v1/project/${state.key}/stat`), {
+            messages: { notShow: false }
+          })
+        ).result.status
+        if (state.status === 'loading') {
+          console.log(`等待项目${state.name}启动……，已等待${countdown}秒`)
           if (countdown > 15 * 60) {
             console.log('已超过15分钟，项目启动失败！')
             state.status = 'stopped'
@@ -101,8 +100,7 @@ export default {
           return
         }
         clearInterval(h)
-        state.status = 'running'
-        console.log(`项目${state.name}已成功启动！`)
+        console.log(`项目${state.name}已成功${state.status === 'running' ? '启动' : '停止'}！`)
       }, 1000)
     },
     async stop({ dispatch, state }: { dispatch: Dispatch; state: Project }) {

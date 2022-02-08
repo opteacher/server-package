@@ -472,14 +472,18 @@ export async function stop(pjt: string | { _id: string; thread: number }): Promi
 export async function status(pid: string): Promise<any> {
   const project = await db.select(Project, { _index: pid })
   if (!project.thread) {
-    return Promise.resolve({
-      status: 'stopped'
-    })
+    return { status: 'stopped' }
   } else {
-    return Promise.resolve({
-      status: 'running',
-      threadId: project.thread
-    })
+    try {
+      await axios.get(
+        `http://${process.env.ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
+          project.name
+        }/mdl/v1`
+      )
+    } catch (e) {
+      return { status: 'loading' }
+    }
+    return { status: 'running' }
   }
 }
 
@@ -553,8 +557,11 @@ export async function transfer(info: {
 export async function getData(pid: string, mid: string) {
   const project = await db.select(Project, { _index: pid })
   const model = await db.select(Model, { _index: mid })
-  const baseURL = process.env.ENV === 'prod' ? 'opteacher.top' : `127.0.0.1:${project.port}`
-  const resp = await axios.get(`http://${baseURL}/${project.name}/mdl/v1/${model.name}s`)
+  const resp = await axios.get(
+    `http://${process.env.ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
+      project.name
+    }/mdl/v1/${model.name}s`
+  )
   if (resp.status !== 200) {
     return { error: '访问不到目标项目，请确认项目正常运行！' }
   }
