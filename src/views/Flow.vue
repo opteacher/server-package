@@ -1,5 +1,5 @@
 <template>
-  <FlowDesign>
+  <LytFlow>
     <div class="flow-panel" ref="panelRef">
       <DepsPanel />
       <VarsPanel />
@@ -56,12 +56,12 @@
         }
       "
     />
-  </FlowDesign>
+  </LytFlow>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import FlowDesign from '../layouts/FlowDesign.vue'
+import LytFlow from '../layouts/LytFlow.vue'
 import NodeCard from '../components/NodeCard.vue'
 import { Node } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
@@ -74,7 +74,7 @@ import TmpNdPanel from '../components/TmpNdPanel.vue'
 export default defineComponent({
   name: 'Flow',
   components: {
-    FlowDesign,
+    LytFlow,
     NodeCard,
     FormDialog,
     DepsPanel,

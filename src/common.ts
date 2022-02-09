@@ -3,6 +3,7 @@
 import { getProperty } from './utils'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ref, Ref } from 'vue'
+import _ from 'lodash'
 
 export class StrIterable {
   [idx: string]: any
@@ -441,6 +442,7 @@ export class Project {
   commands: string
   frontend?: Deploy
   models: Model[]
+  roles: Role[]
   status: 'loading' | 'running' | 'stopped'
 
   constructor() {
@@ -453,6 +455,7 @@ export class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
+    this.roles = []
     this.status = 'stopped'
   }
 
@@ -466,6 +469,7 @@ export class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
+    this.roles = []
     this.status = 'stopped'
   }
 
@@ -483,12 +487,58 @@ export class Project {
       Deploy.copy(src.frontend, tgt.frontend)
     }
     if (src.models) {
-      tgt.models = []
+      tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {
         tgt.models.push(Model.copy(model))
       }
     }
+    if (src.roles) {
+      tgt.roles.splice(0, tgt.roles.length)
+      for (const role of src.roles) {
+        tgt.roles.push(Role.copy(role))
+      }
+    }
     tgt.status = src.status || tgt.status
+    return tgt
+  }
+}
+
+export class ExpClsForm {
+  key: string
+  name: string
+  expType: 'typescript' | 'javascript'
+  genCopy: boolean
+  genReset: boolean
+
+  constructor() {
+    this.key = ''
+    this.name = ''
+    this.expType = 'typescript'
+    this.genCopy = true
+    this.genReset = true
+  }
+
+  reset() {
+    this.key = ''
+    this.name = ''
+    this.expType = 'typescript'
+    this.genCopy = true
+    this.genReset = true
+  }
+
+  update(model: Model): ExpClsForm {
+    this.key = model.key
+    this.name = _.upperFirst(model.name)
+    return this
+  }
+
+  static copy(src: any, tgt?: ExpClsForm): ExpClsForm {
+    tgt = tgt || new ExpClsForm()
+    tgt.key = src.key || tgt.key
+    tgt.name = src.name || tgt.name
+    tgt.expType = src.expType || tgt.expType
+    tgt.genCopy = src.genCopy || tgt.genCopy
+    tgt.genReset = src.genReset || tgt.genReset
     return tgt
   }
 }
@@ -1093,6 +1143,72 @@ export class Dependency {
     tgt.exports = src.exports || tgt.exports
     tgt.from = src.from || tgt.from
     tgt.default = typeof src.default !== 'undefined' ? src.default : tgt.default
+    return tgt
+  }
+}
+
+export class Role {
+  key: string
+  name: string
+  auths: Auth[]
+
+  constructor() {
+    this.key = ''
+    this.name = ''
+    this.auths = []
+  }
+
+  reset() {
+    this.key = ''
+    this.name = ''
+    this.auths = []
+  }
+
+  static copy(src: any, tgt?: Role): Role {
+    tgt = tgt || new Role()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.name = src.name || tgt.name
+    if (src.auths) {
+      tgt.auths.splice(0, tgt.auths.length)
+      for (const auth of src.auths) {
+        tgt.auths.push(Auth.copy(auth))
+      }
+    }
+    return tgt
+  }
+}
+
+export const authValues = ['s', '*', '*/*']
+export class Auth {
+  key: string
+  method: string
+  path: string
+  value: string
+  action: string
+
+  constructor() {
+    this.key = ''
+    this.method = 'GET'
+    this.path = ''
+    this.value = '*'
+    this.action = ''
+  }
+
+  reset() {
+    this.key = ''
+    this.method = 'GET'
+    this.path = ''
+    this.value = '*'
+    this.action = ''
+  }
+
+  static copy(src: any, tgt?: Auth): Auth {
+    tgt = tgt || new Auth()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.method = src.method || tgt.method
+    tgt.path = src.path || tgt.path
+    tgt.value = src.value || tgt.value
+    tgt.action = src.action || tgt.action
     return tgt
   }
 }

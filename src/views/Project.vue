@@ -1,5 +1,5 @@
 <template>
-  <ProjDetail>
+  <LytProject>
     <EditableTable
       title="模型"
       dsKey="project/ins.models"
@@ -17,6 +17,19 @@
         >
           <template #icon><DatabaseOutlined /></template>
           &nbsp;数据浏览
+        </a-button>
+      </template>
+      <template #expCls="{ record: model }">
+        <a-button
+          @click.stop="
+            () => {
+              expClsForm.update(model)
+              expClsVsb = true
+            }
+          "
+        >
+          <template #icon><ExportOutlined /></template>
+          &nbsp;导出类
         </a-button>
       </template>
       <template #expandedRowRender="{ record: model }">
@@ -121,17 +134,31 @@
         </EditableTable>
       </template>
     </EditableTable>
-  </ProjDetail>
+  </LytProject>
+  <FormDialog
+    title="导出类"
+    :show="expClsVsb"
+    :object="expClsForm"
+    :copy="ExpClsForm.copy"
+    :mapper="ExpClsMapper"
+    @update:show="
+      show => {
+        expClsVsb = show
+      }
+    "
+    @submit="formData => $store.dispatch('model/export', formData)"
+  />
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Model, Project, Property, Service } from '@/common'
+import { ExpClsForm, Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted } from 'vue'
-import { ApartmentOutlined, DatabaseOutlined } from '@ant-design/icons-vue'
+import { ApartmentOutlined, DatabaseOutlined, ExportOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
-import ProjDetail from '../layouts/ProjDetail.vue'
+import LytProject from '../layouts/LytProject.vue'
+import FormDialog from '../components/com/FormDialog.vue'
 import {
   modelEmitter,
   ModelColumns,
@@ -143,7 +170,10 @@ import {
   ServiceColumns,
   ServiceMapper,
   genMdlPath,
-  timeUnits
+  timeUnits,
+  expClsVsb,
+  expClsForm,
+  ExpClsMapper
 } from './Project'
 import { useStore } from 'vuex'
 
@@ -151,9 +181,11 @@ export default defineComponent({
   name: 'Project',
   components: {
     EditableTable,
-    ProjDetail,
+    LytProject,
+    FormDialog,
     ApartmentOutlined,
-    DatabaseOutlined
+    DatabaseOutlined,
+    ExportOutlined
   },
   setup() {
     const route = useRoute()
@@ -232,6 +264,7 @@ export default defineComponent({
       Model,
       Property,
       Service,
+      ExpClsForm,
 
       modelEmitter,
       ModelColumns,
@@ -246,6 +279,9 @@ export default defineComponent({
       router,
       project,
       timeUnits,
+      expClsVsb,
+      expClsForm,
+      ExpClsMapper,
 
       onModelSave,
       onModelDel,

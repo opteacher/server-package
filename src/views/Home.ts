@@ -79,7 +79,7 @@ export class ProjForm {
   }
 
   async initialize() {
-    this.mapper.database.options = (await reqGet('databases')).data.map((org: any) => {
+    this.mapper.database.options = (await reqGet('databases')).map((org: any) => {
       const database = DataBase.copy(org)
       return {
         value: database.name,

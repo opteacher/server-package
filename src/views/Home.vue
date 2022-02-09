@@ -82,7 +82,7 @@ export default defineComponent({
 
     async function refresh() {
       await projForm.initialize()
-      projects.value = (await reqGet('projects')).data
+      projects.value = await reqGet('projects')
     }
     async function onNewProjSubmit(project: Project) {
       await reqPost('project', project, {

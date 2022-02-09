@@ -156,7 +156,7 @@
           </template>
         </template>
       </template>
-      <template v-if="edtable || delable" #action="{ record }">
+      <template v-if="edtable || delable" #opera="{ record }">
         <template v-if="record.key === editing.key">
           <ul class="unstyled-list">
             <li class="mb-3">
@@ -224,8 +224,8 @@ export default defineComponent({
       props.edtable || props.delable
         ? props.columns.concat({
             title: '操作',
-            dataIndex: 'action',
-            slots: { customRender: 'action' },
+            dataIndex: 'opera',
+            slots: { customRender: 'opera' },
             width: 80
           })
         : props.columns

@@ -39,6 +39,19 @@
       "from": "qiniu",
       "default": true,
       "version": "7.4.0"
+    },
+    {
+      "name": "Axios",
+      "exports": ["axios"],
+      "from": "axios",
+      "default": true,
+      "version": "0.24.0"
+    },
+    {
+      "name": "Path",
+      "exports": ["Path"],
+      "from": "path",
+      "default": true
     }
   ]
 }

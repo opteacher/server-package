@@ -11,7 +11,8 @@ export default db.defineModel(
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     commands: db.PropTypes.String,
     frontend: { type: db.PropTypes.Id, ref: 'deploy' },
-    models: [{ type: db.PropTypes.Id, ref: 'model' }]
+    models: [{ type: db.PropTypes.Id, ref: 'model' }],
+    roles: [{ type: db.PropTypes.Id, ref: 'role' }]
   },
   {
     router: {

@@ -9,10 +9,11 @@ import {
   routeMethods,
   Transfer,
   Cond,
-  emitTypeOpns
+  emitTypeOpns,
+  ExpClsForm
 } from '@/common'
 import { Modal } from 'ant-design-vue'
-import { createVNode } from 'vue'
+import { createVNode, ref } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -50,7 +51,8 @@ export const ModelColumns = [
   new Column('模型名', 'name'),
   new Column('描述', 'desc'),
   new Column('记录时间', 'logTime'),
-  new Column('数据集', 'dataset')
+  new Column('数据集', 'dataset'),
+  new Column('导出类', 'expCls')
 ]
 
 export const ModelMapper = new Mapper({
@@ -69,6 +71,34 @@ export const ModelMapper = new Mapper({
   dataset: {},
   props: {
     expanded: true
+  },
+  expCls: {}
+})
+
+export const expClsVsb = ref(false)
+
+export const expClsForm = new ExpClsForm()
+
+export const ExpClsMapper = new Mapper({
+  name: {
+    label: '类名',
+    type: 'Input'
+  },
+  expType: {
+    label: '导出类型',
+    type: 'Select',
+    options: ['typescript', 'javascript'].map(opn => ({
+      label: opn,
+      value: opn
+    }))
+  },
+  genCopy: {
+    label: '生成复制函数',
+    type: 'Checkbox'
+  },
+  genReset: {
+    label: '生成重置函数',
+    type: 'Checkbox'
   }
 })
 

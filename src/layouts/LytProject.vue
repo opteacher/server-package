@@ -16,6 +16,10 @@
         <a-tag v-else color="#f50">已停止</a-tag>
       </template>
       <template #extra>
+        <a-button @click="$router.push(`/server-package/project/${project.key}/authorization`)">
+          <KeyOutlined />
+          &nbsp;权限管理
+        </a-button>
         <a-button
           @click="
             () => {
@@ -126,7 +130,8 @@ import {
   PoweroffOutlined,
   SettingOutlined,
   BuildOutlined,
-  UploadOutlined
+  UploadOutlined,
+  KeyOutlined
 } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
@@ -140,7 +145,8 @@ export default defineComponent({
     PoweroffOutlined,
     SettingOutlined,
     BuildOutlined,
-    UploadOutlined
+    UploadOutlined,
+    KeyOutlined
   },
   setup() {
     const router = useRouter()

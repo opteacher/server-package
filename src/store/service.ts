@@ -217,7 +217,7 @@ export default {
       }
 
       const pid = router.currentRoute.value.params.pid
-      Project.copy((await reqGet('project', pid)).data, state.pjt)
+      Project.copy(await reqGet('project', pid), state.pjt)
       ServiceMapper['path'].prefix = `/${state.pjt.name}`
 
       await dispatch('rfshDpdcs')
@@ -235,7 +235,7 @@ export default {
 
       await dispatch('rfshTemps')
 
-      Service.copy((await reqGet('service', aid)).data, state.svc)
+      Service.copy(await reqGet('service', aid), state.svc)
       if (state.svc.flow) {
         const rootKey = state.svc.flow.key
         await dispatch('readNodes', rootKey)
@@ -277,9 +277,9 @@ export default {
     },
     async readNodes({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, key: string) {
       if (!(key in state.nodes)) {
-        state.nodes[key] = NodeInPnl.copy((await reqGet('node', key)).data)
+        state.nodes[key] = NodeInPnl.copy(await reqGet('node', key))
       } else {
-        Node.copy((await reqGet('node', key)).data, state.nodes[key])
+        Node.copy(await reqGet('node', key), state.nodes[key])
       }
       for (const nxtKey of state.nodes[key].nexts) {
         await dispatch('readNodes', nxtKey)
@@ -352,18 +352,18 @@ export default {
       }
       //新增节点
       const orgNode = Node.copy(node)
-      let tailNode = Node.copy((await reqPost('node', node, options)).data, node)
+      let tailNode = Node.copy(await reqPost('node', node, options), node)
       const nodeKey = tailNode.key
       // 如果是从模板节点复制过来，则应该有inputs和outputs
       for (const input of orgNode.inputs) {
-        const newIpt = (await reqPost('variable', input)).data
+        const newIpt = await reqPost('variable', input)
         await reqLink({
           parent: ['node', nodeKey],
           child: ['inputs', newIpt._id]
         })
       }
       for (const output of orgNode.outputs) {
-        const newOpt = (await reqPost('variable', output)).data
+        const newOpt = await reqPost('variable', output)
         await reqLink({
           parent: ['node', nodeKey],
           child: ['outputs', newOpt._id]
@@ -392,16 +392,14 @@ export default {
           {
             // 对于条件根节点，在其后同时创建一个条件节点和结束节点
             const condNode = Node.copy(
-              (
-                await reqPost(
-                  'node',
-                  {
-                    title: `条件节点${node.nexts.length + 1}`,
-                    type: 'condNode'
-                  },
-                  options
-                )
-              ).data
+              await reqPost(
+                'node',
+                {
+                  title: `条件节点${node.nexts.length + 1}`,
+                  type: 'condNode'
+                },
+                options
+              )
             )
             await Promise.all([
               reqLink({
@@ -414,17 +412,15 @@ export default {
               })
             ])
             const endNode = Node.copy(
-              (
-                await reqPost(
-                  'node',
-                  {
-                    title: node.title,
-                    type: 'endNode',
-                    relative: nodeKey
-                  },
-                  options
-                )
-              ).data
+              await reqPost(
+                'node',
+                {
+                  title: node.title,
+                  type: 'endNode',
+                  relative: nodeKey
+                },
+                options
+              )
             )
             await reqPut('node', nodeKey, { relative: endNode.key })
             await Promise.all([
@@ -442,44 +438,44 @@ export default {
           break
         case 'traversal':
           {
-            const list = Variable.copy((await reqPost(
-              'variable',
-              {
+            const list = Variable.copy(
+              await reqPost('variable', {
                 name: 'array',
                 type: 'Array',
                 required: true,
                 remark: '集合'
-              }
-            )).data)
+              })
+            )
             await reqLink({
               parent: ['node', nodeKey],
               child: ['inputs', list.key]
             })
             // 根据循环类型，生成输入和输出
             if (node.loop === 'for-in') {
-              const index = Variable.copy((await reqPost(
-                'variable',
-                {
+              const index = Variable.copy(
+                await reqPost('variable', {
                   name: 'index',
                   type: 'Number',
                   required: true,
                   remark: '集合项'
-                }
-              )).data)
+                })
+              )
               await reqLink({
                 parent: ['node', nodeKey],
                 child: ['outputs', index.key]
               })
             } else if (node.loop === 'for-of') {
-              const item = Variable.copy((await reqPost(
-                'variable',
-                Variable.copy({
-                  name: 'item',
-                  type: 'Any',
-                  required: true,
-                  remark: '索引'
-                })
-              )).data)
+              const item = Variable.copy(
+                await reqPost(
+                  'variable',
+                  Variable.copy({
+                    name: 'item',
+                    type: 'Any',
+                    required: true,
+                    remark: '索引'
+                  })
+                )
+              )
               await reqLink({
                 parent: ['node', nodeKey],
                 child: ['outputs', item.key]
@@ -487,17 +483,15 @@ export default {
             }
             // 对于循环根节点，在其后同时创建一个结束节点
             const endNode = Node.copy(
-              (
-                await reqPost(
-                  'node',
-                  {
-                    title: node.title,
-                    type: 'endNode',
-                    relative: nodeKey
-                  },
-                  options
-                )
-              ).data
+              await reqPost(
+                'node',
+                {
+                  title: node.title,
+                  type: 'endNode',
+                  relative: nodeKey
+                },
+                options
+              )
             )
             await reqPut('node', nodeKey, { relative: endNode.key })
             await Promise.all([
@@ -522,7 +516,7 @@ export default {
         })
       } else {
         // 绑定非根节点
-        const previous = Node.copy((await reqGet('node', node.previous)).data)
+        const previous = Node.copy(await reqGet('node', node.previous))
         if (previous.type !== 'condition' && previous.nexts.length) {
           const nxtKey = previous.nexts[0]
           // 解绑
@@ -761,7 +755,7 @@ export default {
     },
     async rfshNode({ state }: { state: SvcState }, key?: string) {
       const nkey = key || state.node.key
-      Node.copy((await reqGet('node', nkey)).data, state.nodes[nkey])
+      Node.copy(await reqGet('node', nkey), state.nodes[nkey])
       if (!key) {
         Node.copy(state.nodes[nkey], state.node)
       }
@@ -771,7 +765,7 @@ export default {
       payload: { name: string; edited: Variable }
     ) {
       if (!payload.edited.key) {
-        const addIOpt = Variable.copy((await reqPost('variable', payload.edited)).data)
+        const addIOpt = Variable.copy(await reqPost('variable', payload.edited))
         await reqLink({
           parent: ['node', state.node.key],
           child: [`${payload.name}s`, addIOpt.key]
@@ -842,14 +836,14 @@ export default {
               await reqPost('variable', input, {
                 ignores: ['value', 'prop']
               })
-            ).data._id
+            )._id
           ]
         })
       }
       for (const output of state.node.outputs) {
         await reqLink({
           parent: ['node', tempNode.key],
-          child: ['outputs', (await reqPost('variable', output)).data._id]
+          child: ['outputs', (await reqPost('variable', output))._id]
         })
       }
       state.joinVsb = false
@@ -883,7 +877,7 @@ export default {
     },
     async rfshDpdcs({ state }: { state: SvcState }) {
       state.deps = Object.fromEntries(
-        (await reqGet('dependencys')).data
+        (await reqGet('dependencys'))
           .map((dep: any) => Dependency.copy(dep))
           .concat(
             state.pjt.models.map((mdl: Model) => {

@@ -28,7 +28,7 @@ export default defineComponent({
     const model = reactive(new Model())
 
     onMounted(async () => {
-      Model.copy((await reqGet('model', route.params.mid)).data, model)
+      Model.copy(await reqGet('model', route.params.mid), model)
     })
 
     return {

@@ -1,5 +1,6 @@
 import Router from 'koa-router'
-import { sync, del, stop, status, deploy, transfer, getData } from '../../../../../services/project.js'
+import { sync, del, stop, status, deploy, transfer } from '../../../../../services/project.js'
+import { exportClass, getData } from '../../../../../services/model.js'
 
 const router = new Router()
 
@@ -42,6 +43,12 @@ router.delete('/:pid', async ctx => {
 router.get('/:pid/model/:mid/data', async ctx => {
   ctx.body = {
     result: await getData(ctx.params.pid, ctx.params.mid)
+  }
+})
+
+router.post('/:pid/model/:mid/export', async ctx => {
+  ctx.body = {
+    result: await exportClass(ctx.params.mid, ctx.request.body)
   }
 })
 

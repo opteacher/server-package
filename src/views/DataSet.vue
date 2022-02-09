@@ -1,5 +1,5 @@
 <template>
-  <DataTable>
+  <LytDataSet>
     <div class="text-right mt-10">
       <a-button @click="refresh">刷新</a-button>
     </div>
@@ -13,13 +13,13 @@
       :addable="false"
       :delable="false"
     />
-  </DataTable>
+  </LytDataSet>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineComponent, onMounted, reactive } from 'vue'
-import DataTable from '../layouts/DataTable.vue'
+import LytDataSet from '../layouts/LytDataSet.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -28,7 +28,7 @@ import { Column, Mapper } from '@/common'
 export default defineComponent({
   name: 'Dataset',
   components: {
-    DataTable,
+    LytDataSet,
     EditableTable
   },
   setup() {

@@ -34,11 +34,11 @@ export function reqAll(path: string, options?: RequestOptions): Promise<any> {
   return makeRequest(axios.get(`/server-package/mdl/v1/${path}s`), options)
 }
 
-export function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
-  return makeRequest(axios.get(`/server-package/mdl/v1/${path}${iden ? '/' + iden : ''}`), options)
+export async function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
+  return (await makeRequest(axios.get(`/server-package/mdl/v1/${path}${iden ? '/' + iden : ''}`), options)).data
 }
 
-export function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
+export async function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -56,10 +56,10 @@ export function reqPost(path: string, body: any, options?: RequestOptions): Prom
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return makeRequest(
+  return (await makeRequest(
     axios.post(`/server-package/mdl/v1/${path}`, skipIgnores(body, options.ignores)),
     options
-  )
+  )).data
 }
 
 export function reqDelete(path: string, iden: any, options?: RequestOptions): Promise<any> {
@@ -78,7 +78,7 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   return makeRequest(axios.delete(`/server-package/mdl/v1/${path}/${iden}`), options)
 }
 
-export function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
+export async function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -96,10 +96,10 @@ export function reqPut(path: string, iden: any, body: any, options?: RequestOpti
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return makeRequest(
+  return (await makeRequest(
     axios.put(`/server-package/mdl/v1/${path}/${iden}`, skipIgnores(body, options.ignores)),
     options
-  )
+  )).data
 }
 
 export function reqLink(

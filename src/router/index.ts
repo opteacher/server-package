@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Project from '../views/Project.vue'
 import Flow from '../views/Flow.vue'
 import DataSet from '../views/DataSet.vue'
+import Auth from '../views/Auth.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -24,6 +25,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/dataset/:mid',
     name: 'DataSet',
     component: DataSet
+  },
+  {
+    path: '/server-package/project/:pid/authorization',
+    name: 'Authorization',
+    component: Auth
   }
 ]
 
