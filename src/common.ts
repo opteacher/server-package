@@ -77,6 +77,7 @@ export class BaseMapper extends StrIterable {
   display: boolean | Cond[] | { [cmpRel: string]: Cond[] }
   expanded: boolean
   reset: boolean
+  empty: boolean
   onChange: (record: any, to: any, from?: any, extra?: any) => void
 
   constructor() {
@@ -90,6 +91,7 @@ export class BaseMapper extends StrIterable {
     this.display = true
     this.expanded = false
     this.reset = true
+    this.empty = false
     this.onChange = () => console.log()
   }
 
@@ -112,6 +114,7 @@ export class BaseMapper extends StrIterable {
         ? src.display
         : tgt.display
     tgt.expanded = typeof src.expanded !== 'undefined' ? src.expanded : tgt.expanded
+    tgt.empty = typeof src.empty !== 'undefined' ? src.empty : tgt.empty
     tgt.onChange = src.onChange || tgt.onChange
     return tgt
   }
@@ -431,6 +434,13 @@ export class Column {
   }
 }
 
+export interface API {
+  model: string
+  method: string
+  path: string
+  roles: string[]
+}
+
 export class Project {
   key: string
   name: string
@@ -443,6 +453,7 @@ export class Project {
   frontend?: Deploy
   models: Model[]
   roles: Role[]
+  apis: API[]
   status: 'loading' | 'running' | 'stopped'
 
   constructor() {
@@ -456,6 +467,7 @@ export class Project {
     this.commands = ''
     this.models = []
     this.roles = []
+    this.apis = []
     this.status = 'stopped'
   }
 
@@ -470,6 +482,7 @@ export class Project {
     this.commands = ''
     this.models = []
     this.roles = []
+    this.apis = []
     this.status = 'stopped'
   }
 

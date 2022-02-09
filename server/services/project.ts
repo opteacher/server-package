@@ -553,3 +553,36 @@ export async function transfer(info: {
     shell: true
   })
 }
+
+export async function getAllAPIs(pid: string) {
+  const ret = []
+  const project = await db.select(Project, { _index: pid }, { ext: true })
+  for (const mdl of project.models) {
+    const model = await db.select(Model, { _index: mdl._id }, { ext: true })
+    for (const service of model.svcs) {
+      switch (service.emit) {
+        case 'api':
+          ret.push({
+            model: model.name,
+            method: service.method,
+            path: service.path
+          })
+          break
+        case 'timeout':
+        case 'interval':
+          ret.push({
+            model: model.name,
+            method: 'POST',
+            path: service.path
+          })
+          ret.push({
+            model: model.name,
+            method: 'DELETE',
+            path: service.path + '/:tmot'
+          })
+          break
+      }
+    }
+  }
+  return ret
+}

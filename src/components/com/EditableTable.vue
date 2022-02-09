@@ -169,10 +169,10 @@
         </template>
         <template v-else>
           <ul class="unstyled-list">
-            <li v-if="edtable" class="mb-3">
+            <li v-if="edtable && filter(record, 'edit')" class="mb-3">
               <a-button size="small" @click="onEditClicked(record)">编辑</a-button>
             </li>
-            <li v-if="delable">
+            <li v-if="delable && filter(record, 'delete')">
               <a-popconfirm title="确定删除该字段" @confirm="onDelSubmit(record.key)">
                 <a-button size="small" danger>删除</a-button>
               </a-popconfirm>
@@ -182,6 +182,9 @@
       </template>
       <template v-if="hasExpand()" #expandedRowRender="{ record }">
         <slot name="expandedRowRender" v-bind="{ record }" />
+      </template>
+      <template v-if="isCustomEmpty()" #emptyText>
+        <slot name="emptyText" />
       </template>
     </a-table>
   </div>
@@ -214,6 +217,7 @@ export default defineComponent({
     description: { type: String, default: '' },
     size: { type: String, default: 'default' },
     sclHeight: { type: Number, default: 300 },
+    filter: { type: Function, default: () => true },
     edtable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true },
     delable: { type: Boolean, default: true }
@@ -285,8 +289,16 @@ export default defineComponent({
       emit('delete', key, refresh)
     }
     function hasExpand() {
-      for (const [, value] of Object.entries(editMapper)) {
+      for (const value of Object.values(editMapper)) {
         if (value.expanded) {
+          return true
+        }
+      }
+      return false
+    }
+    function isCustomEmpty() {
+      for (const value of Object.values(editMapper)) {
+        if (value.empty) {
           return true
         }
       }
@@ -340,7 +352,8 @@ export default defineComponent({
       onDelSubmit,
       hasExpand,
       validConds,
-      onRowExpand
+      onRowExpand,
+      isCustomEmpty
     }
   }
 })

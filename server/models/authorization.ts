@@ -6,7 +6,7 @@ export default db.defineModel(
     method: db.PropTypes.String,
     path: db.PropTypes.String,
     value: db.PropTypes.String, // * | s | key
-    action: db.PropTypes.String,
+    action: db.PropTypes.String
   },
   {
     router: {

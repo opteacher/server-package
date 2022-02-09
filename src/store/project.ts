@@ -3,7 +3,6 @@
 import { Deploy, Model, Project, Role, Transfer } from '@/common'
 import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
-import { modelEmitter, propEmitter, svcEmitter } from '@/views/Project'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 
@@ -17,7 +16,7 @@ export default {
         return
       }
       const pid = router.currentRoute.value.params.pid
-      Project.copy(await reqGet('project', pid || state.key), state)
+      Project.copy(await reqGet('project', pid), state)
       for (const index in state.models) {
         const model = state.models[index]
         Model.copy(await reqGet('model', model.key), model)
@@ -26,6 +25,9 @@ export default {
         const role = state.roles[index]
         Role.copy(await reqGet('role', role.key), role)
       }
+      state.apis = (
+        await makeRequest(axios.get(`/server-package/api/v1/project/${pid}/apis`))
+      ).result
       dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
