@@ -3,6 +3,7 @@
 import { API, authValues, Column, Mapper, routeMethods } from '@/common'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { ref } from 'vue'
 
 export const RoleColumns = [new Column('角色名', 'name')]
 
@@ -51,7 +52,6 @@ export const ApiMapper = new Mapper({
   },
   path: {
     type: 'Input',
-    prefix: `/${store.getters['project/ins'].name}`,
     onChange: (record: any, value: string) => {
       if (value && value[0] !== '/') {
         record['path'] = `/${value}`
@@ -61,15 +61,6 @@ export const ApiMapper = new Mapper({
   roles: {}
 })
 
-export function copyApi(src: any, tgt?: API): API {
-  tgt = { model: '自定义', method: 'GET', path: '/', roles: [] }
-  tgt.model = src.model || tgt.model
-  tgt.method = src.method || tgt.method
-  tgt.path = src.path || tgt.path
-  tgt.roles = src.roles || tgt.roles
-  return tgt
-}
-
 export const apiEmitter = new Emitter()
 
 export const authEmitter = new Emitter()
@@ -77,5 +68,50 @@ export const authEmitter = new Emitter()
 export const DataSetMapper = new Mapper({
   props: {
     empty: true
+  }
+})
+
+export class BindModel {
+  model: string
+  idProps: string[]
+  pwdProp: string
+
+  constructor() {
+    this.model = ''
+    this.idProps = []
+    this.pwdProp = ''
+  }
+
+  static copy(src: any, tgt?: BindModel): BindModel {
+    tgt = tgt || new BindModel()
+    tgt.model = src.model || tgt.model
+    tgt.idProps = src.idProps || tgt.idProps
+    tgt.pwdProp = src.pwdProp || tgt.pwdProp
+    return tgt
+  }
+}
+
+export const bindModelVisible = ref(false)
+
+export async function onBindModelShow(show: boolean) {
+  if (show) {
+    await store.dispatch('auth/refresh')
+  }
+  bindModelVisible.value = show
+}
+
+export const BindModelMapper = new Mapper({
+  model: {
+    label: '模型',
+    type: 'Select',
+    options: []
+  },
+  idProps: {
+    label: '标识字段',
+    type: 'EditList'
+  },
+  pwdProp: {
+    label: '密码字段',
+    type: 'SelOrIpt'
   }
 })

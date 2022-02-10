@@ -73,14 +73,14 @@
               :disabled="validConds(value.disabled) || !editable"
               :addon-before="value.prefix"
               :addon-after="value.suffix"
-              @change="(e: any) => value.onChange(formState, e.target.value)"
+              @change="e => value.onChange(formState, e.target.value)"
             />
             <a-input-number
               v-else-if="value.type === 'Number'"
               class="w-100"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="(val: any) => value.onChange(formState, val)"
+              @change="val => value.onChange(formState, val)"
             />
             <a-select
               v-else-if="value.type === 'Select'"
@@ -88,14 +88,14 @@
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="(val: any) => value.onChange(formState, val)"
+              @change="val => value.onChange(formState, val)"
             />
             <a-checkbox
               v-else-if="value.type === 'Checkbox'"
               :name="key"
               v-model:checked="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="(val: any) => value.onChange(formState, val)"
+              @change="val => value.onChange(formState, val)"
             >
               {{
                 formState[key]
@@ -112,14 +112,14 @@
               v-model:value="formState[key]"
               :rows="value.maxRows"
               :disabled="validConds(value.disabled) || !editable"
-              @change="(val: any) => value.onChange(formState, val)"
+              @change="val => value.onChange(formState, val)"
             />
             <a-cascader
               v-else-if="value.type === 'Cascader'"
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="(e: any) => value.onChange(formState, e)"
+              @change="e => value.onChange(formState, e)"
             />
             <a-button
               v-else-if="value.type === 'Button'"
@@ -170,7 +170,7 @@
                 :pagination="false"
                 size="small"
                 :custom-row="
-                  (record: any) => ({
+                  record => ({
                     onClick: () => {
                       value.emitter.emit('viewOnly', !value.edtable)
                       value.show = true
@@ -200,7 +200,7 @@
                     :showUploadList="false"
                     v-model:file-list="formState[key]"
                     action="/server-package/api/v1/temp/file"
-                    @change="(info: any) => value.onChange(formState, info)"
+                    @change="info => value.onChange(formState, info)"
                   >
                     <a-menu @click="onUploadClicked">
                       <a-menu-item key="file">
@@ -285,8 +285,8 @@
                     </a-list-item-meta>
                     <template #actions>
                       <a-checkbox
-                        :checked="formState[key].map((itm: any) => itm.key).includes(option.key)"
-                        @change="(e: any) => onLstSelChecked(e.target.checked, key as string, option.key)"
+                        :checked="formState[key].map(itm => itm.key).includes(option.key)"
+                        @change="e => onLstSelChecked(e.target.checked, key, option.key)"
                       />
                     </template>
                   </a-list-item>

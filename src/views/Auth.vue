@@ -5,14 +5,18 @@
       dsKey="project/ins.apis"
       :columns="ApiColumn"
       :mapper="ApiMapper"
-      :copy="copyApi"
+      :copy="API.copy"
       :emitter="apiEmitter"
-      :filter="(record: any, opera: 'edit' | 'delete') => {
-        return record.model === '自定义'
-      }"
+      :filter="record => record.model === '自定义'"
       @add="ApiMapper['path'].prefix = `/${pjtName}`"
+      @edit="ApiMapper['path'].prefix = `/${pjtName}`"
+      @save="(api, refresh) => onApiSave(api, refresh)"
+      @delete="(key, refresh) => onApiDel(key, refresh)"
     >
       <template #path="{ record: api }">/{{ pjtName }}{{ api.path }}</template>
+      <template #roles="{ record: api }">
+        {{ api.roles.length ? api.roles.join(' , ') : '-' }}
+      </template>
     </EditableTable>
     <EditableTable
       title="角色"
@@ -39,7 +43,7 @@
             <a-select
               class="w-100"
               v-model:value="api.method"
-              :options="routeMethods.map((mthd: string) => ({ label: mthd, value: mthd }))"
+              :options="routeMethods.map(mthd => ({ label: mthd, value: mthd }))"
             />
           </template>
           <template #pathEdit="{ editing: api }">
@@ -52,7 +56,7 @@
                 expand-trigger="hover"
                 change-on-select
                 :allow-clear="false"
-                @change="(val: any) => onPathChange(api, val)"
+                @change="val => onPathChange(api, val)"
               />
             </a-input-group>
           </template>
@@ -76,7 +80,14 @@
           <template #description>
             <span>无数据</span>
           </template>
-          <a-button type="primary">绑定模型</a-button>
+          <a-button type="primary" @click="onBindModelShow(true)">绑定模型</a-button>
+          <FormDialog
+            title="绑定模型"
+            :show="bindModelVisible"
+            :copy="BindModel.copy"
+            :mapper="BindModelMapper"
+            @update:show="onBindModelShow"
+          />
         </a-empty>
       </template>
     </EditableTable>
@@ -87,6 +98,7 @@
 import { defineComponent, computed } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import EditableTable from '../components/com/EditableTable.vue'
+import FormDialog from '../components/com/FormDialog.vue'
 import { API, Auth, Role, routeMethods, StrIterable } from '@/common'
 import {
   ApiColumn,
@@ -94,12 +106,15 @@ import {
   AuthColumns,
   authEmitter,
   AuthMapper,
-  copyApi,
   apiEmitter,
   RoleColumns,
   roleEmitter,
   RoleMapper,
-  DataSetMapper
+  DataSetMapper,
+  bindModelVisible,
+  BindModelMapper,
+  BindModel,
+  onBindModelShow
 } from './Auth'
 import { useStore } from 'vuex'
 
@@ -107,7 +122,8 @@ export default defineComponent({
   name: 'Authorization',
   components: {
     LytAuth,
-    EditableTable
+    EditableTable,
+    FormDialog
   },
   setup() {
     const store = useStore()
@@ -137,6 +153,14 @@ export default defineComponent({
       }
       return ret
     }
+    async function onApiSave(api: API, refresh: () => void) {
+      await store.dispatch('auth/saveAPI', api)
+      refresh()
+    }
+    async function onApiDel(key: string, refresh: () => void) {
+      await store.dispatch('auth/delAPI', key)
+      refresh()
+    }
     async function onRoleSave(role: Role, refresh: () => void) {
       await store.dispatch('auth/saveRole', role)
       refresh()
@@ -165,7 +189,6 @@ export default defineComponent({
       if (!ret.includes(edtAPI.method)) {
         edtAPI.method = ret[0]
       }
-      console.log(ret)
       authEmitter.emit('update:mapper', {
         method: {
           type: 'Select',
@@ -176,6 +199,8 @@ export default defineComponent({
     return {
       Role,
       Auth,
+      API,
+      BindModel,
 
       pjtName,
       allAPIs,
@@ -190,8 +215,12 @@ export default defineComponent({
       ApiMapper,
       apiEmitter,
       DataSetMapper,
+      bindModelVisible,
+      BindModelMapper,
+      onBindModelShow,
 
-      copyApi,
+      onApiSave,
+      onApiDel,
       onRoleSave,
       onRoleDel,
       onAuthSave,

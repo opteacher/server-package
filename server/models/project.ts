@@ -12,7 +12,8 @@ export default db.defineModel(
     commands: db.PropTypes.String,
     frontend: { type: db.PropTypes.Id, ref: 'deploy' },
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
-    roles: [{ type: db.PropTypes.Id, ref: 'role' }]
+    roles: [{ type: db.PropTypes.Id, ref: 'role' }],
+    apis: [{ type: db.PropTypes.Id, ref: 'api' }]
   },
   {
     router: {

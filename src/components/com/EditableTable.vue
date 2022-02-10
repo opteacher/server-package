@@ -14,8 +14,8 @@
       :size="size"
       style="overflow-y: hidden"
       v-model:expandedRowKeys="expRowKeys"
-      :custom-row="(record: any) => ({ onClick: () => onRowExpand(record) })"
-      @expand="(_expanded: boolean, record: any) => onRowExpand(record)"
+      :custom-row="record => ({ onClick: () => onRowExpand(record) })"
+      @expand="(_expanded, record) => onRowExpand(record)"
     >
       <template v-for="(value, key) in editMapper" :key="key" #[key]="{ text, record }">
         <template v-if="record.key === editing.key && !validConds(value.display)">-</template>
@@ -26,7 +26,7 @@
             :placeholder="`输入${value.label}`"
             :addon-before="value.prefix"
             :disabled="validConds(value.disabled)"
-            @change="(e: any) => value.onChange(editing, e.target.value)"
+            @change="e => value.onChange(editing, e.target.value)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
@@ -41,13 +41,13 @@
             v-model:value="editing[key]"
             :placeholder="`选择${value.label}`"
             :disabled="validConds(value.disabled)"
-            @change="(opn: any) => value.onChange(editing, opn, editing[key], emitter)"
+            @change="opn => value.onChange(editing, opn, editing[key], emitter)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
           </template>
           <template v-else>
-            {{ text ? value.options.find((opn: any) => opn.value === text).label : '-' }}
+            {{ text ? value.options.find(opn => opn.value === text).label : '-' }}
           </template>
         </template>
         <template v-else-if="value.type === 'Checkbox'">
@@ -56,7 +56,7 @@
             v-model="editing[key]"
             :options="value.options"
             :disabled="validConds(value.disabled)"
-            @change="(val: any) => value.onChange(editing, val.target.checked)"
+            @change="val => value.onChange(editing, val.target.checked)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />
@@ -68,7 +68,7 @@
             v-if="record.key === editing.key"
             v-model:checked="editing[key]"
             :disabled="validConds(value.disabled)"
-            @change="(val: any) => value.onChange(editing, val.target.checked)"
+            @change="val => value.onChange(editing, val.target.checked)"
           >
             {{
               editing[key]
@@ -102,7 +102,7 @@
             :options="value.options"
             :placeholder="`选择${value.label}`"
             :disabled="validConds(value.disabled)"
-            @change="(val: any) => value.onChange(editing, val)"
+            @change="val => value.onChange(editing, val)"
           />
           <template v-else-if="$slots[key]">
             <slot :name="key" v-bind="{ record }" />

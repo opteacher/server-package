@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Deploy, Model, Project, Role, Transfer } from '@/common'
+import { API, Deploy, Model, Project, Role, Transfer } from '@/common'
 import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
@@ -27,7 +27,7 @@ export default {
       }
       state.apis = (
         await makeRequest(axios.get(`/server-package/api/v1/project/${pid}/apis`))
-      ).result
+      ).result.map((api: any) => API.copy(api))
       dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {

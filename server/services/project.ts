@@ -555,14 +555,15 @@ export async function transfer(info: {
 }
 
 export async function getAllAPIs(pid: string) {
-  const ret = []
   const project = await db.select(Project, { _index: pid }, { ext: true })
+  const ret = project.apis.map((api: any) => Object.assign({ model: '自定义' }, api.toObject()))
   for (const mdl of project.models) {
     const model = await db.select(Model, { _index: mdl._id }, { ext: true })
     for (const service of model.svcs) {
       switch (service.emit) {
         case 'api':
           ret.push({
+            key: service.id,
             model: model.name,
             method: service.method,
             path: service.path
@@ -571,11 +572,13 @@ export async function getAllAPIs(pid: string) {
         case 'timeout':
         case 'interval':
           ret.push({
+            key: `${service.id}_restart`,
             model: model.name,
             method: 'POST',
             path: service.path
           })
           ret.push({
+            key: `${service.id}_stop`,
             model: model.name,
             method: 'DELETE',
             path: service.path + '/:tmot'

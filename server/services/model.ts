@@ -34,6 +34,7 @@ export async function exportClass(
   }
   let writeData = `export default class ${options.name} {\n`
   if (options.expType === 'typescript') {
+    writeData += '  key: string\n'
     for (const prop of model.props) {
       writeData += genAnno(prop)
       const type = prop.type as keyof typeof typeMapper
@@ -59,6 +60,7 @@ export async function exportClass(
     }
   }
   writeData += '\n  constructor() {\n'
+  writeData += '    this.key = \'\'\n'
   for (const prop of model.props) {
     if (options.expType === 'javascript') {
       writeData += genAnno(prop, '    ')
@@ -68,6 +70,7 @@ export async function exportClass(
   writeData += '  }\n'
   if (options.genReset) {
     writeData += '\n  reset() {\n'
+    writeData += '    this.key = \'\'\n'
     for (const prop of model.props) {
       writeData += `    this.${prop.name} = ${genDft(prop.type)}\n`
     }
@@ -79,6 +82,8 @@ export async function exportClass(
     } else {
       writeData += `\n  static copy(src, tgt) {\n`
     }
+    writeData += `    tgt = tgt || new ${options.name}()\n`
+    writeData += '    tgt.key = src.key || src.id || src._id || tgt.key\n'
     for (const prop of model.props) {
       writeData += `    tgt.${prop.name} = src.${prop.name} || tgt.${prop.name}\n`
     }
