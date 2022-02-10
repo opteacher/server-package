@@ -318,7 +318,29 @@
                   <a-list-item>
                     <template #actions>
                       <template v-if="value.addMod && !index">
-                        <a @click="value.addMod = false">确定</a>
+                        <a
+                          @click="
+                            () => {
+                              if (!formState[key][0]) {
+                                return
+                              }
+                              let label = formState[key][0]
+                              if (value.mode === 'select') {
+                                label = value.options.find(
+                                  opn => opn.value === formState[key][0]
+                                ).label
+                              }
+                              formState[key].push({
+                                label,
+                                value: formState[key][0]
+                              })
+                              formState[key].shift()
+                              value.addMod = false
+                            }
+                          "
+                        >
+                          确定
+                        </a>
                         <a
                           @click="
                             () => {
@@ -333,9 +355,15 @@
                       <a v-else @click="formState[key].splice(index, 1)">删除</a>
                     </template>
                     <template v-if="value.addMod && !index">
-                      <a-input v-model:value="formState[key][0]" />
+                      <a-select
+                        v-if="value.mode === 'select'"
+                        class="w-100"
+                        :options="value.options"
+                        v-model:value="formState[key][0]"
+                      />
+                      <a-input v-else v-model:value="formState[key][0]" />
                     </template>
-                    <template v-else>{{ item }}</template>
+                    <template v-else>{{ item.label }}</template>
                   </a-list-item>
                 </template>
               </a-list>

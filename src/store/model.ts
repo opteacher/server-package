@@ -15,13 +15,10 @@ export default {
   },
   mutations: {},
   actions: {
-    async refresh({ state }: { state: ModelState }) {
-      if (!router.currentRoute.value.params.pid || !router.currentRoute.value.params.mid) {
-        return
-      }
-      const mid = router.currentRoute.value.params.mid
+    async refresh({ state }: { state: ModelState }, ids?: [string, string]) {
+      const mid = ids && ids.length ? ids[1] : router.currentRoute.value.params.mid
       Model.copy(await reqGet('model', mid), state.model)
-      const pid = router.currentRoute.value.params.pid
+      const pid = ids && ids.length ? ids[0] : router.currentRoute.value.params.pid
       state.dataset = (
         await makeRequest(axios.get(`/server-package/api/v1/project/${pid}/model/${mid}/data`))
       ).result

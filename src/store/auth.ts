@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, Auth, Model, Role } from '@/common'
+import { API, Auth, Role } from '@/common'
 import router from '@/router'
 import { reqDelete, reqLink, reqPost, reqPut } from '@/utils'
-import { BindModelMapper } from '@/views/Auth'
 import { Dispatch } from 'vuex'
 
 export default {
@@ -11,11 +10,8 @@ export default {
   state: {},
   mutations: {},
   actions: {
-    async refresh({ dispatch, rootGetters }: { dispatch: Dispatch, rootGetters: any }) {
+    async refresh({ dispatch }: { dispatch: Dispatch }) {
       await dispatch('project/refresh', undefined, { root: true })
-      BindModelMapper['model'].options = rootGetters['project/ins'].models.map((mdl: Model) => ({
-        label: mdl.name, value: mdl.name
-      }))
     },
     async saveAPI({ dispatch }: { dispatch: Dispatch }, api: API) {
       if (!router.currentRoute.value.params.pid) {

@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, authValues, Column, Mapper, routeMethods } from '@/common'
-import store from '@/store'
+import { authValues, Column, Mapper, routeMethods } from '@/common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { ref } from 'vue'
 
 export const RoleColumns = [new Column('角色名', 'name')]
 
@@ -64,54 +62,3 @@ export const ApiMapper = new Mapper({
 export const apiEmitter = new Emitter()
 
 export const authEmitter = new Emitter()
-
-export const DataSetMapper = new Mapper({
-  props: {
-    empty: true
-  }
-})
-
-export class BindModel {
-  model: string
-  idProps: string[]
-  pwdProp: string
-
-  constructor() {
-    this.model = ''
-    this.idProps = []
-    this.pwdProp = ''
-  }
-
-  static copy(src: any, tgt?: BindModel): BindModel {
-    tgt = tgt || new BindModel()
-    tgt.model = src.model || tgt.model
-    tgt.idProps = src.idProps || tgt.idProps
-    tgt.pwdProp = src.pwdProp || tgt.pwdProp
-    return tgt
-  }
-}
-
-export const bindModelVisible = ref(false)
-
-export async function onBindModelShow(show: boolean) {
-  if (show) {
-    await store.dispatch('auth/refresh')
-  }
-  bindModelVisible.value = show
-}
-
-export const BindModelMapper = new Mapper({
-  model: {
-    label: '模型',
-    type: 'Select',
-    options: []
-  },
-  idProps: {
-    label: '标识字段',
-    type: 'EditList'
-  },
-  pwdProp: {
-    label: '密码字段',
-    type: 'SelOrIpt'
-  }
-})

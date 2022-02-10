@@ -63,42 +63,14 @@
         </EditableTable>
       </template>
     </EditableTable>
-    <EditableTable
-      description="该表中的每条记录都会绑定一个角色，用于鉴权"
-      dsKey=""
-      :columns="[]"
-      :mapper="DataSetMapper"
-      :addable="false"
-    >
-      <template #emptyText>
-        <a-empty
-          image="https://gw.alipayobjects.com/mdn/miniapp_social/afts/img/A*pevERLJC9v0AAAAAAAAAAABjAQAAAQ/original"
-          :image-style="{
-            height: '60px'
-          }"
-        >
-          <template #description>
-            <span>无数据</span>
-          </template>
-          <a-button type="primary" @click="onBindModelShow(true)">绑定模型</a-button>
-          <FormDialog
-            title="绑定模型"
-            :show="bindModelVisible"
-            :copy="BindModel.copy"
-            :mapper="BindModelMapper"
-            @update:show="onBindModelShow"
-          />
-        </a-empty>
-      </template>
-    </EditableTable>
   </LytAuth>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { defineComponent, computed, onMounted } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import FormDialog from '../components/com/FormDialog.vue'
 import { API, Auth, Role, routeMethods, StrIterable } from '@/common'
 import {
   ApiColumn,
@@ -109,12 +81,7 @@ import {
   apiEmitter,
   RoleColumns,
   roleEmitter,
-  RoleMapper,
-  DataSetMapper,
-  bindModelVisible,
-  BindModelMapper,
-  BindModel,
-  onBindModelShow
+  RoleMapper
 } from './Auth'
 import { useStore } from 'vuex'
 
@@ -122,8 +89,7 @@ export default defineComponent({
   name: 'Authorization',
   components: {
     LytAuth,
-    EditableTable,
-    FormDialog
+    EditableTable
   },
   setup() {
     const store = useStore()
@@ -141,6 +107,8 @@ export default defineComponent({
       }
       return recuAPIs(ret)
     })
+
+    onMounted(() => store.dispatch('auth/refresh'))
 
     function recuAPIs(obj: any): any[] {
       const ret = []
@@ -200,7 +168,6 @@ export default defineComponent({
       Role,
       Auth,
       API,
-      BindModel,
 
       pjtName,
       allAPIs,
@@ -214,10 +181,6 @@ export default defineComponent({
       ApiColumn,
       ApiMapper,
       apiEmitter,
-      DataSetMapper,
-      bindModelVisible,
-      BindModelMapper,
-      onBindModelShow,
 
       onApiSave,
       onApiDel,

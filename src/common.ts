@@ -271,16 +271,19 @@ export class TableMapper extends BaseMapper {
 
 export class SelOrIptMapper extends BaseMapper {
   mode: 'select' | 'input'
+  options: OpnType[]
 
   constructor() {
     super()
     this.mode = 'input'
+    this.options = []
   }
 
   static copy(src: any, tgt?: SelOrIptMapper): SelOrIptMapper {
     tgt = tgt || new SelOrIptMapper()
     BaseMapper.copy(src, tgt)
     tgt.mode = src.mode || tgt.mode
+    tgt.options = src.options || tgt.options
     return tgt
   }
 }
@@ -326,10 +329,14 @@ export class LstSelMapper extends BaseMapper {
 
 export class EditListMapper extends BaseMapper {
   addMod: Ref<boolean>
+  mode: 'select' | 'input'
+  options: OpnType[]
 
   constructor() {
     super()
     this.addMod = ref(false)
+    this.mode = 'input'
+    this.options = []
   }
 
   static copy(src: any, tgt?: EditListMapper): EditListMapper {
@@ -338,6 +345,8 @@ export class EditListMapper extends BaseMapper {
     if (src.addMod) {
       tgt.addMod.value = src.addMod.value || src.addMod || tgt.addMod.value
     }
+    tgt.mode = src.mode || tgt.mode
+    tgt.options = src.options || tgt.options
     return tgt
   }
 }

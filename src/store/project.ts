@@ -31,7 +31,9 @@ export default {
       dispatch('chkStatus')
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
-      await reqPut('project', state.key, project, { ignores: ['models'] })
+      await reqPut('project', state.key, project, {
+        ignores: ['models', 'frontend', 'roles', 'apis']
+      })
       await dispatch('refresh')
     },
     async update(
