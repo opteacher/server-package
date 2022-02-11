@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExpClsForm, Model } from '@/common'
+import { Model } from '@/common'
 import router from '@/router'
 import { makeRequest, reqGet } from '@/utils'
 import axios from 'axios'
+import { ExpClsForm } from '../views/Project'
 
 type ModelState = { model: Model; dataset: any[] }
 

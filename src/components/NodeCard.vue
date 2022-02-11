@@ -169,18 +169,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
+import { Node, NodeTypeMapper, NodeType } from '@/common'
 import {
+  CardMinHgt,
+  NodeInPnl,
   AddBtnHlfWH,
   ArrowHeight,
   ArrowHlfHgt,
   CardWidth,
-  CardHlfWid,
-  Node,
-  NodeTypeMapper,
-  NodeType,
-  CardMinHgt,
-  NodeInPnl
-} from '@/common'
+  CardHlfWid
+} from '../views/Flow'
 import { useStore } from 'vuex'
 
 export default defineComponent({
@@ -247,8 +245,7 @@ export default defineComponent({
       }
     })
     const nexts = computed(() =>
-      node.nexts
-        .map((next: Node) => store.getters['service/node'](next))
+      node.nexts.map((next: Node) => store.getters['service/node'](next))
     )
     const multiCond = computed(() => {
       const relative = store.getters['service/node'](node.relative)

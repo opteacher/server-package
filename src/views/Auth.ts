@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { authValues, Column, Mapper, routeMethods } from '@/common'
+import { authValues, Column, Mapper, methods } from '@/common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { ref } from 'vue'
 
-export const RoleColumns = [new Column('角色名', 'name')]
+export const roleColumns = [new Column('角色名', 'name')]
 
-export const RoleMapper = new Mapper({
+export const roleMapper = new Mapper({
   name: {
     type: 'Input'
   },
@@ -16,14 +17,14 @@ export const RoleMapper = new Mapper({
 
 export const roleEmitter = new Emitter()
 
-export const AuthColumns = [
+export const ruleColumns = [
   new Column('访问方式', 'method'),
   new Column('路径', 'path'),
   new Column('匹配', 'value'),
   new Column('动作', 'action')
 ]
 
-export const AuthMapper = new Mapper({
+export const ruleMapper = new Mapper({
   method: {},
   path: {},
   value: {
@@ -35,18 +36,18 @@ export const AuthMapper = new Mapper({
   }
 })
 
-export const ApiColumn = [
+export const apiColumn = [
   new Column('所属模型', 'model'),
   new Column('访问方式', 'method'),
   new Column('路由', 'path'),
   new Column('可访问角色', 'roles')
 ]
 
-export const ApiMapper = new Mapper({
+export const apiMapper = new Mapper({
   model: {},
   method: {
     type: 'Select',
-    options: routeMethods.map((mthd: string) => ({ label: mthd, value: mthd }))
+    options: methods.map((mthd: string) => ({ label: mthd, value: mthd }))
   },
   path: {
     type: 'Input',
@@ -61,4 +62,26 @@ export const ApiMapper = new Mapper({
 
 export const apiEmitter = new Emitter()
 
-export const authEmitter = new Emitter()
+export const ruleEmitter = new Emitter()
+
+export const bmVisible = ref(false)
+
+export class BindModel {
+  model: string
+  idProps: string[]
+  pwdProp: string
+
+  constructor() {
+    this.model = ''
+    this.idProps = []
+    this.pwdProp = ''
+  }
+
+  static copy(src: any, tgt?: BindModel): BindModel {
+    tgt = tgt || new BindModel()
+    tgt.model = src.model || tgt.model
+    tgt.idProps = src.idProps || tgt.idProps
+    tgt.pwdProp = src.pwdProp || tgt.pwdProp
+    return tgt
+  }
+}

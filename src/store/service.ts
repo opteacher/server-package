@@ -2,16 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   Node,
-  NodeInPnl,
   Service,
-  CardWidth,
-  ArrowHeight,
   Variable,
-  CardGutter,
-  CardHlfWid,
-  CardHlfGutter,
   NodeTypeMapper,
-  ArrowHlfHgt,
   Project,
   Dependency,
   OpnType,
@@ -28,7 +21,18 @@ import {
   skipIgnores,
   until
 } from '@/utils'
-import { EditNodeEmitter, EditNodeMapper, ServiceMapper } from '@/views/Flow'
+import {
+  EditNodeEmitter,
+  EditNodeMapper,
+  ServiceMapper,
+  ArrowHlfHgt,
+  CardGutter,
+  CardHlfWid,
+  CardHlfGutter,
+  CardWidth,
+  ArrowHeight,
+  NodeInPnl
+} from '@/views/Flow'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'

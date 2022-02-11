@@ -124,7 +124,7 @@
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProjForm } from '../views/Home'
-import { DeployForm, onStop, onSync, TransferForm } from '../views/Project'
+import { DeployForm, onStop, onSync, Transfer, TransferForm } from '../views/Project'
 import {
   SyncOutlined,
   PoweroffOutlined,
@@ -135,7 +135,7 @@ import {
 } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
-import { Project, Deploy, Transfer } from '@/common'
+import { Project, Deploy } from '@/common'
 
 export default defineComponent({
   name: 'ProjectLayout',

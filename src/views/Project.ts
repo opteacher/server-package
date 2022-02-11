@@ -6,17 +6,17 @@ import {
   Deploy,
   Mapper,
   Service,
-  routeMethods,
-  Transfer,
+  methods,
   Cond,
   emitTypeOpns,
-  ExpClsForm
+  Model
 } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import _ from 'lodash'
 
 export function onSync() {
   Modal.confirm({
@@ -76,6 +76,46 @@ export const ModelMapper = new Mapper({
 })
 
 export const expClsVsb = ref(false)
+
+export class ExpClsForm {
+  key: string
+  name: string
+  expType: 'typescript' | 'javascript'
+  genCopy: boolean
+  genReset: boolean
+
+  constructor() {
+    this.key = ''
+    this.name = ''
+    this.expType = 'typescript'
+    this.genCopy = true
+    this.genReset = true
+  }
+
+  reset() {
+    this.key = ''
+    this.name = ''
+    this.expType = 'typescript'
+    this.genCopy = true
+    this.genReset = true
+  }
+
+  update(model: Model): ExpClsForm {
+    this.key = model.key
+    this.name = _.upperFirst(model.name)
+    return this
+  }
+
+  static copy(src: any, tgt?: ExpClsForm): ExpClsForm {
+    tgt = tgt || new ExpClsForm()
+    tgt.key = src.key || tgt.key
+    tgt.name = src.name || tgt.name
+    tgt.expType = src.expType || tgt.expType
+    tgt.genCopy = src.genCopy || tgt.genCopy
+    tgt.genReset = src.genReset || tgt.genReset
+    return tgt
+  }
+}
 
 export const expClsForm = new ExpClsForm()
 
@@ -203,7 +243,7 @@ export const ServiceMapper = new Mapper({
   },
   method: {
     type: 'Select',
-    options: routeMethods.map(mthd => ({
+    options: methods.map(mthd => ({
       label: mthd,
       value: mthd
     })),
@@ -364,5 +404,29 @@ export class TransferForm {
         type: 'Input'
       }
     })
+  }
+}
+
+export class Transfer {
+  file: string[] // 上传文件在服务器的临时位置
+  dest: string // 文件投放到docker容器的位置（基于/app）
+  project?: string // 项目名，也是docker容器名
+
+  constructor() {
+    this.file = []
+    this.dest = ''
+  }
+
+  reset() {
+    this.file = []
+    this.dest = ''
+  }
+
+  static copy(src: any, tgt?: Transfer): Transfer {
+    tgt = tgt || new Transfer()
+    tgt.file = src.file || tgt.file
+    tgt.dest = src.dest || tgt.dest
+    tgt.project = src.project || tgt.project
+    return tgt
   }
 }

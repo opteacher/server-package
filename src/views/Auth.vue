@@ -2,14 +2,14 @@
   <LytAuth>
     <EditableTable
       title="自定义接口"
-      dsKey="project/ins.apis"
-      :columns="ApiColumn"
-      :mapper="ApiMapper"
+      dsKey="auth/apis"
+      :columns="apiColumn"
+      :mapper="apiMapper"
       :copy="API.copy"
       :emitter="apiEmitter"
       :filter="record => record.model === '自定义'"
-      @add="ApiMapper['path'].prefix = `/${pjtName}`"
-      @edit="ApiMapper['path'].prefix = `/${pjtName}`"
+      @add="apiMapper['path'].prefix = `/${pjtName}`"
+      @edit="apiMapper['path'].prefix = `/${pjtName}`"
       @save="(api, refresh) => onApiSave(api, refresh)"
       @delete="(key, refresh) => onApiDel(key, refresh)"
     >
@@ -20,9 +20,9 @@
     </EditableTable>
     <EditableTable
       title="角色"
-      dsKey="project/ins.roles"
-      :columns="RoleColumns"
-      :mapper="RoleMapper"
+      dsKey="auth/ins.roles"
+      :columns="roleColumns"
+      :mapper="roleMapper"
       :copy="Role.copy"
       :emitter="roleEmitter"
       @save="onRoleSave"
@@ -31,27 +31,28 @@
       <template #expandedRowRender="{ record: role }">
         <EditableTable
           title="权限"
-          :dsKey="`project/ins.roles.[${role.key}].auths`"
-          :columns="AuthColumns"
-          :mapper="AuthMapper"
-          :copy="Auth.copy"
-          :emitter="authEmitter"
-          @save="(auth, refresh) => onAuthSave(auth, role.key, refresh)"
-          @delete="(key, refresh) => onAuthDel(key, role.key, refresh)"
+          :dsKey="`auth/ins.roles.[${role.key}].rules`"
+          :columns="ruleColumns"
+          :mapper="ruleMapper"
+          :copy="Rule.copy"
+          :emitter="ruleEmitter"
+          @save="(rule, refresh) => onRuleSave(rule, role.key, refresh)"
+          @delete="(key, refresh) => onRuleDel(key, role.key, refresh)"
         >
           <template #methodEdit="{ editing: api }">
             <a-select
               class="w-100"
               v-model:value="api.method"
-              :options="routeMethods.map(mthd => ({ label: mthd, value: mthd }))"
+              :options="methods.map(mthd => ({ label: mthd, value: mthd }))"
             />
           </template>
+          <template #path="{ record: api }">/{{ pjtName }}{{ api.path }}</template>
           <template #pathEdit="{ editing: api }">
             <a-input-group compact>
-              <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
+              <a-input :value="`/ ${pjtName} /`" style="width: 20%; text-align: right" disabled />
               <a-cascader
                 :options="allAPIs"
-                :value="api.path.split('/')"
+                :value="api.path.split('/').filter(part => part)"
                 style="width: 80%"
                 expand-trigger="hover"
                 change-on-select
@@ -71,17 +72,18 @@
 import { defineComponent, computed, onMounted } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { API, Auth, Role, routeMethods, StrIterable } from '@/common'
+import { API, Role, methods, StrIterable, Rule } from '@/common'
 import {
-  ApiColumn,
-  ApiMapper,
-  AuthColumns,
-  authEmitter,
-  AuthMapper,
+  apiColumn,
+  apiMapper,
+  ruleColumns,
+  ruleEmitter,
+  ruleMapper,
   apiEmitter,
-  RoleColumns,
+  roleColumns,
   roleEmitter,
-  RoleMapper
+  roleMapper,
+  bmVisible
 } from './Auth'
 import { useStore } from 'vuex'
 
@@ -96,7 +98,7 @@ export default defineComponent({
     const pjtName = computed(() => store.getters['project/ins'].name)
     const allAPIs = computed(() => {
       const ret = {} as StrIterable
-      for (const api of store.getters['project/ins'].apis) {
+      for (const api of store.getters['auth/apis']) {
         let obj = ret
         for (const ptPath of api.path.split('/').filter((str: string) => str)) {
           if (!(ptPath in obj)) {
@@ -108,7 +110,12 @@ export default defineComponent({
       return recuAPIs(ret)
     })
 
-    onMounted(() => store.dispatch('auth/refresh'))
+    onMounted(async () => {
+      await store.dispatch('auth/refresh')
+      if (!store.getters['auth/ins'].key) {
+        bmVisible.value = true
+      }
+    })
 
     function recuAPIs(obj: any): any[] {
       const ret = []
@@ -137,19 +144,26 @@ export default defineComponent({
       await store.dispatch('auth/delRole', key)
       refresh()
     }
-    async function onAuthSave(auth: Auth, rid: string, refresh: () => void) {
-      await store.dispatch('auth/saveAuth', { auth, rid })
+    async function onRuleSave(rule: Rule, roleId: string, refresh: () => void) {
+      // 之前控制了methods，所以在提交权限之前要还原，不然更新之后GET可能不会出现在methods中
+      ruleEmitter.emit('update:mapper', {
+        method: {
+          type: 'Select',
+          options: methods.map((mthd: string) => ({ label: mthd, value: mthd }))
+        }
+      })
+      await store.dispatch('auth/saveRule', { rule, roleId })
       refresh()
     }
-    async function onAuthDel(aid: string, rid: string, refresh: () => void) {
-      await store.dispatch('auth/delAuth', { aid, rid })
+    async function onRuleDel(ruleId: string, roleId: string, refresh: () => void) {
+      await store.dispatch('auth/delRule', { ruleId, roleId })
       refresh()
     }
     function onPathChange(edtAPI: API, val: string[]) {
       edtAPI.path = `/${val.join('/')}`
       const ret = Array.from(
         new Set<string>(
-          store.getters['project/ins'].apis
+          store.getters['auth/apis']
             .filter((api: API) => api.path.startsWith(edtAPI.path))
             .map((api: API) => api.method)
         )
@@ -157,7 +171,7 @@ export default defineComponent({
       if (!ret.includes(edtAPI.method)) {
         edtAPI.method = ret[0]
       }
-      authEmitter.emit('update:mapper', {
+      ruleEmitter.emit('update:mapper', {
         method: {
           type: 'Select',
           options: ret.map((mthd: string) => ({ label: mthd, value: mthd }))
@@ -166,28 +180,28 @@ export default defineComponent({
     }
     return {
       Role,
-      Auth,
+      Rule,
       API,
 
       pjtName,
       allAPIs,
-      routeMethods,
-      RoleColumns,
-      RoleMapper,
+      methods,
+      roleColumns,
+      roleMapper,
       roleEmitter,
-      AuthColumns,
-      AuthMapper,
-      authEmitter,
-      ApiColumn,
-      ApiMapper,
+      ruleColumns,
+      ruleMapper,
+      ruleEmitter,
+      apiColumn,
+      apiMapper,
       apiEmitter,
 
       onApiSave,
       onApiDel,
       onRoleSave,
       onRoleDel,
-      onAuthSave,
-      onAuthDel,
+      onRuleSave,
+      onRuleDel,
       onPathChange
     }
   }

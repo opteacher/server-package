@@ -3,7 +3,6 @@
 import { getProperty } from './utils'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ref, Ref } from 'vue'
-import _ from 'lodash'
 
 export class StrIterable {
   [idx: string]: any
@@ -92,7 +91,7 @@ export class BaseMapper extends StrIterable {
     this.expanded = false
     this.reset = true
     this.empty = false
-    this.onChange = () => console.log()
+    this.onChange = () => undefined
   }
 
   static copy(src: any, tgt?: BaseMapper): BaseMapper {
@@ -156,16 +155,21 @@ export class TextareaMapper extends BaseMapper {
 }
 
 export class SelectMapper extends BaseMapper {
+  loading: boolean
   options: string[] | OpnType[]
+  onDropdown: (open: boolean) => void
 
   constructor() {
     super()
+    this.loading = false
     this.options = []
+    this.onDropdown = () => undefined
   }
 
   static copy(src: any, tgt?: SelectMapper): SelectMapper {
     tgt = tgt || new SelectMapper()
     BaseMapper.copy(src, tgt)
+    tgt.loading = typeof src.loading !== 'undefined' ? src.loading : tgt.loading
     tgt.options = src.options
       ? src.options.map((opn: any) => {
           if (typeof opn === 'string') {
@@ -180,6 +184,7 @@ export class SelectMapper extends BaseMapper {
           }
         })
       : tgt.options
+    tgt.onDropdown = src.onDropdown || tgt.onDropdown
     return tgt
   }
 }
@@ -212,7 +217,7 @@ export class ButtonMapper extends BaseMapper {
     this.inner = ''
     this.danger = false
     this.primary = true
-    this.onClick = () => console.log()
+    this.onClick = () => undefined
   }
 
   static copy(src: any, tgt?: ButtonMapper): ButtonMapper {
@@ -244,9 +249,9 @@ export class TableMapper extends BaseMapper {
     this.mapper = new Mapper()
     this.columns = []
     this.emitter = new Emitter()
-    this.copy = () => console.log()
-    this.onSaved = () => console.log()
-    this.onDeleted = () => console.log()
+    this.copy = () => undefined
+    this.onSaved = () => undefined
+    this.onDeleted = () => undefined
     this.addable = true
     this.edtable = true
     this.delable = true
@@ -480,8 +485,7 @@ export class Project {
   commands: string
   frontend?: Deploy
   models: Model[]
-  roles: Role[]
-  apis: API[]
+  auth: Auth | null
   status: 'loading' | 'running' | 'stopped'
 
   constructor() {
@@ -494,8 +498,7 @@ export class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
-    this.roles = []
-    this.apis = []
+    this.auth = null
     this.status = 'stopped'
   }
 
@@ -509,8 +512,7 @@ export class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
-    this.roles = []
-    this.apis = []
+    this.auth = null
     this.status = 'stopped'
   }
 
@@ -533,59 +535,8 @@ export class Project {
         tgt.models.push(Model.copy(model))
       }
     }
-    if (src.roles) {
-      tgt.roles.splice(0, tgt.roles.length)
-      for (const role of src.roles) {
-        tgt.roles.push(Role.copy(role))
-      }
-    }
-    if (src.apis) {
-      tgt.apis.splice(0, tgt.apis.length)
-      for (const api of src.apis) {
-        tgt.apis.push(API.copy(api))
-      }
-    }
+    tgt.auth = src.auth ? Auth.copy(src.auth) : tgt.auth
     tgt.status = src.status || tgt.status
-    return tgt
-  }
-}
-
-export class ExpClsForm {
-  key: string
-  name: string
-  expType: 'typescript' | 'javascript'
-  genCopy: boolean
-  genReset: boolean
-
-  constructor() {
-    this.key = ''
-    this.name = ''
-    this.expType = 'typescript'
-    this.genCopy = true
-    this.genReset = true
-  }
-
-  reset() {
-    this.key = ''
-    this.name = ''
-    this.expType = 'typescript'
-    this.genCopy = true
-    this.genReset = true
-  }
-
-  update(model: Model): ExpClsForm {
-    this.key = model.key
-    this.name = _.upperFirst(model.name)
-    return this
-  }
-
-  static copy(src: any, tgt?: ExpClsForm): ExpClsForm {
-    tgt = tgt || new ExpClsForm()
-    tgt.key = src.key || tgt.key
-    tgt.name = src.name || tgt.name
-    tgt.expType = src.expType || tgt.expType
-    tgt.genCopy = src.genCopy || tgt.genCopy
-    tgt.genReset = src.genReset || tgt.genReset
     return tgt
   }
 }
@@ -754,7 +705,7 @@ export class Model {
   }
 }
 
-export const routeMethods = ['POST', 'PUT', 'DELETE', 'GET']
+export const methods = ['POST', 'PUT', 'DELETE', 'GET']
 
 export type BaseTypes =
   | 'Unknown'
@@ -911,44 +862,6 @@ export class Node extends StrIterable {
         : tgt.nexts
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
-    return tgt
-  }
-}
-
-export const CardMinHgt = 150
-export const CardWidth = 300
-export const CardHlfWid = CardWidth >> 1
-export const ArrowHeight = 100
-export const ArrowHlfHgt = ArrowHeight >> 1
-export const AddBtnWH = 32
-export const AddBtnHlfWH = AddBtnWH >> 1
-export const CardGutter = 50
-export const CardHlfGutter = CardGutter >> 1
-
-export class NodeInPnl extends Node {
-  posLT: [number, number]
-  size: [number, number]
-  btmSvgHgt: number
-
-  constructor() {
-    super()
-    this.posLT = [0, 0]
-    this.size = [0, 0]
-    this.btmSvgHgt = ArrowHlfHgt
-  }
-
-  static copy(src: any, tgt?: NodeInPnl): NodeInPnl {
-    tgt = tgt || new NodeInPnl()
-    Node.copy(src, tgt)
-    if (src.posLT && src.posLT.length === 2) {
-      tgt.posLT[0] = src.posLT[0]
-      tgt.posLT[1] = src.posLT[1]
-    }
-    if (src.size && src.size.length === 2) {
-      tgt.size[0] = src.size[0]
-      tgt.size[1] = src.size[1]
-    }
-    tgt.btmSvgHgt = src.btmSvgHgt || tgt.btmSvgHgt
     return tgt
   }
 }
@@ -1144,30 +1057,6 @@ export class Deploy {
   }
 }
 
-export class Transfer {
-  file: string[] // 上传文件在服务器的临时位置
-  dest: string // 文件投放到docker容器的位置（基于/app）
-  project?: string // 项目名，也是docker容器名
-
-  constructor() {
-    this.file = []
-    this.dest = ''
-  }
-
-  reset() {
-    this.file = []
-    this.dest = ''
-  }
-
-  static copy(src: any, tgt?: Transfer): Transfer {
-    tgt = tgt || new Transfer()
-    tgt.file = src.file || tgt.file
-    tgt.dest = src.dest || tgt.dest
-    tgt.project = src.project || tgt.project
-    return tgt
-  }
-}
-
 export class Dependency {
   key: string
   name: string
@@ -1197,36 +1086,74 @@ export class Dependency {
 export class Role {
   key: string
   name: string
-  auths: Auth[]
+  rules: Rule[]
 
   constructor() {
     this.key = ''
     this.name = ''
-    this.auths = []
+    this.rules = []
   }
 
   reset() {
     this.key = ''
     this.name = ''
-    this.auths = []
+    this.rules = []
   }
 
   static copy(src: any, tgt?: Role): Role {
     tgt = tgt || new Role()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
-    if (src.auths) {
-      tgt.auths.splice(0, tgt.auths.length)
-      for (const auth of src.auths) {
-        tgt.auths.push(Auth.copy(auth))
-      }
+    if (src.rules) {
+      tgt.rules.splice(0, tgt.rules.length)
+      tgt.rules.push(...src.rules.map((rule: any) => {
+        return Rule.copy(typeof rule === 'string' ? { key: rule } : rule)
+      }))
     }
     return tgt
   }
 }
 
-export const authValues = ['s', '*', '*/*']
 export class Auth {
+  key: string
+  model: Model
+  idProps: string[]
+  pwdProp: string
+  roles: Role[]
+  apis: API[]
+
+  constructor() {
+    this.key = ''
+    this.model = new Model()
+    this.idProps = []
+    this.pwdProp = ''
+    this.roles = []
+    this.apis = []
+  }
+
+  reset() {
+    this.key = ''
+    this.model = new Model()
+    this.idProps = []
+    this.pwdProp = ''
+    this.roles = []
+    this.apis = []
+  }
+
+  static copy(src: any, tgt?: Auth): Auth {
+    tgt = tgt || new Auth()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.model = src.model ? Model.copy(src.model) : tgt.model
+    tgt.idProps = src.idProps || tgt.idProps
+    tgt.pwdProp = src.pwdProp || tgt.pwdProp
+    tgt.roles = src.roles ? src.roles.map((role: any) => Role.copy(role)) : tgt.roles
+    tgt.apis = src.apis ? src.apis.map((api: any) => API.copy(api)) : tgt.apis
+    return tgt
+  }
+}
+
+export const authValues = ['s', '*', '*/*']
+export class Rule {
   key: string
   method: string
   path: string
@@ -1249,8 +1176,8 @@ export class Auth {
     this.action = ''
   }
 
-  static copy(src: any, tgt?: Auth): Auth {
-    tgt = tgt || new Auth()
+  static copy(src: any, tgt?: Rule): Rule {
+    tgt = tgt || new Rule()
     tgt.key = src.key || src._id || tgt.key
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path

@@ -10,6 +10,7 @@ import DataBase from '../models/database.js'
 import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
+import Auth from '../models/auth.js'
 import Dependency from '../models/dependency.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
@@ -555,10 +556,14 @@ export async function transfer(info: {
 }
 
 export async function getAllAPIs(pid: string) {
+  const ret = []
   const project = await db.select(Project, { _index: pid }, { ext: true })
-  const ret = project.apis.map((api: any) => Object.assign({ model: '自定义' }, api.toObject()))
+  if (project.auth) {
+    const auth = await db.select(Auth, { _index: project.auth.id }, { ext: true })
+    ret.push(...auth.apis.map((api: any) => Object.assign({ model: '自定义' }, api.toObject())))
+  }
   for (const mdl of project.models) {
-    const model = await db.select(Model, { _index: mdl._id }, { ext: true })
+    const model = await db.select(Model, { _index: mdl.id }, { ext: true })
     for (const service of model.svcs) {
       switch (service.emit) {
         case 'api':

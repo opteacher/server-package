@@ -4,7 +4,7 @@ export default db.defineModel(
   {
     __modelName: 'role',
     name: db.PropTypes.String,
-    auths: [{ type: db.PropTypes.Id, ref: 'authorization' }]
+    rules: [{ type: db.PropTypes.Id, ref: 'rule' }]
   },
   {
     router: {

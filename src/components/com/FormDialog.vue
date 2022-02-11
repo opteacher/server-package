@@ -88,8 +88,13 @@
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
+              @dropdownVisibleChange="value.onDropdown"
               @change="val => value.onChange(formState, val)"
-            />
+            >
+              <template v-if="value.loading" #notFoundContent>
+                <a-spin size="small" />
+              </template>
+            </a-select>
             <a-checkbox
               v-else-if="value.type === 'Checkbox'"
               :name="key"

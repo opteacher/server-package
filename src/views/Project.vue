@@ -152,7 +152,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExpClsForm, Model, Project, Property, Service } from '@/common'
+import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted } from 'vue'
 import { ApartmentOutlined, DatabaseOutlined, ExportOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -173,7 +173,8 @@ import {
   timeUnits,
   expClsVsb,
   expClsForm,
-  ExpClsMapper
+  ExpClsMapper,
+  ExpClsForm
 } from './Project'
 import { useStore } from 'vuex'
 

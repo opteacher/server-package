@@ -12,7 +12,7 @@ import {
   baseTypes,
   Node,
   NodeTypeMapper,
-  routeMethods,
+  methods,
   Service,
   NodeType
 } from '../common'
@@ -352,7 +352,7 @@ export const ServiceMapper = new Mapper({
   method: {
     label: '访问方式',
     type: 'Select',
-    options: routeMethods.map(mthd => ({
+    options: methods.map(mthd => ({
       label: mthd,
       value: mthd
     }))
@@ -387,3 +387,41 @@ export const JoinMapper = new Mapper({
     mode: 'select'
   }
 })
+
+export const CardMinHgt = 150
+export const CardWidth = 300
+export const CardHlfWid = CardWidth >> 1
+export const ArrowHeight = 100
+export const ArrowHlfHgt = ArrowHeight >> 1
+export const AddBtnWH = 32
+export const AddBtnHlfWH = AddBtnWH >> 1
+export const CardGutter = 50
+export const CardHlfGutter = CardGutter >> 1
+
+export class NodeInPnl extends Node {
+  posLT: [number, number]
+  size: [number, number]
+  btmSvgHgt: number
+
+  constructor() {
+    super()
+    this.posLT = [0, 0]
+    this.size = [0, 0]
+    this.btmSvgHgt = ArrowHlfHgt
+  }
+
+  static copy(src: any, tgt?: NodeInPnl): NodeInPnl {
+    tgt = tgt || new NodeInPnl()
+    Node.copy(src, tgt)
+    if (src.posLT && src.posLT.length === 2) {
+      tgt.posLT[0] = src.posLT[0]
+      tgt.posLT[1] = src.posLT[1]
+    }
+    if (src.size && src.size.length === 2) {
+      tgt.size[0] = src.size[0]
+      tgt.size[1] = src.size[1]
+    }
+    tgt.btmSvgHgt = src.btmSvgHgt || tgt.btmSvgHgt
+    return tgt
+  }
+}
