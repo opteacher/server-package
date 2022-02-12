@@ -13,13 +13,6 @@
       "default": true
     },
     {
-      "name": "JsonWebToken",
-      "exports": ["jwt"],
-      "from": "jsonwebtoken",
-      "default": true,
-      "version": "8.5.1"
-    },
-    {
       "name": "UUID",
       "exports": ["v4"],
       "from": "uuid",

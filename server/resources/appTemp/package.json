@@ -14,6 +14,7 @@
 	"license": "ISC",
 	"dependencies": {
 		/*return pkgDeps.map(dep => `"${dep.from}": "^${dep.version}",`).join('\n		')*/
+		"jsonwebtoken": "^8.5.1",
 		"koa": "^2.13.1",
 		"koa-body": "^4.2.0",
 		"koa-json": "^2.0.2",

@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { login, verify, regup } from '../../../../../services/auth.js'
+import { login, verify, regup } from '../../../../../services/admin.js'
 
 const router = new Router()
 
@@ -9,9 +9,9 @@ router.post('/in', async ctx => {
   }
 })
 
-router.get('/verify', async ctx => {
+router.get('/verify', ctx => {
   ctx.body = {
-    result: await verify(ctx.headers['authorization'])
+    result: verify(ctx.headers['authorization'])
   }
 })
 

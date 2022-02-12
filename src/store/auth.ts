@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, Auth, Model, Project, Property, Role, Rule } from '@/common'
+import { API, Auth, Project, Role, Rule } from '@/common'
+import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
-import { BindModel } from '@/views/Auth'
+import { message, notification } from 'ant-design-vue'
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 
@@ -118,33 +119,62 @@ export default {
     },
     async bindModel(
       { dispatch, rootGetters }: { dispatch: Dispatch; rootGetters: any },
-      form: BindModel
+      auth: Auth
     ) {
-      const model = Model.copy(await reqGet('model', form.model))
-      const auth = Auth.copy({
-        idProps: form.idProps.map(
-          idProp => model.props.find((prop: Property) => prop.key === idProp)?.name
-        ),
-        pwdProp: model.props.find((prop: Property) => prop.key === form.pwdProp)?.name
-      })
       const project = rootGetters['project/ins'] as Project
       let aid = ''
       if (!project.auth || !project.auth.key) {
-        aid = Auth.copy(await reqPost('auth', auth, { ignores: ['model', 'roles', 'apis'] })).key
+        aid = Auth.copy(await reqPost('auth', auth, { ignores: ['roles', 'apis'] })).key
       } else {
         aid = Auth.copy(
-          await reqPut('auth', project.auth.key, auth, { ignores: ['model', 'roles', 'apis'] })
+          await reqPut('auth', project.auth.key, auth, { ignores: ['roles', 'apis'] })
         ).key
       }
-      await reqLink({
-        parent: ['auth', aid],
-        child: ['model', model.key]
-      })
       await reqLink({
         parent: ['project', project.key],
         child: ['auth', aid]
       })
+      // 绑定模型（会为模型加上一个role字段并在role中创建一条guest记录）
+      await makeRequest(axios.put(`/server-package/api/v1/auth/${aid}/model/${auth.model}/bind`))
       await dispatch('refresh')
+    },
+    async unbindModel({
+      state,
+      dispatch,
+      rootGetters
+    }: {
+      state: AuthState
+      dispatch: Dispatch
+      rootGetters: any
+    }) {
+      const project = rootGetters['project/ins'] as Project
+      await reqLink(
+        {
+          parent: ['project', project.key],
+          child: ['auth', state.auth.key]
+        },
+        false
+      )
+      await reqDelete('auth', state.auth.key)
+      await dispatch('refresh')
+      router.push(`/server-package/project/${project.key}`)
+    },
+    async regup({ dispatch }: { dispatch: Dispatch }, admin: any) {
+      const result = (await makeRequest(axios.post('/server-package/api/v1/log/regup', admin)))
+        .result
+      if (result.error) {
+        notification.error({
+          message: '注册时发生错误！',
+          description: result.error
+        })
+        return
+      }
+      message.success('注册成功！')
+      await dispatch('login', admin)
+    },
+    async login(_module: any, admin: any) {
+      const result = (await makeRequest(axios.post('/server-package/api/v1/log/in', admin))).result
+      console.log(result)
     }
   },
   getters: {

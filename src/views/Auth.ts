@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { authValues, Column, Mapper, methods } from '@/common'
+import { authValues, Column, Cond, Mapper, methods } from '@/common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { ref } from 'vue'
 
 export const roleColumns = [new Column('角色名', 'name')]
 
@@ -63,25 +62,3 @@ export const apiMapper = new Mapper({
 export const apiEmitter = new Emitter()
 
 export const ruleEmitter = new Emitter()
-
-export const bmVisible = ref(false)
-
-export class BindModel {
-  model: string
-  idProps: string[]
-  pwdProp: string
-
-  constructor() {
-    this.model = ''
-    this.idProps = []
-    this.pwdProp = ''
-  }
-
-  static copy(src: any, tgt?: BindModel): BindModel {
-    tgt = tgt || new BindModel()
-    tgt.model = src.model || tgt.model
-    tgt.idProps = src.idProps || tgt.idProps
-    tgt.pwdProp = src.pwdProp || tgt.pwdProp
-    return tgt
-  }
-}

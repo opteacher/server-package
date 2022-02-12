@@ -9,12 +9,17 @@ import cors from 'koa2-cors'
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 import { db } from './utils/index.js'
+import { auth } from './services/auth.js'
 const router = await genApiRoutes(path.resolve('routes'))
 const models = (await genMdlRoutes(db, path.resolve('models'), path.resolve('configs', 'models')))
   .router
 const app = new Koa()
 // 跨域配置
 app.use(cors())
+// 日志输出
+app.use(logger())
+// 鉴权
+app.use(auth())
 // 上传配置
 app.use(
   koaBody({
@@ -30,8 +35,6 @@ app.use(
 )
 // json解析
 app.use(json())
-// 日志输出
-app.use(logger())
 // 指定静态目录
 app.use(statc(path.resolve('public')))
 // 模型路由

@@ -40,6 +40,7 @@
           :mapper="PropMapper"
           :copy="Property.copy"
           :emitter="propEmitter"
+          :filter="record => model.key !== project.auth?.model || record.name !== 'role'"
           @save="prop => onPropSave(prop, model.key)"
           @delete="key => onPropDel(key, model.key)"
         />

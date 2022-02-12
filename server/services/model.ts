@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { db } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'

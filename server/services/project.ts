@@ -246,6 +246,13 @@ export async function sync(pid: string): Promise<any> {
   console.log(`调整工具文件：${utilsTmp} -> ${utilsGen}`)
   adjustFile(utilsTmp, utilsGen)
 
+  const svcPath = Path.join(genPath, 'services')
+  fs.mkdirSync(svcPath)
+  const authTmp = Path.join(tmpPath, 'services', 'auth.js')
+  const authGen = Path.join(genPath, 'services', 'auth.js')
+  console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
+  fs.writeFileSync(authGen, fs.readFileSync(authTmp))
+
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
   const vwsGen = Path.join(genPath, 'views')
@@ -254,9 +261,7 @@ export async function sync(pid: string): Promise<any> {
 
   const mdlPath = Path.join(genPath, 'models')
   const rotPath = Path.join(genPath, 'routes', project.name)
-  const svcPath = Path.join(genPath, 'services')
   fs.mkdirSync(mdlPath)
-  fs.mkdirSync(svcPath)
   fs.mkdirSync(rotPath, { recursive: true })
   const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
   const svcTmp = Path.join(tmpPath, 'services', 'temp.js')

@@ -535,7 +535,7 @@ export class Project {
         tgt.models.push(Model.copy(model))
       }
     }
-    tgt.auth = src.auth ? Auth.copy(src.auth) : tgt.auth
+    tgt.auth = src.auth ? Auth.copy(src.auth) : null
     tgt.status = src.status || tgt.status
     return tgt
   }
@@ -1106,9 +1106,11 @@ export class Role {
     tgt.name = src.name || tgt.name
     if (src.rules) {
       tgt.rules.splice(0, tgt.rules.length)
-      tgt.rules.push(...src.rules.map((rule: any) => {
-        return Rule.copy(typeof rule === 'string' ? { key: rule } : rule)
-      }))
+      tgt.rules.push(
+        ...src.rules.map((rule: any) => {
+          return Rule.copy(typeof rule === 'string' ? { key: rule } : rule)
+        })
+      )
     }
     return tgt
   }
@@ -1116,26 +1118,20 @@ export class Role {
 
 export class Auth {
   key: string
-  model: Model
-  idProps: string[]
-  pwdProp: string
+  model: string
   roles: Role[]
   apis: API[]
 
   constructor() {
     this.key = ''
-    this.model = new Model()
-    this.idProps = []
-    this.pwdProp = ''
+    this.model = ''
     this.roles = []
     this.apis = []
   }
 
   reset() {
     this.key = ''
-    this.model = new Model()
-    this.idProps = []
-    this.pwdProp = ''
+    this.model = ''
     this.roles = []
     this.apis = []
   }
@@ -1143,9 +1139,7 @@ export class Auth {
   static copy(src: any, tgt?: Auth): Auth {
     tgt = tgt || new Auth()
     tgt.key = src.key || src._id || tgt.key
-    tgt.model = src.model ? Model.copy(src.model) : tgt.model
-    tgt.idProps = src.idProps || tgt.idProps
-    tgt.pwdProp = src.pwdProp || tgt.pwdProp
+    tgt.model = src.model || tgt.model
     tgt.roles = src.roles ? src.roles.map((role: any) => Role.copy(role)) : tgt.roles
     tgt.apis = src.apis ? src.apis.map((api: any) => API.copy(api)) : tgt.apis
     return tgt
@@ -1183,6 +1177,35 @@ export class Rule {
     tgt.path = src.path || tgt.path
     tgt.value = src.value || tgt.value
     tgt.action = src.action || tgt.action
+    return tgt
+  }
+}
+
+export class Admin {
+  key: string
+  name: string
+  password: string
+  repeatPwd: string
+  code: string
+  mode: '登录' | '注册'
+
+  constructor() {
+    this.key = ''
+    this.name = ''
+    this.password = ''
+    this.repeatPwd = ''
+    this.code = ''
+    this.mode = '登录'
+  }
+
+  static copy(src: any, tgt?: Admin): Admin {
+    tgt = tgt || new Admin()
+    tgt.key = src.key || src._id || tgt.key
+    tgt.name = src.name || tgt.name
+    tgt.password = src.password || tgt.password
+    tgt.repeatPwd = src.repeatPwd || tgt.repeatPwd
+    tgt.code = src.code || tgt.code
+    tgt.mode = src.mode || tgt.mode
     return tgt
   }
 }

@@ -3,6 +3,7 @@ import model from './model'
 import project from './project'
 import service from './service'
 import auth from './auth'
+import admin from './admin'
 
 export default createStore({
   state: {},
@@ -12,6 +13,7 @@ export default createStore({
     project,
     service,
     model,
-    auth
+    auth,
+    admin
   }
 })

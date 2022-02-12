@@ -492,8 +492,8 @@ export default defineComponent({
         emit('submit', formState, () => {
           formRef.value.resetFields()
           formState.reset && formState.reset()
+          emit('update:show', false)
         })
-        emit('update:show', false)
       } catch (e) {
         console.log(e)
       }

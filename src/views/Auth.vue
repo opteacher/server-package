@@ -25,6 +25,7 @@
       :mapper="roleMapper"
       :copy="Role.copy"
       :emitter="roleEmitter"
+      :filter="record => record.name !== 'guest'"
       @save="onRoleSave"
       @delete="onRoleDel"
     >
@@ -43,20 +44,24 @@
             <a-select
               class="w-100"
               v-model:value="api.method"
-              :options="methods.map(mthd => ({ label: mthd, value: mthd }))"
+              :options="
+                methods
+                  .map(mthd => ({ label: mthd, value: mthd }))
+                  .concat({ label: '*', value: '*' })
+              "
             />
           </template>
           <template #path="{ record: api }">/{{ pjtName }}{{ api.path }}</template>
           <template #pathEdit="{ editing: api }">
             <a-input-group compact>
-              <a-input :value="`/ ${pjtName} /`" style="width: 20%; text-align: right" disabled />
+              <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
               <a-cascader
                 :options="allAPIs"
-                :value="api.path.split('/').filter(part => part)"
+                :value="api.path.split('/')"
                 style="width: 80%"
                 expand-trigger="hover"
                 change-on-select
-                :allow-clear="false"
+                :allow-clear="true"
                 @change="val => onPathChange(api, val)"
               />
             </a-input-group>
@@ -69,7 +74,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed, onMounted } from 'vue'
+import { defineComponent, computed } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { API, Role, methods, StrIterable, Rule } from '@/common'
@@ -82,8 +87,7 @@ import {
   apiEmitter,
   roleColumns,
   roleEmitter,
-  roleMapper,
-  bmVisible
+  roleMapper
 } from './Auth'
 import { useStore } from 'vuex'
 
@@ -108,13 +112,6 @@ export default defineComponent({
         }
       }
       return recuAPIs(ret)
-    })
-
-    onMounted(async () => {
-      await store.dispatch('auth/refresh')
-      if (!store.getters['auth/ins'].key) {
-        bmVisible.value = true
-      }
     })
 
     function recuAPIs(obj: any): any[] {
@@ -149,7 +146,9 @@ export default defineComponent({
       ruleEmitter.emit('update:mapper', {
         method: {
           type: 'Select',
-          options: methods.map((mthd: string) => ({ label: mthd, value: mthd }))
+          options: methods
+            .map((mthd: string) => ({ label: mthd, value: mthd }))
+            .concat({ label: '*', value: '*' })
         }
       })
       await store.dispatch('auth/saveRule', { rule, roleId })

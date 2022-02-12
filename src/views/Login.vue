@@ -3,8 +3,7 @@
     :style="{
       height: '100%',
       padding: '25vh 10vw',
-      'background-image': `url(${require('@/assets/0123d75647240f6ac7251c948e1f59.jpg')})`,
-      'background-size': '100% 100%'
+      'background-color': '#CCCCFF'
     }"
   >
     <div
@@ -74,25 +73,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
-import { GlobalOutlined } from '@ant-design/icons-vue'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Admin } from '@/common'
+import { makeRequest } from '@/utils'
+import axios from 'axios'
+import { defineComponent, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'Login',
-  components: {
-    GlobalOutlined
-  },
   setup() {
-    const formState = reactive({
-      mode: '登录',
-      name: '',
-      password: '',
-      repeatPwd: '',
-      code: ''
+    const store = useStore()
+    const router = useRouter()
+    const formState = reactive(Admin.copy({ mode: '登录' }))
+
+    onMounted(async () => {
+      const loginToken = localStorage.getItem('loginToken')
+      if (loginToken) {
+        const resp = await makeRequest(
+          axios.get('/server-package/api/v1/log/verify', {
+            headers: { authorization: 'Bearer ' + loginToken }
+          })
+        )
+        if (!resp.result.error) {
+          router.replace('/server-package/')
+        }
+      }
     })
 
-    async function onFinish(validState: any) {
-      console.log(validState)
+    async function onFinish(validState: Admin) {
+      if (formState.mode === '注册') {
+        await store.dispatch('admin/regup', validState)
+      } else {
+        await store.dispatch('admin/login', validState)
+      }
     }
     return {
       formState,

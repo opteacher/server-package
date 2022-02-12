@@ -1,6 +1,5 @@
 import Path from 'path'
 import Koa from 'koa'
-import jwt from 'koa-jwt'
 import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
@@ -12,24 +11,20 @@ import { runAll } from './services/project.js'
 
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
-import { readConfig } from './lib/backend-library/utils/index.js'
 import { db } from './utils/index.js'
 
-const config = readConfig(Path.resolve('configs', 'server'), false)
 const router = await genApiRoutes(Path.resolve('routes'))
 const models = (await genMdlRoutes(db, Path.resolve('models'), Path.resolve('configs', 'models')))
   .router
 
 const app = new Koa()
 
+// 日志输出
+app.use(logger())
 // 跨域配置
 app.use(cors())
-// 鉴权
-app.use(
-  jwt({ secret: config.secret }).unless({
-    path: [/^\/server-package\/pbc/, /^\/server-package\/api\/v1\/log/]
-  })
-)
+// 指定页面目录
+app.use(views('./views', { extension: 'html' }))
 // 上传配置
 app.use(
   koaBody({
@@ -45,16 +40,12 @@ app.use(
 )
 // json解析
 app.use(json())
-// 日志输出
-app.use(logger())
 // 指定静态目录
 app.use(statc(Path.resolve('public')))
 // 模型路由
 app.use(models.routes()).use(models.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
-// 指定页面目录
-app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾
 app.use(ctx => ctx.render('index'))
 
