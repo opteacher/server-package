@@ -19,7 +19,7 @@ app.use(cors())
 // 日志输出
 app.use(logger())
 // 鉴权
-app.use(auth(/\//*return project.name*/\/mdl\/v1/))
+app.use(auth([/\//*return project.name*/\/mdl\/v1/]))
 // 上传配置
 app.use(
   koaBody({
