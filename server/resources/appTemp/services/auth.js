@@ -51,26 +51,28 @@ export async function verifyDeep(ctx, next) {
     return { error: '项目未绑定模型！' }
   }
   // 获取token解析出来的载荷
-  result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/roles?name=guest`)
-  if (!result.length) {
+  let role = auth.roles.find(role => role.name === 'guest')
+  if (!role) {
     return { error: '项目权限系统未配置访客角色！' }
   }
-  let role = result[0]
+  let guestId = role._id
   const verRes = verify(ctx.headers['authorization'])
   console.log(verRes)
   const payload = verRes.payload 
   if (!verRes.error && payload) {
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
+    // @_@: 这意味着该子项目对应的账户模型必须开一个GET查询的mdl接口
     const vstURL = `http://${pjtName}:${project.port}/${pjtName}/mdl/v1/${auth.model}/${payload.aud}`
     const visitor = await makeRequest('GET', vstURL)
     if (!visitor || !('role' in visitor)) {
       return { error: '访问者的角色信息有误！' }
     }
-    // 获取对应的角色
-    role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${visitor['role']}`)
-    if (!role) {
-      return { error: '未找到指定角色！' }
-    }
+    guestId = visitor['role']._id
+  }
+  // 获取对应的角色
+  role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${guestId}`)
+  if (!role) {
+    return { error: '未找到指定角色！' }
   }
   // 遍历角色授权的规则，查找其中是否满足当前请求包含的申请
   for (const rule of role.rules) {
