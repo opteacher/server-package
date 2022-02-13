@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { API, Deploy, Model, Project } from '@/common'
+import { Deploy, Model, Project } from '@/common'
 import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'
@@ -22,11 +22,13 @@ export default {
         const model = state.models[index]
         Model.copy(await reqGet('model', model.key), model)
       }
-      dispatch('chkStatus')
+      if (state.thread) {
+        dispatch('chkStatus')
+      }
     },
     async save({ dispatch, state }: { dispatch: Dispatch; state: Project }, project: Project) {
       await reqPut('project', state.key, project, {
-        ignores: ['models', 'frontend', 'roles', 'apis']
+        ignores: ['models', 'frontend']
       })
       await dispatch('refresh')
     },
@@ -68,11 +70,12 @@ export default {
       await dispatch('refresh')
     },
     async del({ state }: { state: Project }) {
-      await axios.delete(`/server-package/api/v1/project/${state.key}`)
+      await reqDelete('project', state.key, { type: 'api' })
     },
     async sync({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       state.status = 'loading'
-      await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/sync`), {
+      await reqPut('project', `${state.key}/sync`, undefined, {
+        type: 'api',
         messages: {
           loading: '同步中……',
           succeed: '同步成功！'
@@ -84,7 +87,8 @@ export default {
       let countdown = 0
       const h = setInterval(async () => {
         state.status = (
-          await makeRequest(axios.get(`/server-package/api/v1/project/${state.key}/stat`), {
+          await reqGet('project', `${state.key}/stat`, {
+            type: 'api',
             messages: { notShow: false }
           })
         ).result.status
@@ -104,7 +108,8 @@ export default {
       }, 1000)
     },
     async stop({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
-      await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/stop`), {
+      await reqPut('project', `${state.key}/stop`, undefined, {
+        type: 'api',
         middles: {
           before: () => {
             state.status = 'loading'
@@ -122,7 +127,8 @@ export default {
     },
     async deploy({ state }: { state: Project }, config: Deploy) {
       const orgSts = state.status
-      await makeRequest(axios.put(`/server-package/api/v1/project/${state.key}/deploy`, config), {
+      await reqPut('project', `${state.key}/deploy`, config, {
+        type: 'api',
         middles: {
           before: () => {
             state.status = 'loading'
@@ -138,10 +144,11 @@ export default {
       })
     },
     async transfer({ state }: { state: Project }, info: Transfer) {
-      const url = `/server-package/api/v1/project/${state.key}/transfer`
       const orgSts = state.status
-      await makeRequest(
-        axios.put(url, {
+      await reqPut(
+        'project',
+        `${state.key}/transfer`,
+        {
           name: state.name,
           files: info.file.map((file: any) => ({
             src: file.response.result,
@@ -152,8 +159,9 @@ export default {
               file.originFileObj.webkitRelativePath || file.name
             ].join('')
           }))
-        }),
+        },
         {
+          type: 'api',
           middles: {
             before: () => {
               state.status = 'loading'

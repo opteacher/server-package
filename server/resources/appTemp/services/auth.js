@@ -57,8 +57,9 @@ export async function verifyDeep(ctx, next) {
   }
   let role = result[0]
   const verRes = verify(ctx.headers['authorization'])
-  if (!verRes.error) {
-    const payload = verRes.payload
+  console.log(verRes)
+  const payload = verRes.payload 
+  if (!verRes.error && payload) {
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
     const vstURL = `http://${pjtName}:${project.port}/${pjtName}/mdl/v1/${auth.model}/${payload.aud}`
     const visitor = await makeRequest('GET', vstURL)
@@ -76,7 +77,7 @@ export async function verifyDeep(ctx, next) {
     if (rule.method !== '*' && rule.method.toLowerCase() !== ctx.method.toLowerCase()) {
       continue
     }
-    if (payload.sub) {
+    if (payload && payload.sub) {
       if (payload.sub.toLowerCase() !== rule.action.toLowerCase()) {
         continue
       }

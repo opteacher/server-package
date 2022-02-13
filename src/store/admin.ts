@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Admin } from '@/common'
 import router from '@/router'
-import { makeRequest } from '@/utils'
+import { reqPost } from '@/utils'
 import { message, notification } from 'ant-design-vue'
-import axios from 'axios'
 import { Dispatch } from 'vuex'
 
 export default {
@@ -13,8 +12,7 @@ export default {
   mutations: {},
   actions: {
     async regup({ dispatch }: { dispatch: Dispatch }, admin: any) {
-      const result = (await makeRequest(axios.post('/server-package/api/v1/log/regup', admin)))
-        .result
+      const result = (await reqPost('log/regup', admin, { type: 'api' })).result
       if (result.error) {
         notification.error({
           message: '注册时发生错误！',
@@ -26,7 +24,7 @@ export default {
       await dispatch('login', admin)
     },
     async login({ state }: { state: Admin }, admin: any) {
-      const result = (await makeRequest(axios.post('/server-package/api/v1/log/in', admin))).result
+      const result = (await reqPost('log/in', admin, { type: 'api' })).result
       if (result.error) {
         notification.error({
           message: '登录失败！',

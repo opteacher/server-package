@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { authValues, Column, Cond, Mapper, methods } from '@/common'
+import { authValues, Column, Mapper, methods } from '@/common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export const roleColumns = [new Column('角色名', 'name')]

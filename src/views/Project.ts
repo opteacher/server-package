@@ -52,7 +52,8 @@ export const ModelColumns = [
   new Column('描述', 'desc'),
   new Column('记录时间', 'logTime'),
   new Column('数据集', 'dataset'),
-  new Column('导出类', 'expCls')
+  new Column('导出类', 'expCls'),
+  new Column('设计', 'dsgnForm')
 ]
 
 export const ModelMapper = new Mapper({
@@ -72,7 +73,8 @@ export const ModelMapper = new Mapper({
   props: {
     expanded: true
   },
-  expCls: {}
+  expCls: {},
+  dsgnForm: {}
 })
 
 export const expClsVsb = ref(false)

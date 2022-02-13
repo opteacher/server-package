@@ -14,6 +14,8 @@ import Auth from '../models/auth.js'
 import Dependency from '../models/dependency.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
+import { saveAuth, delAuth } from './auth.js'
+import ProjectType from '../types/project.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
@@ -171,6 +173,13 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
     default:
       return []
   }
+}
+
+export async function create(project: any) {
+  const result = ProjectType.copy(await db.save(Project, project))
+  // 初始化项目的权限系统
+  result.auth = await saveAuth(result.key, { model: '' })
+  return result
 }
 
 export async function sync(pid: string): Promise<any> {
@@ -460,6 +469,7 @@ export async function del(pid: string): Promise<any> {
     }
     await db.del(Model, { _index: mid })
   }
+  await delAuth(pid)
   return db.del(Project, { _index: pid })
 }
 

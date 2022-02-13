@@ -32,6 +32,12 @@
           &nbsp;导出类
         </a-button>
       </template>
+      <template #dsgnForm>
+        <a-button @click.stop="() => {}">
+          <template #icon><FormOutlined /></template>
+          &nbsp;表单设计
+        </a-button>
+      </template>
       <template #expandedRowRender="{ record: model }">
         <EditableTable
           title="字段"
@@ -155,7 +161,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted } from 'vue'
-import { ApartmentOutlined, DatabaseOutlined, ExportOutlined } from '@ant-design/icons-vue'
+import {
+  ApartmentOutlined,
+  DatabaseOutlined,
+  ExportOutlined,
+  FormOutlined
+} from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
 import LytProject from '../layouts/LytProject.vue'
@@ -187,7 +198,8 @@ export default defineComponent({
     FormDialog,
     ApartmentOutlined,
     DatabaseOutlined,
-    ExportOutlined
+    ExportOutlined,
+    FormOutlined
   },
   setup() {
     const route = useRoute()

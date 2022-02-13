@@ -81,8 +81,6 @@
           v-if="project.thread"
           class="ml-5"
           danger
-          :disabled="project.status === 'loading'"
-          :loading="project.status === 'loading'"
           @click="onStop"
         >
           <template #icon><PoweroffOutlined /></template>

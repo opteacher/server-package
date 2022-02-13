@@ -19,7 +19,8 @@ import {
   reqPut,
   makeRequest,
   skipIgnores,
-  until
+  until,
+  reqAll
 } from '@/utils'
 import {
   EditNodeEmitter,
@@ -856,7 +857,7 @@ export default {
       await dispatch('rfshNode')
     },
     async rfshTemps({ state }: { state: SvcState }) {
-      const resp = await makeRequest(axios.get('/server-package/api/v1/node/temps'))
+      const resp = await reqAll('node/temp', { type: 'api' })
       for (const node of resp.result.map((tmpNd: any) => Node.copy(tmpNd))) {
         state.nodes[node.key] = node
       }

@@ -1,5 +1,6 @@
 import Router from 'koa-router'
 import {
+  create,
   sync,
   del,
   stop,
@@ -9,8 +10,15 @@ import {
   getAllAPIs
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
+import { saveAuth, delAuth } from '../../../../../services/auth.js'
 
 const router = new Router()
+
+router.post('/', async ctx => {
+  ctx.body = {
+    result: await create(ctx.request.body)
+  }
+})
 
 router.put('/:pid/sync', async ctx => {
   ctx.body = {
@@ -63,6 +71,18 @@ router.post('/:pid/model/:mid/export', async ctx => {
 router.get('/:pid/apis', async ctx => {
   ctx.body = {
     result: await getAllAPIs(ctx.params.pid)
+  }
+})
+
+router.post('/:pid/auth', async ctx => {
+  ctx.body = {
+    result: await saveAuth(ctx.params.pid, ctx.request.body)
+  }
+})
+
+router.delete('/:pid/auth', async ctx => {
+  ctx.body = {
+    resut: await delAuth(ctx.params.pid)
   }
 })
 

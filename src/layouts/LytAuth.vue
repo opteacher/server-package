@@ -19,7 +19,7 @@
         />
       </template>
       <a-descriptions size="small" :column="5">
-        <a-descriptions-item v-if="auth.key" label="绑定的模型">
+        <a-descriptions-item v-if="auth.key && auth.model" label="绑定的模型">
           {{ getModelName(auth.model) }}
         </a-descriptions-item>
       </a-descriptions>
@@ -35,8 +35,7 @@ import { computed, defineComponent, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import FormDialog from '../components/com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { Auth, Cond, Mapper, Model } from '@/common'
-import { useRouter } from 'vue-router'
+import { Auth, Mapper, Model } from '@/common'
 
 export default defineComponent({
   name: 'AuthorizationLayout',
@@ -45,7 +44,6 @@ export default defineComponent({
   },
   setup() {
     const store = useStore()
-    const router = useRouter()
     const project = computed(() => store.getters['project/ins'])
     const auth = computed(() => store.getters['auth/ins'])
     const authVisible = ref(false)
@@ -55,16 +53,6 @@ export default defineComponent({
         label: '模型',
         type: 'Select',
         options: []
-      },
-      opera: {
-        label: '操作',
-        type: 'Button',
-        inner: '解除绑定',
-        danger: true,
-        onClick: async () => {
-          await store.dispatch('auth/unbindModel')
-        },
-        display: [Cond.copy({ key: 'key', cmp: '!=', val: '' })]
       }
     })
 
@@ -75,25 +63,17 @@ export default defineComponent({
       }
     })
 
-    async function updAuthMapper() {
-      authMapper['model'].loading = true
-      authEmitter.emit('update:mapper', authMapper)
-      await store.dispatch('auth/refresh')
-      authMapper['model'].options = project.value.models.map((mdl: Model) => ({
-        label: mdl.name,
-        value: mdl.key
-      }))
-      authMapper['model'].loading = false
-      authEmitter.emit('update:mapper', authMapper)
-    }
     async function onAuthShow(show: boolean) {
-      if (!show) {
+      if (show) {
+        authMapper['model'].loading = true
+        authEmitter.emit('update:mapper', authMapper)
         await store.dispatch('auth/refresh')
-        if (!auth.value.key) {
-          router.go(-1)
-        }
-      } else {
-        await updAuthMapper()
+        authMapper['model'].options = project.value.models.map((mdl: Model) => ({
+          label: mdl.name,
+          value: mdl.key
+        }))
+        authMapper['model'].loading = false
+        authEmitter.emit('update:mapper', authMapper)
       }
       authVisible.value = show
     }

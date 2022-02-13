@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { message } from 'ant-design-vue'
 import axios from 'axios'
 
 export interface RequestOptions {
+  type?: string
   middles?: {
     before?: () => void
     after?: (resp: any) => void
@@ -30,12 +33,21 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   return Promise.resolve(resp)
 }
 
+function reqType(options?: RequestOptions): string {
+  return options && options.type ? options.type : 'mdl'
+}
+
 export function reqAll(path: string, options?: RequestOptions): Promise<any> {
-  return makeRequest(axios.get(`/server-package/mdl/v1/${path}s`), options)
+  return makeRequest(axios.get(`/server-package/${reqType(options)}/v1/${path}s`), options)
 }
 
 export async function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
-  return (await makeRequest(axios.get(`/server-package/mdl/v1/${path}${iden ? '/' + iden : ''}`), options)).data
+  return (
+    await makeRequest(
+      axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`),
+      options
+    )
+  ).data
 }
 
 export async function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
@@ -56,10 +68,15 @@ export async function reqPost(path: string, body: any, options?: RequestOptions)
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return (await makeRequest(
-    axios.post(`/server-package/mdl/v1/${path}`, skipIgnores(body, options.ignores)),
-    options
-  )).data
+  return (
+    await makeRequest(
+      axios.post(
+        `/server-package/${reqType(options)}/v1/${path}`,
+        skipIgnores(body, options.ignores)
+      ),
+      options
+    )
+  ).data
 }
 
 export function reqDelete(path: string, iden: any, options?: RequestOptions): Promise<any> {
@@ -75,10 +92,18 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   if (!options?.messages?.succeed) {
     options.messages.succeed = '删除成功！'
   }
-  return makeRequest(axios.delete(`/server-package/mdl/v1/${path}/${iden}`), options)
+  return makeRequest(
+    axios.delete(`/server-package/${reqType(options)}/v1/${path}/${iden}`),
+    options
+  )
 }
 
-export async function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
+export async function reqPut(
+  path: string,
+  iden: any,
+  body: any,
+  options?: RequestOptions
+): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -96,10 +121,15 @@ export async function reqPut(path: string, iden: any, body: any, options?: Reque
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return (await makeRequest(
-    axios.put(`/server-package/mdl/v1/${path}/${iden}`, skipIgnores(body, options.ignores)),
-    options
-  )).data
+  return (
+    await makeRequest(
+      axios.put(
+        `/server-package/${reqType(options)}/v1/${path}/${iden}`,
+        skipIgnores(body, options.ignores)
+      ),
+      options
+    )
+  ).data
 }
 
 export function reqLink(
@@ -123,7 +153,7 @@ export function reqLink(
     options.messages.succeed = '提交成功！'
   }
   const url = [
-    '/server-package/mdl/v1',
+    `/server-package/${reqType(options)}/v1`,
     body.parent[0],
     body.parent[1],
     body.child[0],

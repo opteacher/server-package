@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Model } from '@/common'
 import router from '@/router'
-import { makeRequest, reqGet } from '@/utils'
+import { makeRequest, reqGet, reqPost } from '@/utils'
 import axios from 'axios'
 import { ExpClsForm } from '../views/Project'
 
@@ -20,16 +20,12 @@ export default {
       const mid = ids && ids.length ? ids[1] : router.currentRoute.value.params.mid
       Model.copy(await reqGet('model', mid), state.model)
       const pid = ids && ids.length ? ids[0] : router.currentRoute.value.params.pid
-      state.dataset = (
-        await makeRequest(axios.get(`/server-package/api/v1/project/${pid}/model/${mid}/data`))
-      ).result
+      state.dataset = (await reqGet('project', `${pid}/model/${mid}/data`)).result
     },
     async export(_store: { state: ModelState }, expCls: ExpClsForm) {
       const pid = router.currentRoute.value.params.pid
       const result = (
-        await makeRequest(
-          axios.post(`/server-package/api/v1/project/${pid}/model/${expCls.key}/export`, expCls)
-        )
+        await reqPost(`project/${pid}/model/${expCls.key}/export`, expCls, { type: 'api' })
       ).result
 
       const link = document.createElement('a')

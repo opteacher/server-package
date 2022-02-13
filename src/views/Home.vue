@@ -64,9 +64,8 @@
 import { defineComponent, ref, onMounted, reactive } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { Project } from '@/common'
-import { makeRequest, reqGet, reqPost } from '../utils'
+import { reqDelete, reqGet, reqPost } from '../utils'
 import { ProjForm } from './Home'
-import axios from 'axios'
 
 export default defineComponent({
   name: 'Home',
@@ -84,8 +83,9 @@ export default defineComponent({
       await projForm.initialize()
       projects.value = await reqGet('projects')
     }
-    async function onNewProjSubmit(project: Project) {
+    async function onNewProjSubmit(project: Project, rfshDlg: () => void) {
       await reqPost('project', project, {
+        type: 'api',
         middles: {
           before: () => {
             loading.value = true
@@ -95,10 +95,12 @@ export default defineComponent({
           }
         }
       })
+      rfshDlg()
       await refresh()
     }
     async function onDelProjSubmit(pid: string) {
-      await makeRequest(axios.delete(`/server-package/api/v1/project/${pid}`), {
+      await reqDelete('project', pid, {
+        type: 'api',
         middles: {
           before: () => {
             loading.value = true
