@@ -34,7 +34,7 @@ export async function verify(token) {
   }
 }
 
-export async function verifyDeep(ctx, next) {
+export async function verifyDeep(ctx) {
   // 获取项目绑定的用户模型
   const path = ctx.path.startsWith('/') ? ctx.path.substring(1) : ctx.path
   const pjtName = path.substring(0, path.indexOf('/'))
@@ -85,12 +85,12 @@ export async function verifyDeep(ctx, next) {
       }
     }
     if (rule.path === ctx.path) {
-      return next()
+      return {}
     }
     if (ctx.path.startsWith(rule.path)) {
       switch (rule.value) {
         case '*/*':
-          return next()
+          return {}
         case '*':
           if (
             ctx.path
@@ -98,12 +98,12 @@ export async function verifyDeep(ctx, next) {
               .split('/')
               .filter(part => part).length === 1
           ) {
-            return next()
+            return {}
           }
       }
     }
   }
-  ctx.throw(403, '你不具备访问该资源的权限！')
+  return { error: '你不具备访问该资源的权限！' }
 }
 
 /**
@@ -117,8 +117,8 @@ export function auth(skips = null) {
       ? skips.map((skip) => skip.test(ctx.path)).reduce((a, b) => a || b)
       : false
     if (!canSkip) {
-      const result = await verifyDeep(ctx, next)
-      if (result.error) {
+      const result = await verifyDeep(ctx)
+      if (result && result.error) {
         ctx.throw(403, `授权验证失败！${result.error}`)
       }
     }
