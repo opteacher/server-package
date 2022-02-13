@@ -36,7 +36,8 @@ export async function verify(token) {
 
 export async function verifyDeep(ctx, next) {
   // 获取项目绑定的用户模型
-  const pjtName = ctx.path.substring(1, ctx.path.indexOf('/'))
+  const path = ctx.path.startsWith('/') ? ctx.path.substring(1) : ctx.path
+  const pjtName = path.substring(1, path.indexOf('/'))
   let result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/projects?name=${pjtName}`)
   if (!result.length) {
     return { error: '未找到指定项目！' }
