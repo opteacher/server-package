@@ -30,8 +30,8 @@ export default {
     }) {
       await dispatch('project/refresh', undefined, { root: true })
       const project = rootGetters['project/ins']
-      state.apis = (await reqAll(`project/${project.key}/api`, { type: 'api' })).result.map(
-        (api: any) => API.copy(api)
+      state.apis = (await reqAll(`project/${project.key}/api`, { type: 'api' })).map((api: any) =>
+        API.copy(api)
       )
       if (project.auth) {
         Auth.copy(await reqGet('auth', project.auth.key), state.auth)
@@ -139,7 +139,7 @@ export default {
       router.push(`/server-package/project/${project.key}`)
     },
     async regup({ dispatch }: { dispatch: Dispatch }, admin: any) {
-      const result = (await reqPost('log/regup', admin, { type: 'api' })).result
+      const result = await reqPost('log/regup', admin, { type: 'api' })
       if (result.error) {
         notification.error({
           message: '注册时发生错误！',
@@ -151,7 +151,7 @@ export default {
       await dispatch('login', admin)
     },
     async login(_module: any, admin: any) {
-      const result = (await reqPost('log/in', admin, { type: 'api' })).result
+      const result = await reqPost('log/in', admin, { type: 'api' })
       console.log(result)
     }
   },

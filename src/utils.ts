@@ -30,7 +30,7 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   if (options?.messages?.succeed) {
     message.success(options?.messages?.succeed)
   }
-  return Promise.resolve(resp)
+  return Promise.resolve(resp.result || resp.data)
 }
 
 function reqType(options?: RequestOptions): string {
@@ -41,16 +41,14 @@ export function reqAll(path: string, options?: RequestOptions): Promise<any> {
   return makeRequest(axios.get(`/server-package/${reqType(options)}/v1/${path}s`), options)
 }
 
-export async function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
-  return (
-    await makeRequest(
-      axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`),
-      options
-    )
-  ).data
+export function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
+  return makeRequest(
+    axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`),
+    options
+  )
 }
 
-export async function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
+export function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -68,15 +66,13 @@ export async function reqPost(path: string, body: any, options?: RequestOptions)
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return (
-    await makeRequest(
-      axios.post(
-        `/server-package/${reqType(options)}/v1/${path}`,
-        skipIgnores(body, options.ignores)
-      ),
-      options
-    )
-  ).data
+  return makeRequest(
+    axios.post(
+      `/server-package/${reqType(options)}/v1/${path}`,
+      skipIgnores(body, options.ignores)
+    ),
+    options
+  )
 }
 
 export function reqDelete(path: string, iden: any, options?: RequestOptions): Promise<any> {
@@ -98,12 +94,7 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   )
 }
 
-export async function reqPut(
-  path: string,
-  iden: any,
-  body: any,
-  options?: RequestOptions
-): Promise<any> {
+export function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -121,15 +112,13 @@ export async function reqPut(
   } else if (!options.ignores.includes('key')) {
     options.ignores.push('key')
   }
-  return (
-    await makeRequest(
-      axios.put(
-        `/server-package/${reqType(options)}/v1/${path}/${iden}`,
-        skipIgnores(body, options.ignores)
-      ),
-      options
-    )
-  ).data
+  return makeRequest(
+    axios.put(
+      `/server-package/${reqType(options)}/v1/${path}/${iden}`,
+      skipIgnores(body, options.ignores)
+    ),
+    options
+  )
 }
 
 export function reqLink(

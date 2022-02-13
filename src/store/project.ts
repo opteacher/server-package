@@ -91,7 +91,7 @@ export default {
             type: 'api',
             messages: { notShow: false }
           })
-        ).result.status
+        ).status
         if (state.status === 'loading') {
           console.log(`等待项目${state.name}启动……，已等待${countdown}秒`)
           if (countdown > 15 * 60) {
@@ -105,7 +105,7 @@ export default {
         }
         clearInterval(h)
         console.log(`项目${state.name}已成功${state.status === 'running' ? '启动' : '停止'}！`)
-      }, 1000)
+      }, 5000)
     },
     async stop({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       await reqPut('project', `${state.key}/stop`, undefined, {

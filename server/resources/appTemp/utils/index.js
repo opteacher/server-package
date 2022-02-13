@@ -13,6 +13,8 @@ export async function makeRequest(method, path) {
   })
   if (resp.status !== 200) {
     return { error: resp.data ? JSON.stringify(resp.data) : resp.statusText }
+  } else if (!resp.data) {
+    return { error: '无返回体！' }
   } else {
     return resp.data.result || resp.data.data
   }

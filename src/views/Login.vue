@@ -91,12 +91,12 @@ export default defineComponent({
     onMounted(async () => {
       const loginToken = localStorage.getItem('loginToken')
       if (loginToken) {
-        const resp = await makeRequest(
+        const result = await makeRequest(
           axios.get('/server-package/api/v1/log/verify', {
             headers: { authorization: 'Bearer ' + loginToken }
           })
         )
-        if (!resp.result.error) {
+        if (!result.error) {
           router.replace('/server-package/')
         }
       }

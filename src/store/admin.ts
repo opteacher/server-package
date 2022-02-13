@@ -12,7 +12,7 @@ export default {
   mutations: {},
   actions: {
     async regup({ dispatch }: { dispatch: Dispatch }, admin: any) {
-      const result = (await reqPost('log/regup', admin, { type: 'api' })).result
+      const result = await reqPost('log/regup', admin, { type: 'api' })
       if (result.error) {
         notification.error({
           message: '注册时发生错误！',
@@ -24,7 +24,7 @@ export default {
       await dispatch('login', admin)
     },
     async login({ state }: { state: Admin }, admin: any) {
-      const result = (await reqPost('log/in', admin, { type: 'api' })).result
+      const result = await reqPost('log/in', admin, { type: 'api' })
       if (result.error) {
         notification.error({
           message: '登录失败！',

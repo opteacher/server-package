@@ -54,13 +54,13 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   if (to.matched.some(record => record.meta.reqLogin)) {
     try {
-      const resp = await makeRequest(
+      const result = await makeRequest(
         axios.get('/server-package/api/v1/log/verify', {
           headers: { authorization: 'Bearer ' + (localStorage.getItem('loginToken') || '') }
         })
       )
-      if (resp.result.error) {
-        throw new Error(resp.data.result.error)
+      if (result.error) {
+        throw new Error(result.data.error)
       }
       next()
     } catch (e) {

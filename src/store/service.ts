@@ -804,7 +804,7 @@ export default {
               params: { group, title: state.node.title }
             })
           )
-        ).result.length
+        ).length
       ) {
         notification.error({
           message: '加入模板库错误！',
@@ -813,24 +813,22 @@ export default {
         return
       }
       const tempNode = Node.copy(
-        (
-          await makeRequest(
-            axios.post(
-              baseURL,
-              Object.assign(
-                skipIgnores(state.node, [
-                  'key',
-                  'inputs',
-                  'outputs',
-                  'nexts',
-                  'previous',
-                  'relative'
-                ]),
-                { group, isTemp: true }
-              )
+        await makeRequest(
+          axios.post(
+            baseURL,
+            Object.assign(
+              skipIgnores(state.node, [
+                'key',
+                'inputs',
+                'outputs',
+                'nexts',
+                'previous',
+                'relative'
+              ]),
+              { group, isTemp: true }
             )
           )
-        ).result
+        )
       )
       for (const input of state.node.inputs) {
         await reqLink({
