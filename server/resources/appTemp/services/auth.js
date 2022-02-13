@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken'
 import { makeRequest } from '../utils/index.js'
 
+const svrPkgURL = 'http://server-package:4000/server-package'
+
 export async function verify(token) {
   if (!token) {
     return { error: '无鉴权口令' }
@@ -13,7 +15,7 @@ export async function verify(token) {
     let payload = null
     switch (tokens[0].toLowerCase()) {
       case 'bearer': {
-        const result = await makeRequest('GET', '/server-package/api/v1/auth/secret')
+        const result = await makeRequest('GET', `${svrPkgURL}/api/v1/auth/secret`)
         if (result.error) {
           return result
         }
@@ -33,15 +35,9 @@ export async function verify(token) {
 }
 
 export async function verifyDeep(ctx, next) {
-  // 获取token解析出来的载荷
-  const verRes = verify(ctx.headers['authorization'])
-  if (verRes.error) {
-    return verRes
-  }
-  const payload = verRes.payload
   // 获取项目绑定的用户模型
   const pjtName = ctx.path.substring(1, ctx.path.indexOf('/'))
-  const result = await makeRequest('GET', `/server-package/mdl/v1/projects?name=${pjtName}`)
+  let result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/projects?name=${pjtName}`)
   if (!result.length) {
     return { error: '未找到指定项目！' }
   }
@@ -49,11 +45,31 @@ export async function verifyDeep(ctx, next) {
   if (!project.auth) {
     return { error: '未配置权限系统' }
   }
-  const auth = await makeRequest('GET', `/server-package/mdl/v1/auth/${project.auth}`)
-  // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
-  const visitor = await makeRequest('GET', `/${pjtName}/mdl/v1/${auth.model}/${payload.aud}`)
-  // 获取对应的角色
-  const role = await makeRequest('GET', `/server-package/mdl/v1/role/${visitor['role']}`)
+  const auth = await makeRequest('GET', `${svrPkgURL}/mdl/v1/auth/${project.auth}`)
+  if (!auth.model) {
+    return { error: '项目未绑定模型！' }
+  }
+  // 获取token解析出来的载荷
+  result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/roles?name=guest`)
+  if (!result.length) {
+    return { error: '项目权限系统未配置访客角色！' }
+  }
+  let role = result[0]
+  const verRes = verify(ctx.headers['authorization'])
+  if (!verRes.error) {
+    const payload = verRes.payload
+    // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
+    const vstURL = `http://${pjtName}:${project.port}/${pjtName}/mdl/v1/${auth.model}/${payload.aud}`
+    const visitor = await makeRequest('GET', vstURL)
+    if (!visitor || !('role' in visitor)) {
+      return { error: '访问者的角色信息有误！' }
+    }
+    // 获取对应的角色
+    role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${visitor['role']}`)
+    if (!role) {
+      return { error: '未找到指定角色！' }
+    }
+  }
   // 遍历角色授权的规则，查找其中是否满足当前请求包含的申请
   for (const rule of role.rules) {
     if (rule.method !== '*' && rule.method.toLowerCase() !== ctx.method.toLowerCase()) {
