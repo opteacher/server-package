@@ -11,10 +11,10 @@ import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
 import Auth from '../models/auth.js'
-import Dependency from '../models/dependency.js'
+import Dependency from '../models/dep.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
-import { saveAuth, delAuth } from './auth.js'
+import { save as saveAuth, del as delAuth } from './auth.js'
 import ProjectType from '../types/project.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
@@ -175,6 +175,14 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
   }
 }
 
+async function scanNode(key: string, callback: (node: any) => Promise<any>) {
+  const node = await db.select(Node, { _index: key })
+  await callback(node)
+  for (const sbKey of node.nexts) {
+    await scanNode(sbKey, callback)
+  }
+}
+
 export async function create(project: any) {
   const result = ProjectType.copy(await db.save(Project, project))
   // 初始化项目的权限系统
@@ -226,24 +234,6 @@ export async function sync(pid: string): Promise<any> {
   console.log(`调整Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
 
-  const depMapper: { [depId: string]: any } = {}
-  for (const model of project.models) {
-    for (const service of model.svcs) {
-      for (const depId of service.deps) {
-        if (!(depId in depMapper)) {
-          depMapper[depId] = await db.select(Dependency, { _index: depId })
-        }
-      }
-    }
-  }
-  const pkgTmp = Path.join(tmpPath, 'package.json')
-  const pkgGen = Path.join(genPath, 'package.json')
-  console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
-  adjustFile(pkgTmp, pkgGen, {
-    project,
-    pkgDeps: Object.values(depMapper).filter((depIns: any) => depIns.version)
-  })
-
   const libTmp = Path.resolve('lib')
   const libGen = Path.join(genPath, 'lib')
   console.log(`复制库文件夹：${libTmp} -> ${libGen}`)
@@ -278,6 +268,7 @@ export async function sync(pid: string): Promise<any> {
   const mdlData = fs.readFileSync(mdlTmp)
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
+  const deps: Record<string, any> = {}
   for (const model of project.models) {
     const svcs = model.svcs.filter((svc: any) => svc.name)
     model.svcs = model.svcs.filter((svc: any) => !svc.name)
@@ -300,13 +291,24 @@ export async function sync(pid: string): Promise<any> {
         console.log('跳过授权服务')
         continue
       }
-      const svcExt = await db.select(Service, { _index: svc._id }, { ext: true })
-      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.key || svcExt.flow, 4) : []
+      const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
+      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.id || svcExt.flow, 4) : []
       if (!(svc.name in services)) {
         services[svc.name] = [svcExt]
       } else {
         services[svc.name].push(svcExt)
       }
+
+      console.log('收集项目依赖模块：')
+      scanNode(svcExt.flow.id || svcExt.flow, async node => {
+        for (const depId of node.deps) {
+          if (!(depId in deps)) {
+            const dep = await db.select(Dependency, { _index: depId })
+            console.log(`\t${dep.name}: ${dep.version}`)
+            deps[depId] = dep
+          }
+        }
+      })
     }
 
     for (const [aname, svcs] of Object.entries(services)) {
@@ -315,6 +317,13 @@ export async function sync(pid: string): Promise<any> {
       adjustFile(svcData, svcGen, { svcs })
     }
   }
+  const pkgTmp = Path.join(tmpPath, 'package.json')
+  const pkgGen = Path.join(genPath, 'package.json')
+  console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
+  adjustFile(pkgTmp, pkgGen, {
+    project,
+    pkgDeps: Object.values(deps).filter((dep: any) => dep.version)
+  })
 
   console.log('更新项目的进程ID……')
   await db.save(Project, { thread: -1 }, { _index: pid })

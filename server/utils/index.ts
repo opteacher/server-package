@@ -11,7 +11,7 @@ const dbCfgPath = Path.join(cfgPath, 'db')
 
 export const db = await getDbByName(readConfig(mdlCfgPath).type, dbCfgPath)
 
-export function skipIgnores(obj: { [key: string]: any }, ignores: string[]): any {
+export function skipIgnores(obj: Record<string, any>, ignores: string[]): any {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
 }
 

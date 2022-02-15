@@ -801,6 +801,7 @@ export class Node extends StrIterable {
   nexts: string[]
   relative: string
   temp: string[]
+  deps: Dep[]
 
   constructor() {
     super()
@@ -819,6 +820,7 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   reset() {
@@ -837,6 +839,7 @@ export class Node extends StrIterable {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   static copy(src: any, tgt?: Node): Node {
@@ -865,6 +868,7 @@ export class Node extends StrIterable {
         : tgt.nexts
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
+    tgt.deps = src.deps ? src.deps.map((dep: any) => Dep.copy(dep)) : []
     return tgt
   }
 }
@@ -894,7 +898,6 @@ export class Service {
   key: string
   name: string
   interface: string
-  deps: Dependency[]
   emit: EmitType
   flow: Node | null
   isModel: boolean
@@ -910,7 +913,6 @@ export class Service {
     this.key = ''
     this.name = ''
     this.interface = ''
-    this.deps = []
     this.emit = 'api'
     this.flow = null
     this.isModel = false
@@ -927,7 +929,6 @@ export class Service {
     this.key = ''
     this.name = ''
     this.interface = ''
-    this.deps = []
     this.emit = 'api'
     this.flow = null
     this.isModel = false
@@ -949,9 +950,6 @@ export class Service {
     } else {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
-    }
-    if (src.deps && src.deps.length) {
-      tgt.deps = src.deps.map((dep: any) => Dependency.copy(dep))
     }
     tgt.emit = src.emit || tgt.emit
     if (src.flow) {
@@ -1060,7 +1058,7 @@ export class Deploy {
   }
 }
 
-export class Dependency {
+export class Dep {
   key: string
   name: string
   exports: string[]
@@ -1075,8 +1073,8 @@ export class Dependency {
     this.default = true
   }
 
-  static copy(src: any, tgt?: Dependency): Dependency {
-    tgt = tgt || new Dependency()
+  static copy(src: any, tgt?: Dep): Dep {
+    tgt = tgt || new Dep()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.exports = src.exports || tgt.exports

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import Dependency from './dependency.js'
 import Node from './node.js'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -29,7 +28,6 @@ export default class Service {
   key: string
   name: string
   interface: string
-  deps: Dependency[]
   emit: EmitType
   flow: Node | null
   isModel: boolean
@@ -45,7 +43,6 @@ export default class Service {
     this.key = ''
     this.name = ''
     this.interface = ''
-    this.deps = []
     this.emit = 'api'
     this.flow = null
     this.isModel = false
@@ -62,7 +59,6 @@ export default class Service {
     this.key = ''
     this.name = ''
     this.interface = ''
-    this.deps = []
     this.emit = 'api'
     this.flow = null
     this.isModel = false
@@ -84,9 +80,6 @@ export default class Service {
     } else {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
-    }
-    if (src.deps && src.deps.length) {
-      tgt.deps = src.deps.map((dep: any) => Dependency.copy(dep))
     }
     tgt.emit = src.emit || tgt.emit
     if (src.flow) {

@@ -74,13 +74,18 @@ export default {
     },
     async sync({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       state.status = 'loading'
-      await reqPut('project', `${state.key}/sync`, {}, {
-        type: 'api',
-        messages: {
-          loading: '同步中……',
-          succeed: '同步成功！'
+      await reqPut(
+        'project',
+        `${state.key}/sync`,
+        {},
+        {
+          type: 'api',
+          messages: {
+            loading: '同步中……',
+            succeed: '同步成功！'
+          }
         }
-      })
+      )
       await dispatch('refresh')
     },
     chkStatus({ state }: { state: Project }) {
@@ -108,21 +113,26 @@ export default {
       }, 5000)
     },
     async stop({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
-      await reqPut('project', `${state.key}/stop`, {}, {
-        type: 'api',
-        middles: {
-          before: () => {
-            state.status = 'loading'
+      await reqPut(
+        'project',
+        `${state.key}/stop`,
+        {},
+        {
+          type: 'api',
+          middles: {
+            before: () => {
+              state.status = 'loading'
+            },
+            after: () => {
+              state.status = 'stopped'
+            }
           },
-          after: () => {
-            state.status = 'stopped'
+          messages: {
+            loading: '停止中……',
+            succeed: '操作成功！'
           }
-        },
-        messages: {
-          loading: '停止中……',
-          succeed: '操作成功！'
         }
-      })
+      )
       await dispatch('refresh')
     },
     async deploy({ state }: { state: Project }, config: Deploy) {
@@ -179,9 +189,13 @@ export default {
     },
     async restartSvcJob({ dispatch }: { dispatch: Dispatch }, svcKey: string) {
       await makeRequest(
-        axios.post(`/server-package/api/v1/service/${svcKey}/job/restart`, {}, {
-          params: { pid: router.currentRoute.value.params.pid }
-        })
+        axios.post(
+          `/server-package/api/v1/service/${svcKey}/job/restart`,
+          {},
+          {
+            params: { pid: router.currentRoute.value.params.pid }
+          }
+        )
       )
       await dispatch('refresh')
     },

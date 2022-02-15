@@ -19,7 +19,7 @@ export default {
       const mid = ids && ids.length ? ids[1] : router.currentRoute.value.params.mid
       Model.copy(await reqGet('model', mid), state.model)
       const pid = ids && ids.length ? ids[0] : router.currentRoute.value.params.pid
-      state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api'})
+      state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api' })
     },
     async export(_store: { state: ModelState }, expCls: ExpClsForm) {
       const pid = router.currentRoute.value.params.pid

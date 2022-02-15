@@ -261,6 +261,16 @@ export const EditNodeMapper = new Mapper({
     },
     delable: [Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' })]
   },
+  deps: {
+    label: '依赖',
+    type: 'ListSelect',
+    display: [
+      Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' }),
+      Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
+    ],
+    options: []
+  },
   code: {
     label: '代码',
     type: 'Textarea',
@@ -366,11 +376,6 @@ export const ServiceMapper = new Mapper({
   interface: {
     label: '接口',
     type: 'Input'
-  },
-  deps: {
-    label: '依赖',
-    type: 'ListSelect',
-    options: []
   }
 })
 

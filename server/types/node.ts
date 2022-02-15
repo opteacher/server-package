@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import DepType from './dep.js'
 import Variable from './variable.js'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -30,6 +31,7 @@ export default class Node implements Record<string, any> {
   nexts: string[]
   relative: string
   temp: string[]
+  deps: DepType[]
 
   constructor() {
     this.key = ''
@@ -47,6 +49,7 @@ export default class Node implements Record<string, any> {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   reset() {
@@ -65,6 +68,7 @@ export default class Node implements Record<string, any> {
     this.nexts = []
     this.relative = ''
     this.temp = []
+    this.deps = []
   }
 
   static copy(src: any, tgt?: Node): Node {
@@ -93,6 +97,7 @@ export default class Node implements Record<string, any> {
         : tgt.nexts
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
+    tgt.deps = src.deps ? src.deps.map((dep: any) => DepType.copy(dep)) : tgt.deps
     return tgt
   }
 }

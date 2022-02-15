@@ -7,19 +7,19 @@
       @back="() => router.go(-1)"
     >
       <template #extra>
-        <a-button @click="$store.commit('service/SET_SVC_VSB', true)">
+        <a-button @click="store.commit('service/SET_SVC_VSB', true)">
           <SettingOutlined />
         </a-button>
         <FormDialog
           title="配置流程"
           :copy="Service.copy"
-          :show="$store.getters['service/svcVsb']"
+          :show="store.getters['service/svcVsb']"
           :mapper="ServiceMapper"
           :object="svc"
-          @update:show="show => $store.commit('service/SET_SVC_VSB', show)"
+          @update:show="show => store.commit('service/SET_SVC_VSB', show)"
           @submit="onConfig"
         />
-        <a-button @click="$store.dispatch('service/refresh')">
+        <a-button @click="store.dispatch('service/refresh')">
           <ReloadOutlined />
           &nbsp;刷新
         </a-button>
@@ -37,7 +37,7 @@ import { useStore } from 'vuex'
 import { SettingOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ServiceMapper } from '../views/Flow'
-import { Service, Node, Project, Dependency, Model } from '@/common'
+import { Service, Project, Dep, Model } from '@/common'
 import { reqLink, reqPut } from '@/utils'
 
 export default defineComponent({
@@ -54,39 +54,13 @@ export default defineComponent({
     const pjt = computed(() => store.getters['service/pjt'])
 
     async function onConfig(svcForm: any) {
-      await reqPut('service', svc.value.key, svcForm, { ignores: ['flow', 'deps'] })
-      await reqLink(
-        {
-          parent: ['service', svc.value.key],
-          child: ['deps', '']
-        },
-        false
-      )
-      const depKeys = store.getters['service/deps'].map((dep: Dependency) => dep.key)
-      for (const { key } of svcForm.deps) {
-        if (!depKeys.includes(key)) {
-          const model = (pjt.value as Project).models.find((mdl: Model) => mdl.key === key)
-          if (model) {
-            await reqPut('dependency', key, {
-              _id: key,
-              name: model.name,
-              exports: [model.name],
-              from: `../models/${model.name}.js`,
-              default: true
-            })
-          }
-        }
-        await reqLink({
-          parent: ['service', svc.value.key],
-          child: ['deps', key]
-        })
-      }
+      await reqPut('service', svc.value.key, svcForm, { ignores: ['flow'] })
       await store.dispatch('service/refresh')
     }
     return {
-      Node,
       Service,
 
+      store,
       router,
       pjt,
       svc,

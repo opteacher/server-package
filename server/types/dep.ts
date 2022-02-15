@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-export default class Dependency {
+export default class Dep {
   key: string
   name: string
   exports: string[]
@@ -15,8 +15,8 @@ export default class Dependency {
     this.default = true
   }
 
-  static copy(src: any, tgt?: Dependency): Dependency {
-    tgt = tgt || new Dependency()
+  static copy(src: any, tgt?: Dep): Dep {
+    tgt = tgt || new Dep()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.exports = src.exports || tgt.exports

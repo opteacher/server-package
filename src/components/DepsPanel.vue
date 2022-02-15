@@ -8,16 +8,13 @@
       'background-color': 'white'
     }"
   >
-    <a-collapse v-if="$store.getters['service/deps'].length">
+    <a-collapse v-if="deps.length">
       <a-collapse-panel class="collapse-ptb-0">
         <template #header>
           依赖模块：
-          <a-badge
-            :count="$store.getters['service/deps'].length"
-            :number-style="{ backgroundColor: '#1890ff' }"
-          />
+          <a-badge :count="deps.length" :number-style="{ backgroundColor: '#1890ff' }" />
         </template>
-        <a-list :data-source="$store.getters['service/deps']">
+        <a-list :data-source="deps">
           <template #renderItem="{ item: dep }">
             <a-list-item>
               <template #actions>
@@ -35,10 +32,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent, onMounted } from 'vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
-  name: 'DependenciesPanel'
+  name: 'DependenciesPanel',
+  setup() {
+    const store = useStore()
+    const deps = computed(() => store.getters['service/deps'])
+
+    onMounted(() => {
+      console.log(deps.value)
+    })
+
+    return {
+      deps
+    }
+  }
 })
 </script>
 

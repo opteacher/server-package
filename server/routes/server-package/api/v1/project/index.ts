@@ -10,7 +10,7 @@ import {
   getAllAPIs
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
-import { saveAuth, delAuth } from '../../../../../services/auth.js'
+import { save as saveAuth, del as delAuth } from '../../../../../services/auth.js'
 
 const router = new Router()
 

@@ -6,7 +6,7 @@ import {
   Variable,
   NodeTypeMapper,
   Project,
-  Dependency,
+  Dep,
   OpnType,
   LstOpnType,
   Model
@@ -55,7 +55,7 @@ type SvcState = {
   nodeVsb: boolean
   joinVsb: boolean
   tempVsb: boolean
-  deps: { [name: string]: Dependency }
+  deps: { [name: string]: Dep }
 }
 
 function scanLocVars(state: SvcState, ndKey: string): Variable[] {
@@ -71,14 +71,9 @@ function scanLocVars(state: SvcState, ndKey: string): Variable[] {
 }
 
 function getLocVars(state: SvcState): Variable[] {
-  return state.svc.deps
-    .map((dep: Dependency) => dep.exports)
-    .flat()
-    .map((exp: string, idx: number) =>
-      Variable.copy({ key: idx.toString(), name: exp, type: 'Object' })
-    )
-    .concat(Variable.copy({ key: 'context', name: 'ctx', type: 'Object' }))
-    .concat(state.node.previous ? scanLocVars(state, state.node.previous) : [])
+  return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })].concat(
+    state.node.previous ? scanLocVars(state, state.node.previous) : []
+  )
 }
 
 function scanNextss(
@@ -226,7 +221,7 @@ export default {
       ServiceMapper['path'].prefix = `/${state.pjt.name}`
 
       await dispatch('rfshDpdcs')
-      ServiceMapper['deps'].options = Object.values(state.deps).map((dep: Dependency) =>
+      EditNodeMapper['deps'].options = Object.values(state.deps).map((dep: Dep) =>
         LstOpnType.copy({
           key: dep.key,
           title: dep.name,
@@ -349,213 +344,10 @@ export default {
       }
     },
     async saveNode({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, node: Node) {
-      const options = { ignores: ['key', 'previous', 'nexts', 'inputs', 'outputs'] }
-      if (node.key) {
-        // 更新节点
-        await reqPut('node', node.key, node, options)
-        return dispatch('refresh')
-      }
-      //新增节点
-      const orgNode = Node.copy(node)
-      let tailNode = Node.copy(await reqPost('node', node, options), node)
-      const nodeKey = tailNode.key
-      // 如果是从模板节点复制过来，则应该有inputs和outputs
-      for (const input of orgNode.inputs) {
-        const newIpt = await reqPost('variable', input)
-        await reqLink({
-          parent: ['node', nodeKey],
-          child: ['inputs', newIpt._id]
-        })
-      }
-      for (const output of orgNode.outputs) {
-        const newOpt = await reqPost('variable', output)
-        await reqLink({
-          parent: ['node', nodeKey],
-          child: ['outputs', newOpt._id]
-        })
-      }
-      switch (node.type) {
-        case 'condNode':
-          {
-            // 对于条件节点，找出条件根节点对应的结束节点
-            const rootNode = state.nodes[node.previous as string]
-            const endNode = state.nodes[rootNode.relative]
-            await Promise.all([
-              reqLink({
-                parent: ['node', nodeKey],
-                child: ['nexts', endNode.key]
-              }),
-              reqLink({
-                parent: ['node', endNode.key],
-                child: ['previous', nodeKey]
-              })
-            ])
-            tailNode = endNode
-          }
-          break
-        case 'condition':
-          {
-            // 对于条件根节点，在其后同时创建一个条件节点和结束节点
-            const condNode = Node.copy(
-              await reqPost(
-                'node',
-                {
-                  title: `条件节点${node.nexts.length + 1}`,
-                  type: 'condNode'
-                },
-                options
-              )
-            )
-            await Promise.all([
-              reqLink({
-                parent: ['node', nodeKey],
-                child: ['nexts', condNode.key]
-              }),
-              reqLink({
-                parent: ['node', condNode.key],
-                child: ['previous', nodeKey]
-              })
-            ])
-            const endNode = Node.copy(
-              await reqPost(
-                'node',
-                {
-                  title: node.title,
-                  type: 'endNode',
-                  relative: nodeKey
-                },
-                options
-              )
-            )
-            await reqPut('node', nodeKey, { relative: endNode.key })
-            await Promise.all([
-              reqLink({
-                parent: ['node', condNode.key],
-                child: ['nexts', endNode.key]
-              }),
-              reqLink({
-                parent: ['node', endNode.key],
-                child: ['previous', condNode.key]
-              })
-            ])
-            tailNode = endNode
-          }
-          break
-        case 'traversal':
-          {
-            const list = Variable.copy(
-              await reqPost('variable', {
-                name: 'array',
-                type: 'Array',
-                required: true,
-                remark: '集合'
-              })
-            )
-            await reqLink({
-              parent: ['node', nodeKey],
-              child: ['inputs', list.key]
-            })
-            // 根据循环类型，生成输入和输出
-            if (node.loop === 'for-in') {
-              const index = Variable.copy(
-                await reqPost('variable', {
-                  name: 'index',
-                  type: 'Number',
-                  required: true,
-                  remark: '集合项'
-                })
-              )
-              await reqLink({
-                parent: ['node', nodeKey],
-                child: ['outputs', index.key]
-              })
-            } else if (node.loop === 'for-of') {
-              const item = Variable.copy(
-                await reqPost(
-                  'variable',
-                  Variable.copy({
-                    name: 'item',
-                    type: 'Any',
-                    required: true,
-                    remark: '索引'
-                  })
-                )
-              )
-              await reqLink({
-                parent: ['node', nodeKey],
-                child: ['outputs', item.key]
-              })
-            }
-            // 对于循环根节点，在其后同时创建一个结束节点
-            const endNode = Node.copy(
-              await reqPost(
-                'node',
-                {
-                  title: node.title,
-                  type: 'endNode',
-                  relative: nodeKey
-                },
-                options
-              )
-            )
-            await reqPut('node', nodeKey, { relative: endNode.key })
-            await Promise.all([
-              reqLink({
-                parent: ['node', nodeKey],
-                child: ['nexts', endNode.key]
-              }),
-              reqLink({
-                parent: ['node', endNode.key],
-                child: ['previous', nodeKey]
-              })
-            ])
-            tailNode = endNode
-          }
-          break
-      }
-      if (!node.previous) {
-        // 绑定根节点
-        await reqLink({
-          parent: ['service', state.svc.key],
-          child: ['flow', nodeKey]
-        })
-      } else {
-        // 绑定非根节点
-        const previous = Node.copy(await reqGet('node', node.previous))
-        if (previous.type !== 'condition' && previous.nexts.length) {
-          const nxtKey = previous.nexts[0]
-          // 解绑
-          await reqLink(
-            {
-              parent: ['node', previous.key],
-              child: ['nexts', nxtKey]
-            },
-            false
-          )
-          // 为原来的子节点添加新父节点
-          await Promise.all([
-            reqLink({
-              parent: ['node', tailNode.key],
-              child: ['nexts', nxtKey]
-            }),
-            reqLink({
-              parent: ['node', nxtKey],
-              child: ['previous', tailNode.key]
-            })
-          ])
-        }
-        // 绑定
-        await Promise.all([
-          reqLink({
-            parent: ['node', previous.key],
-            child: ['nexts', nodeKey]
-          }),
-          reqLink({
-            parent: ['node', nodeKey],
-            child: ['previous', previous.key]
-          })
-        ])
-      }
+      await reqPost(`service/${state.svc.key}/node${node.key ? '/' + node.key : ''}`, node, {
+        type: 'api'
+      })
+      // 还有依赖
       await dispatch('refresh')
     },
     async clrNmlNode({ state }: { state: SvcState }, key: string) {
@@ -881,10 +673,10 @@ export default {
     async rfshDpdcs({ state }: { state: SvcState }) {
       state.deps = Object.fromEntries(
         (await reqGet('dependencys'))
-          .map((dep: any) => Dependency.copy(dep))
+          .map((dep: any) => Dep.copy(dep))
           .concat(
             state.pjt.models.map((mdl: Model) => {
-              return Dependency.copy({
+              return Dep.copy({
                 key: mdl.key,
                 name: mdl.name,
                 exports: [mdl.name],
@@ -893,7 +685,7 @@ export default {
               })
             })
           )
-          .map((dep: Dependency) => [dep.key, dep])
+          .map((dep: Dep) => [dep.key, dep])
       )
     }
   },
@@ -918,7 +710,10 @@ export default {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
     tempVsb: (state: SvcState): boolean => state.tempVsb,
-    deps: (state: SvcState): Dependency[] => state.svc.deps,
+    deps:
+      (state: SvcState) =>
+      (key: string): Dep[] =>
+        state.node[key].deps,
     tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

@@ -6,7 +6,6 @@ export default db.defineModel(
     name: db.PropTypes.String,
     model: db.PropTypes.String,
     interface: db.PropTypes.String,
-    deps: [{ type: db.PropTypes.Id, ref: 'dependency' }],
     // api / timeout / interval / none
     emit: db.PropTypes.String,
     flow: { type: db.PropTypes.Id, ref: 'node' },

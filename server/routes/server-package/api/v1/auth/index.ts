@@ -11,4 +11,10 @@ router.get('/secret', ctx => {
   }
 })
 
+router.post('/service/:sid/sign', ctx => {
+  ctx.body = {
+    result: { secret: config.secret }
+  }
+})
+
 export default router

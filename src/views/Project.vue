@@ -260,7 +260,7 @@ export default defineComponent({
         opera: svc,
         parent: ['model', mid],
         child: ['svcs', 'service'],
-        ignores: ['flow', 'deps']
+        ignores: ['flow']
       })
       svcEmitter.emit('refresh')
     }

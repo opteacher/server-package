@@ -1,7 +1,6 @@
 <template>
   <LytFlow>
     <div class="flow-panel" ref="panelRef">
-      <DepsPanel />
       <VarsPanel />
       <TmpNdPanel />
       <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
@@ -10,10 +9,10 @@
           v-for="node in Object.values(nodes)"
           :key="node.key"
           :nd-key="node.key"
-          @click:card="() => $store.commit('service/SET_NODE', { node })"
+          @click:card="() => store.commit('service/SET_NODE', { node })"
           @click:addBtn="onAddBtnClicked"
-          @mouseenter="$store.commit('service/UPDATE_LOCVARS', node)"
-          @mouseleave="$store.commit('service/UPDATE_LOCVARS')"
+          @mouseenter="store.commit('service/UPDATE_LOCVARS', node)"
+          @mouseleave="store.commit('service/UPDATE_LOCVARS')"
         />
       </template>
     </div>
@@ -22,18 +21,18 @@
       width="70vw"
       :column="[2, 22]"
       :copy="Node.copy"
-      :show="$store.getters['service/nodeVsb']"
+      :show="store.getters['service/nodeVsb']"
       :mapper="EditNodeMapper"
-      :object="$store.getters['service/editNode']"
+      :object="store.getters['service/editNode']"
       :emitter="EditNodeEmitter"
-      @update:show="() => $store.commit('service/SET_NODE_INVSB')"
+      @update:show="() => store.commit('service/SET_NODE_INVSB')"
       @submit="onNodeSaved"
-      @initialize="$store.dispatch('service/rfshTemps')"
+      @initialize="store.dispatch('service/rfshTemps')"
     />
     <FormDialog
       title="选择组"
       width="35vw"
-      :show="$store.getters['service/joinVsb']"
+      :show="store.getters['service/joinVsb']"
       :mapper="JoinMapper"
       :copy="
         (src, tgt) => {
@@ -44,15 +43,15 @@
       "
       @submit="
         async edited => {
-          await $store.dispatch('service/joinLibrary', edited.group)
+          await store.dispatch('service/joinLibrary', edited.group)
           EditNodeEmitter.emit('refresh')
         }
       "
-      @update:show="() => $store.commit('service/SET_JOIN_VSB', false)"
+      @update:show="() => store.commit('service/SET_JOIN_VSB', false)"
       @initialize="
         ;async () => {
-          await $store.dispatch('service/rfshTemps')
-          JoinMapper['group'].options = $store.getters['service/tempGrps']
+          await store.dispatch('service/rfshTemps')
+          JoinMapper['group'].options = store.getters['service/tempGrps']
         }
       "
     />
@@ -67,7 +66,6 @@ import { Node } from '../common'
 import FormDialog from '../components/com/FormDialog.vue'
 import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow'
 import { useStore } from 'vuex'
-import DepsPanel from '../components/DepsPanel.vue'
 import VarsPanel from '../components/VarsPanel.vue'
 import TmpNdPanel from '../components/TmpNdPanel.vue'
 
@@ -77,7 +75,6 @@ export default defineComponent({
     LytFlow,
     NodeCard,
     FormDialog,
-    DepsPanel,
     VarsPanel,
     TmpNdPanel
   },
@@ -120,6 +117,7 @@ export default defineComponent({
     return {
       Node,
 
+      store,
       nodes,
       panelRef,
       editTitle,
