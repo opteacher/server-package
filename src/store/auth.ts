@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, Auth, Project, Role, Rule } from '@/common'
+import { API, Auth, Project, Role, Rule, Service } from '@/common'
 import router from '@/router'
 import { reqAll, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import { CfgSgnType } from '@/views/Auth'
 import { message, notification } from 'ant-design-vue'
 import { Dispatch } from 'vuex'
 
@@ -153,6 +154,18 @@ export default {
     async login(_module: any, admin: any) {
       const result = await reqPost('log/in', admin, { type: 'api' })
       console.log(result)
+    },
+    async genSmplSignLgc(
+      { state, dispatch, rootGetters }: { state: AuthState; dispatch: Dispatch, rootGetters: any },
+      payload: { svc: Service; model: string, props: CfgSgnType[] }
+    ) {
+      const project = rootGetters['project/ins'] as Project
+      const model = project.models.find(mdl => mdl.key === state.auth.model)
+      const service = model?.svcs.find(svc => svc.name === 'auth' && svc.path?.slice(-'sign'.length) === 'sign')
+      await dispatch('service/delNode', service?.flow, { root: true })
+      // await dispatch('service/saveNode', {
+        // @_@
+      // }, { root: true })
     }
   },
   getters: {

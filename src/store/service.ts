@@ -856,7 +856,7 @@ export default {
     },
     async rfshTemps({ state }: { state: SvcState }) {
       const resp = await reqAll('node/temp', { type: 'api' })
-      for (const node of resp.result.map((tmpNd: any) => Node.copy(tmpNd))) {
+      for (const node of resp.map((tmpNd: any) => Node.copy(tmpNd))) {
         state.nodes[node.key] = node
       }
       const groups = {} as { [group: string]: Node[] }

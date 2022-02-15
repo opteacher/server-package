@@ -17,7 +17,27 @@
       <template #roles="{ record: api }">
         {{ api.roles.length ? api.roles.join(' , ') : '-' }}
       </template>
+      <template #sign="{ record: api }">
+        <a-button
+          v-if="api.svc === 'auth' && api.path.slice(-'sign'.length) === 'sign'"
+          @click="onSignConfig(api)"
+        >
+          <template #icon>
+            <AuditOutlined />
+          </template>
+          &nbsp;签发配置
+        </a-button>
+      </template>
     </EditableTable>
+    <FormDialog
+      title="配置签发逻辑"
+      :show="configSign.show"
+      :copy="ConfigSign.copy"
+      :mapper="ConfigSign.mapper"
+      :emitter="ConfigSign.emitter"
+      @update:show="show => (configSign.show = show)"
+      @submit="ConfigSign.onSave"
+    />
     <EditableTable
       title="角色"
       dsKey="auth/ins.roles"
@@ -74,8 +94,9 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, reactive } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
+import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { API, Role, methods, StrIterable, Rule } from '@/common'
 import {
@@ -87,26 +108,32 @@ import {
   apiEmitter,
   roleColumns,
   roleEmitter,
-  roleMapper
+  roleMapper,
+  ConfigSign,
+  configSign
 } from './Auth'
 import { useStore } from 'vuex'
+import { AuditOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'Authorization',
   components: {
     LytAuth,
-    EditableTable
+    EditableTable,
+    FormDialog,
+
+    AuditOutlined
   },
   setup() {
     const store = useStore()
     const pjtName = computed(() => store.getters['project/ins'].name)
     const allAPIs = computed(() => {
-      const ret = {} as StrIterable
+      const ret = {} as Record<string, any>
       for (const api of store.getters['auth/apis']) {
         let obj = ret
         for (const ptPath of api.path.split('/').filter((str: string) => str)) {
           if (!(ptPath in obj)) {
-            obj[ptPath] = {} as StrIterable
+            obj[ptPath] = {} as Record<string, any>
           }
           obj = obj[ptPath]
         }
@@ -177,10 +204,14 @@ export default defineComponent({
         }
       })
     }
+    function onSignConfig(api: any) {
+      configSign.show = true
+    }
     return {
       Role,
       Rule,
       API,
+      ConfigSign,
 
       pjtName,
       allAPIs,
@@ -194,6 +225,7 @@ export default defineComponent({
       apiColumn,
       apiMapper,
       apiEmitter,
+      configSign,
 
       onApiSave,
       onApiDel,
@@ -201,7 +233,8 @@ export default defineComponent({
       onRoleDel,
       onRuleSave,
       onRuleDel,
-      onPathChange
+      onPathChange,
+      onSignConfig
     }
   }
 })

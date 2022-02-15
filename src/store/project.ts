@@ -74,7 +74,7 @@ export default {
     },
     async sync({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       state.status = 'loading'
-      await reqPut('project', `${state.key}/sync`, undefined, {
+      await reqPut('project', `${state.key}/sync`, {}, {
         type: 'api',
         messages: {
           loading: '同步中……',
@@ -108,7 +108,7 @@ export default {
       }, 5000)
     },
     async stop({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
-      await reqPut('project', `${state.key}/stop`, undefined, {
+      await reqPut('project', `${state.key}/stop`, {}, {
         type: 'api',
         middles: {
           before: () => {
@@ -179,7 +179,7 @@ export default {
     },
     async restartSvcJob({ dispatch }: { dispatch: Dispatch }, svcKey: string) {
       await makeRequest(
-        axios.post(`/server-package/api/v1/service/${svcKey}/job/restart`, undefined, {
+        axios.post(`/server-package/api/v1/service/${svcKey}/job/restart`, {}, {
           params: { pid: router.currentRoute.value.params.pid }
         })
       )

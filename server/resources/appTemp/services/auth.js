@@ -55,10 +55,10 @@ export async function verifyDeep(ctx) {
   if (!role) {
     return { error: '项目权限系统未配置访客角色！' }
   }
-  let guestId = role._id
+  let roleId = role._id
   const verRes = verify(ctx.headers['authorization'])
   console.log(verRes)
-  const payload = verRes.payload 
+  const payload = verRes.payload
   if (!verRes.error && payload) {
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
     // @_@: 这意味着该子项目对应的账户模型必须开一个GET查询的mdl接口
@@ -67,12 +67,17 @@ export async function verifyDeep(ctx) {
     if (!visitor || !('role' in visitor)) {
       return { error: '访问者的角色信息有误！' }
     }
-    guestId = visitor['role']._id
+    roleId = visitor['role']._id
   }
   // 获取对应的角色
-  role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${guestId}`)
+  role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${roleId}`)
   if (!role) {
-    return { error: '未找到指定角色！' }
+    // 检查是否是server-package的超级管理员
+    if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${roleId}`)) {
+      return {}
+    } else {
+      return { error: '未找到指定角色！' }
+    }
   }
   // 遍历角色授权的规则，查找其中是否满足当前请求包含的申请
   for (const rule of role.rules) {

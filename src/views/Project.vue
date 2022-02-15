@@ -51,12 +51,14 @@
           @delete="key => onPropDel(key, model.key)"
         />
         <EditableTable
+          class="mb-10"
           title="服务"
           :dsKey="`project/ins.models.[${model.key}].svcs`"
           :columns="ServiceColumns"
           :mapper="ServiceMapper"
           :copy="Service.copy"
           :emitter="svcEmitter"
+          :filter="record => model.key !== project.auth?.model || record.name !== 'auth'"
           @add="
             svc => {
               svc.model = model.name
@@ -97,7 +99,11 @@
           </template>
           <template #flow="{ record: svc }">
             <a-button
-              v-if="svc.key && !svc.isModel"
+              v-if="
+                svc.key &&
+                !svc.isModel &&
+                (model.key !== project.auth?.model || svc.name !== 'auth')
+              "
               @click="
                 () => {
                   router.push(`/server-package/project/${pid}/flow/${svc.key}`)

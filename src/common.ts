@@ -450,6 +450,7 @@ export class Column {
 
 export class API {
   key: string
+  svc: string
   model: string
   method: string
   path: string
@@ -457,6 +458,7 @@ export class API {
 
   constructor() {
     this.key = ''
+    this.svc = ''
     this.model = ''
     this.method = 'GET'
     this.path = ''
@@ -466,6 +468,7 @@ export class API {
   static copy(src: any, tgt?: API): API {
     tgt = tgt || new API()
     tgt.key = src.key || src._id || tgt.key
+    tgt.svc = src.svc || tgt.svc
     tgt.model = src.model || tgt.model
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path

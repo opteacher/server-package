@@ -322,7 +322,6 @@ export async function sync(pid: string): Promise<any> {
 }
 
 export async function run(pjt: string | { _id: string; name: string }): Promise<number> {
-  console.trace(typeof pjt === 'string' ? pjt : pjt._id, 'run')
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -584,6 +583,7 @@ export async function getAllAPIs(pid: string) {
         case 'api':
           ret.push({
             key: service.id,
+            svc: service.name,
             model: model.name,
             method: service.method,
             path: service.path
@@ -593,12 +593,14 @@ export async function getAllAPIs(pid: string) {
         case 'interval':
           ret.push({
             key: `${service.id}_restart`,
+            svc: service.name,
             model: model.name,
             method: 'POST',
             path: service.path
           })
           ret.push({
             key: `${service.id}_stop`,
+            svc: service.name,
             model: model.name,
             method: 'DELETE',
             path: service.path + '/:tmot'
