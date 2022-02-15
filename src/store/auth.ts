@@ -156,16 +156,16 @@ export default {
       console.log(result)
     },
     async genSmplSignLgc(
-      { state, dispatch, rootGetters }: { state: AuthState; dispatch: Dispatch, rootGetters: any },
-      payload: { svc: Service; model: string, props: CfgSgnType[] }
+      { state, dispatch, rootGetters }: { state: AuthState; dispatch: Dispatch; rootGetters: any },
+      payload: { svc: Service; model: string; props: CfgSgnType[] }
     ) {
       const project = rootGetters['project/ins'] as Project
       const model = project.models.find(mdl => mdl.key === state.auth.model)
-      const service = model?.svcs.find(svc => svc.name === 'auth' && svc.path?.slice(-'sign'.length) === 'sign')
+      const service = model?.svcs.find(
+        svc => svc.name === 'auth' && svc.path?.slice(-'sign'.length) === 'sign'
+      )
       await dispatch('service/delNode', service?.flow, { root: true })
-      // await dispatch('service/saveNode', {
-        // @_@
-      // }, { root: true })
+      await dispatch('service/saveNode', {}, { root: true })
     }
   },
   getters: {

@@ -296,6 +296,10 @@ export async function sync(pid: string): Promise<any> {
       console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
       adjustFile(rotData, `${rotGen}/index.js`, { svc, pamIdx })
 
+      if (svc.name === 'auth') {
+        console.log('跳过授权服务')
+        continue
+      }
       const svcExt = await db.select(Service, { _index: svc._id }, { ext: true })
       svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.key || svcExt.flow, 4) : []
       if (!(svc.name in services)) {
