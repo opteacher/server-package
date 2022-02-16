@@ -180,14 +180,6 @@ async function recuNode(
   }
 }
 
-async function scanNode(key: string, callback: (node: any) => Promise<any>) {
-  const node = await db.select(Node, { _index: key })
-  await callback(node)
-  for (const sbKey of node.nexts) {
-    await scanNode(sbKey, callback)
-  }
-}
-
 export async function create(project: any) {
   const result = ProjectType.copy(await db.save(Project, project))
   // 初始化项目的权限系统
@@ -257,14 +249,19 @@ export async function sync(pid: string): Promise<any> {
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
   const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
+  const deps: Record<string, any> = {}
   if (authSvc && authSvc.flow) {
-    adjustFile(fs.readFileSync(authTmp), authGen, {
-      nodes: await recuNode(authSvc.flow, 4, () => {})
+    const nodes = await recuNode(authSvc.flow, 4, (node: any) => {
+      for (const dep of node.deps) {
+        if (!(dep.id in deps)) {
+          deps[dep.id] = dep
+        }
+      }
     })
+    adjustFile(fs.readFileSync(authTmp), authGen, { nodes, deps: Object.values(deps) })
   } else {
     fs.writeFileSync(authGen, fs.readFileSync(authTmp))
   }
-
 
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
@@ -282,7 +279,6 @@ export async function sync(pid: string): Promise<any> {
   const mdlData = fs.readFileSync(mdlTmp)
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
-  const deps: Record<string, any> = {}
   for (const model of project.models) {
     const svcs = model.svcs.filter((svc: any) => svc.name)
     model.svcs = model.svcs.filter((svc: any) => !svc.name)
@@ -310,7 +306,7 @@ export async function sync(pid: string): Promise<any> {
       const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
       svcExt.deps = []
       svcExt.nodes = svcExt.flow
-        ? await recuNode(svcExt.flow.id || svcExt.flow, 4, (node: any) => {
+        ? await recuNode(svcExt.flow.id, 4, (node: any) => {
             for (const dep of node.deps) {
               if (!(dep.id in deps)) {
                 console.log(`\t${dep.name}: ${dep.version}`)

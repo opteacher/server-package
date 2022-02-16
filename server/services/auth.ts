@@ -165,7 +165,7 @@ export async function genSignLgc(
         "  sub: 'action',",
         '  aud: record.id,',
         '  iat: Date.now(),',
-        '  jti: uuidv4(),',
+        '  jti: v4(),',
         "  iss: 'opteacher',",
         '  exp: Date.now() + (24 * 60 * 60 * 1000) // 1 day',
         '}\nreturn {',
@@ -175,7 +175,8 @@ export async function genSignLgc(
         '}'
       ].join('\n'),
       previous: qryRecord.key,
-      isFun: false
+      isFun: false,
+      deps: [DepType.copy((await db.select(Dep, { name: 'UUID' }))[0])]
     })
   )
 }

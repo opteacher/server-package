@@ -34,13 +34,13 @@ import {
   NodeInPnl
 } from '@/views/Flow'
 import axios from 'axios'
-import { Commit, Dispatch } from 'vuex'
+import { Dispatch } from 'vuex'
 import router from '@/router'
 import { notification } from 'ant-design-vue'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
-type NodesInPnl = Record<string, NodeInPnl>
+type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
   pjt: Project
   svc: Service
@@ -185,14 +185,11 @@ export default {
     }
   },
   actions: {
-    async refresh({ state, commit, dispatch }: { state: SvcState; commit: Commit; dispatch: Dispatch }, force?: boolean) {
+    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
       if (!router.currentRoute.value.params.aid) {
         return
       }
       const aid = router.currentRoute.value.params.aid
-      if (typeof force === 'undefined') {
-        force = true
-      }
 
       const pid = router.currentRoute.value.params.pid
       Project.copy(await reqGet('project', pid), state.pjt)
@@ -217,10 +214,8 @@ export default {
 
       if (state.svc.flow) {
         const rootKey = state.svc.flow.key
-        if (force) {
-          commit('RESET_NODES')
-          await dispatch('readNodes', rootKey)
-        }
+        // commit('RESET_NODES')
+        await dispatch('readNodes', rootKey)
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
@@ -240,7 +235,7 @@ export default {
       }
       if (state.width < right - left) {
         state.width = right - left
-        await dispatch('refresh', { force: false })
+        await dispatch('refresh')
       }
     },
     async fillPlaceholder(

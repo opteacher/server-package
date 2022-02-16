@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
 import { db, makeRequest } from '../utils/index.js'
+/*return deps.map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
 const svrPkgURL = 'http://server-package:4000/server-package'
 
