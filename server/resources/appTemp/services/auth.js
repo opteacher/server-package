@@ -1,7 +1,12 @@
 import jwt from 'jsonwebtoken'
-import { makeRequest } from '../utils/index.js'
+import crypto from 'crypto'
+import { db, makeRequest } from '../utils/index.js'
 
 const svrPkgURL = 'http://server-package:4000/server-package'
+
+export async function sign(ctx) {
+  /*return `try {\n${nodes.join('\n\n')}\n  } catch (e) {\n    return { error: e.message || JSON.stringify(e) }\n  }\n`*/
+}
 
 export async function verify(token) {
   if (!token) {

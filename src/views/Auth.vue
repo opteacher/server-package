@@ -94,11 +94,11 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed, reactive } from 'vue'
+import { defineComponent, computed } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { API, Role, methods, StrIterable, Rule } from '@/common'
+import { API, Role, methods, Rule } from '@/common'
 import {
   apiColumn,
   apiMapper,
@@ -205,6 +205,7 @@ export default defineComponent({
       })
     }
     function onSignConfig(api: any) {
+      console.log(api)
       configSign.show = true
     }
     return {

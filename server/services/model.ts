@@ -2,6 +2,8 @@
 import { db } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
+import MdlType from '../types/model.js'
+import Dep from '../models/dep.js'
 import axios from 'axios'
 
 const typeMapper = {
@@ -109,4 +111,21 @@ export async function getData(pid: string, mid: string) {
     return { error: '访问不到目标项目，请确认项目正常运行！' }
   }
   return resp.data.data
+}
+
+export async function create(data: any) {
+  const ret = MdlType.copy(await db.save(Model, data))
+  await db.save(Dep, {
+    _id: ret.key,
+    name: ret.name,
+    exports: [ret.name],
+    from: `../models/${ret.name}.js`,
+    default: true
+  })
+  return ret
+}
+
+export async function del(key: string) {
+  await db.del(Dep, { _index: key })
+  return db.del(Model, { _index: key })
 }

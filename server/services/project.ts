@@ -11,7 +11,6 @@ import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
 import Auth from '../models/auth.js'
-import Dependency from '../models/dep.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
 import { save as saveAuth, del as delAuth } from './auth.js'
@@ -122,13 +121,19 @@ function fmtInput(variable: {
   }
 }
 
-async function recuNode(key: string, indent: number, endKey?: string): Promise<string[]> {
+async function recuNode(
+  key: string,
+  indent: number,
+  callback: (node: any) => void,
+  endKey?: string
+): Promise<string[]> {
   const node = await db.select(Node, { _index: key }, { ext: true })
+  callback(node)
   const indents = ''.padStart(indent, ' ')
   switch (node.type) {
     case 'normal': {
       return [[genAnnotation(node, indents), fmtCode(node, indents)].join('\n')].concat(
-        node.nexts.length ? await recuNode(node.nexts[0].id, indent, endKey) : []
+        node.nexts.length ? await recuNode(node.nexts[0].id, indent, callback, endKey) : []
       )
     }
     case 'condition': {
@@ -137,17 +142,17 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         const nxtNode = await db.select(Node, { _index: node.nexts[i].id })
         ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
         if (nxtNode.nexts.length) {
-          ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, node.relative)))
+          ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, callback, node.relative)))
         }
         if (i === node.nexts.length - 1) {
           ret.push(indents + '}')
         }
       }
-      return ret.concat(await recuNode(node.relative, indent, endKey))
+      return ret.concat(await recuNode(node.relative, indent, callback, endKey))
     }
     case 'traversal': {
       if (!node.inputs.length) {
-        return ([] as string[]).concat(await recuNode(node.relative, indent))
+        return ([] as string[]).concat(await recuNode(node.relative, indent, callback))
       }
       const input = node.inputs[0]
       const output = node.outputs[0]
@@ -159,16 +164,16 @@ async function recuNode(key: string, indent: number, endKey?: string): Promise<s
         ].join('')
       ]
       if (node.nexts.length) {
-        ret.push(...(await recuNode(node.nexts[0].id, indent + 2, node.relative)))
+        ret.push(...(await recuNode(node.nexts[0].id, indent + 2, callback, node.relative)))
       }
       ret.push(indents + '}')
-      return ret.concat(await recuNode(node.relative, indent, endKey))
+      return ret.concat(await recuNode(node.relative, indent, callback, endKey))
     }
     case 'endNode':
       if (node.id === endKey || !node.nexts.length) {
         return []
       } else {
-        return await recuNode(node.nexts[0].id, indent, endKey)
+        return await recuNode(node.nexts[0].id, indent, callback, endKey)
       }
     default:
       return []
@@ -250,7 +255,16 @@ export async function sync(pid: string): Promise<any> {
   const authTmp = Path.join(tmpPath, 'services', 'auth.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
-  fs.writeFileSync(authGen, fs.readFileSync(authTmp))
+  const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
+  const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
+  if (authSvc && authSvc.flow) {
+    adjustFile(fs.readFileSync(authTmp), authGen, {
+      nodes: await recuNode(authSvc.flow, 4, () => {})
+    })
+  } else {
+    fs.writeFileSync(authGen, fs.readFileSync(authTmp))
+  }
+
 
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
@@ -277,7 +291,7 @@ export async function sync(pid: string): Promise<any> {
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
 
-    const services = {} as { [aname: string]: any[] }
+    const services = {} as Record<string, any[]>
     for (const svc of svcs) {
       let pamIdx = svc.path.indexOf('/:')
       pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
@@ -291,24 +305,26 @@ export async function sync(pid: string): Promise<any> {
         console.log('跳过授权服务')
         continue
       }
+
+      console.log('收集项目依赖模块：')
       const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
-      svcExt.nodes = svcExt.flow ? await recuNode(svcExt.flow.id || svcExt.flow, 4) : []
+      svcExt.deps = []
+      svcExt.nodes = svcExt.flow
+        ? await recuNode(svcExt.flow.id || svcExt.flow, 4, (node: any) => {
+            for (const dep of node.deps) {
+              if (!(dep.id in deps)) {
+                console.log(`\t${dep.name}: ${dep.version}`)
+                deps[dep.id] = dep
+              }
+              svcExt.deps.push(dep)
+            }
+          })
+        : []
       if (!(svc.name in services)) {
         services[svc.name] = [svcExt]
       } else {
         services[svc.name].push(svcExt)
       }
-
-      console.log('收集项目依赖模块：')
-      scanNode(svcExt.flow.id || svcExt.flow, async node => {
-        for (const depId of node.deps) {
-          if (!(depId in deps)) {
-            const dep = await db.select(Dependency, { _index: depId })
-            console.log(`\t${dep.name}: ${dep.version}`)
-            deps[depId] = dep
-          }
-        }
-      })
     }
 
     for (const [aname, svcs] of Object.entries(services)) {
@@ -339,7 +355,6 @@ export async function run(pjt: string | { _id: string; name: string }): Promise<
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
   try {
-    console.log(appFile)
     fs.accessSync(appFile)
   } catch (e) {
     // 如果项目的可执行文件不存在，则同步后重启

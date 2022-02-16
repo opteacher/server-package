@@ -99,16 +99,15 @@
           </template>
           <template #flow="{ record: svc }">
             <a-button
-              v-if="
-                svc.key &&
-                !svc.isModel &&
-                (model.key !== project.auth?.model || svc.name !== 'auth')
-              "
-              @click="
-                () => {
-                  router.push(`/server-package/project/${pid}/flow/${svc.key}`)
-                }
-              "
+              v-if="svc.name === 'auth' && model.key === project.auth?.model"
+              @click="router.push(`/server-package/project/${pid}/flow/${svc.key}`)"
+            >
+              <template #icon><EyeOutlined /></template>
+              &nbsp;查看
+            </a-button>
+            <a-button
+              v-else-if="svc.key && !svc.isModel"
+              @click="router.push(`/server-package/project/${pid}/flow/${svc.key}`)"
             >
               <template #icon><ApartmentOutlined /></template>
               &nbsp;设计
@@ -171,7 +170,8 @@ import {
   ApartmentOutlined,
   DatabaseOutlined,
   ExportOutlined,
-  FormOutlined
+  FormOutlined,
+  EyeOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
@@ -205,7 +205,8 @@ export default defineComponent({
     ApartmentOutlined,
     DatabaseOutlined,
     ExportOutlined,
-    FormOutlined
+    FormOutlined,
+    EyeOutlined
   },
   setup() {
     const route = useRoute()
@@ -221,7 +222,8 @@ export default defineComponent({
         opera: model,
         parent: ['project', pid],
         child: ['models', 'model'],
-        ignores: ['props', 'svcs']
+        ignores: ['props', 'svcs'],
+        isAPI: true
       })
       modelEmitter.emit('refresh')
     }
@@ -229,7 +231,8 @@ export default defineComponent({
       await store.dispatch('project/update', {
         opera: 'model',
         parent: ['project', pid],
-        child: ['models', key]
+        child: ['models', key],
+        isAPI: true
       })
       modelEmitter.emit('refresh')
     }

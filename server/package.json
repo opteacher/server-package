@@ -8,7 +8,7 @@
 		"lib": "lib"
 	},
 	"scripts": {
-		"start": "cd dist && cross-env ENV=dev node ./app.js",
+		"start": "tsc && cd dist && cross-env ENV=dev node ./app.js",
 		"copy": "cp -r ./configs/ ./dist/configs/ && cp -r ./resources/ ./dist/resources/",
 		"copy:win": "cp -r --Force ./configs/ ./dist/ && cp -r --Force ./resources/ ./dist/",
 		"build": "tsc",

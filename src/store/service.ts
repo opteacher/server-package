@@ -8,8 +8,7 @@ import {
   Project,
   Dep,
   OpnType,
-  LstOpnType,
-  Model
+  LstOpnType
 } from '@/common'
 import {
   reqDelete,
@@ -35,14 +34,13 @@ import {
   NodeInPnl
 } from '@/views/Flow'
 import axios from 'axios'
-import { Dispatch } from 'vuex'
+import { Commit, Dispatch } from 'vuex'
 import router from '@/router'
 import { notification } from 'ant-design-vue'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
-type NodesInPnl = { [key: string]: NodeInPnl }
-type Nodes = { [key: string]: Node }
+type NodesInPnl = Record<string, NodeInPnl>
 type SvcState = {
   pjt: Project
   svc: Service
@@ -74,33 +72,6 @@ function getLocVars(state: SvcState): Variable[] {
   return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })].concat(
     state.node.previous ? scanLocVars(state, state.node.previous) : []
   )
-}
-
-function scanNextss(
-  state: { nodes: NodesInPnl },
-  node: Node,
-  rootKey: string
-): {
-  endNode: Node | null
-  allNodes: Nodes
-} {
-  let endNode = null
-  const allNodes = {} as Nodes
-  for (const nxtKey of node.nexts) {
-    const nxtNode = state.nodes[nxtKey]
-    if (nxtNode.type === 'endNode' && nxtNode.relative === rootKey) {
-      return { endNode: nxtNode, allNodes }
-    }
-    allNodes[nxtNode.key] = nxtNode
-    const ret = scanNextss(state, nxtNode, rootKey)
-    for (const [key, node] of Object.entries(ret.allNodes)) {
-      allNodes[key] = node
-    }
-    if (ret.endNode) {
-      endNode = ret.endNode
-    }
-  }
-  return { endNode, allNodes }
 }
 
 export default {
@@ -204,10 +175,17 @@ export default {
       state.nodes = {}
       state.node.reset()
       state.locVars = []
+      state.deps = {}
+    },
+    RESET_NODES(state: SvcState) {
+      state.width = 0
+      state.nodes = {}
+      state.node.reset()
+      state.locVars = []
     }
   },
   actions: {
-    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, force?: boolean) {
+    async refresh({ state, commit, dispatch }: { state: SvcState; commit: Commit; dispatch: Dispatch }, force?: boolean) {
       if (!router.currentRoute.value.params.aid) {
         return
       }
@@ -236,9 +214,13 @@ export default {
       await dispatch('rfshTemps')
 
       Service.copy(await reqGet('service', aid), state.svc)
+
       if (state.svc.flow) {
         const rootKey = state.svc.flow.key
-        await dispatch('readNodes', rootKey)
+        if (force) {
+          commit('RESET_NODES')
+          await dispatch('readNodes', rootKey)
+        }
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
@@ -276,10 +258,15 @@ export default {
       }
     },
     async readNodes({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, key: string) {
+      const res = await reqGet('node', key)
+      if (!res) {
+        delete state.nodes[key]
+        return
+      }
       if (!(key in state.nodes)) {
-        state.nodes[key] = NodeInPnl.copy(await reqGet('node', key))
+        state.nodes[key] = NodeInPnl.copy(res)
       } else {
-        Node.copy(await reqGet('node', key), state.nodes[key])
+        Node.copy(res, state.nodes[key])
       }
       for (const nxtKey of state.nodes[key].nexts) {
         await dispatch('readNodes', nxtKey)
@@ -347,208 +334,11 @@ export default {
       await reqPost(`service/${state.svc.key}/node${node.key ? '/' + node.key : ''}`, node, {
         type: 'api'
       })
-      // 还有依赖
       await dispatch('refresh')
-    },
-    async clrNmlNode({ state }: { state: SvcState }, key: string) {
-      const node = state.nodes[key]
-      // 删除节点的输入和输出
-      for (const input of node.inputs) {
-        const iptKey = input.key
-        await reqLink(
-          {
-            parent: ['node', node.key],
-            child: ['inputs', iptKey]
-          },
-          false
-        )
-        await reqDelete('variable', iptKey)
-      }
-      for (const output of node.outputs) {
-        const optKey = output.key
-        await reqLink(
-          {
-            parent: ['node', node.key],
-            child: ['outputs', optKey]
-          },
-          false
-        )
-        await reqDelete('variable', optKey)
-      }
     },
     async delNode({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, key: string) {
-      if (!(key in state.nodes)) {
-        return
-      }
-      const node = state.nodes[key]
-      // 清空节点信息
-      await dispatch('clrNmlNode', key)
-      if (!node.isTemp) {
-        // 解绑的节点和父节点的关系
-        let pvsKey = ''
-        if (node.previous) {
-          pvsKey = node.previous
-          await reqLink(
-            {
-              parent: ['node', pvsKey],
-              child: ['nexts', node.key]
-            },
-            false
-          )
-        } else {
-          // 删除根节点
-          await reqLink(
-            {
-              parent: ['service', state.svc.key],
-              child: ['flow', node.key]
-            },
-            false
-          )
-        }
-        // 删除节点的子节点或解绑子节点
-        const nexts = [] as string[]
-        switch (node.type) {
-          case 'condNode':
-            {
-              // 如果是条件节点或循环根节点，删除对应的块
-              const endNode = Node.copy(
-                await dispatch('delBlock', {
-                  node,
-                  rootKey: pvsKey,
-                  delRoot: false,
-                  delEnd: false
-                })
-              )
-              if (state.nodes[pvsKey].nexts.length === 1) {
-                await reqLink({
-                  parent: ['node', pvsKey],
-                  child: ['nexts', endNode.key]
-                })
-              }
-            }
-            break
-          case 'traversal':
-            {
-              const endNode = Node.copy(
-                await dispatch('delBlock', {
-                  node,
-                  rootKey: key,
-                  delRoot: false,
-                  delEnd: true
-                })
-              )
-              nexts.push(...endNode.nexts)
-            }
-            break
-          case 'condition':
-            {
-              // 如果是条件根节点，则依次删除其子条件节点
-              const endNxtKeys = [] as string[]
-              const nxtNodes = node.nexts.map((nxtKey: string) => state.nodes[nxtKey])
-              if (nxtNodes.length === 1 && nxtNodes[0].type === 'endNode') {
-                // 如果条件根节点直接接着结束节点，则删除节点并把结束节点的子节点抛出去
-                nexts.push(...nxtNodes[0].nexts)
-                const endKey = nxtNodes[0].key
-                delete state.nodes[endKey]
-                await reqDelete('node', endKey)
-                break
-              }
-              for (let i = 0; i < nxtNodes.length; ++i) {
-                const nxtNode = nxtNodes[i]
-                const endNode = Node.copy(
-                  await dispatch('delBlock', {
-                    node: nxtNode,
-                    rootKey: node.key,
-                    delRoot: true,
-                    delEnd: i === nxtNodes.length - 1
-                  })
-                )
-                endNxtKeys.push(...endNode.nexts)
-                await reqLink(
-                  {
-                    parent: ['node', node.key],
-                    child: ['nexts', nxtNode.key]
-                  },
-                  false
-                )
-              }
-              // 结束节点后的子节点接到该节点下
-              nexts.push(...Array.from(new Set(endNxtKeys)))
-            }
-            break
-          default:
-            // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
-            nexts.push(...node.nexts)
-            break
-        }
-        if (pvsKey) {
-          for (const nxtKey of nexts) {
-            await Promise.all([
-              reqLink({
-                parent: ['node', nxtKey],
-                child: ['previous', pvsKey]
-              }),
-              reqLink({
-                parent: ['node', pvsKey],
-                child: ['nexts', nxtKey]
-              })
-            ])
-          }
-        }
-      }
-      // 最后删除节点自身
-      delete state.nodes[key]
-      await reqDelete('node', key)
+      await reqDelete(`service/${state.svc.key}/node`, key, { type: 'api' })
       await dispatch('refresh')
-    },
-    async delBlock(
-      { state, dispatch }: { state: SvcState; dispatch: Dispatch },
-      payload: { node: Node; rootKey: string; delRoot?: boolean; delEnd?: boolean }
-    ) {
-      const clsNode = async (ndKey: string) => {
-        await dispatch('clrNmlNode', ndKey)
-        delete state.nodes[ndKey]
-        await reqDelete('node', ndKey)
-      }
-      // 从该节点之后删除到与该节点对应的end节点（注意：不会删除起始节点）
-      // 先收集所有需要删除的节点
-      const nxtss = scanNextss(state, payload.node, payload.rootKey)
-      for (const node of Object.values(nxtss.allNodes)) {
-        await clsNode(node.key)
-      }
-      const endNode = nxtss.endNode as Node
-      if (payload.delRoot) {
-        await clsNode(payload.node.key)
-      } else {
-        // 清空rootNode所有子节点，并将endNode的子节点全部变为rootNode
-        for (const nxtKey of payload.node.nexts) {
-          await reqLink(
-            {
-              parent: ['node', payload.node.key],
-              child: ['nexts', nxtKey]
-            },
-            false
-          )
-        }
-        if (payload.delEnd) {
-          for (const nxtKey of endNode.nexts) {
-            await reqLink({
-              parent: ['node', payload.node.key],
-              child: ['nexts', nxtKey]
-            })
-          }
-        } else {
-          await reqLink({
-            parent: ['node', payload.node.key],
-            child: ['nexts', endNode.key]
-          })
-        }
-      }
-      if (payload.delEnd) {
-        // 清空删除endNode
-        await clsNode(endNode.key)
-      }
-      return endNode
     },
     async rfshNode({ state }: { state: SvcState }, key?: string) {
       const nkey = key || state.node.key
@@ -674,17 +464,6 @@ export default {
       state.deps = Object.fromEntries(
         (await reqGet('dependencys'))
           .map((dep: any) => Dep.copy(dep))
-          .concat(
-            state.pjt.models.map((mdl: Model) => {
-              return Dep.copy({
-                key: mdl.key,
-                name: mdl.name,
-                exports: [mdl.name],
-                from: `../models/${mdl.name}.js`,
-                default: true
-              })
-            })
-          )
           .map((dep: Dep) => [dep.key, dep])
       )
     }

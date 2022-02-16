@@ -38,13 +38,18 @@ export default {
         opera: any
         parent: [string, any]
         child: [string, any]
+        isAPI?: boolean
         ignores?: string[]
       }
     ) {
+      if (typeof payload.isAPI === 'undefined') {
+        payload.isAPI = false
+      }
       if (typeof payload.opera !== 'string') {
         if (payload.opera.key) {
           // 更新
           await reqPut(payload.child[1], payload.opera.key, payload.opera, {
+            type: payload.isAPI ? 'api' : 'mdl',
             ignores: payload.ignores
           })
           await dispatch('refresh')
@@ -52,13 +57,16 @@ export default {
         } else {
           // 新增
           const newOne = await reqPost(payload.child[1], payload.opera, {
+            type: payload.isAPI ? 'api' : 'mdl',
             ignores: payload.ignores
           })
-          payload.child[1] = newOne._id
+          payload.child[1] = newOne.key || newOne._id
         }
       } else {
         // 删除
-        await reqDelete(payload.opera, payload.child[1])
+        await reqDelete(payload.opera, payload.child[1], {
+          type: payload.isAPI ? 'api' : 'mdl'
+        })
       }
       await reqLink(
         {

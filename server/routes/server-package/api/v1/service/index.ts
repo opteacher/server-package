@@ -1,6 +1,6 @@
 import Router from 'koa-router'
 import { restart, stop } from '../../../../../services/service.js'
-import { save } from '../../../../../services/node.js'
+import { save as saveNode, del as delNode } from '../../../../../services/node.js'
 
 const router = new Router()
 
@@ -30,19 +30,19 @@ router.delete('/:sid/job/stop', async ctx => {
 
 router.post('/:sid/node', async ctx => {
   ctx.body = {
-    result: await save(ctx.params.sid, ctx.request.body)
-  }
-})
-
-router.post('/:sid/node', async ctx => {
-  ctx.body = {
-    result: await save(ctx.params.sid, ctx.request.body)
+    result: await saveNode( ctx.request.body, ctx.params.sid)
   }
 })
 
 router.post('/:sid/node/:nid', async ctx => {
   ctx.body = {
-    result: await save(ctx.params.sid, Object.assign(ctx.request.body, { key: ctx.params.nid }))
+    result: await saveNode(Object.assign(ctx.request.body, { key: ctx.params.nid }), ctx.params.sid)
+  }
+})
+
+router.delete('/:sid/node/:nid', async ctx => {
+  ctx.body = {
+    result: await delNode(ctx.params.nid, ctx.params.sid)
   }
 })
 

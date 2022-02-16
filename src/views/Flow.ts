@@ -163,15 +163,6 @@ export const EditNodeMapper = new Mapper({
       }
     }
   },
-  loop: {
-    label: '循环类型',
-    type: 'Select',
-    display: [Cond.copy({ key: 'type', cmp: '==', val: 'traversal' })],
-    options: [
-      { label: 'for-in循环', value: 'for-in' },
-      { label: 'for-of循环', value: 'for-of' }
-    ]
-  },
   inputs: {
     label: '输入',
     type: 'Table',

@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { tempNodes, newTemp, tempByGrpAndTtl } from '../../../../../services/node.js'
+import { tempNodes, newTemp, tempByGrpAndTtl, clear } from '../../../../../services/node.js'
 
 const router = new Router()
 
@@ -25,6 +25,12 @@ router.get('/temp/exists', async ctx => {
   }
   ctx.body = {
     result: await tempByGrpAndTtl(query.group as string, query.title as string)
+  }
+})
+
+router.delete('/:nid/clear', async ctx => {
+  ctx.body = {
+    result: await clear(ctx.params.nid)
   }
 })
 

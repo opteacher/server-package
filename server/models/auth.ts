@@ -4,6 +4,7 @@ export default db.defineModel(
   {
     __modelName: 'auth',
     model: db.PropTypes.String,
+    props: db.PropTypes.Array,
     roles: [{ type: db.PropTypes.Id, ref: 'role' }],
     apis: [{ type: db.PropTypes.Id, ref: 'api' }]
   },

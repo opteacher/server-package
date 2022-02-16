@@ -774,9 +774,6 @@ export class Variable {
 }
 
 export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
-export type LoopType = 'for-of' | 'for-in'
-
-export const loopTypes = ['for-of', 'for-in']
 
 export const NodeTypeMapper = {
   normal: '普通节点',
@@ -792,7 +789,6 @@ export class Node extends StrIterable {
   title: string
   desc: string
   type: NodeType
-  loop: LoopType
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   isFun: boolean
@@ -811,7 +807,6 @@ export class Node extends StrIterable {
     this.title = ''
     this.desc = ''
     this.type = 'normal'
-    this.loop = 'for-of'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -830,7 +825,6 @@ export class Node extends StrIterable {
     this.title = ''
     this.desc = ''
     this.type = 'normal'
-    this.loop = 'for-of'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -850,22 +844,20 @@ export class Node extends StrIterable {
     tgt.title = src.title || tgt.title
     tgt.desc = src.desc || tgt.desc
     tgt.type = src.type || tgt.type
-    tgt.loop = src.loop || tgt.loop
-    if (typeof src.inputs !== 'undefined') {
+    if (src.inputs instanceof Array) {
       tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
     }
-    if (typeof src.outputs !== 'undefined') {
+    if (src.outputs instanceof Array) {
       tgt.outputs = src.outputs.map((opt: any) => Variable.copy(opt))
     }
     tgt.code = src.code || tgt.code
     tgt.isFun = typeof src.isFun !== 'undefined' ? src.isFun : tgt.isFun
-    if (src.previous) {
-      tgt.previous = src.previous.key || src.previous._id || src.previous
+    tgt.previous = src.previous
+      ? src.previous.key || src.previous._id || src.previous
+      : src.previous
+    if (src.nexts instanceof Array) {
+      tgt.nexts = src.nexts.map((nxt: any) => nxt.key || nxt._id || nxt)
     }
-    tgt.nexts =
-      src.nexts && src.nexts.length
-        ? src.nexts.map((nxt: any) => nxt.key || nxt._id || nxt)
-        : tgt.nexts
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
     tgt.deps = src.deps ? src.deps.map((dep: any) => Dep.copy(dep)) : []

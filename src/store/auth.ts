@@ -155,70 +155,8 @@ export default {
       const result = await reqPost('log/in', admin, { type: 'api' })
       console.log(result)
     },
-    async genSmplSignLgc(
-      { state, dispatch, rootGetters }: { state: AuthState; dispatch: Dispatch; rootGetters: any },
-      props: CfgSgnType[]
-    ) {
-      const project = rootGetters['project/ins'] as Project
-      const model = project.models.find(mdl => mdl.key === state.auth.model)
-      const service = model?.svcs.find(
-        svc => svc.name === 'auth' && svc.path?.slice(-'sign'.length) === 'sign'
-      )
-      await dispatch('service/delNode', service?.flow, { root: true })
-      await dispatch(
-        'service/saveNode',
-        {
-          title: '获取密钥',
-          code: [
-            "const svtPkgURL = 'http://server-package:4000/server-package'",
-            "const result = await makeRequest('GET', `${svrPkgURL}/api/v1/auth/secret`)",
-            'if (result.error) {\n  return result\n}',
-            'const secret = result.secret'
-          ].join('\n')
-        },
-        { root: true }
-      )
-      await dispatch(
-        'service/saveNode',
-        {
-          title: '查询满足列的记录',
-          code: [
-            'const result = await db.select(model, {',
-            props.map(
-              prop =>
-                `'${prop.name}': ${
-                  prop.algorithm
-                    ? "crypto.createHmac('" + prop.algorithm + "', secret).update("
-                    : ''
-                }ctx.request.body.${prop.name}${prop.algorithm ? ").digest('hex')" : ''},`
-            ),
-            "})\nif(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
-            'const record = result[0]'
-          ].join('\n')
-        },
-        { root: true }
-      )
-      await dispatch(
-        'service/saveNode',
-        {
-          title: '包装荷载并签名',
-          code: [
-            'const payload = {',
-            "  sub: 'action',",
-            '  aud: record.id,',
-            '  iat: Date.now(),',
-            '  jti: uuidv4(),',
-            "  iss: 'opteacher',",
-            '  exp: Date.now() + (24 * 60 * 60 * 1000) // 1 day',
-            '}\nreturn {',
-            '  record,',
-            '  token: jwt.sign(payload, secret),',
-            "  message: '登录成功！'",
-            '}'
-          ].join('\n')
-        },
-        { root: true }
-      )
+    async genSmplSignLgc({ rootGetters }: { rootGetters: any }, props: CfgSgnType[]) {
+      reqPost(`auth/project/${rootGetters['project/ins'].key}/sign`, { props }, { type: 'api' })
     }
   },
   getters: {
