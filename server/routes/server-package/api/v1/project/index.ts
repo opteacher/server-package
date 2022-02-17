@@ -10,7 +10,7 @@ import {
   getAllAPIs
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
-import { save as saveAuth, del as delAuth } from '../../../../../services/auth.js'
+import { save as saveAuth, del as delAuth, genSignLgc } from '../../../../../services/auth.js'
 
 const router = new Router()
 
@@ -83,6 +83,12 @@ router.post('/:pid/auth', async ctx => {
 router.delete('/:pid/auth', async ctx => {
   ctx.body = {
     resut: await delAuth(ctx.params.pid)
+  }
+})
+
+router.post('/:pid/auth/sign', async ctx => {
+  ctx.body = {
+    result: await genSignLgc(ctx.params.pid, ctx.request.body.props)
   }
 })
 

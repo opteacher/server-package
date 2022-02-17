@@ -21,10 +21,16 @@ import Dep from '../models/dep.js'
 import DepType from '../types/dep.js'
 import { del as delNode, save as saveNode, scanNextss } from './node.js'
 
-export async function bind(auth: AuthType) {
-  let ret = auth.roles.find(role => role.name === 'role')
-  if (ret) {
-    return ret
+export async function bind(auth: AuthType | string, mid?: string) {
+  if (typeof auth === 'string') {
+    auth = AuthType.copy(await db.select(Auth, { _index: auth }))
+  }
+  if (mid) {
+    await db.save(Auth, { model: mid }, { _index: auth.key })
+    auth.model = mid
+  }
+  if (auth.roles.find(role => role.name === 'role')) {
+    return auth
   }
   // 为绑定模型添加一列角色列，并添加一个访客记录
   const roleProp = await db.save(Property, {
@@ -41,7 +47,7 @@ export async function bind(auth: AuthType) {
   )
   const guest = RoleType.copy(await db.save(Role, { name: 'guest' }))
   const allRule = RuleType.copy(await db.save(Rule, { method: '*', path: '/', value: '*/*' }))
-  ret = await db.save(Role, { rules: allRule.key }, { updMode: 'append' })
+  await db.save(Role, { rules: allRule.key }, { updMode: 'append' })
   await db.save(Auth, { roles: guest.key }, { _index: auth.key }, { updMode: 'append' })
   // 为模型添加两个网络接口，一个用于签发、一个用于校验
   const signSvc = SvcType.copy(
@@ -66,7 +72,7 @@ export async function bind(auth: AuthType) {
     })
   )
   await db.save(Model, { svcs: verifySvc.key }, { _index: auth.model }, { updMode: 'append' })
-  return ret
+  return auth
 }
 
 export async function save(pid: string, auth: any) {
@@ -76,10 +82,7 @@ export async function save(pid: string, auth: any) {
   const idxCond = project.auth && project.auth.key ? { _index: project.auth.key } : undefined
   auth = AuthType.copy(await db.save(Auth, auth, idxCond))
   await db.save(Project, { auth: auth.key }, { _index: project.key }, { updMode: 'append' })
-  if (auth.model) {
-    await bind(auth)
-  }
-  return auth
+  return auth.model ? bind(auth) : auth
 }
 
 export async function del(pid: string) {

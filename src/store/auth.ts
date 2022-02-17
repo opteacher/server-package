@@ -124,12 +124,20 @@ export default {
       const project = rootGetters['project/ins'] as Project
       // 绑定模型（会为模型加上一个role字段并在role中创建一条guest记录）
       if (auth.key) {
-        await reqPost(`/project/${project.key}/auth`, auth, {
+        await reqPost(`project/${project.key}/auth`, auth, {
           type: 'api',
           ignores: ['roles', 'apis']
         })
       } else {
-        await reqPut('auth', auth.key, auth, { ignores: ['roles', 'apis'] })
+        await reqPut(
+          `auth`,
+          `${auth.key}/bind`,
+          { model: auth.model },
+          {
+            type: 'api',
+            ignores: ['roles', 'apis']
+          }
+        )
       }
       await dispatch('refresh')
     },
@@ -156,7 +164,7 @@ export default {
       console.log(result)
     },
     async genSmplSignLgc({ rootGetters }: { rootGetters: any }, props: CfgSgnType[]) {
-      reqPost(`auth/project/${rootGetters['project/ins'].key}/sign`, { props }, { type: 'api' })
+      reqPost(`project/${rootGetters['project/ins'].key}/auth/sign`, { props }, { type: 'api' })
     }
   },
   getters: {
