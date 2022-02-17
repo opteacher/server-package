@@ -220,5 +220,9 @@ export async function unbind(aid: string) {
     await db.del(Role, { _index: role.key })
   }
   await Promise.all(auth.apis.map(api => db.del(API, { _index: api.key })))
-  await db.save(Auth, { roles: [], apis: [] }, { _index: auth.key })
+  await db.save(
+    Auth,
+    { model: '', roles: [], apis: [], props: [], skips: [] },
+    { _index: auth.key }
+  )
 }
