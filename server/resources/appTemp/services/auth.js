@@ -121,7 +121,7 @@ const skips = [
   /*return skips.map(skip => new RegExp(`/${pjtName}${skip}`)).join(',\n  ')*/
 ]
 
-export function auth(skips = null) {
+export function auth() {
   return async (ctx, next) => {
     const canSkip = skips.map((skip) => {
       const [method, path] = skip.split('\t')
