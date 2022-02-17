@@ -99,7 +99,7 @@ export async function del(pid: string) {
 
 export async function genSignLgc(
   pid: string,
-  { props }: { props: { name: string; algorithm: string }[] }
+  { props }: { props: { name: string; alg: string }[] }
 ) {
   const project = PjtType.copy(await db.select(Project, { _index: pid }, { ext: true }))
   if (!project.auth || !project.auth.model) {
@@ -145,13 +145,13 @@ export async function genSignLgc(
           props.map(
             prop =>
               `  '${prop.name}': ${
-                prop.algorithm !== '不加密'
-                  ? "crypto.createHmac('" + prop.algorithm + "', secret).update("
+                prop.alg !== '不加密'
+                  ? "crypto.createHmac('" + prop.alg + "', secret).update("
                   : ''
               }ctx.request.body.${prop.name}${
-                prop.algorithm !== '不加密' ? ").digest('hex')" : ''
-              },`
-          ),
+                prop.alg !== '不加密' ? ").digest('hex')" : ''
+              }`
+          ).join(',\n'),
           "})\nif(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
           'const record = result[0]'
         ].join('\n'),
