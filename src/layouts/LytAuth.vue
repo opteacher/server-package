@@ -65,8 +65,10 @@ export default defineComponent({
         options: []
       },
       opera: {
-        label: '解除绑定',
+        label: '操作',
         type: 'Button',
+        danger: true,
+        inner: '解除绑定',
         onClick: async () => {
           await store.dispatch('auth/unbindModel')
           await onAuthShow(false)
