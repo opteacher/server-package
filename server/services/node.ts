@@ -243,7 +243,10 @@ export async function del(nid: string, sid?: string) {
   return db.del(Node, { _index: nid })
 }
 
-export async function scanNextss(node: NodeType, rootKey: string): Promise<{
+export async function scanNextss(
+  node: NodeType,
+  rootKey: string
+): Promise<{
   endNode: NodeType | null
   allNodes: Record<string, NodeType>
 }> {

@@ -19,7 +19,7 @@ import NdType from '../types/node.js'
 import VarType from '../types/variable.js'
 import Dep from '../models/dep.js'
 import DepType from '../types/dep.js'
-import { del as delNode, save as saveNode, scanNextss } from './node.js'
+import { del as delNode, save as saveNode, scanNextss, clear as clrNode } from './node.js'
 
 export async function bind(auth: AuthType | string, mid?: string) {
   if (typeof auth === 'string') {
@@ -197,4 +197,28 @@ export async function genSignLgc(
       deps: [DepType.copy((await db.select(Dep, { name: 'UUID' }))[0])]
     })
   )
+}
+
+export async function unbind(aid: string) {
+  const auth = AuthType.copy(await db.select(Auth, { _index: aid }, { ext: true }))
+  const model = MdlType.copy(await db.select(Model, { _index: auth.model }, { ext: true }))
+  for (const svc of model.svcs) {
+    if (svc.name !== 'auth') {
+      continue
+    }
+    if (svc.flow) {
+      const { allNodes } = await scanNextss(svc.flow, '')
+      for (const node of Object.values(allNodes).concat(svc.flow)) {
+        await clrNode(node)
+      }
+    }
+    await db.save(Model, { svcs: svc.key }, { _index: model.key }, { updMode: 'delete' })
+    await db.del(Service, { _index: svc.key })
+  }
+  for (const role of auth.roles) {
+    await Promise.all(role.rules.map(rule => db.del(Rule, { _index: rule.key })))
+    await db.del(Role, { _index: role.key })
+  }
+  await Promise.all(auth.apis.map(api => db.del(API, { _index: api.key })))
+  await db.save(Auth, { roles: [], apis: [] }, { _index: auth.key })
 }

@@ -37,7 +37,7 @@ import { computed, defineComponent, ref, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import FormDialog from '../components/com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { API, Auth, Mapper, Model } from '@/common'
+import { API, Auth, Cond, Mapper, Model } from '@/common'
 import { SettingOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
@@ -63,6 +63,15 @@ export default defineComponent({
         type: 'EditList',
         mode: 'select',
         options: []
+      },
+      opera: {
+        label: '解除绑定',
+        type: 'Button',
+        onClick: async () => {
+          await store.dispatch('auth/unbindModel')
+          await onAuthShow(false)
+        },
+        display: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
       }
     })
 
@@ -76,8 +85,8 @@ export default defineComponent({
       () => store.getters['auth/apis'],
       () => {
         authMapper['skips'].options = store.getters['auth/apis'].map((api: API) => ({
-          label: `${api.method}\t/${project.value.name}${api.path}`,
-          value: `${api.method}\t/${project.value.name}${api.path}`
+          label: `/${project.value.name}${api.path}`,
+          value: api.path
         }))
         authEmitter.emit('update:mapper', authMapper)
       }

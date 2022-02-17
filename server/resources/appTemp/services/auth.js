@@ -123,10 +123,7 @@ const skips = [
 
 export function auth() {
   return async (ctx, next) => {
-    const canSkip = skips.map((skip) => {
-      const [method, path] = skip.split('\t')
-      return method.toLowerCase() === ctx.method.toLowerCase() && path.test(ctx.path)
-    }).reduce((a, b) => a || b)
+    const canSkip = skips.map((skip) => skip.test(ctx.path)).reduce((a, b) => a || b)
     if (!canSkip) {
       const result = await verifyDeep(ctx)
       if (result && result.error) {

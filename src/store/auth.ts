@@ -136,11 +136,9 @@ export default {
       }
       await dispatch('refresh')
     },
-    async unbindModel({ dispatch, rootGetters }: { dispatch: Dispatch; rootGetters: any }) {
-      const project = rootGetters['project/ins'] as Project
-      await reqDelete('project', `${project.key}/auth`, { type: 'api' })
+    async unbindModel({ state, dispatch }: { state: AuthState; dispatch: Dispatch }) {
+      await reqDelete('auth', `${state.auth.key}/unbind`, { type: 'api' })
       await dispatch('refresh')
-      router.push(`/server-package/project/${project.key}`)
     },
     async regup({ dispatch }: { dispatch: Dispatch }, admin: any) {
       const result = await reqPost('log/regup', admin, { type: 'api' })
