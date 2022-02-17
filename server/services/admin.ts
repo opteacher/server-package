@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { db } from '../utils/index.js'
 import Admin from '../models/admin.js'
 import { readConfig } from '../lib/backend-library/utils/index.js'
+import koa from 'koa'
 
 const config = readConfig(Path.resolve('configs', 'server'), false)
 
@@ -42,7 +43,8 @@ export async function login(reqBody: { name: string; password: string }) {
   }
 }
 
-export function verify(token: any) {
+export function verify(ctx: koa.Context) {
+  const token = ctx.headers['authorization']
   if (!token) {
     return { error: '无鉴权口令' }
   }

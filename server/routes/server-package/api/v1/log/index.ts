@@ -11,7 +11,7 @@ router.post('/in', async ctx => {
 
 router.get('/verify', ctx => {
   ctx.body = {
-    result: verify(ctx.headers['authorization'])
+    result: verify(ctx)
   }
 })
 

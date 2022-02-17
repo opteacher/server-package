@@ -8,7 +8,8 @@ export async function sign(ctx) {
   /*return `try {\n${nodes.join('\n\n')}\n  } catch (e) {\n    return { error: e.message || JSON.stringify(e) }\n  }\n`*/
 }
 
-export async function verify(token) {
+export async function verify(ctx) {
+  const token = ctx.headers['authorization']
   if (!token) {
     return { error: '无鉴权口令' }
   }
