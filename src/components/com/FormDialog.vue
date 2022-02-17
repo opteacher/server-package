@@ -316,36 +316,13 @@
                 v-show="formState[key].length"
                 style="margin-top: 5px"
                 size="small"
-                bordered
                 :data-source="formState[key]"
               >
                 <template #renderItem="{ item, index }">
                   <a-list-item>
                     <template #actions>
                       <template v-if="value.addMod && !index">
-                        <a
-                          @click="
-                            () => {
-                              if (!formState[key][0]) {
-                                return
-                              }
-                              let label = formState[key][0]
-                              if (value.mode === 'select') {
-                                label = value.options.find(
-                                  opn => opn.value === formState[key][0]
-                                ).label
-                              }
-                              formState[key].push({
-                                label,
-                                value: formState[key][0]
-                              })
-                              formState[key].shift()
-                              value.addMod = false
-                            }
-                          "
-                        >
-                          确定
-                        </a>
+                        <a @click="() => onEdtLstAdded(key, value)">确定</a>
                         <a
                           @click="
                             () => {
@@ -542,6 +519,14 @@ export default defineComponent({
         formState[propKey].splice(selKeys.indexOf(opnKey), 1)
       }
     }
+    function onEdtLstAdded(key: string | number, value: any) {
+      if (!formState[key][0]) {
+        return
+      }
+      formState[key].push(formState[key][0])
+      formState[key].shift()
+      value.addMod = false
+    }
     return {
       Column,
 
@@ -558,7 +543,8 @@ export default defineComponent({
       validConds,
       onUploadClicked,
       fmtDrpdwnValue,
-      onLstSelChecked
+      onLstSelChecked,
+      onEdtLstAdded
     }
   }
 })

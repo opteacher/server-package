@@ -23,7 +23,7 @@ import { del as delNode, save as saveNode, scanNextss } from './node.js'
 
 export async function bind(auth: AuthType | string, mid?: string) {
   if (typeof auth === 'string') {
-    auth = AuthType.copy(await db.select(Auth, { _index: auth }))
+    auth = AuthType.copy(await db.select(Auth, { _index: auth }, { ext: true }))
   }
   if (mid) {
     await db.save(Auth, { model: mid }, { _index: auth.key })
@@ -72,6 +72,15 @@ export async function bind(auth: AuthType | string, mid?: string) {
     })
   )
   await db.save(Model, { svcs: verifySvc.key }, { _index: auth.model }, { updMode: 'append' })
+  // 加入授权系统的skips集合
+  await db.save(
+    Auth,
+    {
+      skips: [`/api/v1/${model.name}/sign`, `/api/v1/${model.name}/verify`]
+    },
+    { _index: auth.key },
+    { updMode: 'append' }
+  )
   return auth
 }
 
@@ -142,23 +151,27 @@ export async function genSignLgc(
         title: '查询满足列的记录',
         code: [
           'const result = await db.select(model, {',
-          props.map(
-            prop =>
-              `  '${prop.name}': ${
-                prop.alg !== '不加密'
-                  ? "crypto.createHmac('" + prop.alg + "', secret).update("
-                  : ''
-              }ctx.request.body.${prop.name}${
-                prop.alg !== '不加密' ? ").digest('hex')" : ''
-              }`
-          ).join(',\n'),
+          props
+            .map(
+              prop =>
+                `  '${prop.name}': ${
+                  prop.alg !== '不加密'
+                    ? "crypto.createHmac('" + prop.alg + "', secret).update("
+                    : ''
+                }ctx.request.body.${prop.name}${prop.alg !== '不加密' ? ").digest('hex')" : ''}`
+            )
+            .join(',\n'),
           "})\nif(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
           'const record = result[0]'
         ].join('\n'),
         previous: getSecret.key,
         inputs: [VarType.copy({ name: 'model', value: model.name })],
         outputs: [VarType.copy({ name: 'record' })],
-        deps: [DepType.copy((await db.select(Dep, { name: model.name }))[0])]
+        deps: await Promise.all(
+          [model.name, 'Crypto'].map((name: string) =>
+            db.select(Dep, { name }).then(res => DepType.copy(res[0]))
+          )
+        )
       })
     )
   )

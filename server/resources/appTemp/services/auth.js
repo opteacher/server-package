@@ -116,16 +116,17 @@ export async function verifyDeep(ctx) {
   return { error: '你不具备访问该资源的权限！' }
 }
 
-/**
- * 后端验证操作可否
- * @param skips 跳过路由
- * @returns Koa中间件
- */
+const skips = [
+  /\//*return pjtName*/\/mdl\/v1/,
+  /*return skips.map(skip => new RegExp(`/${pjtName}${skip}`)).join(',\n  ')*/
+]
+
 export function auth(skips = null) {
   return async (ctx, next) => {
-    const canSkip = skips
-      ? skips.map((skip) => skip.test(ctx.path)).reduce((a, b) => a || b)
-      : false
+    const canSkip = skips.map((skip) => {
+      const [method, path] = skip.split('\t')
+      return method.toLowerCase() === ctx.method.toLowerCase() && path.test(ctx.path)
+    }).reduce((a, b) => a || b)
     if (!canSkip) {
       const result = await verifyDeep(ctx)
       if (result && result.error) {

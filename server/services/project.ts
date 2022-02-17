@@ -250,18 +250,18 @@ export async function sync(pid: string): Promise<any> {
   const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
   const deps: Record<string, any> = {}
+  const args: Record<string, any> = { pjtName: project.name, skips: project.auth.skips }
   if (authSvc && authSvc.flow) {
-    const nodes = await recuNode(authSvc.flow, 4, (node: any) => {
+    args.nodes = await recuNode(authSvc.flow, 4, (node: any) => {
       for (const dep of node.deps) {
         if (!(dep.id in deps)) {
           deps[dep.id] = dep
         }
       }
     })
-    adjustFile(fs.readFileSync(authTmp), authGen, { nodes, deps: Object.values(deps) })
-  } else {
-    fs.writeFileSync(authGen, fs.readFileSync(authTmp))
+    args.deps = Object.values(deps)
   }
+  adjustFile(fs.readFileSync(authTmp), authGen, args)
 
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')

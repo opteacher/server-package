@@ -6,9 +6,11 @@
       @back="() => $router.go(-1)"
     >
       <template #extra>
-        <a-button type="primary" @click="onAuthShow(true)">绑定模型</a-button>
+        <a-button @click="onAuthShow(true)">
+          <SettingOutlined />
+        </a-button>
         <FormDialog
-          title="绑定模型"
+          title="配置"
           :show="authVisible"
           :copy="Auth.copy"
           :mapper="authMapper"
@@ -31,16 +33,18 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { computed, defineComponent, ref, onMounted } from 'vue'
+import { computed, defineComponent, ref, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import FormDialog from '../components/com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { Auth, Mapper, Model } from '@/common'
+import { API, Auth, Mapper, Model } from '@/common'
+import { SettingOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'AuthorizationLayout',
   components: {
-    FormDialog
+    FormDialog,
+    SettingOutlined
   },
   setup() {
     const store = useStore()
@@ -50,8 +54,14 @@ export default defineComponent({
     const authEmitter = new Emitter()
     const authMapper = new Mapper({
       model: {
-        label: '模型',
+        label: '账户模型',
         type: 'Select',
+        options: []
+      },
+      skips: {
+        label: '跳过链接',
+        type: 'EditList',
+        mode: 'select',
         options: []
       }
     })
@@ -62,6 +72,16 @@ export default defineComponent({
         onAuthShow(true)
       }
     })
+    watch(
+      () => store.getters['auth/apis'],
+      () => {
+        authMapper['skips'].options = store.getters['auth/apis'].map((api: API) => ({
+          label: `${api.method}\t/${project.value.name}${api.path}`,
+          value: `${api.method}\t/${project.value.name}${api.path}`
+        }))
+        authEmitter.emit('update:mapper', authMapper)
+      }
+    )
 
     async function onAuthShow(show: boolean) {
       if (show) {

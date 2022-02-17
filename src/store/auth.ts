@@ -129,15 +129,10 @@ export default {
           ignores: ['roles', 'apis']
         })
       } else {
-        await reqPut(
-          `auth`,
-          `${auth.key}/bind`,
-          { model: auth.model },
-          {
-            type: 'api',
-            ignores: ['roles', 'apis']
-          }
-        )
+        await reqPut(`auth`, `${auth.key}/bind`, auth, {
+          type: 'api',
+          ignores: ['roles', 'apis']
+        })
       }
       await dispatch('refresh')
     },
