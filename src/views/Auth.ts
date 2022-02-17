@@ -68,7 +68,7 @@ export const apiEmitter = new Emitter()
 
 export const ruleEmitter = new Emitter()
 
-export type CfgSgnType = { key: string; name: string; algorithm: string }
+export type CfgSgnType = { key: string; name: string; alg: string }
 export class ConfigSign {
   show: boolean
   static emitter = new Emitter()
@@ -86,7 +86,7 @@ export class ConfigSign {
       type: 'Table',
       show: false,
       emitter: new Emitter(),
-      columns: [new Column('字段名', 'name'), new Column('加密算法', 'algorithm')],
+      columns: [new Column('字段名', 'name'), new Column('加密算法', 'alg')],
       mapper: new Mapper({
         name: {
           label: '字段名',
@@ -112,7 +112,7 @@ export class ConfigSign {
             }
           }
         },
-        algorithm: {
+        alg: {
           label: '加密算法',
           type: 'Select',
           options: ['不加密', 'md5', 'sha1', 'sha256', 'hmac', 'base64'].map(itm => ({
@@ -122,10 +122,10 @@ export class ConfigSign {
         }
       }),
       copy: (src: any, tgt?: CfgSgnType) => {
-        tgt = tgt || { key: uuidv4(), name: '', algorithm: '不加密' }
+        tgt = tgt || { key: uuidv4(), name: '', alg: '不加密' }
         tgt.key = src.key || tgt.key
         tgt.name = src.name || tgt.name
-        tgt.algorithm = src.algorithm || tgt.algorithm
+        tgt.alg = src.alg || tgt.alg
         return tgt
       },
       onSaved: (cmpProp: any, next: () => void) => {
@@ -156,7 +156,7 @@ export class ConfigSign {
   static copy(src: any, tgt?: ConfigSign): ConfigSign {
     tgt = tgt || new ConfigSign()
     tgt.mode = src.mode || tgt.mode
-    tgt.cmpProps = src.cmpProps || tgt.cmpProps
+    tgt.cmpProps = src.props || src.cmpProps || tgt.cmpProps
     return tgt
   }
 

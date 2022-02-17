@@ -77,12 +77,7 @@
           "
           @submit="onTransfer"
         />
-        <a-button
-          v-if="project.thread"
-          class="ml-5"
-          danger
-          @click="onStop"
-        >
+        <a-button v-if="project.thread" class="ml-5" danger @click="onStop">
           <template #icon><PoweroffOutlined /></template>
           &nbsp;停止
         </a-button>

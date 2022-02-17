@@ -102,6 +102,8 @@ export async function genSignLgc(
   if (!project.auth || !project.auth.model) {
     return { error: '项目未绑定模型！' }
   }
+  // 更新比对字段
+  await db.save(Auth, { props }, { _index: project.auth.key })
   const model = MdlType.copy(await db.select(Model, { _index: project.auth.model }, { ext: true }))
   const svcTmp = model?.svcs.find(
     svc => svc.name === 'auth' && svc.path?.slice(-'sign'.length) === 'sign'

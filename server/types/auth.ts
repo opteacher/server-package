@@ -7,7 +7,7 @@ import Role from './role.js'
 export default class Auth {
   key: string
   model: string
-  props: { name: string; alg: string }[]
+  props: { key: string; name: string; alg: string }[]
   roles: Role[]
   apis: API[]
 

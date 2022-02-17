@@ -98,7 +98,7 @@ import { defineComponent, computed } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { API, Role, methods, Rule } from '@/common'
+import { API, Role, methods, Rule, Auth } from '@/common'
 import {
   apiColumn,
   apiMapper,
@@ -205,8 +205,10 @@ export default defineComponent({
       })
     }
     function onSignConfig(api: any) {
-      console.log(api)
       configSign.show = true
+      const auth = store.getters['auth/ins'] as Auth
+      configSign.cmpProps = auth.props
+      ConfigSign.emitter.emit('update:data', configSign)
     }
     return {
       Role,
