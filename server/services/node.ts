@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from '../models/node.js'
-import NodeType from '../types/Node.js'
+import NodeType from '../types/node.js'
 import Variable from '../models/variable.js'
 import VarType from '../types/variable.js'
 import Service from '../models/service.js'
+import DepType from '../types/dep.js'
 import { db, skipIgnores } from '../utils/index.js'
 
 export function tempNodes() {
@@ -32,7 +33,7 @@ export async function save(node: NodeType, sid?: string) {
     // 覆盖依赖
     await db.save(
       Node,
-      { deps: node.deps.map(dep => dep.key) },
+      { deps: node.deps.map((dep: DepType) => dep.key) },
       { _index: node.key },
       { updMode: 'cover' }
     )
@@ -55,7 +56,7 @@ export async function save(node: NodeType, sid?: string) {
   // 覆盖依赖
   await db.save(
     Node,
-    { deps: orgNode.deps.map(dep => dep.key) },
+    { deps: orgNode.deps.map((dep: DepType) => dep.key) },
     { _index: nodeKey },
     { updMode: 'cover' }
   )
@@ -204,7 +205,7 @@ export async function del(nid: string, sid?: string) {
           // 如果是条件根节点，则依次删除其子条件节点
           const endNxtKeys = [] as string[]
           const nxtNodes = await Promise.all(
-            node.nexts.map(nxtKey =>
+            node.nexts.map((nxtKey: string) =>
               db.select(Node, { _index: nxtKey }).then((res: any) => NodeType.copy(res))
             )
           )
