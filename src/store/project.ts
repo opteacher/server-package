@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Deploy, Model, Project } from '@/common'
+import Deploy from '@/types/deploy'
+import Model from '@/types/model'
+import Project from '@/types/project'
 import router from '@/router'
 import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import axios from 'axios'

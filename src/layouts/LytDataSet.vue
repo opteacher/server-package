@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { Model } from '@/common'
+import Model from '@/types/model'
 import { reqGet } from '@/utils'
 import { defineComponent, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

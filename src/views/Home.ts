@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Cond, DataBase, Mapper, Project } from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import { reqGet } from '@/utils'
 import store from '@/store'
+import Mapper from '@/types/mapper'
+import Project from '@/types/project'
+import DataBase from '@/types/database'
+import { Cond } from '@/types'
 
 export class ProjForm {
   show: boolean

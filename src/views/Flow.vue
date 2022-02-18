@@ -62,7 +62,7 @@
 import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
 import LytFlow from '../layouts/LytFlow.vue'
 import NodeCard from '../components/NodeCard.vue'
-import { Node } from '../common'
+import Node from '../types/node'
 import FormDialog from '../components/com/FormDialog.vue'
 import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow'
 import { useStore } from 'vuex'

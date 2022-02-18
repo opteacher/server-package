@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Admin } from '@/common'
+import Admin from '@/types/admin'
 import router from '@/router'
 import { reqPost } from '@/utils'
 import { message, notification } from 'ant-design-vue'

@@ -128,7 +128,8 @@ import {
 } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { useStore } from 'vuex'
-import { Project, Deploy } from '@/common'
+import Project from '@/types/project'
+import Deploy from '@/types/deploy'
 
 export default defineComponent({
   name: 'ProjectLayout',

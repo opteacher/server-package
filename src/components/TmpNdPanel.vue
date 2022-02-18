@@ -63,7 +63,7 @@
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { GoldOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
-import { Node } from '../common'
+import Node from '../types/node'
 
 export default defineComponent({
   name: 'TempNodePanel',

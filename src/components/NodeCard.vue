@@ -169,7 +169,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
-import { Node, NodeTypeMapper, NodeType } from '@/common'
+import Node, { NodeTypeMapper, NodeType } from '@/types/node'
 import {
   CardMinHgt,
   NodeInPnl,

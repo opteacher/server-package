@@ -37,7 +37,7 @@ import { useStore } from 'vuex'
 import { SettingOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ServiceMapper } from '../views/Flow'
-import { Service } from '@/common'
+import Service from '@/types/service'
 import { reqPut } from '@/utils'
 
 export default defineComponent({

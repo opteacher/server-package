@@ -20,7 +20,7 @@
       <template #sign="{ record: api }">
         <a-button
           v-if="api.svc === 'auth' && api.path.slice(-'sign'.length) === 'sign'"
-          @click="onSignConfig(api)"
+          @click="onSignConfig()"
         >
           <template #icon>
             <AuditOutlined />
@@ -98,7 +98,6 @@ import { defineComponent, computed } from 'vue'
 import LytAuth from '../layouts/LytAuth.vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { API, Role, methods, Rule, Auth } from '@/common'
 import {
   apiColumn,
   apiMapper,
@@ -114,6 +113,11 @@ import {
 } from './Auth'
 import { useStore } from 'vuex'
 import { AuditOutlined } from '@ant-design/icons-vue'
+import API from '@/types/api'
+import Role from '@/types/role'
+import Rule from '@/types/rule'
+import { methods } from '@/types'
+import Auth from '@/types/auth'
 
 export default defineComponent({
   name: 'Authorization',
@@ -204,7 +208,7 @@ export default defineComponent({
         }
       })
     }
-    function onSignConfig(api: any) {
+    function onSignConfig() {
       configSign.show = true
       const auth = store.getters['auth/ins'] as Auth
       configSign.cmpProps = auth.props

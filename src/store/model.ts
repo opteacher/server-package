@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Model } from '@/common'
+import Model from '@/types/model'
 import router from '@/router'
 import { reqGet, reqPost } from '@/utils'
 import { ExpClsForm } from '../views/Project'

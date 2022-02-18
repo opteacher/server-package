@@ -74,7 +74,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Admin } from '@/common'
+import Admin from '@/types/admin'
 import { makeRequest } from '@/utils'
 import axios from 'axios'
 import { defineComponent, onMounted, reactive } from 'vue'

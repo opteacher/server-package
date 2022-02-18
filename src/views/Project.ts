@@ -1,22 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  baseTypes,
-  Column,
-  Deploy,
-  Mapper,
-  Service,
-  methods,
-  Cond,
-  emitTypeOpns,
-  Model
-} from '@/common'
 import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import _ from 'lodash'
+import Column from '@/types/column'
+import Mapper from '@/types/mapper'
+import Model from '@/types/model'
+import { baseTypes, Cond, methods } from '@/types'
+import Service, { emitTypeOpns } from '@/types/service'
+import Deploy from '@/types/deploy'
 
 export function onSync() {
   Modal.confirm({
@@ -365,13 +360,13 @@ export class DeployForm {
       },
       indexPath: {
         label: '首页生成目录',
-        desc: '生成之后的首页的位置，【Vue】vue.config.js的outputDir',
+        desc: '生成之后的首页的位置，【Vue】vue.config的outputDir',
         type: 'Input',
         rules: []
       },
       assetsPath: {
         label: '资源生成目录',
-        desc: '生成之后的前端资源的位置，【Vue】vue.config.js的outputDir + assetsDir',
+        desc: '生成之后的前端资源的位置，【Vue】vue.config的outputDir + assetsDir',
         type: 'Input'
       }
     })

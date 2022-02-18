@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Column, Mapper, Model } from '@/common'
+import Column from '@/types/column'
+import Mapper from '@/types/mapper'
+import Model from '@/types/model'
 
 export class DtStTable {
   columns: Column[]

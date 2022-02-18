@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, authValues, Column, Mapper, methods, Model, Service } from '@/common'
+import API from '@/types/api'
+import { authValues } from '@/types/rule'
+import Column from '@/types/column'
+import Mapper from '@/types/mapper'
+import { methods } from '@/types'
+import Model from '@/types/model'
+import Service from '@/types/service'
 import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { v4 as uuidv4 } from 'uuid'

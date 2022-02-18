@@ -61,9 +61,9 @@
 </template>
 
 <script lang="ts">
+import Project from '@/types/project'
 import { defineComponent, ref, onMounted, reactive } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
-import { Project } from '@/common'
 import { reqDelete, reqGet, reqPost } from '../utils'
 import { ProjForm } from './Home'
 

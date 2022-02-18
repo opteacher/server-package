@@ -23,7 +23,8 @@ import LytDataSet from '../layouts/LytDataSet.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { Column, Mapper } from '@/common'
+import Column from '@/types/column'
+import Mapper from '@/types/mapper'
 
 export default defineComponent({
   name: 'Dataset',

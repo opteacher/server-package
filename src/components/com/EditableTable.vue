@@ -192,7 +192,8 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Cond, Mapper } from '@/common'
+import { Cond } from '@/types'
+import Mapper from '@/types/mapper'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { InfoCircleOutlined, SelectOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'

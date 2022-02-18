@@ -158,13 +158,12 @@
         expClsVsb = show
       }
     "
-    @submit="formData => $store.dispatch('model/export', formData)"
+    @submit="formData => store.dispatch('model/export', formData)"
   />
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Model, Project, Property, Service } from '@/common'
 import { computed, defineComponent, onMounted } from 'vue'
 import {
   ApartmentOutlined,
@@ -195,6 +194,10 @@ import {
   ExpClsForm
 } from './Project'
 import { useStore } from 'vuex'
+import Project from '@/types/project'
+import Model from '@/types/model'
+import Property from '@/types/property'
+import Service from '@/types/service'
 
 export default defineComponent({
   name: 'Project',
@@ -299,6 +302,7 @@ export default defineComponent({
       ServiceColumns,
       ServiceMapper,
       pid,
+      store,
       router,
       project,
       timeUnits,

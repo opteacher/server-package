@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import {
-  Node,
-  Service,
-  Variable,
-  NodeTypeMapper,
-  Project,
-  Dep,
-  OpnType,
-  LstOpnType
-} from '@/common'
+import Node, { NodeTypeMapper } from '@/types/node'
+import Service from '@/types/service'
+import Variable from '@/types/variable'
+import Project from '@/types/project'
+import Dep from '@/types/dep'
+import { OpnType } from '@/types'
+import { LstOpnType } from '@/types/mapper'
 import {
   reqDelete,
   reqGet,
@@ -473,7 +470,7 @@ export default {
     width: (state: SvcState): number => state.width,
     node:
       (state: SvcState) =>
-      (key: string): NodesInPnl =>
+      (key: string): NodeInPnl =>
         state.nodes[key],
     editNode: (state: SvcState): Node => state.node,
     nodeVsb: (state: SvcState): boolean => state.nodeVsb,
@@ -487,7 +484,7 @@ export default {
     deps:
       (state: SvcState) =>
       (key: string): Dep[] =>
-        state.node[key].deps,
+        state.nodes[key].deps,
     tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

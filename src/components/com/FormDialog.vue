@@ -345,7 +345,9 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Column, Cond, Mapper, OpnType } from '@/common'
+import Column from '@/types/column'
+import Mapper from '@/types/mapper'
+import { Cond, OpnType } from '@/types'
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,

@@ -37,7 +37,11 @@ import { computed, defineComponent, ref, onMounted, watch, createVNode } from 'v
 import { useStore } from 'vuex'
 import FormDialog from '../components/com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { API, Auth, Cond, Mapper, Model } from '@/common'
+import API from '@/types/api'
+import Auth from '@/types/auth'
+import Mapper from '@/types/mapper'
+import Model from '@/types/model'
+import { Cond } from '@/types'
 import { SettingOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 

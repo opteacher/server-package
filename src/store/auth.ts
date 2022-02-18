@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API, Auth, Project, Role, Rule } from '@/common'
-import router from '@/router'
+import API from '@/types/api'
+import Auth from '@/types/auth'
+import Project from '@/types/project'
+import Role from '@/types/role'
+import Rule from '@/types/rule'
 import { reqAll, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 import { CfgSgnType } from '@/views/Auth'
 import { message, notification } from 'ant-design-vue'

@@ -4,20 +4,14 @@ import store from '@/store'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
-import {
-  Mapper,
-  Cond,
-  Variable,
-  Column,
-  baseTypes,
-  Node,
-  NodeTypeMapper,
-  methods,
-  Service,
-  NodeType
-} from '../common'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
+import Mapper from '@/types/mapper'
+import { baseTypes, Cond, methods } from '@/types'
+import Variable from '@/types/variable'
+import Node, { NodeType, NodeTypeMapper } from '@/types/node'
+import Column from '@/types/column'
+import Service from '@/types/service'
 
 const InputEmitter = new Emitter()
 
