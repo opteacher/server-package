@@ -160,21 +160,21 @@
         <template v-if="record.key === editing.key">
           <ul class="unstyled-list">
             <li class="mb-3">
-              <a-button type="primary" size="small" @click="onSaveSubmit">保存</a-button>
+              <a-button type="primary" size="small" @click.stop="onSaveSubmit">保存</a-button>
             </li>
             <li>
-              <a-button size="small" @click="onCclClicked()">取消</a-button>
+              <a-button size="small" @click.stop="onCclClicked()">取消</a-button>
             </li>
           </ul>
         </template>
         <template v-else>
           <ul class="unstyled-list">
             <li v-if="edtable && filter(record, 'edit')" class="mb-3">
-              <a-button size="small" @click="onEditClicked(record)">编辑</a-button>
+              <a-button size="small" @click.stop="onEditClicked(record)">编辑</a-button>
             </li>
             <li v-if="delable && filter(record, 'delete')">
               <a-popconfirm title="确定删除该字段" @confirm="onDelSubmit(record.key)">
-                <a-button size="small" danger>删除</a-button>
+                <a-button size="small" danger @click.stop>删除</a-button>
               </a-popconfirm>
             </li>
           </ul>

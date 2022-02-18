@@ -13,7 +13,7 @@
       <template #dataset="{ record: model }">
         <a-button
           :disabled="project.status !== 'running'"
-          @click="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+          @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
         >
           <template #icon><DatabaseOutlined /></template>
           &nbsp;数据浏览
@@ -32,8 +32,8 @@
           &nbsp;导出类
         </a-button>
       </template>
-      <template #dsgnForm>
-        <a-button @click.stop="() => {}">
+      <template #dsgnForm="{ record: model }">
+        <a-button @click.stop="router.push(`/server-package/project/${pid}/form/${model.key}`)">
           <template #icon><FormOutlined /></template>
           &nbsp;表单设计
         </a-button>

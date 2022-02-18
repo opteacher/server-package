@@ -37,8 +37,8 @@ import { useStore } from 'vuex'
 import { SettingOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import { ServiceMapper } from '../views/Flow'
-import { Service, Project, Dep, Model } from '@/common'
-import { reqLink, reqPut } from '@/utils'
+import { Service } from '@/common'
+import { reqPut } from '@/utils'
 
 export default defineComponent({
   name: 'FlowDesign',
