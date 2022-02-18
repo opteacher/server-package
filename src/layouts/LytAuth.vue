@@ -45,8 +45,7 @@ export default defineComponent({
   name: 'AuthorizationLayout',
   components: {
     FormDialog,
-    SettingOutlined,
-    ExclamationCircleOutlined
+    SettingOutlined
   },
   setup() {
     const store = useStore()
