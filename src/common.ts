@@ -333,13 +333,13 @@ export class LstSelMapper extends BaseMapper {
 }
 
 export class EditListMapper extends BaseMapper {
-  addMod: Ref<boolean>
+  addMod: boolean
   mode: 'select' | 'input'
   options: OpnType[]
 
   constructor() {
     super()
-    this.addMod = ref(false)
+    this.addMod = false
     this.mode = 'input'
     this.options = []
   }
@@ -348,7 +348,7 @@ export class EditListMapper extends BaseMapper {
     tgt = tgt || new EditListMapper()
     BaseMapper.copy(src, tgt)
     if (src.addMod) {
-      tgt.addMod.value = src.addMod.value || src.addMod || tgt.addMod.value
+      tgt.addMod = src.addMod || tgt.addMod
     }
     tgt.mode = src.mode || tgt.mode
     tgt.options = src.options || tgt.options

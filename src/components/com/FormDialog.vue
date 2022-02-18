@@ -299,17 +299,7 @@
               </a-list>
             </a-form-item-rest>
             <template v-else-if="value.type === 'EditList'">
-              <a-button
-                class="w-100"
-                type="primary"
-                ghost
-                @click="
-                  () => {
-                    formState[key].unshift('')
-                    value.addMod = true
-                  }
-                "
-              >
+              <a-button class="w-100" type="primary" ghost @click="onEdtLstShow(key, value)">
                 添加{{ value.label }}
               </a-button>
               <a-list
@@ -322,17 +312,8 @@
                   <a-list-item>
                     <template #actions>
                       <template v-if="value.addMod && !index">
-                        <a @click="() => onEdtLstAdded(key, value)">确定</a>
-                        <a
-                          @click="
-                            () => {
-                              formState[key].shift()
-                              value.addMod = false
-                            }
-                          "
-                        >
-                          取消
-                        </a>
+                        <a @click="onEdtLstAdded(key, value)">确定</a>
+                        <a @click="onEdtLstDeled(key, value)">取消</a>
                       </template>
                       <a v-else @click="formState[key].splice(index, 1)">删除</a>
                     </template>
@@ -345,7 +326,12 @@
                       />
                       <a-input v-else v-model:value="formState[key][0]" />
                     </template>
-                    <template v-else>{{ item.label }}</template>
+                    <template v-else>
+                      <template v-if="value.mode === 'select'">
+                        {{ value.options.find(opn => opn.value === item).label }}
+                      </template>
+                      <template v-else>{{ item }}</template>
+                    </template>
                   </a-list-item>
                 </template>
               </a-list>
@@ -527,6 +513,14 @@ export default defineComponent({
       formState[key].shift()
       value.addMod = false
     }
+    function onEdtLstDeled(key: string | number, value: any) {
+      formState[key].shift()
+      value.addMod = false
+    }
+    function onEdtLstShow(key: string | number, value: any) {
+      formState[key].unshift('')
+      value.addMod = true
+    }
     return {
       Column,
 
@@ -544,7 +538,9 @@ export default defineComponent({
       onUploadClicked,
       fmtDrpdwnValue,
       onLstSelChecked,
-      onEdtLstAdded
+      onEdtLstAdded,
+      onEdtLstDeled,
+      onEdtLstShow
     }
   }
 })

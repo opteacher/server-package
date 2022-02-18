@@ -11,6 +11,7 @@ import Property from '../models/property.js'
 import Service from '../models/service.js'
 import Node from '../models/node.js'
 import Auth from '../models/auth.js'
+import Dep from '../models/dep.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
 import { save as saveAuth, del as delAuth } from './auth.js'
@@ -249,8 +250,13 @@ export async function sync(pid: string): Promise<any> {
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
   const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
-  const deps: Record<string, any> = {}
-  const args: Record<string, any> = { pjtName: project.name, skips: project.auth.skips }
+  const mdlDep = await db.select(Dep, { name: authMdl.name })
+  const deps: Record<string, any> = { [mdlDep.id]: mdlDep }
+  const args: Record<string, any> = {
+    pjtName: project.name,
+    mdlName: authMdl,
+    skips: project.auth.skips
+  }
   if (authSvc && authSvc.flow) {
     args.nodes = await recuNode(authSvc.flow, 4, (node: any) => {
       for (const dep of node.deps) {

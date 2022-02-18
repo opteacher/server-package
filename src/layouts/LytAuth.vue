@@ -33,18 +33,20 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { computed, defineComponent, ref, onMounted, watch } from 'vue'
+import { computed, defineComponent, ref, onMounted, watch, createVNode } from 'vue'
 import { useStore } from 'vuex'
 import FormDialog from '../components/com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { API, Auth, Cond, Mapper, Model } from '@/common'
-import { SettingOutlined } from '@ant-design/icons-vue'
+import { SettingOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import { Modal } from 'ant-design-vue'
 
 export default defineComponent({
   name: 'AuthorizationLayout',
   components: {
     FormDialog,
-    SettingOutlined
+    SettingOutlined,
+    ExclamationCircleOutlined
   },
   setup() {
     const store = useStore()
@@ -70,8 +72,18 @@ export default defineComponent({
         danger: true,
         inner: '解除绑定',
         onClick: async () => {
-          await store.dispatch('auth/unbindModel')
-          await onAuthShow(false)
+          Modal.confirm({
+            title: '确定解除绑定吗？',
+            icon: createVNode(ExclamationCircleOutlined),
+            content: '会删除生成的两个属于auth的服务、所有角色和规则',
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk: async () => {
+              await store.dispatch('auth/unbindModel')
+              await onAuthShow(false)
+            }
+          })
         },
         display: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
       }
