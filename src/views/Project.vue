@@ -243,7 +243,8 @@ export default defineComponent({
       await store.dispatch('project/update', {
         opera: prop,
         parent: ['model', mid],
-        child: ['props', 'property']
+        child: ['props', 'property'],
+        isAPI: true
       })
       propEmitter.emit('refresh')
     }
@@ -251,7 +252,8 @@ export default defineComponent({
       await store.dispatch('project/update', {
         opera: 'property',
         parent: ['model', mid],
-        child: ['props', key]
+        child: ['props', key],
+        isAPI: true
       })
       propEmitter.emit('refresh')
     }

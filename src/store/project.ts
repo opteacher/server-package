@@ -51,7 +51,6 @@ export default {
         if (payload.opera.key) {
           // 更新
           await reqPut(payload.child[1], payload.opera.key, payload.opera, {
-            type: payload.isAPI ? 'api' : 'mdl',
             ignores: payload.ignores
           })
           await dispatch('refresh')

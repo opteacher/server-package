@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { db } from '../utils/index.js'
 import Project from '../models/project.js'
@@ -5,6 +6,11 @@ import Model from '../models/model.js'
 import MdlType from '../types/model.js'
 import Dep from '../models/dep.js'
 import axios from 'axios'
+import Property from '../models/property.js'
+import PropType from '../types/property.js'
+import Field from '../models/field.js'
+import FldType from '../types/field.js'
+import { genField } from './property.js'
 
 const typeMapper = {
   Any: 'any',
@@ -63,7 +69,7 @@ export async function exportClass(
     }
   }
   writeData += '\n  constructor() {\n'
-  writeData += '    this.key = \'\'\n'
+  writeData += "    this.key = ''\n"
   for (const prop of model.props) {
     if (options.expType === 'javascript') {
       writeData += genAnno(prop, '    ')
@@ -73,7 +79,7 @@ export async function exportClass(
   writeData += '  }\n'
   if (options.genReset) {
     writeData += '\n  reset() {\n'
-    writeData += '    this.key = \'\'\n'
+    writeData += "    this.key = ''\n"
     for (const prop of model.props) {
       writeData += `    this.${prop.name} = ${genDft(prop.type)}\n`
     }
@@ -128,4 +134,19 @@ export async function create(data: any) {
 export async function del(key: string) {
   await db.del(Dep, { _index: key })
   return db.del(Model, { _index: key })
+}
+
+export async function newProp(data: any, mid: string) {
+  const ret = PropType.copy(await db.save(Property, data))
+  const newField = FldType.copy(await genField(ret.key, Object.assign({ model: mid }, ret)))
+  return db
+    .save(Property, { field: newField.key }, { _index: ret.key })
+    .then(res => PropType.copy(res))
+}
+
+export async function delProp(pid: string, mid: string) {
+  const prop = await db.select(Property, { _index: pid })
+  await db.del(Field, { _index: prop.field })
+  await db.save(Model, { props: pid }, { _index: mid }, { updMode: 'delete' })
+  return db.del(Property, { _index: pid })
 }

@@ -52,6 +52,28 @@ export type CompoType =
   | 'EditList'
   | 'Unknown'
 
+export const compoTypes = [
+  'Text',
+  'Block',
+  'Input',
+  'Number',
+  'Button',
+  'Select',
+  'DateTime',
+  'Checkbox',
+  'Switch',
+  'Button',
+  'Table',
+  'Textarea',
+  'Delable',
+  'SelOrIpt',
+  'Upload',
+  'Cascader',
+  'ListSelect',
+  'EditList',
+  'Unknown'
+]
+
 export type OpnType = {
   label: string
   subLabel?: string

@@ -1,7 +1,7 @@
 <template>
   <LytForm>
-    <a-layout style="position: fixed; top: 104px; bottom: 30px">
-      <a-layout-sider width="30vw" :style="{ padding: '20px', background: '#ececec' }">
+    <a-layout class="h-100">
+      <a-layout-sider width="20%" :style="{ padding: '20px', background: '#ececec' }">
         <a-list :grid="{ gutter: 16, column: 2 }" :data-source="compos">
           <template #renderItem="{ item: compo }">
             <a-list-item>
@@ -10,118 +10,92 @@
           </template>
         </a-list>
       </a-layout-sider>
-      <a-layout-content :style="{ padding: '20px', width: '50vw' }" @click="active = ''">
+      <a-layout-content :style="{ padding: '20px', width: '50%' }" @click="active = ''">
         <a-form
-          class="w-100"
-          :model="formState"
-          :label-col="{ span: 8 }"
-          :wrapper-col="{ span: 16 }"
-          autocomplete="off"
+          :style="{ width: '50%', margin: '0 auto', position: 'relative' }"
+          :label-col="{ span: 4 }"
+          :wrapper-col="{ span: 20 }"
         >
-          <template v-for="field in fields" :key="field.key">
-            <a-form-item class="p-10" :class="{ 'mb-0 bd-form-item': field.key === active }">
-              <template #label>
-                <a v-if="field.key !== active" @click.stop="active = field.key">
-                  {{ field.label }}
-                </a>
-                <p v-else class="mb-0">{{ field.label }}</p>
-              </template>
-              <a-input v-if="field.type === 'Input'" v-model:value="formState.username" disabled />
-            </a-form-item>
-            <div v-if="field.key === active" class="bd-form-oper">
-              <a-button size="small" type="primary" class="br-0">
-                <template #icon><DragOutlined /></template>
-                &nbsp;移动
-              </a-button>
-              <a-button
-                size="small"
-                type="primary"
-                danger
-                class="br-0 mr-0"
-                style="float: right"
-                @click.stop="onFieldDel"
-              >
-                <template #icon><CloseOutlined /></template>
-                &nbsp;删除
-              </a-button>
-            </div>
+          <template v-for="(field, index) in Object.values(fields)" :key="field.key">
+            <FieldCard
+              :index="index"
+              :field="field"
+              :active="active"
+              @update:active="act => (active = act)"
+              @drag="act => (active = act)"
+            />
           </template>
         </a-form>
       </a-layout-content>
+      <a-layout-sider width="30%" :style="{ padding: '20px', background: '#ececec' }">
+        <a-descriptions title="组件参数" :column="1" bordered>
+          <a-descriptions-item label="标题">
+            <a-input
+              :disabled="!actField"
+              :value="actField?.label"
+              @change="e => (fields[active].label = e.target.value)"
+            />
+          </a-descriptions-item>
+          <a-descriptions-item label="类型">
+            <a-select
+              :disabled="!actField"
+              class="w-100"
+              :value="actField?.type"
+              :options="compoTypes.map(cmpTyp => ({ label: cmpTyp, value: cmpTyp }))"
+            />
+          </a-descriptions-item>
+          <a-descriptions-item label="描述">
+            <a-textarea
+              :disabled="!actField"
+              :value="actField?.desc"
+              :auto-size="{ minRows: 2 }"
+              @change="e => (fields[active].desc = e.target.value)"
+            />
+          </a-descriptions-item>
+          <a-descriptions-item label="Order time">2018-04-24 18:00:00</a-descriptions-item>
+        </a-descriptions>
+      </a-layout-sider>
     </a-layout>
   </LytForm>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Compo from '@/types/compo'
-import { createVNode, defineComponent, reactive, ref } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import LytForm from '../layouts/LytForm.vue'
 import CompoCard from '../components/CompoCard.vue'
-import { CloseOutlined, DragOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
-import { v4 as uuidv4 } from 'uuid'
-import { Field } from '@/types/field'
-import { Modal } from 'ant-design-vue'
+import FieldCard from '../components/FieldCard.vue'
+import { compoTypes } from '../types'
+import { useStore } from 'vuex'
+import Field from '@/types/field'
+import Compo from '@/types/compo'
 
 export default defineComponent({
   name: 'Form',
   components: {
     LytForm,
     CompoCard,
-    CloseOutlined,
-    DragOutlined
+    FieldCard
   },
   setup() {
-    const compos = reactive([
-      reactive(Compo.copy({ name: 'Button' })),
-      reactive(Compo.copy({ name: 'Icon' })),
-      reactive(Compo.copy({ name: 'Input' })),
-      reactive(Compo.copy({ name: 'Select' }))
-    ])
-    const fields = reactive([
-      reactive(Field.copy({ key: uuidv4(), label: 'abcd', type: 'Input' })),
-      reactive(Field.copy({ key: uuidv4(), label: 'abcd', type: 'Input' }))
-    ])
-    const formState = reactive({} as Record<string, any>)
+    const store = useStore()
+    const compos = computed(() => store.getters['model/compos'] as Compo[])
+    const fields = computed(() => store.getters['model/fields'] as Record<string, Field>)
     const active = ref('')
+    const actField = computed(() => fields.value[active.value])
 
-    function onFieldDel() {
-      Modal.confirm({
-        title: '确定删除该表单组件吗？',
-        icon: createVNode(ExclamationCircleOutlined),
-        content: '不可恢复！',
-        okText: 'Yes',
-        okType: 'danger',
-        cancelText: 'No',
-        onOk() {
-          fields.splice(
-            fields.findIndex(fld => fld.key === active.value),
-            1
-          )
-          active.value = ''
-        }
-      })
-    }
     return {
       compos,
       active,
       fields,
-      formState,
-
-      onFieldDel
+      actField,
+      compoTypes
     }
   }
 })
 </script>
 
 <style lang="less">
-.opera-btn {
-  position: absolute;
-  margin-right: 0;
-  border-radius: 0;
-  bottom: 1px;
-}
-
 .bd-form-item {
   border-top: 1px solid #108ee9;
   border-left: 1px solid #108ee9;

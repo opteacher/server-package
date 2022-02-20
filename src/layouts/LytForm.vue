@@ -5,7 +5,13 @@
       :title="model.name"
       :sub-title="model.desc"
       @back="() => router.go(-1)"
-    ></a-page-header>
+    >
+      <a-descriptions size="small" :column="5">
+        <a-descriptions-item v-for="prop in model.props" :key="prop.key" :label="prop.label">
+          {{ prop.name }}
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-page-header>
     <slot />
   </div>
 </template>
