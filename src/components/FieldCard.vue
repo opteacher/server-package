@@ -28,6 +28,9 @@
       </a-tooltip>
     </template>
     <a-input v-if="field.type === 'Input'" />
+    <a-select v-else-if="field.type === 'Select'" class="w-100" />
+    <a-input-number v-else-if="field.type === 'Number'" class="w-100" />
+    <a-checkbox v-else-if="field.type === 'Checkbox'" />
   </a-form-item>
   <div
     :style="{
@@ -133,12 +136,8 @@ export default defineComponent({
         okText: 'Yes',
         okType: 'danger',
         cancelText: 'No',
-        onOk() {
-          // fields.splice(
-          //   fields.findIndex(fld => fld.key === active.value),
-          //   1
-          // )
-          // active.value = ''
+        onOk: async () => {
+          await store.dispatch('model/delField', props.active)
         }
       })
     }
@@ -164,14 +163,16 @@ export default defineComponent({
       if (instPos.length !== 3) {
         return
       }
-      const dropField = e.dataTransfer?.getData('text/plain')
-      if (instPos[1] === 'top') {
-        console.log('insert', dropField, 'before', instPos[2])
+      const dragField = e.dataTransfer?.getData('text/plain')
+      const insertPos = { field: instPos[2], pos: instPos[1] === 'top' ? 'before' : 'after' }
+      if (dragField?.startsWith('compo_')) {
+        store.dispatch('model/newField', {
+          compoType: dragField.substring('compo_'.length),
+          insertPos
+        })
       } else {
-        console.log('insert', dropField, 'after', instPos[2])
+        store.dispatch('model/insertField', { dragField, insertPos })
       }
-      store.commit('model/SET_DRAG_ON', '')
-      store.commit('model/SET_DIVIDER', '')
     }
     function onDragging(e: DragEvent) {
       const dgOnKey = store.getters['model/dragOn']

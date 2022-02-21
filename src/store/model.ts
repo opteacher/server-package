@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from '@/types/model'
 import router from '@/router'
-import { reqAll, reqGet, reqPost, reqPut } from '@/utils'
+import { reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 import { ExpClsForm } from '../views/Project'
 import Compo from '@/types/compo'
 import Field from '@/types/field'
@@ -75,8 +75,45 @@ export default {
       // 通过调用 URL.createObjectURL() 创建的 URL 对象
       window.URL.revokeObjectURL(link.href)
     },
-    async saveForm({ state, dispatch }: { state: ModelState, dispatch: Dispatch }, form: any) {
-      await reqPut('form', state.form.key, form, { ignores: ['fields'] })
+    async saveForm({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, form: any) {
+      await reqPut('form', state.form.key, form, {
+        messages: { notShow: true },
+        ignores: ['fields']
+      })
+      await dispatch('refresh')
+    },
+    async saveField({ dispatch }: { dispatch: Dispatch }, field: any) {
+      await reqPut('field', field.key, field, {
+        messages: { notShow: true },
+        ignores: ['key']
+      })
+      await dispatch('refresh')
+    },
+    async newField(
+      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
+      payload: {
+        compoType: string
+        insertPos: { field: string; pos: 'before' | 'after' }
+      }
+    ) {
+      const field = await reqPost('field', { type: payload.compoType })
+      await reqPost(`form/${state.form.key}/field/${field._id}`, payload.insertPos, { type: 'api' })
+      await dispatch('refresh')
+    },
+    async insertField(
+      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
+      payload: {
+        dragField: string
+        insertPos: { field: string; pos: 'before' | 'after' }
+      }
+    ) {
+      await reqPost(`form/${state.form.key}/field/${payload.dragField}`, payload.insertPos, {
+        type: 'api'
+      })
+      await dispatch('refresh')
+    },
+    async delField({ dispatch }: { dispatch: Dispatch }, fldKey: string) {
+      await reqDelete('field', fldKey)
       await dispatch('refresh')
     }
   },

@@ -138,41 +138,60 @@ export async function del(key: string) {
   return db.del(Model, { _index: key })
 }
 
+function baseToCompoType(type: string) {
+  switch (type) {
+    case 'String':
+      return 'Input'
+    case 'Number':
+      return 'Number'
+    case 'Boolean':
+      return 'Checkbox'
+    case 'DateTime':
+      return 'DateTime'
+    case 'Array':
+      return 'EditList'
+    default:
+      return 'Text'
+  }
+}
+
 export async function genForm(mid: string) {
   const fKey = (await db.select(Model, { _index: mid })).form
   if (fKey) {
     return db.select(Form, { _index: fKey }, { ext: true })
   }
   const model = MdlType.copy(await db.select(Model, { _index: mid }, { ext: true }))
-  let maxIdx = await db.max(Field, 'index', { model: mid })
-  function baseToCompoType(type: string) {
-    switch (type) {
-      case 'String':
-        return 'Input'
-      case 'Number':
-        return 'Number'
-      case 'Boolean':
-        return 'Checkbox'
-      case 'DateTime':
-        return 'DateTime'
-      case 'Array':
-        return 'EditList'
-      default:
-        return 'Text'
-    }
-  }
   const fields = []
   for (const prop of model.props) {
     const res = await db.save(Field, {
-      index: (maxIdx++),
       label: prop.label,
-      model: mid,
       type: baseToCompoType(prop.type),
       refer: `@${prop.name}`
     })
     fields.push(res.id)
   }
-  const form = await db.save(Form, { labelWidth: 4, fields })
+  const form = await db.save(Form, { width: 50, labelWidth: 4, fields })
   await db.save(Model, { form: form.id }, { _index: mid })
   return db.select(Form, { _index: form.id }, { ext: true })
+}
+
+export async function insertField(
+  formField: [string, string],
+  istPos: { field: string; pos: 'before' | 'after' }
+) {
+  const form = await db.select(Form, { _index: formField[0] })
+  const fields = form.fields as string[]
+  let index = fields.indexOf(formField[1])
+  if (index !== -1) {
+    fields.splice(index, 1)
+  }
+  index = fields.indexOf(istPos.field)
+  if (index === -1) {
+    return { error: '没有找到插入关联field！' }
+  }
+  if (istPos.pos === 'after') {
+    index++
+  }
+  fields.splice(index, 0, formField[1])
+  return db.save(Form, { fields }, { _index: formField[0] }, { updMode: 'cover' })
 }

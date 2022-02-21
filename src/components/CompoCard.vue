@@ -1,5 +1,10 @@
 <template>
-  <a-card hoverable size="small">
+  <a-card
+    hoverable
+    size="small"
+    :draggable="true"
+    @dragstart="e => e.dataTransfer?.setData('text/plain', `compo_${compo.name}`)"
+  >
     <template v-if="compo.cover" #cover>
       <img class="img-fluid" alt="example" :src="compo.cover" />
     </template>

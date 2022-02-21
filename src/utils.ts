@@ -27,7 +27,7 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
     message.destroy()
   }
   options?.middles?.after && options?.middles?.after(resp)
-  if (options?.messages?.succeed) {
+  if (!options?.messages?.notShow && options?.messages?.succeed) {
     message.success(options?.messages?.succeed)
   }
   return Promise.resolve(resp.result || resp.data)

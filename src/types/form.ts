@@ -4,24 +4,28 @@ import Field from './field'
 
 export default class Form {
   key: string
+  width: number
   labelWidth: number
   fields: Field[]
 
   constructor() {
     this.key = ''
-    this.labelWidth = 4
+    this.width = 0
+    this.labelWidth = 0
     this.fields = []
   }
 
   reset() {
     this.key = ''
-    this.labelWidth = 4
+    this.width = 0
+    this.labelWidth = 0
     this.fields = []
   }
 
   static copy(src: any, tgt?: Form): Form {
     tgt = tgt || new Form()
     tgt.key = src.key || src._id || tgt.key
+    tgt.width = src.width || tgt.width
     tgt.labelWidth = src.labelWidth || tgt.labelWidth
     tgt.fields = src.fields ? src.fields.map((field: any) => Field.copy(field)) : []
     return tgt

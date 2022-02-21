@@ -3,7 +3,8 @@
     :style="{
       height: '100%',
       padding: '25vh 10vw',
-      'background-color': '#CCCCFF'
+      'background-image': `url(${require('@/assets/background.png')})`,
+      'background-size': '100% 100%'
     }"
   >
     <div
