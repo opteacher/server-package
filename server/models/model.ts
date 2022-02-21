@@ -7,7 +7,8 @@ export default db.defineModel(
     desc: db.PropTypes.String,
     logTime: db.PropTypes.Boolean,
     props: [{ type: db.PropTypes.Id, ref: 'property' }],
-    svcs: [{ type: db.PropTypes.Id, ref: 'service' }]
+    svcs: [{ type: db.PropTypes.Id, ref: 'service' }],
+    form: { type: db.PropTypes.Id, ref: 'form' }
   },
   {
     router: {

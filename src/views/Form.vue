@@ -13,8 +13,8 @@
       <a-layout-content :style="{ padding: '20px', width: '50%' }" @click="active = ''">
         <a-form
           :style="{ width: '50%', margin: '0 auto', position: 'relative' }"
-          :label-col="{ span: 4 }"
-          :wrapper-col="{ span: 20 }"
+          :label-col="{ span: form.labelWidth }"
+          :wrapper-col="{ span: 24 - form.labelWidth }"
         >
           <template v-for="(field, index) in Object.values(fields)" :key="field.key">
             <FieldCard
@@ -28,13 +28,24 @@
         </a-form>
       </a-layout-content>
       <a-layout-sider width="30%" :style="{ padding: '20px', background: '#ececec' }">
-        <a-descriptions title="组件参数" :column="1" bordered>
-          <a-descriptions-item label="标题">
-            <a-input
-              :disabled="!actField"
-              :value="actField?.label"
-              @change="e => (fields[active].label = e.target.value)"
+        <a-descriptions class="mb-50" title="表单参数" :column="1" bordered size="small">
+          <a-descriptions-item label="标签宽度">
+            <a-input-number
+              class="w-100"
+              :value="form.labelWidth"
+              :min="1"
+              :max="23"
+              @change="labelWidth => store.dispatch('model/saveForm', { labelWidth })"
             />
+          </a-descriptions-item>
+        </a-descriptions>
+        <a-descriptions class="mb-50" title="组件基础参数" :column="1" bordered size="small">
+          <a-descriptions-item label="关联">
+            <a-mentions :disabled="!actField" :value="actField?.refer" autofocus>
+              <a-mentions-option v-for="prop in props" :key="prop.key" :value="prop.name">
+                {{ prop.name }}
+              </a-mentions-option>
+            </a-mentions>
           </a-descriptions-item>
           <a-descriptions-item label="类型">
             <a-select
@@ -52,7 +63,11 @@
               @change="e => (fields[active].desc = e.target.value)"
             />
           </a-descriptions-item>
-          <a-descriptions-item label="Order time">2018-04-24 18:00:00</a-descriptions-item>
+        </a-descriptions>
+        <a-descriptions v-if="actField" title="组件特殊参数" :column="1" bordered size="small">
+          <a-descriptions-item label="占位提示">
+            <a-input class="w-100" />
+          </a-descriptions-item>
         </a-descriptions>
       </a-layout-sider>
     </a-layout>
@@ -69,6 +84,8 @@ import { compoTypes } from '../types'
 import { useStore } from 'vuex'
 import Field from '@/types/field'
 import Compo from '@/types/compo'
+import Form from '@/types/form'
+import Model from '@/types/model'
 
 export default defineComponent({
   name: 'Form',
@@ -83,13 +100,18 @@ export default defineComponent({
     const fields = computed(() => store.getters['model/fields'] as Record<string, Field>)
     const active = ref('')
     const actField = computed(() => fields.value[active.value])
+    const form = computed(() => store.getters['model/form'] as Form)
+    const props = computed(() => (store.getters['model/ins'] as Model).props)
 
     return {
+      store,
       compos,
+      props,
       active,
       fields,
       actField,
-      compoTypes
+      compoTypes,
+      form
     }
   }
 })

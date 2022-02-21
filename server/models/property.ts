@@ -9,8 +9,7 @@ export default db.defineModel(
     index: db.PropTypes.Boolean,
     unique: db.PropTypes.Boolean,
     visible: db.PropTypes.Boolean,
-    remark: db.PropTypes.String,
-    field: { type: db.PropTypes.Id, ref: 'field' }
+    remark: db.PropTypes.String
   },
   {
     router: {

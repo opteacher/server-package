@@ -2,13 +2,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from '@/types/model'
 import router from '@/router'
-import { reqAll, reqGet, reqPost } from '@/utils'
+import { reqAll, reqGet, reqPost, reqPut } from '@/utils'
 import { ExpClsForm } from '../views/Project'
 import Compo from '@/types/compo'
 import Field from '@/types/field'
+import Form from '@/types/form'
+import { Dispatch } from 'vuex'
 
 type ModelState = {
   model: Model
+  form: Form
   dataset: any[]
   compos: Compo[]
   fields: Record<string, Field>
@@ -20,6 +23,7 @@ export default {
   namespaced: true,
   state: {
     model: new Model(),
+    form: new Form(),
     dataset: [] as any[],
     compos: [] as Compo[],
     fields: {} as Record<string, Field>,
@@ -39,13 +43,10 @@ export default {
       const mid = router.currentRoute.value.params.mid
       Model.copy(await reqGet('model', mid), state.model)
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
-      const fields = await Promise.all(
-        state.model.props.map(prop =>
-          reqPost(`property/${prop.key}/field`, prop).then(res => Field.copy(res))
-        )
-      )
-      state.fields = Object.fromEntries(fields.map(field => [field.key, field]))
+      Form.copy(await reqPost(`model/${state.model.key}/form`, {}, { type: 'api' }), state.form)
+      state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
+      state.divider = ''
       if (options && options.reqDataset) {
         const pid = router.currentRoute.value.params.pid
         state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api' })
@@ -73,10 +74,15 @@ export default {
 
       // 通过调用 URL.createObjectURL() 创建的 URL 对象
       window.URL.revokeObjectURL(link.href)
+    },
+    async saveForm({ state, dispatch }: { state: ModelState, dispatch: Dispatch }, form: any) {
+      await reqPut('form', state.form.key, form, { ignores: ['fields'] })
+      await dispatch('refresh')
     }
   },
   getters: {
     ins: (state: ModelState): Model => state.model,
+    form: (state: ModelState): Form => state.form,
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
     fields: (state: ModelState): Record<string, Field> => state.fields,

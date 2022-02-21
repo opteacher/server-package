@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import Form from './form.js'
 import Property from './property.js'
 import Service from './service.js'
 
@@ -10,6 +11,7 @@ export default class Model {
   logTime: boolean
   props: Property[]
   svcs: Service[]
+  form: Form | undefined
 
   constructor() {
     this.key = ''
@@ -18,6 +20,7 @@ export default class Model {
     this.logTime = true
     this.props = []
     this.svcs = []
+    this.form = undefined
   }
 
   reset() {
@@ -27,6 +30,7 @@ export default class Model {
     this.logTime = true
     this.props = []
     this.svcs = []
+    this.form = undefined
   }
 
   static copy(src: any, tgt?: Model): Model {
@@ -49,6 +53,11 @@ export default class Model {
     }
     if (src.svcs && src.svcs.length) {
       tgt.svcs = src.svcs.map((svc: any) => Service.copy(svc))
+    }
+    if (src.form) {
+      Form.copy(src.form, tgt.form)
+    } else {
+      tgt.form = undefined
     }
     return tgt
   }

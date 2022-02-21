@@ -5,12 +5,9 @@ import Project from '../models/project.js'
 import Model from '../models/model.js'
 import MdlType from '../types/model.js'
 import Dep from '../models/dep.js'
-import axios from 'axios'
-import Property from '../models/property.js'
-import PropType from '../types/property.js'
+import Form from '../models/form.js'
 import Field from '../models/field.js'
-import FldType from '../types/field.js'
-import { genField } from './property.js'
+import axios from 'axios'
 
 const typeMapper = {
   Any: 'any',
@@ -120,33 +117,62 @@ export async function getData(pid: string, mid: string) {
 }
 
 export async function create(data: any) {
-  const ret = MdlType.copy(await db.save(Model, data))
+  const model = await db.save(Model, data)
   await db.save(Dep, {
-    _id: ret.key,
-    name: ret.name,
-    exports: [ret.name],
-    from: `../models/${ret.name}.js`,
+    _id: model.id,
+    name: model.name,
+    exports: [model.name],
+    from: `../models/${model.name}.js`,
     default: true
   })
-  return ret
+  await genForm(model.id)
+  return db.select(Model, { _index: model.id }, { ext: true })
 }
 
 export async function del(key: string) {
   await db.del(Dep, { _index: key })
+  const model = await db.select(Model, { _index: key })
+  if (model.form) {
+    await db.del(Form, { _index: model.form })
+  }
   return db.del(Model, { _index: key })
 }
 
-export async function newProp(data: any, mid: string) {
-  const ret = PropType.copy(await db.save(Property, data))
-  const newField = FldType.copy(await genField(ret.key, Object.assign({ model: mid }, ret)))
-  return db
-    .save(Property, { field: newField.key }, { _index: ret.key })
-    .then(res => PropType.copy(res))
-}
-
-export async function delProp(pid: string, mid: string) {
-  const prop = await db.select(Property, { _index: pid })
-  await db.del(Field, { _index: prop.field })
-  await db.save(Model, { props: pid }, { _index: mid }, { updMode: 'delete' })
-  return db.del(Property, { _index: pid })
+export async function genForm(mid: string) {
+  const fKey = (await db.select(Model, { _index: mid })).form
+  if (fKey) {
+    return db.select(Form, { _index: fKey }, { ext: true })
+  }
+  const model = MdlType.copy(await db.select(Model, { _index: mid }, { ext: true }))
+  let maxIdx = await db.max(Field, 'index', { model: mid })
+  function baseToCompoType(type: string) {
+    switch (type) {
+      case 'String':
+        return 'Input'
+      case 'Number':
+        return 'Number'
+      case 'Boolean':
+        return 'Checkbox'
+      case 'DateTime':
+        return 'DateTime'
+      case 'Array':
+        return 'EditList'
+      default:
+        return 'Text'
+    }
+  }
+  const fields = []
+  for (const prop of model.props) {
+    const res = await db.save(Field, {
+      index: (maxIdx++),
+      label: prop.label,
+      model: mid,
+      type: baseToCompoType(prop.type),
+      refer: `@${prop.name}`
+    })
+    fields.push(res.id)
+  }
+  const form = await db.save(Form, { labelWidth: 4, fields })
+  await db.save(Model, { form: form.id }, { _index: mid })
+  return db.select(Form, { _index: form.id }, { ext: true })
 }
