@@ -8,6 +8,7 @@ import Compo from '@/types/compo'
 import Field from '@/types/field'
 import Form from '@/types/form'
 import { Dispatch } from 'vuex'
+import Column from '@/types/column'
 
 type ModelState = {
   model: Model
@@ -15,8 +16,10 @@ type ModelState = {
   dataset: any[]
   compos: Compo[]
   fields: Record<string, Field>
+  columns: Column[]
   dragOn: string
   divider: string
+  dsgnMod: string
 }
 
 export default {
@@ -27,8 +30,10 @@ export default {
     dataset: [] as any[],
     compos: [] as Compo[],
     fields: {} as Record<string, Field>,
+    columns: [] as Column[],
     dragOn: '',
-    divider: ''
+    divider: '',
+    dsgnMod: 'form'
   },
   mutations: {
     SET_DRAG_ON(state: ModelState, payload: string) {
@@ -42,11 +47,13 @@ export default {
     async refresh({ state }: { state: ModelState }, options?: { reqDataset?: boolean }) {
       const mid = router.currentRoute.value.params.mid
       Model.copy(await reqGet('model', mid), state.model)
+      state.columns = state.model.props.map(prop => new Column(prop.label, prop.name))
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
       Form.copy(await reqPost(`model/${state.model.key}/form`, {}, { type: 'api' }), state.form)
       state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
       state.divider = ''
+      state.dsgnMod = router.currentRoute.value.path.split('/').at(-2) as string
       if (options && options.reqDataset) {
         const pid = router.currentRoute.value.params.pid
         state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api' })
@@ -123,7 +130,9 @@ export default {
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
     fields: (state: ModelState): Record<string, Field> => state.fields,
+    columns: (state: ModelState): Column[] => state.columns,
     dragOn: (state: ModelState): string => state.dragOn,
-    divider: (state: ModelState): string => state.divider
+    divider: (state: ModelState): string => state.divider,
+    dsgnMod: (state: ModelState): string => state.dsgnMod
   }
 }
