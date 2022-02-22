@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { BaseTypes } from '.'
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export default class Property {
   key: string
   name: string
   label: string
-  type: string // 字段类型
+  type: BaseTypes // 字段类型
   index: boolean
   unique: boolean
   visible: boolean
@@ -14,7 +17,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.type = ''
+    this.type = 'Unknown'
     this.index = false
     this.unique = false
     this.visible = true
@@ -25,7 +28,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.type = ''
+    this.type = 'Unknown'
     this.index = false
     this.unique = false
     this.visible = true

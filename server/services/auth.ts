@@ -25,12 +25,12 @@ export async function bind(auth: AuthType | string, mid?: string) {
   if (typeof auth === 'string') {
     auth = AuthType.copy(await db.select(Auth, { _index: auth }, { ext: true }))
   }
+  if (auth.roles.find(role => role.name === 'guest')) {
+    return auth
+  }
   if (mid) {
     await db.save(Auth, { model: mid }, { _index: auth.key })
     auth.model = mid
-  }
-  if (auth.roles.find(role => role.name === 'role')) {
-    return auth
   }
   // 为绑定模型添加一列角色列，并添加一个访客记录
   const roleProp = await db.save(Property, {

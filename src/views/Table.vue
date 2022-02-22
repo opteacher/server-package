@@ -4,7 +4,12 @@
       <a-layout class="h-100">
         <a-layout-content class="main-panel" @click="selected = ''">
           <div class="white-bkgd">
-            <a-table class="demo-table" :columns="columns" :data-source="example">
+            <a-table
+              class="demo-table"
+              :columns="columns"
+              :data-source="example"
+              :size="table.size"
+            >
               <template #headerCell="{ title, column }">
                 <span :style="{ color: column.key === selected ? '#1890ff' : '#000000d9' }">
                   {{ title }}
@@ -16,25 +21,47 @@
                   <a-button type="primary" @click.stop="fmEmitter.emit('update:show', true)">
                     点击创建一条演示记录
                   </a-button>
-                  <DemoForm :emitter="fmEmitter" />
+                  <DemoForm :emitter="fmEmitter" @submit="onFormSubmit" />
                 </a-empty>
               </template>
             </a-table>
           </div>
         </a-layout-content>
-        <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll"></a-layout-sider>
+        <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
+          <a-descriptions
+            v-show="!selected"
+            class="mb-50"
+            title="表参数"
+            :column="1"
+            bordered
+            size="small"
+          >
+            <a-descriptions-item label="尺寸">
+              <a-select
+                class="w-100"
+                :options="
+                  ['default', 'middle', 'small'].map(item => ({ label: item, value: item }))
+                "
+                :value="table.size"
+                @change="e => store.dispatch('model/saveTable', { size: e.target.value })"
+              />
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-layout-sider>
       </a-layout>
     </div>
   </LytDesign>
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import DemoForm from '../components/DemoForm.vue'
 import Column from '@/types/column'
+import Table from '@/types/table'
 
 export default defineComponent({
   name: 'Table',
@@ -60,19 +87,25 @@ export default defineComponent({
     const example = reactive([])
     const fmEmitter = new Emitter()
     const selected = ref('')
+    const table = computed(() => store.getters['model/table'] as Table)
 
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = colKey
       e.stopPropagation()
     }
+    async function onFormSubmit(formState: any) {
+      await store.dispatch('model/newRecord', formState)
+    }
     return {
+      store,
+      table,
       hdHeight,
       columns,
       example,
       selected,
       fmEmitter,
 
-      onHdCellClick
+      onFormSubmit
     }
   }
 })

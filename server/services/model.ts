@@ -7,7 +7,12 @@ import MdlType from '../types/model.js'
 import Dep from '../models/dep.js'
 import Form from '../models/form.js'
 import Field from '../models/field.js'
+import Table from '../models/table.js'
+import Column from '../models/column.js'
+import Service from '../models/service.js'
 import axios from 'axios'
+import { MdlInf } from '../lib/backend-library/databases/index.js'
+import { run } from './project.js'
 
 const typeMapper = {
   Any: 'any',
@@ -126,6 +131,7 @@ export async function create(data: any) {
     default: true
   })
   await genForm(model.id)
+  await genTable(model.id)
   return db.select(Model, { _index: model.id }, { ext: true })
 }
 
@@ -133,7 +139,18 @@ export async function del(key: string) {
   await db.del(Dep, { _index: key })
   const model = await db.select(Model, { _index: key })
   if (model.form) {
+    const form = await db.select(Form, { _index: model.form })
+    for (const fldkey of form.fields) {
+      await db.del(Field, { _index: fldkey })
+    }
     await db.del(Form, { _index: model.form })
+  }
+  if (model.table) {
+    const table = await db.select(Table, { _index: model.table })
+    for (const colKey of table.columns) {
+      await db.del(Column, { _index: colKey })
+    }
+    await db.del(Table, { _index: model.table })
   }
   return db.del(Model, { _index: key })
 }
@@ -155,24 +172,49 @@ function baseToCompoType(type: string) {
   }
 }
 
-export async function genForm(mid: string) {
-  const fKey = (await db.select(Model, { _index: mid })).form
-  if (fKey) {
-    return db.select(Form, { _index: fKey }, { ext: true })
+async function generate(
+  mid: string,
+  propName: 'form' | 'table',
+  propModel: MdlInf,
+  create: (model: MdlType) => Promise<any>
+) {
+  const key = (await db.select(Model, { _index: mid }))[propName]
+  if (key) {
+    return db.select(propModel, { _index: key }, { ext: true })
   }
   const model = MdlType.copy(await db.select(Model, { _index: mid }, { ext: true }))
-  const fields = []
-  for (const prop of model.props) {
-    const res = await db.save(Field, {
-      label: prop.label,
-      type: baseToCompoType(prop.type),
-      refer: `@${prop.name}`
-    })
-    fields.push(res.id)
-  }
-  const form = await db.save(Form, { width: 50, labelWidth: 4, fields })
-  await db.save(Model, { form: form.id }, { _index: mid })
-  return db.select(Form, { _index: form.id }, { ext: true })
+  const prop = await db.save(propModel, await create(model))
+  await db.save(Model, { [propName]: prop.id }, { _index: mid })
+  return db.select(propModel, { _index: prop.id }, { ext: true })
+}
+
+export async function genForm(mid: string) {
+  return generate(mid, 'form', Form, async (model: MdlType) => {
+    const fields = []
+    for (const prop of model.props) {
+      const res = await db.save(Field, {
+        label: prop.label,
+        type: baseToCompoType(prop.type),
+        refer: `@${prop.name}`
+      })
+      fields.push(res.id)
+    }
+    return { width: 50, labelWidth: 4, fields }
+  })
+}
+
+export async function genTable(mid: string) {
+  return generate(mid, 'table', Table, async (model: MdlType) => {
+    const columns = []
+    for (const prop of model.props) {
+      const res = await db.save(Column, {
+        title: prop.label,
+        dataIndex: prop.name
+      })
+      columns.push(res.id)
+    }
+    return { size: 'default', columns }
+  })
 }
 
 export async function insertField(
@@ -194,4 +236,52 @@ export async function insertField(
   }
   fields.splice(index, 0, formField[1])
   return db.save(Form, { fields }, { _index: formField[0] }, { updMode: 'cover' })
+}
+
+export async function newRecord(mid: string, body: any) {
+  // 检测模型是否具有POST模型接口
+  const model = MdlType.copy(await db.select(Model, { _index: mid }, { ext: true }))
+  let project: any = null
+  for (const pjt of await db.select(Project)) {
+    if (pjt.models.includes(model.key)) {
+      await run(pjt)
+      project = pjt
+      break
+    }
+  }
+  if (!project) {
+    return { error: `未找到模型${model.name}所在的项目！` }
+  }
+  const baseURL = `http://${project.name}:${project.port}/${project.name}/mdl/v1`
+  if (
+    !model.svcs
+      .map(svc => svc.isModel && svc.method === 'POST')
+      .reduce((a: boolean, b: boolean) => a || b)
+  ) {
+    await db.save(Service, {
+      model: model.name,
+      emit: 'api',
+      method: 'POST',
+      isModel: true,
+      path: `/mdl/v1/${model.name}`
+    })
+    let countdown = 0
+    const h = setInterval(async () => {
+      if (countdown > 60) {
+        clearInterval(h)
+      }
+      try {
+        const resp = await axios.get(baseURL)
+        if (resp.status === 404) {
+          throw new Error()
+        }
+        clearInterval(h)
+      } catch (e) {
+        console.log('等待项目启动中……')
+      } finally {
+        countdown++
+      }
+    }, 5000)
+  }
+  return axios.post(`${baseURL}/${model.name}`, body)
 }

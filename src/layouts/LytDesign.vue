@@ -5,7 +5,7 @@
       style="border: 1px solid rgb(235, 237, 240)"
       :title="model.name"
       :sub-title="model.desc"
-      @back="() => router.go(-1)"
+      @back="() => router.push(`/server-package/project/${pid}`)"
     >
       <template #extra>
         <a-radio-group :value="dsgnMod" @change="onDsgnChange">
@@ -65,6 +65,7 @@ export default defineComponent({
       )
     }
     return {
+      pid: route.params.pid,
       store,
       router,
       model,

@@ -9,10 +9,12 @@ import Field from '@/types/field'
 import Form from '@/types/form'
 import { Dispatch } from 'vuex'
 import Column from '@/types/column'
+import Table from '@/types/table'
 
 type ModelState = {
   model: Model
   form: Form
+  table: Table
   dataset: any[]
   compos: Compo[]
   fields: Record<string, Field>
@@ -27,6 +29,7 @@ export default {
   state: {
     model: new Model(),
     form: new Form(),
+    table: new Table(),
     dataset: [] as any[],
     compos: [] as Compo[],
     fields: {} as Record<string, Field>,
@@ -50,6 +53,7 @@ export default {
       state.columns = state.model.props.map(prop => new Column(prop.label, prop.name))
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
       Form.copy(await reqPost(`model/${state.model.key}/form`, {}, { type: 'api' }), state.form)
+      Table.copy(await reqPost(`model/${state.model.key}/table`, {}, { type: 'api' }), state.table)
       state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
       state.divider = ''
@@ -122,11 +126,16 @@ export default {
     async delField({ dispatch }: { dispatch: Dispatch }, fldKey: string) {
       await reqDelete('field', fldKey)
       await dispatch('refresh')
+    },
+    async newRecord({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, record: any) {
+      await reqPost(`model/${state.model.key}/record`, record, { type: 'api' })
+      await dispatch('refresh')
     }
   },
   getters: {
     ins: (state: ModelState): Model => state.model,
     form: (state: ModelState): Form => state.form,
+    table: (state: ModelState): Table => state.table,
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
     fields: (state: ModelState): Record<string, Field> => state.fields,
