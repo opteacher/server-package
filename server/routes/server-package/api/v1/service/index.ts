@@ -12,7 +12,9 @@ router.post('/:sid/job/restart', async ctx => {
     return
   }
   ctx.body = {
-    result: await restart(ctx.request.query.pid as string, ctx.params.sid)
+    result: await restart(ctx.request.query.pid as string, ctx.params.sid, {
+      authorization: ctx.headers['authorization']
+    })
   }
 })
 
@@ -24,13 +26,15 @@ router.delete('/:sid/job/stop', async ctx => {
     return
   }
   ctx.body = {
-    result: await stop(ctx.request.query.pid as string, ctx.params.sid)
+    result: await stop(ctx.request.query.pid as string, ctx.params.sid, {
+      authorization: ctx.headers['authorization']
+    })
   }
 })
 
 router.post('/:sid/node', async ctx => {
   ctx.body = {
-    result: await saveNode( ctx.request.body, ctx.params.sid)
+    result: await saveNode(ctx.request.body, ctx.params.sid)
   }
 })
 
