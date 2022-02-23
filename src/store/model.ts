@@ -101,21 +101,22 @@ export default {
       await dispatch('refresh')
     },
     async newField(
-      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
+      { dispatch }: { dispatch: Dispatch },
       payload: {
         compoType: string
-        insertPos: { field: string; pos: 'before' | 'after' }
+        insertPos?: { field: string; pos: 'before' | 'after' }
       }
     ) {
-      const field = await reqPost('field', { type: payload.compoType })
-      await reqPost(`form/${state.form.key}/field/${field._id}`, payload.insertPos, { type: 'api' })
-      await dispatch('refresh')
+      await dispatch('insertField', {
+        dragField: (await reqPost('field', { type: payload.compoType }))._id,
+        insertPos: payload.insertPos
+      })
     },
     async insertField(
       { state, dispatch }: { state: ModelState; dispatch: Dispatch },
       payload: {
         dragField: string
-        insertPos: { field: string; pos: 'before' | 'after' }
+        insertPos?: { field: string; pos: 'before' | 'after' }
       }
     ) {
       await reqPost(`form/${state.form.key}/field/${payload.dragField}`, payload.insertPos, {

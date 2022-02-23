@@ -14,12 +14,20 @@
         </a-layout-sider>
         <a-layout-content class="main-panel" @click="active = ''">
           <div class="white-bkgd">
+            <a-empty
+              class="ptb-30"
+              v-if="!fields.length"
+              description="无组件"
+              @dragover="e => e.preventDefault()"
+              @drop="onDropDown"
+            />
             <a-form
+              v-else
               :style="{ width: `${form.width}%`, margin: '0 auto', position: 'relative' }"
               :label-col="{ span: form.labelWidth }"
               :wrapper-col="{ span: 24 - form.labelWidth }"
             >
-              <template v-for="(field, index) in Object.values(fields)" :key="field.key">
+              <template v-for="(field, index) in fields" :key="field.key">
                 <FieldCard
                   :index="index"
                   :field="field"
@@ -75,7 +83,7 @@
             size="small"
           >
             <a-descriptions-item label="关联">
-              <a-mentions :value="actField?.refer" autofocus>
+              <a-mentions :value="actField?.refer">
                 <a-mentions-option v-for="prop in props" :key="prop.key" :value="prop.name">
                   {{ prop.name }}
                 </a-mentions-option>
@@ -142,13 +150,19 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const compos = computed(() => store.getters['model/compos'] as Compo[])
-    const fields = computed(() => store.getters['model/fields'] as Record<string, Field>)
+    const fields = computed(() => Object.values(store.getters['model/fields']) as Field[])
     const active = ref('')
-    const actField = computed(() => fields.value[active.value])
+    const actField = computed(() => store.getters['model/fields'][active.value])
     const form = computed(() => store.getters['model/form'] as Form)
     const props = computed(() => (store.getters['model/ins'] as Model).props)
     const hdHeight = ref(0)
 
+    async function onDropDown(e: DragEvent) {
+      const dragCompo = e.dataTransfer?.getData('text/plain') as string
+      store.dispatch('model/newField', {
+        compoType: dragCompo.substring('compo_'.length)
+      })
+    }
     return {
       store,
       compos,
@@ -158,7 +172,9 @@ export default defineComponent({
       actField,
       compoTypes,
       form,
-      hdHeight
+      hdHeight,
+
+      onDropDown
     }
   }
 })

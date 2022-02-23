@@ -5,7 +5,10 @@ const router = new Router()
 
 router.post('/:fmId/field/:id', async ctx => {
   ctx.body = {
-    result: await insertField([ctx.params.fmId, ctx.params.id], ctx.request.body)
+    result: await insertField(
+      [ctx.params.fmId, ctx.params.id],
+      ctx.request.body.field ? ctx.request.body : undefined
+    )
   }
 })
 

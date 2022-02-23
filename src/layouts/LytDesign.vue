@@ -56,6 +56,7 @@ export default defineComponent({
 
     async function onFieldResized() {
       const el = (await waitFor('formHeader')) as HTMLElement
+      console.log(el)
       emit('change:height', el.clientHeight)
       return el
     }

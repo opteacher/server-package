@@ -10,6 +10,8 @@ import Field from '../models/field.js'
 import Table from '../models/table.js'
 import Column from '../models/column.js'
 import Service from '../models/service.js'
+import PropType from '../types/property.js'
+import Property from '../models/property.js'
 import axios from 'axios'
 import { MdlInf } from '../lib/backend-library/databases/index.js'
 import { run } from './project.js'
@@ -188,15 +190,26 @@ async function generate(
   return db.select(propModel, { _index: prop.id }, { ext: true })
 }
 
+function initField(prop: PropType) {
+  return {
+    label: prop.label,
+    type: baseToCompoType(prop.type),
+    refer: `@${prop.name}`
+  }
+}
+
+function initColumn(prop: PropType) {
+  return {
+    title: prop.label,
+    dataIndex: prop.name
+  }
+}
+
 export async function genForm(mid: string) {
   return generate(mid, 'form', Form, async (model: MdlType) => {
     const fields = []
     for (const prop of model.props) {
-      const res = await db.save(Field, {
-        label: prop.label,
-        type: baseToCompoType(prop.type),
-        refer: `@${prop.name}`
-      })
+      const res = await db.save(Field, initField(prop))
       fields.push(res.id)
     }
     return { width: 50, labelWidth: 4, fields }
@@ -207,10 +220,7 @@ export async function genTable(mid: string) {
   return generate(mid, 'table', Table, async (model: MdlType) => {
     const columns = []
     for (const prop of model.props) {
-      const res = await db.save(Column, {
-        title: prop.label,
-        dataIndex: prop.name
-      })
+      const res = await db.save(Column, initColumn(prop))
       columns.push(res.id)
     }
     return { size: 'default', columns }
@@ -219,8 +229,15 @@ export async function genTable(mid: string) {
 
 export async function insertField(
   formField: [string, string],
-  istPos: { field: string; pos: 'before' | 'after' }
+  istPos?: { field: string; pos: 'before' | 'after' }
 ) {
+  if (!istPos) {
+    return db.save(Form,
+      { fields: [formField[1]] },
+      { _index: formField[0] },
+      { updMode: 'cover' }
+    )
+  }
   const form = await db.select(Form, { _index: formField[0] })
   const fields = form.fields as string[]
   let index = fields.indexOf(formField[1])
@@ -284,4 +301,21 @@ export async function newRecord(mid: string, body: any) {
     }, 5000)
   }
   return axios.post(`${baseURL}/${model.name}`, body)
+}
+
+export async function newProp(data: any, mid: string) {
+  const prop = PropType.copy(await db.save(Property, data))
+  const model = await db.save(Model, { props: prop.key }, { _index: mid })
+  // 为model的form和table生成field和column
+  const field = await db.save(Field, initField(prop))
+  await db.save(Form, { fields: field.id }, { _index: model.form })
+  const column = await db.save(Column, initColumn(prop))
+  await db.save(Table, { columns: column.id }, { _index: model.table })
+  return db.select(Property, { _index: prop.key }, { ext: true })
+}
+
+export async function delProp(pid: string, mid: string) {
+  await db.save(Model, { props: pid }, { _index: mid }, { updMode: 'delete' })
+  // @_@: field和column
+  return db.del(Property, { _index: pid })
 }

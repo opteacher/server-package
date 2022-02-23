@@ -48,7 +48,7 @@ export function reqGet(path: string, iden?: any, options?: RequestOptions): Prom
   )
 }
 
-export function reqPost(path: string, body: any, options?: RequestOptions): Promise<any> {
+export function reqPost(path: string, body?: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -69,7 +69,7 @@ export function reqPost(path: string, body: any, options?: RequestOptions): Prom
   return makeRequest(
     axios.post(
       `/server-package/${reqType(options)}/v1/${path}`,
-      skipIgnores(body, options.ignores)
+      body ? skipIgnores(body, options.ignores) : undefined
     ),
     options
   )
@@ -94,7 +94,7 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   )
 }
 
-export function reqPut(path: string, iden: any, body: any, options?: RequestOptions): Promise<any> {
+export function reqPut(path: string, iden: any, body?: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
   }
@@ -115,7 +115,7 @@ export function reqPut(path: string, iden: any, body: any, options?: RequestOpti
   return makeRequest(
     axios.put(
       `/server-package/${reqType(options)}/v1/${path}/${iden}`,
-      skipIgnores(body, options.ignores)
+      body ? skipIgnores(body, options.ignores) : undefined
     ),
     options
   )

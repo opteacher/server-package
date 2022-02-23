@@ -198,6 +198,7 @@ import Project from '@/types/project'
 import Model from '@/types/model'
 import Property from '@/types/property'
 import Service from '@/types/service'
+import { reqPost } from '@/utils'
 
 export default defineComponent({
   name: 'Project',
@@ -240,19 +241,11 @@ export default defineComponent({
       modelEmitter.emit('refresh')
     }
     async function onPropSave(prop: Property, mid: string) {
-      await store.dispatch('project/update', {
-        opera: prop,
-        parent: ['model', mid],
-        child: ['props', 'property']
-      })
+      await store.dispatch('project/newProp', { prop, mid })
       propEmitter.emit('refresh')
     }
     async function onPropDel(key: any, mid: string) {
-      await store.dispatch('project/update', {
-        opera: 'property',
-        parent: ['model', mid],
-        child: ['props', key]
-      })
+      await store.dispatch('project/delProp', { key, mid })
       propEmitter.emit('refresh')
     }
     async function onSvcSave(svc: Service, mid: string) {

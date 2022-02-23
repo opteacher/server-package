@@ -8,6 +8,7 @@ import { makeRequest, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/util
 import axios from 'axios'
 import { Dispatch } from 'vuex'
 import { Transfer } from '../views/Project'
+import Property from '@/types/property'
 
 export default {
   namespaced: true,
@@ -214,6 +215,14 @@ export default {
           params: { pid: router.currentRoute.value.params.pid }
         })
       )
+      await dispatch('refresh')
+    },
+    async newProp({ dispatch }: { dispatch: Dispatch }, payload: { prop: Property, mid: string }) {
+      await reqPost(`model/${payload.mid}/property`, payload.prop, { type: 'api'})
+      await dispatch('refresh')
+    },
+    async delProp({ dispatch }: { dispatch: Dispatch }, payload: { key: string, mid: string }) {
+      await reqDelete(`model/${payload.mid}/property`, payload.key, { type: 'api'})
       await dispatch('refresh')
     }
   },
