@@ -28,7 +28,7 @@ export async function login(reqBody: { name: string; password: string }) {
   }
 
   const payload = {
-    sub: admin.id,
+    sub: admin._id,
     aud: 'server-package',
     iat: Date.now(),
     jti: uuidv4(),
