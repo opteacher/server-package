@@ -41,7 +41,7 @@ export default defineComponent({
     onMounted(refresh)
 
     async function refresh() {
-      await store.dispatch('model/refresh')
+      await store.dispatch('model/refresh', { reqDataset: true })
       const model = store.getters['model/ins']
       columns.splice(0, columns.length)
       columns.push(

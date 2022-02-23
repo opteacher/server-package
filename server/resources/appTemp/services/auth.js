@@ -62,7 +62,7 @@ export async function verifyDeep(ctx) {
     return { error: '项目权限系统未配置访客角色！' }
   }
   let roleId = role.id
-  const verRes = verify(ctx.headers['authorization'])
+  const verRes = verify(ctx)
   console.log(verRes)
   const payload = verRes.payload
   if (!verRes.error && payload) {
