@@ -185,7 +185,7 @@ export async function genSignLgc(
         '  iat: Date.now(),',
         '  jti: v4(),',
         "  iss: 'server-package/op',",
-        "  exp: '1 days'",
+        '  exp: Date.now() + 24 * 60 * 60 * 1000 // 1 day',
         '}\nreturn {',
         '  record,',
         '  token: jwt.sign(payload, secret),',

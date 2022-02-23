@@ -33,7 +33,7 @@ export async function login(reqBody: { name: string; password: string }) {
     iat: Date.now(),
     jti: uuidv4(),
     iss: `server-package/${admin.name}`,
-    exp: '1 days'
+    exp: Date.now() + 24 * 60 * 60 * 1000 // 1 day
   }
   delete admin.password
   return {
