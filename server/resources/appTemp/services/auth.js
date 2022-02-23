@@ -73,6 +73,7 @@ export async function verifyDeep(ctx) {
     }
     roleId = visitor['role'].id
   }
+  console.log(roleId)
   // 获取对应的角色
   role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${roleId}`)
   if (!role) {
