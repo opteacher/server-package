@@ -7,7 +7,7 @@ import axios from 'axios'
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
 
-export async function restart(pid: string, jid: string, authHeader: { authorization?: string }) {
+export async function restart(pid: string, jid: string, authorization?: string) {
   const pjt = await db.select(Project, { _index: pid })
   const host = process.env.ENV === 'prod' ? pjt.name : '127.0.0.1'
   const baseURL = `http://${host}:${pjt.port}/${pjt.name}`
@@ -15,7 +15,7 @@ export async function restart(pid: string, jid: string, authHeader: { authorizat
   if (svc.jobId) {
     await axios.delete(
       `${baseURL}${svc.path}/${svc.jobId}`,
-      authHeader.authorization ? { headers: authHeader } : undefined
+      authorization ? { headers: { authorization } } : undefined
     )
   }
   let timestamp = 0
@@ -70,14 +70,9 @@ export async function restart(pid: string, jid: string, authHeader: { authorizat
     return { error: '错误的时间条件' }
   }
   const resp = await axios.post(
-    baseURL + svc.path,
+    `${baseURL}${svc.path}?timestamp=${timestamp}`,
     undefined,
-    Object.assign(
-      {
-        params: { timestamp }
-      },
-      authHeader.authorization ? { headers: authHeader } : {}
-    )
+    authorization ? { headers: { authorization } } : undefined
   )
   if (resp.status !== 200) {
     return { error: `启动任务错误：${resp.statusText}` }
@@ -85,7 +80,7 @@ export async function restart(pid: string, jid: string, authHeader: { authorizat
   return db.save(Service, { jobId: resp.data.result }, { _index: jid })
 }
 
-export async function stop(pid: string, jid: string, authHeader: { authorization?: string }) {
+export async function stop(pid: string, jid: string, authorization?: string) {
   const pjt = await db.select(Project, { _index: pid })
   const host = process.env.ENV === 'prod' ? pjt.name : '127.0.0.1'
   const baseURL = `http://${host}:${pjt.port}/${pjt.name}`
@@ -95,7 +90,7 @@ export async function stop(pid: string, jid: string, authHeader: { authorization
   }
   await axios.delete(
     `${baseURL}${svc.path}/${svc.jobId}`,
-    authHeader.authorization ? { headers: authHeader } : undefined
+    authorization ? { headers: { authorization } } : undefined
   )
   return db.save(Service, { jobId: 0 }, { _index: jid })
 }
