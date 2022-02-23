@@ -66,6 +66,7 @@ export async function verifyDeep(ctx) {
   console.log(verRes)
   const payload = verRes.payload
   if (!verRes.error && payload) {
+    console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
     const visitor = await db.select(0/*return mdlName*/, { _index: payload.aud })
     if (!visitor || !('role' in visitor)) {
