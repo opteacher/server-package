@@ -254,7 +254,7 @@ export async function sync(pid: string): Promise<any> {
   const deps: Record<string, any> = { [mdlDep.id]: mdlDep.toObject() }
   const args: Record<string, any> = {
     pjtName: project.name,
-    mdlName: authMdl,
+    mdlName: authMdl.name,
     skips: project.auth.skips
   }
   if (authSvc && authSvc.flow) {
