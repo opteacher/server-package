@@ -250,8 +250,8 @@ export async function sync(pid: string): Promise<any> {
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
   const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
-  const mdlDep = await db.select(Dep, { name: authMdl.name })
-  const deps: Record<string, any> = { [mdlDep.id]: mdlDep }
+  const mdlDep = (await db.select(Dep, { name: authMdl.name }))[0]
+  const deps: Record<string, any> = { [mdlDep.id]: mdlDep.toObject() }
   const args: Record<string, any> = {
     pjtName: project.name,
     mdlName: authMdl,
@@ -261,7 +261,7 @@ export async function sync(pid: string): Promise<any> {
     args.nodes = await recuNode(authSvc.flow, 4, (node: any) => {
       for (const dep of node.deps) {
         if (!(dep.id in deps)) {
-          deps[dep.id] = dep
+          deps[dep.id] = dep.toObject()
         }
       }
     })
