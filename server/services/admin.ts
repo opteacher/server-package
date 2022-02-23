@@ -28,12 +28,12 @@ export async function login(reqBody: { name: string; password: string }) {
   }
 
   const payload = {
-    sub: 'log/in',
-    aud: admin.id,
+    sub: admin.id,
+    aud: 'server-package',
     iat: Date.now(),
     jti: uuidv4(),
-    iss: admin.name,
-    exp: Date.now() + 24 * 60 * 60 * 1000 // 1 day
+    iss: `server-package/${admin.name}`,
+    exp: '1 days'
   }
   delete admin.password
   return {

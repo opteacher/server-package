@@ -54,7 +54,8 @@ export async function verifyDeep(ctx) {
   }
   const auth = await makeRequest('GET', `${svrPkgURL}/mdl/v1/auth/${project.auth}`)
   if (!auth.model) {
-    return { error: '项目未绑定模型！' }
+    // return { error: '项目未绑定模型！' }
+    return {}
   }
   // 获取token解析出来的载荷
   let role = auth.roles.find(role => role.name === 'guest')
@@ -68,7 +69,7 @@ export async function verifyDeep(ctx) {
   if (!verRes.error && payload) {
     console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
-    const visitor = await db.select(0/*return mdlName*/, { _index: payload.aud })
+    const visitor = await db.select(0/*return mdlName*/, { _index: payload.sub })
     if (!visitor || !('role' in visitor)) {
       return { error: '访问者的角色信息有误！' }
     }
