@@ -72,7 +72,7 @@ export async function verifyDeep(ctx) {
     if (!visitor || !('role' in visitor)) {
       return { error: '访问者的角色信息有误！' }
     }
-    roleId = visitor['role'].id
+    roleId = visitor['role']
   }
   console.log(roleId)
   // 获取对应的角色
