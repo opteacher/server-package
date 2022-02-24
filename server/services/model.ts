@@ -212,7 +212,7 @@ export async function genForm(mid: string) {
       const res = await db.save(Field, initField(prop))
       fields.push(res.id)
     }
-    return { width: 50, labelWidth: 4, fields }
+    return { title: '新增/编辑', width: 50, labelWidth: 4, fields }
   })
 }
 
@@ -232,11 +232,7 @@ export async function insertField(
   istPos?: { field: string; pos: 'before' | 'after' }
 ) {
   if (!istPos) {
-    return db.save(Form,
-      { fields: [formField[1]] },
-      { _index: formField[0] },
-      { updMode: 'cover' }
-    )
+    return db.save(Form, { fields: [formField[1]] }, { _index: formField[0] }, { updMode: 'cover' })
   }
   const form = await db.select(Form, { _index: formField[0] })
   const fields = form.fields as string[]

@@ -198,7 +198,6 @@ import Project from '@/types/project'
 import Model from '@/types/model'
 import Property from '@/types/property'
 import Service from '@/types/service'
-import { reqPost } from '@/utils'
 
 export default defineComponent({
   name: 'Project',

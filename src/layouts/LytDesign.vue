@@ -27,6 +27,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { waitFor } from '@/utils'
 import { computed, defineComponent, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

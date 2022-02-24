@@ -13,7 +13,7 @@
           </a-list>
         </a-layout-sider>
         <a-layout-content class="main-panel" @click="active = ''">
-          <div class="white-bkgd">
+          <div class="white-bkgd h-100">
             <a-empty
               class="ptb-30"
               v-if="!fields.length"

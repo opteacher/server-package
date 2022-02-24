@@ -10,8 +10,10 @@ import Form from '@/types/form'
 import { Dispatch } from 'vuex'
 import Column from '@/types/column'
 import Table from '@/types/table'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 type ModelState = {
+  emitter: Emitter
   model: Model
   form: Form
   table: Table
@@ -27,6 +29,7 @@ type ModelState = {
 export default {
   namespaced: true,
   state: {
+    emitter: new Emitter(),
     model: new Model(),
     form: new Form(),
     table: new Table(),
@@ -62,6 +65,7 @@ export default {
         const pid = router.currentRoute.value.params.pid
         state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api' })
       }
+      state.emitter.emit('refresh')
     },
     async export(_store: { state: ModelState }, expCls: ExpClsForm) {
       const pid = router.currentRoute.value.params.pid
@@ -134,6 +138,7 @@ export default {
     }
   },
   getters: {
+    emitter: (state: ModelState): Emitter => state.emitter,
     ins: (state: ModelState): Model => state.model,
     form: (state: ModelState): Form => state.form,
     table: (state: ModelState): Table => state.table,

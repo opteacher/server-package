@@ -1,9 +1,14 @@
 <template>
-  <a-modal v-model:visible="visible" :title="form.title" @ok="onOkClick" @cancel="onCclClick">
+  <a-modal
+    v-model:visible="visible"
+    :title="form.title"
+    :width="`${form.width}vw`"
+    @ok="onOkClick"
+    @cancel="onCclClick"
+  >
     <a-form
       ref="formRef"
       :model="formState"
-      :width="`${form.width}vw`"
       :label-col="{ span: form.labelWidth }"
       :wrapper-col="{ span: 24 - form.labelWidth }"
     >

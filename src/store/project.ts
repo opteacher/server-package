@@ -217,16 +217,18 @@ export default {
       )
       await dispatch('refresh')
     },
-    async saveProp({ dispatch }: { dispatch: Dispatch }, payload: { prop: Property, mid: string }) {
+    async saveProp({ dispatch }: { dispatch: Dispatch }, payload: { prop: Property; mid: string }) {
       if (payload.prop.key) {
-        await reqPut(`model/${payload.mid}/property`, payload.prop.key, payload.prop, { type: 'api'})
+        await reqPut(`model/${payload.mid}/property`, payload.prop.key, payload.prop, {
+          type: 'api'
+        })
       } else {
-        await reqPost(`model/${payload.mid}/property`, payload.prop, { type: 'api'})
+        await reqPost(`model/${payload.mid}/property`, payload.prop, { type: 'api' })
       }
       await dispatch('refresh')
     },
-    async delProp({ dispatch }: { dispatch: Dispatch }, payload: { key: string, mid: string }) {
-      await reqDelete(`model/${payload.mid}/property`, payload.key, { type: 'api'})
+    async delProp({ dispatch }: { dispatch: Dispatch }, payload: { key: string; mid: string }) {
+      await reqDelete(`model/${payload.mid}/property`, payload.key, { type: 'api' })
       await dispatch('refresh')
     }
   },

@@ -94,7 +94,12 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   )
 }
 
-export function reqPut(path: string, iden: any, body?: any, options?: RequestOptions): Promise<any> {
+export function reqPut(
+  path: string,
+  iden: any,
+  body?: any,
+  options?: RequestOptions
+): Promise<any> {
   if (!options) {
     options = {}
   }

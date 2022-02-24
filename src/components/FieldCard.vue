@@ -119,6 +119,7 @@ export default defineComponent({
     onMounted(async () => {
       rszObs.observe(await onFieldResized())
     })
+    store.getters['model/emitter'].on('refresh', onFieldResized)
 
     async function onFieldResized() {
       const el = (await waitFor(props.field.key)) as HTMLElement
