@@ -253,6 +253,7 @@ export async function sync(pid: string): Promise<any> {
     pjtName: project.name,
     mdlName: '',
     skips: project.auth.skips,
+    nodes: [],
     deps: []
   }
   if (project.auth.model) {
