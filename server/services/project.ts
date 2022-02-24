@@ -248,24 +248,29 @@ export async function sync(pid: string): Promise<any> {
   const authTmp = Path.join(tmpPath, 'services', 'auth.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
-  const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
-  const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
-  const mdlDep = (await db.select(Dep, { name: authMdl.name }))[0]
-  const deps: Record<string, any> = { [mdlDep.id]: mdlDep.toObject() }
+  const deps: Record<string, any> = {}
   const args: Record<string, any> = {
     pjtName: project.name,
-    mdlName: authMdl.name,
-    skips: project.auth.skips
+    mdlName: '',
+    skips: project.auth.skips,
+    deps: []
   }
-  if (authSvc && authSvc.flow) {
-    args.nodes = await recuNode(authSvc.flow, 4, (node: any) => {
-      for (const dep of node.deps) {
-        if (!(dep.id in deps)) {
-          deps[dep.id] = dep.toObject()
+  if (project.auth.model) {
+    const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
+    const authSvc = authMdl.svcs.find((svc: any) => svc.name === 'auth' && svc.interface === 'sign')
+    const mdlDep = (await db.select(Dep, { name: authMdl.name }))[0]
+    args.mdlName = authMdl.name
+    deps[mdlDep.id] = mdlDep.toObject()
+    if (authSvc && authSvc.flow) {
+      args.nodes = await recuNode(authSvc.flow, 4, (node: any) => {
+        for (const dep of node.deps) {
+          if (!(dep.id in deps)) {
+            deps[dep.id] = dep.toObject()
+          }
         }
-      }
-    })
-    args.deps = Object.values(deps)
+      })
+      args.deps = Object.values(deps)
+    }
   }
   adjustFile(fs.readFileSync(authTmp), authGen, args)
 
