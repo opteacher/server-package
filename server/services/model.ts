@@ -305,12 +305,14 @@ export async function newRecord(mid: string, body: any) {
 
 export async function saveProp(data: any, mid: string, pid?: string) {
   const prop = PropType.copy(await db.save(Property, data, pid ? { _index: pid } : undefined))
-  const model = await db.save(Model, { props: prop.key }, { _index: mid })
-  // 为model的form和table生成field和column
-  const field = await db.save(Field, initField(prop))
-  await db.save(Form, { fields: field.id }, { _index: model.form })
-  const column = await db.save(Column, initColumn(prop))
-  await db.save(Table, { columns: column.id }, { _index: model.table })
+  const model = await db.save(Model, { props: prop.key }, { _index: mid }, { updMode: 'append' })
+  if (!pid) {
+    // 为model的form和table生成field和column
+    const field = await db.save(Field, initField(prop))
+    await db.save(Form, { fields: field.id }, { _index: model.form })
+    const column = await db.save(Column, initColumn(prop))
+    await db.save(Table, { columns: column.id }, { _index: model.table })
+  }
   return db.select(Property, { _index: prop.key }, { ext: true })
 }
 
