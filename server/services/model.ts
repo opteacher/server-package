@@ -303,8 +303,8 @@ export async function newRecord(mid: string, body: any) {
   return axios.post(`${baseURL}/${model.name}`, body)
 }
 
-export async function newProp(data: any, mid: string) {
-  const prop = PropType.copy(await db.save(Property, data))
+export async function saveProp(data: any, mid: string, pid?: string) {
+  const prop = PropType.copy(await db.save(Property, data, pid ? { _index: pid } : undefined))
   const model = await db.save(Model, { props: prop.key }, { _index: mid })
   // 为model的form和table生成field和column
   const field = await db.save(Field, initField(prop))

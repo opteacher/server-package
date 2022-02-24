@@ -241,7 +241,7 @@ export default defineComponent({
       modelEmitter.emit('refresh')
     }
     async function onPropSave(prop: Property, mid: string) {
-      await store.dispatch('project/newProp', { prop, mid })
+      await store.dispatch('project/saveProp', { prop, mid })
       propEmitter.emit('refresh')
     }
     async function onPropDel(key: any, mid: string) {
