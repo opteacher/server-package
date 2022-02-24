@@ -251,7 +251,7 @@ export async function sync(pid: string): Promise<any> {
   const deps: Record<string, any> = {}
   const args: Record<string, any> = {
     pjtName: project.name,
-    mdlName: '',
+    mdlName: 'test',
     skips: project.auth.skips,
     nodes: [],
     deps: []
