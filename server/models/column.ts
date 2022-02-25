@@ -6,7 +6,10 @@ export default db.defineModel(
     title: db.PropTypes.String,
     dataIndex: db.PropTypes.String,
     width: db.PropTypes.Number,
-    align: db.PropTypes.String // left | right | center
+    align: db.PropTypes.String, // left | right | center
+    sortable: db.PropTypes.Boolean,
+    searchable: db.PropTypes.Boolean,
+    filterable: db.PropTypes.Boolean
   },
   {
     router: {

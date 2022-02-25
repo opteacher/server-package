@@ -14,7 +14,7 @@
       :size="size"
       style="overflow-y: hidden"
       v-model:expandedRowKeys="expRowKeys"
-      :custom-row="record => ({ onClick: () => onRowExpand(record) })"
+      :expandRowByClick="true"
       @expand="(_expanded, record) => onRowExpand(record)"
     >
       <template v-for="(value, key) in editMapper" :key="key" #[key]="{ text, record }">

@@ -84,18 +84,13 @@ export default {
     },
     async sync({ dispatch, state }: { dispatch: Dispatch; state: Project }) {
       state.status = 'loading'
-      await reqPut(
-        'project',
-        `${state.key}/sync`,
-        {},
-        {
-          type: 'api',
-          messages: {
-            loading: '同步中……',
-            succeed: '同步成功！'
-          }
+      await reqPut('project', `${state.key}/sync`, undefined, {
+        type: 'api',
+        messages: {
+          loading: '同步中……',
+          succeed: '同步成功！'
         }
-      )
+      })
       await dispatch('refresh')
     },
     chkStatus({ state }: { state: Project }) {

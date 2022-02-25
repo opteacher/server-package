@@ -11,6 +11,8 @@ import { Dispatch } from 'vuex'
 import Column from '@/types/column'
 import Table from '@/types/table'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import Project from '@/types/project'
+import { Modal } from 'ant-design-vue'
 
 type ModelState = {
   emitter: Emitter
@@ -20,7 +22,6 @@ type ModelState = {
   dataset: any[]
   compos: Compo[]
   fields: Record<string, Field>
-  columns: Column[]
   dragOn: string
   divider: string
   dsgnMod: string
@@ -36,7 +37,6 @@ export default {
     dataset: [] as any[],
     compos: [] as Compo[],
     fields: {} as Record<string, Field>,
-    columns: [] as Column[],
     dragOn: '',
     divider: '',
     dsgnMod: 'form'
@@ -50,22 +50,32 @@ export default {
     }
   },
   actions: {
-    async refresh({ state }: { state: ModelState }, options?: { reqDataset?: boolean }) {
+    async refresh(
+      { state, rootGetters }: { state: ModelState; rootGetters: any },
+      options?: { reqDataset?: boolean }
+    ) {
       const mid = router.currentRoute.value.params.mid
-      Model.copy(await reqGet('model', mid), state.model)
-      state.columns = state.model.props.map(prop => new Column(prop.label, prop.name))
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
+      Model.copy(await reqGet('model', mid), state.model)
       Form.copy(await reqPost(`model/${state.model.key}/form`, {}, { type: 'api' }), state.form)
       Table.copy(await reqPost(`model/${state.model.key}/table`, {}, { type: 'api' }), state.table)
       state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
       state.divider = ''
       state.dsgnMod = router.currentRoute.value.path.split('/').at(-2) as string
-      if (options && options.reqDataset) {
-        const pid = router.currentRoute.value.params.pid
-        state.dataset = await reqGet('project', `${pid}/model/${mid}/data`, { type: 'api' })
-      }
       state.emitter.emit('refresh')
+      if (options && options.reqDataset) {
+        const project = rootGetters['project/ins'] as Project
+        if (!project.thread) {
+          Modal.error({
+            title: '错误',
+            content: '需要启动项目以显示数据集！'
+          })
+          state.dataset = []
+          return
+        }
+        state.dataset = await reqGet(`project/${project.key}`, `model/${mid}/data`, { type: 'api' })
+      }
     },
     async export(_store: { state: ModelState }, expCls: ExpClsForm) {
       const pid = router.currentRoute.value.params.pid
@@ -133,7 +143,15 @@ export default {
       await dispatch('refresh')
     },
     async newRecord({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, record: any) {
-      await reqPost(`model/${state.model.key}/record`, record, { type: 'api' })
+      await reqPut('table', state.table.key, { demoData: record })
+      await dispatch('refresh')
+    },
+    async saveTable({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, table: any) {
+      await reqPut('table', state.table.key, table)
+      await dispatch('refresh')
+    },
+    async saveColumn({ dispatch }: { dispatch: Dispatch }, column: any) {
+      await reqPut('column', column.key, column)
       await dispatch('refresh')
     }
   },
@@ -142,10 +160,11 @@ export default {
     ins: (state: ModelState): Model => state.model,
     form: (state: ModelState): Form => state.form,
     table: (state: ModelState): Table => state.table,
+    demoRecord: (state: ModelState): any[] => (state.table.demoData ? [state.table.demoData] : []),
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
     fields: (state: ModelState): Record<string, Field> => state.fields,
-    columns: (state: ModelState): Column[] => state.columns,
+    columns: (state: ModelState): Column[] => state.table.columns,
     dragOn: (state: ModelState): string => state.dragOn,
     divider: (state: ModelState): string => state.divider,
     dsgnMod: (state: ModelState): string => state.dsgnMod

@@ -83,7 +83,7 @@ export default defineComponent({
         emit('submit', formState)
         visible.value = false
       } catch (e) {
-        console.log(e)
+        console.error(e)
       }
     }
     function onCclClick() {

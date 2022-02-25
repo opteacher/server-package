@@ -14,13 +14,14 @@ export default class Column {
     title: string,
     dataIdx: string,
     options?: {
+      key?: string
       width?: number
       slotTitle?: string
     }
   ) {
     this.title = title
     this.dataIndex = dataIdx
-    this.key = dataIdx
+    this.key = options && options.key ? options.key : dataIdx
     this.slots = { customRender: dataIdx }
     if (options && options.slotTitle) {
       this.slots.title = options.slotTitle
@@ -32,7 +33,9 @@ export default class Column {
 
   static copy(src: any, tgt?: Column): Column {
     tgt = tgt || new Column('', '')
+    tgt.key = src.key || src._id || tgt.key
     tgt.title = src.title || tgt.title
+    tgt.width = src.width || tgt.width
     tgt.dataIndex = src.dataIndex || tgt.dataIndex
     if (src.slots && src.slots.customRender) {
       tgt.slots.customRender = src.slots.customRender
@@ -40,7 +43,6 @@ export default class Column {
     if (src.slots && src.slots.title) {
       tgt.slots.title = src.slots.title
     }
-    tgt.width = src.width || tgt.width
     return tgt
   }
 }

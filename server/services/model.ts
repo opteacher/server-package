@@ -9,12 +9,10 @@ import Form from '../models/form.js'
 import Field from '../models/field.js'
 import Table from '../models/table.js'
 import Column from '../models/column.js'
-import Service from '../models/service.js'
 import PropType from '../types/property.js'
 import Property from '../models/property.js'
 import axios from 'axios'
 import { MdlInf } from '../lib/backend-library/databases/index.js'
-import { run } from './project.js'
 
 const typeMapper = {
   Any: 'any',
@@ -223,7 +221,7 @@ export async function genTable(mid: string) {
       const res = await db.save(Column, initColumn(prop))
       columns.push(res.id)
     }
-    return { size: 'default', columns }
+    return { title: '数据表', operaStyle: 'button', size: 'default', columns }
   })
 }
 
@@ -251,63 +249,15 @@ export async function insertField(
   return db.save(Form, { fields }, { _index: formField[0] }, { updMode: 'cover' })
 }
 
-export async function newRecord(mid: string, body: any) {
-  // 检测模型是否具有POST模型接口
-  const model = MdlType.copy(await db.select(Model, { _index: mid }, { ext: true }))
-  let project: any = null
-  for (const pjt of await db.select(Project)) {
-    if (pjt.models.includes(model.key)) {
-      await run(pjt)
-      project = pjt
-      break
-    }
-  }
-  if (!project) {
-    return { error: `未找到模型${model.name}所在的项目！` }
-  }
-  const baseURL = `http://${project.name}:${project.port}/${project.name}/mdl/v1`
-  if (
-    !model.svcs
-      .map(svc => svc.isModel && svc.method === 'POST')
-      .reduce((a: boolean, b: boolean) => a || b)
-  ) {
-    await db.save(Service, {
-      model: model.name,
-      emit: 'api',
-      method: 'POST',
-      isModel: true,
-      path: `/mdl/v1/${model.name}`
-    })
-    let countdown = 0
-    const h = setInterval(async () => {
-      if (countdown > 60) {
-        clearInterval(h)
-      }
-      try {
-        const resp = await axios.get(baseURL)
-        if (resp.status === 404) {
-          throw new Error()
-        }
-        clearInterval(h)
-      } catch (e) {
-        console.log('等待项目启动中……')
-      } finally {
-        countdown++
-      }
-    }, 5000)
-  }
-  return axios.post(`${baseURL}/${model.name}`, body)
-}
-
 export async function saveProp(data: any, mid: string, pid?: string) {
   const prop = PropType.copy(await db.save(Property, data, pid ? { _index: pid } : undefined))
   const model = await db.save(Model, { props: prop.key }, { _index: mid }, { updMode: 'append' })
   if (!pid) {
     // 为model的form和table生成field和column
     const field = await db.save(Field, initField(prop))
-    await db.save(Form, { fields: field.id }, { _index: model.form })
+    await db.save(Form, { fields: field.id }, { _index: model.form }, { updMode: 'append'})
     const column = await db.save(Column, initColumn(prop))
-    await db.save(Table, { columns: column.id }, { _index: model.table })
+    await db.save(Table, { columns: column.id }, { _index: model.table }, { updMode: 'append'})
   }
   return db.select(Property, { _index: prop.key }, { ext: true })
 }
