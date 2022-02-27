@@ -7,6 +7,7 @@ import DataSet from '../views/DataSet.vue'
 import Auth from '../views/Auth.vue'
 import Form from '../views/Form.vue'
 import Table from '../views/Table.vue'
+import Demo from '../views/Demo.vue'
 import Test from '../views/Test.vue'
 import axios from 'axios'
 import { makeRequest } from '@/utils'
@@ -62,6 +63,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/table/:mid',
     name: 'Table',
     component: Table,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/project/:pid/demo/:mid',
+    name: 'Demo',
+    component: Demo,
     meta: { reqLogin: true }
   }
 ]

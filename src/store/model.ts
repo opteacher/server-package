@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from '@/types/model'
 import router from '@/router'
-import { reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
+import { reqAll, reqDelete, reqGet, reqPost, reqPut, skipIgnores } from '@/utils'
 import { ExpClsForm } from '../views/Project'
 import Compo from '@/types/compo'
 import Field from '@/types/field'
@@ -152,6 +152,14 @@ export default {
     },
     async saveColumn({ dispatch }: { dispatch: Dispatch }, column: any) {
       await reqPut('column', column.key, column)
+      await dispatch('refresh')
+    },
+    async saveEntry({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, entry: any) {
+      await reqPut('table', state.table.key, {
+        entries: Object.assign(state.table.entries, {
+          [entry.key]: Object.assign(state.table.entries[entry.key], skipIgnores(entry, ['key']))
+        })
+      })
       await dispatch('refresh')
     }
   },

@@ -28,3 +28,22 @@ export async function makeRequest(method: Method, path: string) {
     return resp.data.result || resp.data.data
   }
 }
+
+export function genDefault(type: string, dftVal?: any) {
+  switch (type) {
+    case 'Any':
+      return dftVal || 'null'
+    case 'String':
+      return `'${dftVal || ''}'`
+    case 'Number':
+      return dftVal || '0'
+    case 'Boolean':
+      return typeof dftVal === 'undefined' ? 'false' : dftVal ? 'true' : 'false'
+    case 'DateTime':
+      return dftVal ? new Date(dftVal) : 'new Date()'
+    case 'Array':
+      return dftVal || '[]'
+    case 'Object':
+      return dftVal || '{}'
+  }
+}

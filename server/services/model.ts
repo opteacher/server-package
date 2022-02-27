@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { db } from '../utils/index.js'
+import { db, genDefault } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import MdlType from '../types/model.js'
@@ -11,6 +11,7 @@ import Table from '../models/table.js'
 import Column from '../models/column.js'
 import PropType from '../types/property.js'
 import Property from '../models/property.js'
+import TblType from '../types/table.js'
 import axios from 'axios'
 import { MdlInf } from '../lib/backend-library/databases/index.js'
 
@@ -52,38 +53,20 @@ export async function exportClass(
       writeData += `  ${prop.name}: ${prop.type in typeMapper ? typeMapper[type] : prop.type}\n`
     }
   }
-  const genDft = (type: string, dftVal?: any) => {
-    switch (type) {
-      case 'Any':
-        return dftVal || 'null'
-      case 'String':
-        return `'${dftVal || ''}'`
-      case 'Number':
-        return dftVal || '0'
-      case 'Boolean':
-        return typeof dftVal === 'undefined' ? 'false' : dftVal ? 'true' : 'false'
-      case 'DateTime':
-        return dftVal ? new Date(dftVal) : 'new Date()'
-      case 'Array':
-        return dftVal || '[]'
-      case 'Object':
-        return dftVal || '{}'
-    }
-  }
   writeData += '\n  constructor() {\n'
   writeData += "    this.key = ''\n"
   for (const prop of model.props) {
     if (options.expType === 'javascript') {
       writeData += genAnno(prop, '    ')
     }
-    writeData += `    this.${prop.name} = ${genDft(prop.type)}\n`
+    writeData += `    this.${prop.name} = ${genDefault(prop.type)}\n`
   }
   writeData += '  }\n'
   if (options.genReset) {
     writeData += '\n  reset() {\n'
     writeData += "    this.key = ''\n"
     for (const prop of model.props) {
-      writeData += `    this.${prop.name} = ${genDft(prop.type)}\n`
+      writeData += `    this.${prop.name} = ${genDefault(prop.type)}\n`
     }
     writeData += '  }\n'
   }
@@ -221,7 +204,14 @@ export async function genTable(mid: string) {
       const res = await db.save(Column, initColumn(prop))
       columns.push(res.id)
     }
-    return { title: '数据表', operaStyle: 'button', size: 'default', columns }
+    return {
+      title: '数据表',
+      operaStyle: 'button',
+      size: 'default',
+      hasPages: true,
+      columns,
+      entries: Object.fromEntries(model.props.map(prop => [prop.name, genDefault(prop.type)]))
+    }
   })
 }
 
@@ -251,13 +241,22 @@ export async function insertField(
 
 export async function saveProp(data: any, mid: string, pid?: string) {
   const prop = PropType.copy(await db.save(Property, data, pid ? { _index: pid } : undefined))
-  const model = await db.save(Model, { props: prop.key }, { _index: mid }, { updMode: 'append' })
   if (!pid) {
+    const model = await db.save(Model, { props: prop.key }, { _index: mid }, { updMode: 'append' })
     // 为model的form和table生成field和column
     const field = await db.save(Field, initField(prop))
-    await db.save(Form, { fields: field.id }, { _index: model.form }, { updMode: 'append'})
+    await db.save(Form, { fields: field.id }, { _index: model.form }, { updMode: 'append' })
     const column = await db.save(Column, initColumn(prop))
-    await db.save(Table, { columns: column.id }, { _index: model.table }, { updMode: 'append'})
+    const table = TblType.copy(await db.select(Table, { _index: model.table }))
+    await db.save(
+      Table,
+      {
+        columns: column.id,
+        entries: Object.assign(table.entries || {}, { [prop.name]: genDefault(prop.type) })
+      },
+      { _index: model.table },
+      { updMode: 'append' }
+    )
   }
   return db.select(Property, { _index: prop.key }, { ext: true })
 }

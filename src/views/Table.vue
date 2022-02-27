@@ -38,17 +38,31 @@
                     <a-button size="small" danger>删除</a-button>
                   </template>
                   <template v-else>
-                    <a style="color: rgba(0, 0, 0, 0.65)" class="mr-5">编辑</a>
+                    <a class="mr-5">编辑</a>
                     <a style="color: #ff4d4f">删除</a>
                   </template>
                 </template>
                 <span
                   v-else
                   :style="{
-                    color: selected === `cell_${column.dataIndex}` ? '#1890ff' : '#000000d9'
+                    color:
+                      selected === `cell_${column.dataIndex}`
+                        ? '#1890ff'
+                        : entries[column.dataIndex].color
                   }"
                 >
-                  {{ text }}
+                  {{
+                    entries[column.dataIndex].prefix &&
+                    !text.startsWith(entries[column.dataIndex].prefix)
+                      ? entries[column.dataIndex].prefix
+                      : ''
+                  }}{{ text
+                  }}{{
+                    entries[column.dataIndex].suffix &&
+                    !endsWith(text, entries[column.dataIndex].suffix)
+                      ? entries[column.dataIndex].suffix
+                      : ''
+                  }}
                 </span>
               </template>
               <template #emptyText>
@@ -124,18 +138,21 @@
           >
             <a-descriptions-item label="标题">
               <a-input
-                :value="selCol.title"
+                :value="selColumn.title"
                 @change="
                   e =>
-                    store.dispatch('model/saveColumn', { key: selCol.key, title: e.target.value })
+                    store.dispatch('model/saveColumn', {
+                      key: selColumn.key,
+                      title: e.target.value
+                    })
                 "
               />
             </a-descriptions-item>
             <a-descriptions-item label="宽度">
               <a-input-number
                 class="w-100"
-                :value="selCol.width || 0"
-                @change="width => store.dispatch('model/saveColumn', { key: selCol.key, width })"
+                :value="selColumn.width || 0"
+                @change="width => store.dispatch('model/saveColumn', { key: selColumn.key, width })"
               />
             </a-descriptions-item>
             <a-descriptions-item label="对齐">
@@ -146,8 +163,50 @@
                   { label: '居中对齐', value: 'center' },
                   { label: '右对齐', value: 'right' }
                 ]"
-                :value="selCol.align || 0"
-                @change="align => store.dispatch('model/saveColumn', { key: selCol.key, align })"
+                :value="selColumn.align || 'left'"
+                @change="align => store.dispatch('model/saveColumn', { key: selColumn.key, align })"
+              />
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions
+            v-else-if="selected.startsWith('cell')"
+            class="mb-50"
+            title="项"
+            :column="1"
+            bordered
+            size="small"
+          >
+            <a-descriptions-item label="颜色">
+              <ColorField
+                :color="selEntry.color"
+                @submit="
+                  ({ color, next }) => {
+                    store
+                      .dispatch('model/saveEntry', {
+                        key: selCellKey,
+                        color
+                      })
+                      .then(next)
+                  }
+                "
+              />
+            </a-descriptions-item>
+            <a-descriptions-item label="前缀">
+              <a-input
+                :value="selEntry.prefix"
+                @change="
+                  e =>
+                    store.dispatch('model/saveEntry', { key: selCellKey, prefix: e.target.value })
+                "
+              />
+            </a-descriptions-item>
+            <a-descriptions-item label="后缀">
+              <a-input
+                :value="selEntry.suffix"
+                @change="
+                  e =>
+                    store.dispatch('model/saveEntry', { key: selCellKey, suffix: e.target.value })
+                "
               />
             </a-descriptions-item>
           </a-descriptions>
@@ -166,14 +225,16 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import DemoForm from '../components/DemoForm.vue'
 import Column from '@/types/column'
 import Table from '@/types/table'
-import { skipIgnores } from '@/utils'
+import { skipIgnores, endsWith } from '@/utils'
 import { v4 as uuidv4 } from 'uuid'
+import ColorField from '../components/ColorField.vue'
 
 export default defineComponent({
   name: 'Table',
   components: {
     LytDesign,
-    DemoForm
+    DemoForm,
+    ColorField
   },
   setup() {
     const store = useStore()
@@ -202,9 +263,14 @@ export default defineComponent({
     const fmEmitter = new Emitter()
     const selected = ref('')
     const table = computed(() => store.getters['model/table'] as Table)
-    const selCol = computed(() =>
-      columns.value.find(column => column.key === selected.value.substring('head_'.length))
+    const entries = computed(() => (store.getters['model/table'] as Table).entries)
+    const selColumn = computed(() =>
+      store.getters['model/columns'].find(
+        (column: any) => column.key === selected.value.substring('head_'.length)
+      )
     )
+    const selCellKey = computed(() => selected.value.substring('cell_'.length))
+    const selEntry = computed(() => table.value.entries[selected.value.substring('cell_'.length)])
 
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = `head_${colKey}`
@@ -222,18 +288,22 @@ export default defineComponent({
       table,
       hdHeight,
       columns,
+      entries,
       demoRecord,
       selected,
-      selCol,
+      selColumn,
+      selEntry,
       fmEmitter,
+      selCellKey,
 
-      onFormSubmit
+      onFormSubmit,
+      endsWith
     }
   }
 })
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .main-panel {
   padding: 20px;
   width: 70%;

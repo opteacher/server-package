@@ -9,7 +9,8 @@ export default db.defineModel(
     size: db.PropTypes.String,
     hasPages: db.PropTypes.Boolean,
     demoData: db.PropTypes.Any,
-    columns: [{ type: db.PropTypes.Id, ref: 'column' }]
+    columns: [{ type: db.PropTypes.Id, ref: 'column' }],
+    entries: db.PropTypes.Any
   },
   {
     router: {

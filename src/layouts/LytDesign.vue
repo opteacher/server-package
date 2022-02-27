@@ -12,7 +12,15 @@
           <a-radio-button value="form">表单设计</a-radio-button>
           <a-radio-button value="table">表项设计</a-radio-button>
         </a-radio-group>
-        <a-button @click="fmEmitter.emit('update:show', true)">预览</a-button>
+        <a-button
+          @click="
+            dsgnMod === 'form'
+              ? fmEmitter.emit('update:show', true)
+              : router.push(`/server-package/project/${pid}/demo/${model.key}`)
+          "
+        >
+          预览
+        </a-button>
         <DemoForm :emitter="fmEmitter" />
         <a-button key="1" type="primary">发布</a-button>
       </template>
