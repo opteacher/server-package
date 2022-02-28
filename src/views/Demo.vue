@@ -146,7 +146,6 @@ export default defineComponent({
       records.value = store.getters['model/records'](useRealData.value)
     }
     return {
-      store,
       router,
       model,
       columns,

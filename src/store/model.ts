@@ -164,9 +164,10 @@ export default {
       await dispatch('refresh')
     },
     async saveCell({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, cell: any) {
+      const cells = state.table.cells || {}
       await reqPut('table', state.table.key, {
-        entries: Object.assign(state.table.cells, {
-          [cell.key]: Object.assign(state.table.cells[cell.key], skipIgnores(cell, ['key']))
+        cells: Object.assign(cells, {
+          [cell.key]: Object.assign(cells[cell.key] || {}, skipIgnores(cell, ['key']))
         })
       })
       await dispatch('refresh')
