@@ -98,12 +98,12 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '@/types/column'
 import { skipIgnores, endsWith } from '@/utils'
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { v4 as uuidv4 } from 'uuid'
 import Table from '@/types/table'
 import Model from '@/types/model'
 import { BorderlessTableOutlined } from '@ant-design/icons-vue'
@@ -127,7 +127,7 @@ export default defineComponent({
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
-          skipIgnores(new Column('操作', 'opera', { key: uuidv4(), width: 100 }), ['slots'])
+          skipIgnores(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
         ) as Column[]
       } else {
         return ret as Column[]
@@ -135,15 +135,16 @@ export default defineComponent({
     })
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => (store.getters['model/table'] as Table).cells)
-    const records = ref([])
+    const records = reactive([] as any[])
     const useRealData = ref(true)
     const fmEmitter = new Emitter()
 
-    onMounted(() => store.dispatch('model/refresh', { reqDataset: useRealData.value }))
+    onMounted(onRefresh)
 
     async function onRefresh() {
       await store.dispatch('model/refresh', { reqDataset: useRealData.value })
-      records.value = store.getters['model/records'](useRealData.value)
+      records.splice(0, records.length)
+      records.push(...store.getters['model/records'](useRealData.value))
     }
     return {
       router,

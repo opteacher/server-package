@@ -101,10 +101,10 @@ import DemoForm from '../components/DemoForm.vue'
 import Column from '@/types/column'
 import Table from '@/types/table'
 import { skipIgnores, endsWith } from '@/utils'
-import { v4 as uuidv4 } from 'uuid'
 import TableProps from '../components/TableProps.vue'
 import ColumnProps from '../components/ColumnProps.vue'
 import CellProps from '../components/CellProps.vue'
+import Cell from '@/types/cell'
 
 export default defineComponent({
   name: 'Table',
@@ -135,7 +135,7 @@ export default defineComponent({
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
-          skipIgnores(new Column('操作', 'opera', { key: uuidv4(), width: 100 }), ['slots'])
+          skipIgnores(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
         ) as Column[]
       } else {
         return ret as Column[]
@@ -146,12 +146,14 @@ export default defineComponent({
     const selected = ref('')
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => (store.getters['model/table'] as Table).cells)
-    const selColumn = computed(() =>
-      store.getters['model/columns'].find(
-        (column: any) => column.key === selected.value.substring('head_'.length)
-      )
-    )
-    const selCell = computed(() => table.value.cells[selected.value.substring('cell_'.length)])
+    const selColumn = computed(() => {
+      const key = selected.value.substring('head_'.length)
+      return store.getters['model/columns'].find((column: any) => column.key === key)
+    })
+    const selCell = computed(() => {
+      const key = selected.value.substring('cell_'.length)
+      return Cell.copy({ key }, table.value.cells[key])
+    })
 
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = `head_${colKey}`

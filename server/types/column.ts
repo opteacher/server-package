@@ -10,7 +10,7 @@ export default class Column {
     customRender: string
   }
   align: 'left' | 'right' | 'center'
-  sorter: boolean
+  sorter: ((a: any, b: any) => number) | undefined
   defaultSortOrder: string
 
   constructor(
@@ -38,7 +38,8 @@ export default class Column {
       this.width = options.width
     }
     this.align = options && options.align ? options.align : 'left'
-    this.sorter = options && typeof options.sortable !== 'undefined' ? options.sortable : false
+    this.sorter =
+      options && options.sortable ? (a: any, b: any) => a[dataIdx] - b[dataIdx] : undefined
     this.defaultSortOrder =
       options && typeof options.defaultSort !== 'undefined' ? options.defaultSort : ''
   }
@@ -59,9 +60,9 @@ export default class Column {
     tgt.sorter =
       typeof src.sorter !== 'undefined'
         ? src.sorter
-        : typeof src.sortable !== 'undefined'
-        ? src.sortable
-        : false
+        : src.sortable
+        ? (a: any, b: any) => a[tgt?.dataIndex as string] - b[tgt?.dataIndex as string]
+        : undefined
     tgt.defaultSortOrder =
       typeof src.defaultSortOrder !== 'undefined'
         ? src.defaultSortOrder
