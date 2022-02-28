@@ -51,7 +51,7 @@ export default {
   },
   actions: {
     async refresh(
-      { state, rootGetters }: { state: ModelState; rootGetters: any },
+      { state, dispatch, rootGetters }: { state: ModelState; dispatch: Dispatch; rootGetters: any },
       options?: { reqDataset?: boolean }
     ) {
       const mid = router.currentRoute.value.params.mid
@@ -65,6 +65,7 @@ export default {
       state.dsgnMod = router.currentRoute.value.path.split('/').at(-2) as string
       state.emitter.emit('refresh')
       if (options && options.reqDataset) {
+        await dispatch('project/refresh', undefined, { root: true })
         const project = rootGetters['project/ins'] as Project
         if (!project.thread) {
           Modal.error({
