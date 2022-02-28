@@ -9,6 +9,7 @@ export default class Field {
   type: string // 表单组件类型
   rules: any[]
   refer: string
+  extra: any
 
   constructor() {
     this.key = ''
@@ -17,6 +18,7 @@ export default class Field {
     this.type = ''
     this.rules = []
     this.refer = ''
+    this.extra = {}
   }
 
   reset() {
@@ -26,6 +28,7 @@ export default class Field {
     this.type = ''
     this.rules = []
     this.refer = ''
+    this.extra = {}
   }
 
   static copy(src: any, tgt?: Field): Field {
@@ -36,6 +39,7 @@ export default class Field {
     tgt.type = src.type || tgt.type
     tgt.rules = src.rules || tgt.rules
     tgt.refer = src.refer || tgt.refer
+    tgt.extra = src.extra || tgt.extra
     return tgt
   }
 }

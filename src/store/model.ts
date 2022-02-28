@@ -138,6 +138,15 @@ export default {
       })
       await dispatch('refresh')
     },
+    async saveFieldExt(
+      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
+      payload: { fkey: string; extra: any }
+    ) {
+      await reqPut('field', payload.fkey, {
+        extra: Object.assign(state.fields[payload.fkey].extra || {}, payload.extra)
+      })
+      await dispatch('refresh')
+    },
     async delField({ dispatch }: { dispatch: Dispatch }, fldKey: string) {
       await reqDelete('field', fldKey)
       await dispatch('refresh')

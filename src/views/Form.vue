@@ -44,6 +44,7 @@
           <FieldProps v-else :field="actField" />
           <template v-if="actField">
             <InputProps v-if="actField.type === 'Input'" :field="actField" />
+            <SelectProps v-else-if="actField.type === 'Select'" :field="actField" />
           </template>
         </a-layout-sider>
       </a-layout>
@@ -65,6 +66,7 @@ import Form from '@/types/form'
 import FormProps from '../components/FormProps.vue'
 import FieldProps from '../components/FieldProps.vue'
 import InputProps from '../components/InputProps.vue'
+import SelectProps from '../components/SelectProps.vue'
 
 export default defineComponent({
   name: 'Form',
@@ -74,7 +76,8 @@ export default defineComponent({
     FieldCard,
     FormProps,
     FieldProps,
-    InputProps
+    InputProps,
+    SelectProps
   },
   setup() {
     const store = useStore()

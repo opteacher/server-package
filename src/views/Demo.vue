@@ -10,9 +10,10 @@
           v-model:checked="useRealData"
           checked-children="真实"
           un-checked-children="模板"
-          @change="reqDataset => store.dispatch('model/refresh', { reqDataset })"
+          @change="onRefresh"
         />
         &nbsp;数据
+        <a-button v-if="useRealData" @click="onRefresh">刷新</a-button>
       </template>
     </a-page-header>
     <a-layout class="mt-10 h-100">
@@ -134,12 +135,16 @@ export default defineComponent({
     })
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => (store.getters['model/table'] as Table).cells)
-    const records = computed(() => store.getters['model/records'](useRealData.value))
+    const records = ref([])
     const useRealData = ref(true)
     const fmEmitter = new Emitter()
 
     onMounted(() => store.dispatch('model/refresh', { reqDataset: useRealData.value }))
 
+    async function onRefresh() {
+      await store.dispatch('model/refresh', { reqDataset: useRealData.value })
+      records.value = store.getters['model/records'](useRealData.value)
+    }
     return {
       store,
       router,
@@ -151,6 +156,7 @@ export default defineComponent({
       useRealData,
       fmEmitter,
 
+      onRefresh,
       endsWith
     }
   }

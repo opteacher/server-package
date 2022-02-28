@@ -27,7 +27,7 @@
         <InfoCircleOutlined style="color: #1890ff" />
       </a-tooltip>
     </template>
-    <a-input v-if="field.type === 'Input'" />
+    <a-input v-if="field.type === 'Input'" :placeholder="field.extra.placeholder" />
     <a-select v-else-if="field.type === 'Select'" class="w-100" />
     <a-input-number v-else-if="field.type === 'Number'" class="w-100" />
     <a-checkbox v-else-if="field.type === 'Checkbox'" />
