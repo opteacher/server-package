@@ -154,10 +154,10 @@ export default {
       await reqPut('column', column.key, column)
       await dispatch('refresh')
     },
-    async saveEntry({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, entry: any) {
+    async saveCell({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, cell: any) {
       await reqPut('table', state.table.key, {
-        entries: Object.assign(state.table.entries, {
-          [entry.key]: Object.assign(state.table.entries[entry.key], skipIgnores(entry, ['key']))
+        entries: Object.assign(state.table.cells, {
+          [cell.key]: Object.assign(state.table.cells[cell.key], skipIgnores(cell, ['key']))
         })
       })
       await dispatch('refresh')
@@ -168,7 +168,10 @@ export default {
     ins: (state: ModelState): Model => state.model,
     form: (state: ModelState): Form => state.form,
     table: (state: ModelState): Table => state.table,
-    demoRecord: (state: ModelState): any[] => (state.table.demoData ? [state.table.demoData] : []),
+    records:
+      (state: ModelState) =>
+      (useReal: boolean): any[] =>
+        useReal ? state.dataset : state.table.demoData ? [state.table.demoData] : [],
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
     fields: (state: ModelState): Record<string, Field> => state.fields,

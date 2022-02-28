@@ -11,6 +11,7 @@ export default class Column {
   }
   align: 'left' | 'right' | 'center'
   sorter: boolean
+  defaultSortOrder: string
 
   constructor(
     title: string,
@@ -21,6 +22,7 @@ export default class Column {
       slotTitle?: string
       align?: 'left' | 'right' | 'center'
       sortable?: boolean
+      defaultSort?: string
       searchable?: boolean
       filterable?: boolean
     }
@@ -37,6 +39,8 @@ export default class Column {
     }
     this.align = options && options.align ? options.align : 'left'
     this.sorter = options && typeof options.sortable !== 'undefined' ? options.sortable : false
+    this.defaultSortOrder =
+      options && typeof options.defaultSort !== 'undefined' ? options.defaultSort : ''
   }
 
   static copy(src: any, tgt?: Column): Column {
@@ -58,6 +62,12 @@ export default class Column {
         : typeof src.sortable !== 'undefined'
         ? src.sortable
         : false
+    tgt.defaultSortOrder =
+      typeof src.defaultSortOrder !== 'undefined'
+        ? src.defaultSortOrder
+        : typeof src.defaultSort !== 'undefined'
+        ? src.defaultSort
+        : ''
     return tgt
   }
 }

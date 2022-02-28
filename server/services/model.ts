@@ -210,7 +210,7 @@ export async function genTable(mid: string) {
       size: 'default',
       hasPages: true,
       columns,
-      entries: Object.fromEntries(model.props.map(prop => [prop.name, genDefault(prop.type)]))
+      cells: Object.fromEntries(model.props.map(prop => [prop.name, genDefault(prop.type)]))
     }
   })
 }
@@ -252,7 +252,7 @@ export async function saveProp(data: any, mid: string, pid?: string) {
       Table,
       {
         columns: column.id,
-        entries: Object.assign(table.entries || {}, { [prop.name]: genDefault(prop.type) })
+        cells: Object.assign(table.cells || {}, { [prop.name]: genDefault(prop.type) })
       },
       { _index: model.table },
       { updMode: 'append' }

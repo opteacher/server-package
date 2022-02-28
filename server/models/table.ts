@@ -10,7 +10,8 @@ export default db.defineModel(
     hasPages: db.PropTypes.Boolean,
     demoData: db.PropTypes.Any,
     columns: [{ type: db.PropTypes.Id, ref: 'column' }],
-    entries: db.PropTypes.Any
+    cells: db.PropTypes.Any,
+    operable: db.PropTypes.Array // 可增加, 可编辑, 可删除
   },
   {
     router: {

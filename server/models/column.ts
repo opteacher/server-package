@@ -8,6 +8,7 @@ export default db.defineModel(
     width: db.PropTypes.Number,
     align: db.PropTypes.String, // left | right | center
     sortable: db.PropTypes.Boolean,
+    defaultSort: db.PropTypes.String, // | ascend | descend
     searchable: db.PropTypes.Boolean,
     filterable: db.PropTypes.Boolean
   },

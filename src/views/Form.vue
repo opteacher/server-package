@@ -40,82 +40,8 @@
           </div>
         </a-layout-content>
         <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
-          <a-descriptions
-            v-show="!actField"
-            class="mb-50"
-            title="表单参数"
-            :column="1"
-            bordered
-            size="small"
-          >
-            <a-descriptions-item label="标题">
-              <a-input
-                :value="form.title"
-                @change="e => store.dispatch('model/saveForm', { title: e.target.value })"
-              />
-            </a-descriptions-item>
-            <a-descriptions-item label="表单宽度">
-              <a-input-number
-                class="w-100"
-                :value="form.width"
-                :min="1"
-                :max="100"
-                :formatter="value => `${value}%`"
-                @change="width => store.dispatch('model/saveForm', { width })"
-              />
-            </a-descriptions-item>
-            <a-descriptions-item label="标签宽度">
-              <a-input-number
-                class="w-100"
-                :value="form.labelWidth"
-                :min="1"
-                :max="23"
-                @change="labelWidth => store.dispatch('model/saveForm', { labelWidth })"
-              />
-            </a-descriptions-item>
-          </a-descriptions>
-          <a-descriptions
-            v-show="actField"
-            class="mb-50"
-            title="组件基础参数"
-            :column="1"
-            bordered
-            size="small"
-          >
-            <a-descriptions-item label="关联">
-              <a-mentions :value="actField?.refer">
-                <a-mentions-option v-for="prop in props" :key="prop.key" :value="prop.name">
-                  {{ prop.name }}
-                </a-mentions-option>
-              </a-mentions>
-            </a-descriptions-item>
-            <a-descriptions-item label="标签">
-              <a-input
-                :value="actField?.label"
-                @change="
-                  e =>
-                    store.dispatch('model/saveField', { key: actField.key, label: e.target.value })
-                "
-              />
-            </a-descriptions-item>
-            <a-descriptions-item label="类型">
-              <a-select
-                class="w-100"
-                :value="actField?.type"
-                :options="compoTypes.map(cmpTyp => ({ label: cmpTyp, value: cmpTyp }))"
-              />
-            </a-descriptions-item>
-            <a-descriptions-item label="描述">
-              <a-textarea
-                :value="actField?.desc"
-                :auto-size="{ minRows: 2 }"
-                @change="
-                  e =>
-                    store.dispatch('model/saveField', { key: actField.key, desc: e.target.value })
-                "
-              />
-            </a-descriptions-item>
-          </a-descriptions>
+          <FormProps v-if="!actField" :form="form" />
+          <FieldProps v-else :field="actField" />
           <template v-if="actField">
             <InputProps v-if="actField.type === 'Input'" :field="actField" />
           </template>
@@ -136,7 +62,8 @@ import { useStore } from 'vuex'
 import Field from '@/types/field'
 import Compo from '@/types/compo'
 import Form from '@/types/form'
-import Model from '@/types/model'
+import FormProps from '../components/FormProps.vue'
+import FieldProps from '../components/FieldProps.vue'
 import InputProps from '../components/InputProps.vue'
 
 export default defineComponent({
@@ -145,6 +72,8 @@ export default defineComponent({
     LytDesign,
     CompoCard,
     FieldCard,
+    FormProps,
+    FieldProps,
     InputProps
   },
   setup() {
@@ -154,7 +83,6 @@ export default defineComponent({
     const active = ref('')
     const actField = computed(() => store.getters['model/fields'][active.value])
     const form = computed(() => store.getters['model/form'] as Form)
-    const props = computed(() => (store.getters['model/ins'] as Model).props)
     const hdHeight = ref(0)
 
     async function onDropDown(e: DragEvent) {
@@ -166,7 +94,6 @@ export default defineComponent({
     return {
       store,
       compos,
-      props,
       active,
       fields,
       actField,
