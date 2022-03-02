@@ -121,7 +121,7 @@ export default {
       await reqPut(
         'project',
         `${state.key}/stop`,
-        {},
+        undefined,
         {
           type: 'api',
           middles: {

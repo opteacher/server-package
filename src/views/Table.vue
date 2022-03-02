@@ -72,7 +72,10 @@
               <template #emptyText>
                 <a-empty>
                   <template #description>未查询到数据</template>
-                  <a-button type="primary" @click.stop="fmEmitter.emit('update:show', true)">
+                  <a-button
+                    type="primary"
+                    @click.stop="fmEmitter.emit('update:show', { show: true })"
+                  >
                     点击创建一条演示记录
                   </a-button>
                   <DemoForm :emitter="fmEmitter" @submit="onFormSubmit" />
@@ -163,8 +166,9 @@ export default defineComponent({
       selected.value = `cell_${cellKey}`
       e.stopPropagation()
     }
-    async function onFormSubmit(formState: any) {
+    async function onFormSubmit(formState: any, next: () => void) {
       await store.dispatch('model/newRecord', formState)
+      next()
     }
     return {
       store,

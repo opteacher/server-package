@@ -7,7 +7,8 @@ import {
   status,
   deploy,
   transfer,
-  getAllAPIs
+  getAllAPIs,
+  publish
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { save as saveAuth, del as delAuth, genSignLgc } from '../../../../../services/auth.js'
@@ -89,6 +90,12 @@ router.delete('/:pid/auth', async ctx => {
 router.post('/:pid/auth/sign', async ctx => {
   ctx.body = {
     result: await genSignLgc(ctx.params.pid, ctx.request.body.props)
+  }
+})
+
+router.put('/:pid/publish', async ctx => {
+  ctx.body = {
+    result: await publish(ctx.params.pid)
   }
 })
 

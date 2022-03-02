@@ -172,6 +172,17 @@ export default {
         })
       })
       await dispatch('refresh')
+    },
+    async publish({ rootGetters, dispatch }: { rootGetters: any; dispatch: Dispatch }) {
+      await dispatch('project/refresh', undefined, { root: true })
+      if (!rootGetters['project/ins'].thread) {
+        Modal.warning({
+          title: '发布失败',
+          content: '中台需要依赖项目后台运行，请确保项目运行后在发布中台！'
+        })
+        return
+      }
+
     }
   },
   getters: {

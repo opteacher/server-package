@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import Table from './table.js'
 import Form from './form.js'
 import Property from './property.js'
 import Service from './service.js'
@@ -12,6 +13,7 @@ export default class Model {
   props: Property[]
   svcs: Service[]
   form: Form | undefined
+  table: Table | undefined
 
   constructor() {
     this.key = ''
@@ -21,6 +23,7 @@ export default class Model {
     this.props = []
     this.svcs = []
     this.form = undefined
+    this.table = undefined
   }
 
   reset() {
@@ -31,6 +34,7 @@ export default class Model {
     this.props = []
     this.svcs = []
     this.form = undefined
+    this.table = undefined
   }
 
   static copy(src: any, tgt?: Model): Model {
@@ -58,6 +62,11 @@ export default class Model {
       Form.copy(src.form, tgt.form)
     } else {
       tgt.form = undefined
+    }
+    if (src.table) {
+      Table.copy(src.table, tgt.table)
+    } else {
+      tgt.table = undefined
     }
     return tgt
   }

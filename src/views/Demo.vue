@@ -31,7 +31,7 @@
           </a-menu-item>
         </a-menu>
       </a-layout-sider>
-      <a-layout-content class="p-10 white-bkgd">
+      <a-layout-content class="pt-10 pb-10 pr-10 pl-20 white-bkgd">
         <a-row class="mb-10" type="flex">
           <a-col flex="auto">
             <a-space>
@@ -43,7 +43,7 @@
             <a-button
               class="float-right"
               type="primary"
-              @click="fmEmitter.emit('update:show', true)"
+              @click="fmEmitter.emit('update:show', { show: true })"
             >
               添加
             </a-button>
@@ -57,19 +57,46 @@
           :pagination="table.hasPages"
           bordered
         >
-          <template #bodyCell="{ text, column }">
+          <template #bodyCell="{ text, column, record }">
             <template v-if="column.dataIndex === 'opera'">
               <template v-if="table.operaStyle === 'button'">
-                <a-button v-if="table.operable.includes('可编辑')" size="small" class="mb-5">
+                <a-button
+                  v-if="table.operable.includes('可编辑')"
+                  size="small"
+                  class="mb-5"
+                  @click="fmEmitter.emit('update:show', { show: true, record })"
+                >
                   编辑
                 </a-button>
-                <a-button v-if="table.operable.includes('可删除')" size="small" danger>
-                  删除
-                </a-button>
+                <a-popconfirm
+                  v-if="table.operable.includes('可删除')"
+                  title="确定删除该记录吗？"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="onRecordDel(record)"
+                >
+                  <a-button size="small" danger @click.stop="e => e.preventDefault()">
+                    删除
+                  </a-button>
+                </a-popconfirm>
               </template>
               <template v-else>
-                <a v-if="table.operable.includes('可编辑')" class="mr-5">编辑</a>
-                <a v-if="table.operable.includes('可删除')" style="color: #ff4d4f">删除</a>
+                <a
+                  v-if="table.operable.includes('可编辑')"
+                  class="mr-5"
+                  @click="fmEmitter.emit('update:show', { show: true, record })"
+                >
+                  编辑
+                </a>
+                <a-popconfirm
+                  v-if="table.operable.includes('可删除')"
+                  title="确定删除该记录吗？"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="onRecordDel(record)"
+                >
+                  <a style="color: #ff4d4f">删除</a>
+                </a-popconfirm>
               </template>
             </template>
             <span
@@ -91,7 +118,7 @@
             </span>
           </template>
         </a-table>
-        <DemoForm :emitter="fmEmitter" />
+        <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
       </a-layout-content>
     </a-layout>
   </div>
@@ -101,7 +128,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '@/types/column'
 import { skipIgnores, endsWith } from '@/utils'
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Table from '@/types/table'
@@ -135,16 +162,21 @@ export default defineComponent({
     })
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => (store.getters['model/table'] as Table).cells)
-    const records = reactive([] as any[])
+    const records = computed(() => store.getters['model/records'](useRealData.value))
     const useRealData = ref(true)
     const fmEmitter = new Emitter()
 
     onMounted(onRefresh)
 
-    async function onRefresh() {
-      await store.dispatch('model/refresh', { reqDataset: useRealData.value })
-      records.splice(0, records.length)
-      records.push(...store.getters['model/records'](useRealData.value))
+    function onRefresh() {
+      store.dispatch('model/refresh', { reqDataset: useRealData.value })
+    }
+    function onRecordSave(record: any, next: () => void) {
+      console.log(record)
+      next()
+    }
+    function onRecordDel(record: any) {
+      console.log(record)
     }
     return {
       router,
@@ -157,7 +189,9 @@ export default defineComponent({
       fmEmitter,
 
       onRefresh,
-      endsWith
+      endsWith,
+      onRecordSave,
+      onRecordDel
     }
   }
 })

@@ -70,24 +70,37 @@ export default defineComponent({
     )
     const fields = computed(() => Object.values(store.getters['model/fields']) as Field[])
 
-    props.emitter.on('update:show', async (show: boolean) => {
-      if (show) {
+    props.emitter.on('update:show', async (options: { show: boolean; record?: any }) => {
+      if (options.show) {
         await store.dispatch('model/refresh')
       }
-      visible.value = show
+      visible.value = options.show
+      if (options.record) {
+        for (const prop of Object.keys(options.record)) {
+          formState[prop] = options.record[prop]
+        }
+      }
     })
 
+    function reset() {
+      for (const prop of model.value.props) {
+        formState[prop.name] = toDefault(prop.type)
+      }
+    }
     async function onOkClick() {
       try {
         await formRef.value.validate()
-        emit('submit', formState)
-        visible.value = false
+        emit('submit', formState, () => {
+          visible.value = false
+          reset()
+        })
       } catch (e) {
         console.error(e)
       }
     }
     function onCclClick() {
       visible.value = false
+      reset()
     }
     function toDefault(type: BaseTypes) {
       switch (type) {

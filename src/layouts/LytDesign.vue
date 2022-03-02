@@ -5,7 +5,7 @@
       style="border: 1px solid rgb(235, 237, 240)"
       :title="model.name"
       :sub-title="model.desc"
-      @back="() => router.push(`/server-package/project/${pid}`)"
+      @back="() => router.go(-1)"
     >
       <template #extra>
         <a-radio-group :value="dsgnMod" @change="onDsgnChange">
@@ -15,14 +15,14 @@
         <a-button
           @click="
             dsgnMod === 'form'
-              ? fmEmitter.emit('update:show', true)
+              ? fmEmitter.emit('update:show', { show: true })
               : router.push(`/server-package/project/${pid}/demo/${model.key}`)
           "
         >
           预览
         </a-button>
         <DemoForm :emitter="fmEmitter" />
-        <a-button key="1" type="primary">发布</a-button>
+        <a-button key="1" type="primary" @click="onPublish">发布</a-button>
       </template>
       <a-descriptions size="small" :column="5">
         <a-descriptions-item v-for="prop in model.props" :key="prop.key" :label="prop.label">
@@ -73,6 +73,9 @@ export default defineComponent({
         `/server-package/project/${route.params.pid}/${(e.target as any).value}/${route.params.mid}`
       )
     }
+    async function onPublish() {
+      await store.dispatch('model/publish')
+    }
     return {
       pid: route.params.pid,
       store,
@@ -81,7 +84,8 @@ export default defineComponent({
       fmEmitter,
       dsgnMod,
 
-      onDsgnChange
+      onDsgnChange,
+      onPublish
     }
   }
 })

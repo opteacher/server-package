@@ -12,10 +12,15 @@ import Service from '../models/service.js'
 import Node from '../models/node.js'
 import Auth from '../models/auth.js'
 import Dep from '../models/dep.js'
+import Form from '../models/form.js'
+import Table from '../models/table.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
 import { save as saveAuth, del as delAuth } from './auth.js'
-import ProjectType from '../types/project.js'
+import ProjType from '../types/project.js'
+import MdlType from '../types/model.js'
+import FmType from '../types/form.js'
+import TblType from '../types/table.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'appTemp')
@@ -182,7 +187,7 @@ async function recuNode(
 }
 
 export async function create(project: any) {
-  const result = ProjectType.copy(await db.save(Project, project))
+  const result = ProjType.copy(await db.save(Project, project))
   // 初始化项目的权限系统
   result.auth = await saveAuth(result.key, { model: '' })
   return result
@@ -646,4 +651,16 @@ export async function getAllAPIs(pid: string) {
     }
   }
   return ret
+}
+
+export async function publish(pid: string) {
+  const project = ProjType.copy(await db.select(Project, { _index: pid }, { ext: true }))
+  for (const { key } of project.models) {
+    const model = MdlType.copy(await db.select(Model, { _index: key }, { ext: true}))
+    if (!model.form || !model.table) {
+      continue
+    }
+    const form = FmType.copy(await db.select(Form, { _index: model.form.key }, { ext: true }))
+    const table = TblType.copy(await db.select(Table, { _index: model.table.key }, { ext: true}))
+  }
 }
