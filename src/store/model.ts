@@ -175,14 +175,15 @@ export default {
     },
     async publish({ rootGetters, dispatch }: { rootGetters: any; dispatch: Dispatch }) {
       await dispatch('project/refresh', undefined, { root: true })
-      if (!rootGetters['project/ins'].thread) {
-        Modal.warning({
-          title: '发布失败',
-          content: '中台需要依赖项目后台运行，请确保项目运行后在发布中台！'
-        })
-        return
-      }
-
+      const project = rootGetters['project/ins']
+      // if (!project.thread) {
+      //   Modal.warning({
+      //     title: '发布失败',
+      //     content: '中台需要依赖项目后台运行，请确保项目运行后在发布中台！'
+      //   })
+      //   return
+      // }
+      await reqPut('project', `${project.key}/publish`, undefined, { type: 'api' })
     }
   },
   getters: {

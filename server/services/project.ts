@@ -23,7 +23,7 @@ import FmType from '../types/form.js'
 import TblType from '../types/table.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
-const tmpPath = Path.resolve('resources', 'appTemp')
+const tmpPath = Path.resolve('resources', 'app-temp')
 
 function genAnnotation(
   node: {
@@ -413,7 +413,7 @@ async function adjAndRestartNginx(projects?: { name: string; port: number }[]): 
   if (typeof projects === 'undefined') {
     projects = await db.select(Project)
   }
-  const ngCfgTmp = Path.resolve('resources', 'ngTemp', 'nginx.conf')
+  const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
   const ngCfgGen = Path.resolve('configs', 'nginx.conf')
   console.log(`调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
   adjustFile(ngCfgTmp, ngCfgGen, { projects })
@@ -655,12 +655,27 @@ export async function getAllAPIs(pid: string) {
 
 export async function publish(pid: string) {
   const project = ProjType.copy(await db.select(Project, { _index: pid }, { ext: true }))
-  for (const { key } of project.models) {
-    const model = MdlType.copy(await db.select(Model, { _index: key }, { ext: true}))
-    if (!model.form || !model.table) {
-      continue
+  // for (const { key } of project.models) {
+  //   const model = MdlType.copy(await db.select(Model, { _index: key }, { ext: true}))
+  //   if (!model.form || !model.table) {
+  //     continue
+  //   }
+  //   const form = FmType.copy(await db.select(Form, { _index: model.form.key }, { ext: true }))
+  //   const table = TblType.copy(await db.select(Table, { _index: model.table.key }, { ext: true}))
+  // }
+
+  const genPath = Path.resolve(svrCfg.apps, project.name)
+  console.log(`发布中台到目录：${genPath}`)
+  spawn(
+    [
+      'npm config set registry http://registry.npm.taobao.org',
+      'npm install -g --unsafe-perm=true --allow-root vue',
+      `vue create ${project.name}-mid`
+    ].join(' && '),
+    {
+      cwd: genPath,
+      stdio: 'inherit',
+      shell: true
     }
-    const form = FmType.copy(await db.select(Form, { _index: model.form.key }, { ext: true }))
-    const table = TblType.copy(await db.select(Table, { _index: model.table.key }, { ext: true}))
-  }
+  )
 }
