@@ -44,6 +44,7 @@
 import { computed, defineComponent, reactive, ref } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'DemoForm',
@@ -55,12 +56,12 @@ export default defineComponent({
     InfoCircleOutlined
   },
   setup(props, { emit }) {
+    const store = useStore()
     const visible = ref(false)
     const formRef = ref()
-    const model = computed(() => store.getters['model/ins'])
-    const form = computed(() => store.getters['model/form'])
+    const form = computed(() => store.getters.form)
     const formState = reactive(
-      Object.fromEntries(model.value.props.map(prop => [prop.name, toDefault(prop.type)]))
+      Object.fromEntries(store.getters.model.props.map(prop => [prop.name, toDefault(prop.type)]))
     )
     const fields = computed(() => Object.values(store.getters['model/fields']))
 
@@ -77,7 +78,7 @@ export default defineComponent({
     })
 
     function reset() {
-      for (const prop of model.value.props) {
+      for (const prop of store.getters.model.props) {
         formState[prop.name] = toDefault(prop.type)
       }
     }

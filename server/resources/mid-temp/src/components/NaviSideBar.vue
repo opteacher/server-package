@@ -1,6 +1,6 @@
 <template>
   <a-menu
-    :selectedKeys="store.getters.selMdls"
+    :selectedKeys="[store.getters.model.key]"
     mode="inline"
     :style="{ height: '100%', borderRight: 0 }"
   >
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, computed } from 'vue'
+import { defineComponent, onMounted } from 'vue'
 import { BorderlessTableOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
 

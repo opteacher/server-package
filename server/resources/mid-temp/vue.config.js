@@ -3,7 +3,7 @@ module.exports = {
   assetsDir: 'static',
   devServer: {
     proxy: {
-      '/server-package/(mdl|api)': {
+      '/(server-package|stock-crawler)/(mdl|api)': {
         target: 'http://opteacher.top',
         ws: true,
         changeOrigin: true

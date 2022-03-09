@@ -1,3 +1,4 @@
+'use strict'
 import Cell from './cell'
 import Column from './column'
 

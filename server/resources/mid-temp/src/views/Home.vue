@@ -28,6 +28,7 @@
           :rowClassName="() => 'white-bkgd'"
           :pagination="table.hasPages"
           bordered
+          style="overflow-y: auto"
         >
           <template #bodyCell="{ text, column, record }">
             <template v-if="column.dataIndex === 'opera'">
@@ -74,23 +75,25 @@
             <span
               v-else
               :style="{
-                color: cells[column.dataIndex].color
+                color: table.cells[column.dataIndex].color
               }"
             >
               {{
-                cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
-                  ? cells[column.dataIndex].prefix
+                table.cells[column.dataIndex].prefix &&
+                !text.startsWith(table.cells[column.dataIndex].prefix)
+                  ? table.cells[column.dataIndex].prefix
                   : ''
               }}{{ text
               }}{{
-                cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
-                  ? cells[column.dataIndex].suffix
+                table.cells[column.dataIndex].suffix &&
+                !endsWith(text, table.cells[column.dataIndex].suffix)
+                  ? table.cells[column.dataIndex].suffix
                   : ''
               }}
             </span>
           </template>
         </a-table>
-        <DemoForm :emitter="emitter" @submit="onRecordSave" />
+        <FormDialog :emitter="emitter" @submit="onRecordSave" />
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -113,9 +116,11 @@ export default defineComponent({
     const emitter = new Emitter()
     const store = useStore()
     const table = computed(() => store.getters.table)
+    const records = computed(() => store.getters.records)
     return {
       table,
-      emitter
+      emitter,
+      records
     }
   }
 })
