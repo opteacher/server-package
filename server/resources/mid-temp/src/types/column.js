@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+'use strict'
 export default class Column {
   constructor(title, dataIdx, options) {
     this.title = title

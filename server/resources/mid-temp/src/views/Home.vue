@@ -11,7 +11,7 @@
               <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
             </a-space>
           </a-col>
-          <a-col v-if="table.operable.includes('可增加')" flex="100px">
+          <a-col style="text-align: right" v-if="table.operable.includes('可增加')" flex="100px">
             <a-button
               class="float-right"
               type="primary"
@@ -22,7 +22,7 @@
           </a-col>
         </a-row>
         <a-table
-          :columns="columns"
+          :columns="table.columns"
           :data-source="records"
           :size="table.size"
           :rowClassName="() => 'white-bkgd'"
@@ -97,11 +97,11 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, computed } from 'vue'
+import { defineComponent, computed } from 'vue'
 import NaviSideBar from '@/components/NaviSideBar.vue'
 import FormDialog from '@/components/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Table from '../types/table'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'Home',
@@ -111,7 +111,8 @@ export default defineComponent({
   },
   setup() {
     const emitter = new Emitter()
-    const table = computed(() => new Table())
+    const store = useStore()
+    const table = computed(() => store.getters.table)
     return {
       table,
       emitter

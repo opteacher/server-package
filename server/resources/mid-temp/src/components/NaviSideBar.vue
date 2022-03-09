@@ -1,6 +1,14 @@
 <template>
-  <a-menu :selectedKeys="selMdls" mode="inline" :style="{ height: '100%', borderRight: 0 }">
-    <a-menu-item v-for="model of models" :key="model.key">
+  <a-menu
+    :selectedKeys="store.getters.selMdls"
+    mode="inline"
+    :style="{ height: '100%', borderRight: 0 }"
+  >
+    <a-menu-item
+      v-for="model of store.getters.models"
+      :key="model.key"
+      @click="store.dispatch('refresh', model.key)"
+    >
       <template #icon>
         <BorderlessTableOutlined />
       </template>
@@ -21,12 +29,9 @@ export default defineComponent({
   },
   setup() {
     const store = useStore()
-    const models = computed(() => store.getters['models'])
-    const selMdls = computed(() => store.getters['selMdls'])
     onMounted(() => store.dispatch('refresh'))
     return {
-      models,
-      selMdls
+      store
     }
   }
 })
