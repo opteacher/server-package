@@ -3,7 +3,7 @@
     <a-layout-header>Header</a-layout-header>
     <a-layout>
       <a-layout-sider><NaviSideBar /></a-layout-sider>
-      <a-layout-content class="pl-20 ptb-10 pr-10">
+      <a-layout-content id="mainContent" class="pl-20 ptb-10 pr-10" style="overflow-y: hidden">
         <a-row class="mb-10" type="flex">
           <a-col flex="auto">
             <a-space>
@@ -28,7 +28,7 @@
           :rowClassName="() => 'white-bkgd'"
           :pagination="table.hasPages"
           bordered
-          style="overflow-y: auto"
+          :scroll="{ y: height }"
         >
           <template #bodyCell="{ text, column, record }">
             <template v-if="column.dataIndex === 'opera'">
@@ -72,25 +72,16 @@
                 </a-popconfirm>
               </template>
             </template>
-            <span
-              v-else
-              :style="{
-                color: table.cells[column.dataIndex].color
-              }"
-            >
-              {{
-                table.cells[column.dataIndex].prefix &&
-                !text.startsWith(table.cells[column.dataIndex].prefix)
-                  ? table.cells[column.dataIndex].prefix
-                  : ''
-              }}{{ text
-              }}{{
-                table.cells[column.dataIndex].suffix &&
-                !endsWith(text, table.cells[column.dataIndex].suffix)
-                  ? table.cells[column.dataIndex].suffix
-                  : ''
-              }}
-            </span>
+            <template v-else>
+              <span v-show="false">
+                {{ (cell = cells[column.dataIndex]) }}
+              </span>
+              <span v-if="cell" :style="{ color: cell.color }">
+                {{ cell.prefix && !text.startsWith(cell.prefix) ? cell.prefix : '' }}{{ text
+                }}{{ cell.suffix && !endsWith(text, cell.suffix) ? cell.suffix : '' }}
+              </span>
+              <span v-else>{{ text }}</span>
+            </template>
           </template>
         </a-table>
         <FormDialog :emitter="emitter" @submit="onRecordSave" />
@@ -100,12 +91,12 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, onMounted, ref } from 'vue'
 import NaviSideBar from '@/components/NaviSideBar.vue'
 import FormDialog from '@/components/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { useStore } from 'vuex'
-import { endsWith } from '../utils'
+import { endsWith, waitFor } from '../utils'
 
 export default defineComponent({
   name: 'Home',
@@ -118,15 +109,30 @@ export default defineComponent({
     const store = useStore()
     const table = computed(() => store.getters.table)
     const records = computed(() => store.getters.records)
+    const cells = computed(() => store.getters.table.cells)
+    const rszObs = new ResizeObserver(onContentResized)
+    const height = ref(0)
 
+    onMounted(async () => {
+      rszObs.observe(await onContentResized())
+    })
+    store.getters.emitter.on('refresh', onContentResized)
+
+    async function onContentResized() {
+      const el = await waitFor('mainContent')
+      height.value = el.clientHeight - 20 - 36 - 39 - (store.getters.table.hasPages ? 64 : 0)
+      return el
+    }
     function onRecordSave(record, next) {
       console.log(record)
       next()
     }
     return {
       table,
+      cells,
       emitter,
       records,
+      height,
 
       endsWith,
       onRecordSave

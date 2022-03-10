@@ -5,6 +5,7 @@ import { makeRequest, reqGet } from '../utils'
 import Model from '../types/model'
 import Table from '../types/table'
 import Form from '../types/form'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export default createStore({
   state: {
@@ -12,7 +13,8 @@ export default createStore({
     model: new Model(),
     table: new Table(),
     form: new Form(),
-    records: []
+    records: [],
+    emitter: new Emitter()
   },
   mutations: {},
   actions: {
@@ -31,6 +33,7 @@ export default createStore({
         Form.copy(await reqGet('form', state.model.form), state.form)
         state.records = await makeRequest(axios.get(`/${project.name}/mdl/v1/${state.model.name}s`))
       }
+      state.emitter.emit('refresh')
     }
   },
   modules: {},
@@ -39,6 +42,7 @@ export default createStore({
     model: state => state.model,
     table: state => state.table,
     form: state => state.form,
-    records: state => state.records
+    records: state => state.records,
+    emitter: state => state.emitter
   }
 })

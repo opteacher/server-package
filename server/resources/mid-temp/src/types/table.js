@@ -22,7 +22,7 @@ export default class Table {
     tgt.desc = src.desc || tgt.desc
     tgt.operaStyle = src.operaStyle || tgt.operaStyle
     tgt.size = src.size || tgt.size
-    tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : tgt.hasPages
+    tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : true
     tgt.columns = src.columns ? src.columns.map(col => Column.copy(col)) : []
     tgt.cells = Object.fromEntries(
       Object.entries(src.cells || {}).map(([key, cell]) => [key, Cell.copy(cell)])
