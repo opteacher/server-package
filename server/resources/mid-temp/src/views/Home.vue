@@ -105,6 +105,7 @@ import NaviSideBar from '@/components/NaviSideBar.vue'
 import FormDialog from '@/components/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { useStore } from 'vuex'
+import { endsWith } from '../utils'
 
 export default defineComponent({
   name: 'Home',
@@ -117,10 +118,18 @@ export default defineComponent({
     const store = useStore()
     const table = computed(() => store.getters.table)
     const records = computed(() => store.getters.records)
+
+    function onRecordSave(record, next) {
+      console.log(record)
+      next()
+    }
     return {
       table,
       emitter,
-      records
+      records,
+
+      endsWith,
+      onRecordSave
     }
   }
 })

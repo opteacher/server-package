@@ -31,3 +31,7 @@ export function reqGet(path, iden, options) {
     options
   )
 }
+
+export function endsWith(text, suffix) {
+  return text.toString().slice(-suffix.length) === suffix
+}
