@@ -180,7 +180,7 @@
           </ul>
         </template>
       </template>
-      <template v-if="hasExpand()" #expandedRowRender="{ record }">
+      <template v-if="editing.key === '#' && hasExpand()" #expandedRowRender="{ record }">
         <slot name="expandedRowRender" v-bind="{ record }" />
       </template>
       <template v-if="isCustomEmpty()" #emptyText>

@@ -163,7 +163,6 @@ export const EditNodeMapper = new Mapper({
     show: false,
     emitter: InputEmitter,
     display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
@@ -200,7 +199,6 @@ export const EditNodeMapper = new Mapper({
     type: 'Table',
     show: false,
     display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'condNode' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
@@ -251,7 +249,6 @@ export const EditNodeMapper = new Mapper({
     type: 'ListSelect',
     display: [
       Cond.copy({ key: 'type', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'type', cmp: '!=', val: 'traversal' }),
       Cond.copy({ key: 'type', cmp: '!=', val: 'endNode' })
     ],
     options: []
