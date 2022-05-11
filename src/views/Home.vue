@@ -1,126 +1,100 @@
 <template>
-  <div class="home">
-    <a-row type="flex">
-      <a-col flex="auto">
-        <div style="text-align: left; line-height: 34px; vertical-align: middle">
-          <h3 style="margin-bottom: 0">项目列表</h3>
-        </div>
-      </a-col>
-      <a-col flex="20vw">
-        <div style="text-align: right">
-          <a-button type="primary" @click="projForm.show = true" :disabled="loading">
-            添加项目
-          </a-button>
-          <FormDialog
-            title="添加项目"
-            :copy="Project.copy"
-            :show="projForm.show"
-            :mapper="projForm.mapper"
-            :object="projForm.editProj"
-            @update:show="
-              show => {
-                projForm.show = show
-              }
-            "
-            @submit="onNewProjSubmit"
-          />
-        </div>
-      </a-col>
-    </a-row>
-    <a-list
-      class="project-list"
-      item-layout="horizontal"
-      :data-source="projects"
-      :loading="loading"
+  <LytMain active="home">
+    <EditableTable
+      size="small"
+      :api="api"
+      :columns="columns"
+      :mapper="mapper"
+      :copy="Project.copy"
+      :emitter="emitter"
+      title="项目"
+      @add="onEditStart"
     >
-      <template #renderItem="{ item }">
-        <a-list-item>
-          <template #actions>
-            <a-popconfirm
-              title="确定删除该项目？"
-              ok-text="确定"
-              cancel-text="取消"
-              @confirm="onDelProjSubmit(item._id)"
-            >
-              <a href="#">删除</a>
-            </a-popconfirm>
-          </template>
-          <a-list-item-meta :description="item.desc">
-            <template #title>
-              <a :href="`/server-package/project/${item._id}`">{{ item.name }}</a>
-            </template>
-            <template #avatar>
-              <a-badge :status="item.thread ? 'processing' : 'default'" />
-            </template>
-          </a-list-item-meta>
-          <div>{{ item.port }}</div>
-        </a-list-item>
+      <template #name="{ record: project }">
+        <a :href="`/server-package/project/${project.key}`">{{ project.name }}</a>
       </template>
-    </a-list>
-  </div>
+      <template #database="{ record: project }">
+        {{ project.database[0] }} / {{ project.database[1] }}
+      </template>
+      <template #status="{ record: project }">
+        <template v-if="project.thread === 0">
+          <a-badge status="error" />
+          <span style="color: #f5222d">停止</span>
+        </template>
+        <template v-else>
+          <a-badge status="success" />
+          <span style="color: #52c41a">运行中</span>
+        </template>
+      </template>
+      <template #operation="{ record: project }">
+        <a-button
+          type="primary"
+          size="small"
+          :disabled="project.status === 'loading'"
+          :loading="project.status === 'loading'"
+          @click="api.sync(project.key)"
+        >
+          <template #icon><SyncOutlined /></template>
+          &nbsp;同步
+        </a-button>
+        <a-button
+          v-if="project.thread"
+          class="ml-5"
+          size="small"
+          danger
+          @click="api.stop(project.key)"
+        >
+          <template #icon><PoweroffOutlined /></template>
+          &nbsp;停止
+        </a-button>
+      </template>
+    </EditableTable>
+  </LytMain>
 </template>
 
 <script lang="ts">
 import Project from '@/types/project'
 import { defineComponent, ref, onMounted, reactive } from 'vue'
-import FormDialog from '../components/com/FormDialog.vue'
-import { reqDelete, reqGet, reqPost } from '../utils'
-import { ProjForm } from './Home'
+import { mapper, emitter, columns } from './Home'
+import LytMain from '../layouts/LytMain.vue'
+import EditableTable from '../components/com/EditableTable.vue'
+import { SyncOutlined, PoweroffOutlined } from '@ant-design/icons-vue'
+import Database from '../types/database'
+import { pjtAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'Home',
   components: {
-    FormDialog
+    LytMain,
+    EditableTable,
+    SyncOutlined,
+    PoweroffOutlined
   },
   setup() {
     const projects = ref([])
-    const projForm = reactive(new ProjForm())
     const loading = ref(false)
 
-    onMounted(refresh)
-
-    async function refresh() {
-      await projForm.initialize()
-      projects.value = await reqGet('projects')
-    }
-    async function onNewProjSubmit(project: Project, rfshDlg: () => void) {
-      await reqPost('project', project, {
-        type: 'api',
-        middles: {
-          before: () => {
-            loading.value = true
-          },
-          after: () => {
-            loading.value = false
-          }
-        }
-      })
-      rfshDlg()
-      await refresh()
-    }
-    async function onDelProjSubmit(pid: string) {
-      await reqDelete('project', pid, {
-        type: 'api',
-        middles: {
-          before: () => {
-            loading.value = true
-          },
-          after: () => {
-            loading.value = false
-          }
-        }
-      })
-      await refresh()
+    async function onEditStart() {
+      mapper.database.options = (await api.databases()).map((database: Database) => ({
+        value: database.name,
+        label: database.name,
+        children: database.dbs.map((db: string) => ({
+          value: db,
+          label: db
+        }))
+      }))
     }
     return {
       Project,
 
       loading,
       projects,
-      projForm,
+      api,
+      mapper,
+      emitter,
+      columns,
 
-      onNewProjSubmit,
-      onDelProjSubmit
+      onEditStart
     }
   }
 })

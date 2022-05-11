@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
+import Database from '../views/Database.vue'
 import Project from '../views/Project.vue'
+import Model from '../views/Model.vue'
+import API from '../views/API.vue'
+import Job from '../views/Job.vue'
 import Flow from '../views/Flow.vue'
 import DataSet from '../views/DataSet.vue'
 import Auth from '../views/Auth.vue'
@@ -19,9 +23,19 @@ const routes: Array<RouteRecordRaw> = [
     component: Login
   },
   {
+    path: '/server-package/home',
+    redirect: '/server-package'
+  },
+  {
     path: '/server-package',
     name: 'Home',
     component: Home,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/database',
+    name: 'Database',
+    component: Database,
     meta: { reqLogin: true }
   },
   {
@@ -33,6 +47,24 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid',
     name: 'Project',
     component: Project,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/project/:pid/model/:mid',
+    name: 'Model',
+    component: Model,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/project/:pid/model/:mid/apis',
+    name: 'API',
+    component: API,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/project/:pid/model/:mid/jobs',
+    name: 'Job',
+    component: Job,
     meta: { reqLogin: true }
   },
   {
@@ -48,7 +80,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/authorization',
+    path: '/server-package/project/:pid/auth',
     name: 'Authorization',
     component: Auth,
     meta: { reqLogin: true }

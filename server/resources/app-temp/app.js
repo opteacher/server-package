@@ -19,7 +19,7 @@ app.use(cors())
 // 日志输出
 app.use(logger())
 // 鉴权
-app.use(auth())
+// app.use(auth())
 // 上传配置
 app.use(
   koaBody({

@@ -1,179 +1,138 @@
 <template>
-  <div class="container">
-    <a-page-header
-      class="demo-page-header"
-      style="border: 1px solid rgb(235, 237, 240)"
-      :title="project.name"
-      :sub-title="project.desc"
-      @back="() => router.go(-1)"
-    >
-      <template #tags>
-        <template v-if="project.status === 'loading'">
-          <a-spin size="small" />
-          &nbsp;启动中……
-        </template>
-        <a-tag v-else-if="project.thread" color="#87d068">运行中</a-tag>
-        <a-tag v-else color="#f50">已停止</a-tag>
-      </template>
-      <template #extra>
-        <a-button @click="$router.push(`/server-package/project/${project.key}/authorization`)">
-          <KeyOutlined />
-          &nbsp;权限管理
-        </a-button>
-        <a-button
-          @click="
-            () => {
-              projForm.show = true
-            }
-          "
+  <a-layout class="h-100">
+    <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
+      <div class="logo" />
+      <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
+        <a-menu-item :key="`project/${pid}`">
+          <project-outlined />
+          <span>项目</span>
+        </a-menu-item>
+        <a-menu-item :key="`project/${pid}/model/${mid}`" disabled>
+          <appstore-outlined />
+          <span>模型</span>
+        </a-menu-item>
+        <a-menu-item :key="`project/${pid}/auth`">
+          <audit-outlined />
+          <span>权限</span>
+        </a-menu-item>
+      </a-menu>
+    </a-layout-sider>
+    <a-layout>
+      <a-layout-header style="background: #fff; padding: 0">
+        <menu-unfold-outlined
+          v-if="collapsed"
+          class="trigger"
+          @click="() => (collapsed = !collapsed)"
+        />
+        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+      </a-layout-header>
+      <a-layout>
+        <a-breadcrumb style="margin: 16px 24px">
+          <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
+          <a-breadcrumb-item>
+            <a
+              v-if="active.includes('/model/') || active.endsWith('auth')"
+              :href="`/server-package/project/${pid}`"
+            >
+              {{ pjtName }}
+            </a>
+            <span v-else>{{ pjtName }}</span>
+          </a-breadcrumb-item>
+          <template v-if="active.includes('/model/')">
+            <a-breadcrumb-item>模型</a-breadcrumb-item>
+            <a-breadcrumb-item>{{ mdlName }}</a-breadcrumb-item>
+          </template>
+          <a-breadcrumb-item v-else-if="active.endsWith('auth')">权限</a-breadcrumb-item>
+        </a-breadcrumb>
+        <a-layout-content
+          :style="{
+            margin: '0 24px 16px 24px',
+            padding: '24px',
+            background: '#fff',
+            minHeight: '280px'
+          }"
         >
-          <SettingOutlined />
-        </a-button>
-        <FormDialog
-          title="配置项目"
-          :copy="Project.copy"
-          :show="projForm.show"
-          :mapper="projForm.mapper"
-          :object="project"
-          @update:show="
-            show => {
-              projForm.show = show
-            }
-          "
-          @submit="onConfig"
-        />
-        <a-button
-          type="primary"
-          :disabled="project.status === 'loading'"
-          :loading="project.status === 'loading'"
-          @click="onSync"
-        >
-          <template #icon><SyncOutlined /></template>
-          &nbsp;同步
-        </a-button>
-        <a-tooltip>
-          <template #title>传输本地文件到项目实例中</template>
-          <a-button
-            v-if="project.thread"
-            class="ml-5"
-            :disabled="project.status === 'loading'"
-            :loading="project.status === 'loading'"
-            @click="transferForm.show = true"
-          >
-            <template #icon><UploadOutlined /></template>
-            &nbsp;传输文件
-          </a-button>
-        </a-tooltip>
-        <FormDialog
-          title="投放文件"
-          :copy="Transfer.copy"
-          :show="transferForm.show"
-          :mapper="transferForm.mapper"
-          :emitter="transferForm.emitter"
-          @update:show="
-            show => {
-              transferForm.show = show
-            }
-          "
-          @submit="onTransfer"
-        />
-        <a-button v-if="project.thread" class="ml-5" danger @click="onStop">
-          <template #icon><PoweroffOutlined /></template>
-          &nbsp;停止
-        </a-button>
-        <a-button v-show="false" class="ml-5" @click="deployForm.show = true">
-          <template #icon><BuildOutlined /></template>
-          &nbsp;部署前端
-        </a-button>
-        <FormDialog
-          title="部署配置"
-          :copy="Deploy.copy"
-          :show="deployForm.show"
-          :mapper="deployForm.mapper"
-          :object="project.frontend"
-          @update:show="
-            show => {
-              deployForm.show = show
-            }
-          "
-          @submit="onDeploy"
-        />
-      </template>
-      <a-descriptions size="small" :column="3">
-        <a-descriptions-item label="占用端口">
-          {{ project.port }}
-        </a-descriptions-item>
-        <a-descriptions-item label="路由前缀">/{{ project.name }}</a-descriptions-item>
-        <a-descriptions-item label="数据库">
-          {{ project.database.join('/') }}
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-page-header>
-    <slot />
-  </div>
+          <slot />
+        </a-layout-content>
+      </a-layout>
+    </a-layout>
+  </a-layout>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { ProjForm } from '../views/Home'
-import { DeployForm, onStop, onSync, Transfer, TransferForm } from '../views/Project'
 import {
-  SyncOutlined,
-  PoweroffOutlined,
-  SettingOutlined,
-  BuildOutlined,
-  UploadOutlined,
-  KeyOutlined
+  ProjectOutlined,
+  DatabaseOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  AppstoreOutlined,
+  AuditOutlined,
+  ApiOutlined
 } from '@ant-design/icons-vue'
-import FormDialog from '../components/com/FormDialog.vue'
+import { computed, defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
-import Project from '@/types/project'
-import Deploy from '@/types/deploy'
+import { useRouter, useRoute } from 'vue-router'
 
 export default defineComponent({
-  name: 'ProjectLayout',
+  name: 'MainLayout',
   components: {
-    FormDialog,
-    SyncOutlined,
-    PoweroffOutlined,
-    SettingOutlined,
-    BuildOutlined,
-    UploadOutlined,
-    KeyOutlined
+    ProjectOutlined,
+    DatabaseOutlined,
+    MenuUnfoldOutlined,
+    MenuFoldOutlined,
+    AppstoreOutlined,
+    AuditOutlined,
+    ApiOutlined
+  },
+  props: {
+    active: { type: String, required: true }
   },
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const store = useStore()
-    const project = computed(() => store.getters['project/ins'] as Project)
-    const projForm = reactive(new ProjForm())
-    const deployForm = reactive(new DeployForm())
-    const transferForm = reactive(new TransferForm())
+    const pid = route.params.pid
+    const mid = route.params.mid
+    const sid = route.params.sid
+    const pjtName = computed(() => store.getters['project/ins'].name)
+    const mdlName = computed(() => store.getters['model/ins'].name)
 
-    onMounted(async () => {
-      await projForm.initialize()
-    })
-
+    function onItemSelected({ key }: { key: any }) {
+      router.push(`/server-package/${key}`)
+    }
     return {
-      Project,
-      Deploy,
-      Transfer,
-
-      router,
-      project,
-      projForm,
-      deployForm,
-      transferForm,
-
-      onConfig: (pjt: Project) => store.dispatch('project/save', pjt),
-      onSync,
-      onStop,
-      onDeploy: (config: Deploy) => store.dispatch('project/deploy', config),
-      onTransfer: async (info: Transfer, reset: () => void) => {
-        await store.dispatch('project/transfer', info)
-        reset()
-      }
+      pid,
+      mid,
+      sid,
+      pjtName,
+      mdlName,
+      collapsed: ref<boolean>(false),
+      onItemSelected
     }
   }
 })
 </script>
+
+<style>
+.trigger {
+  font-size: 18px;
+  line-height: 64px;
+  padding: 0 24px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.trigger:hover {
+  color: #1890ff;
+}
+
+.logo {
+  height: 32px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 16px;
+}
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+</style>

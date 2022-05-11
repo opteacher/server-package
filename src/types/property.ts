@@ -7,7 +7,7 @@ export default class Property {
   key: string
   name: string
   label: string
-  type: BaseTypes // 字段类型
+  ptype: BaseTypes // 字段类型
   index: boolean
   unique: boolean
   visible: boolean
@@ -17,7 +17,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.type = 'Unknown'
+    this.ptype = 'Unknown'
     this.index = false
     this.unique = false
     this.visible = true
@@ -28,7 +28,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.type = 'Unknown'
+    this.ptype = 'Unknown'
     this.index = false
     this.unique = false
     this.visible = true
@@ -44,7 +44,7 @@ export default class Property {
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
     tgt.label = src.label || tgt.label
-    tgt.type = src.type || tgt.type
+    tgt.ptype = src.ptype || tgt.ptype
     tgt.index = src.index || tgt.index
     tgt.unique = src.unique || tgt.unique
     tgt.visible = src.visible || tgt.visible

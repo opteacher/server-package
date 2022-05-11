@@ -5,10 +5,6 @@ export default class Column {
   dataIndex: string
   key: string
   width?: number
-  slots: {
-    title?: string
-    customRender: string
-  }
   align: 'left' | 'right' | 'center'
   sorter: ((a: any, b: any) => number) | undefined
   defaultSortOrder: string
@@ -19,7 +15,6 @@ export default class Column {
     options?: {
       key?: string
       width?: number
-      slotTitle?: string
       align?: 'left' | 'right' | 'center'
       sortable?: boolean
       defaultSort?: string
@@ -30,10 +25,6 @@ export default class Column {
     this.title = title
     this.dataIndex = dataIdx
     this.key = options && options.key ? options.key : dataIdx
-    this.slots = { customRender: dataIdx }
-    if (options && options.slotTitle) {
-      this.slots.title = options.slotTitle
-    }
     if (options && options.width) {
       this.width = options.width
     }
@@ -49,12 +40,6 @@ export default class Column {
     tgt.key = src.key || src._id || tgt.key
     tgt.title = src.title || tgt.title
     tgt.dataIndex = src.dataIndex || tgt.dataIndex
-    if (src.slots && src.slots.customRender) {
-      tgt.slots.customRender = src.slots.customRender
-    }
-    if (src.slots && src.slots.title) {
-      tgt.slots.title = src.slots.title
-    }
     tgt.width = src.width || tgt.width
     tgt.align = src.align || tgt.align
     tgt.sorter =

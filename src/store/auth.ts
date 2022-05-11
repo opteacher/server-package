@@ -156,8 +156,7 @@ export default {
       await dispatch('login', admin)
     },
     async login(_module: any, admin: any) {
-      const result = await reqPost('log/in', admin, { type: 'api' })
-      console.log(result)
+      await reqPost('log/in', admin, { type: 'api' })
     },
     async genSmplSignLgc({ rootGetters }: { rootGetters: any }, props: CfgSgnType[]) {
       reqPost(`project/${rootGetters['project/ins'].key}/auth/sign`, { props }, { type: 'api' })

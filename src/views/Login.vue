@@ -19,8 +19,8 @@
       <a-form
         name="登录"
         :model="formState"
-        :label-col="{ span: 5 }"
-        :wrapper-col="{ span: 19 }"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 18 }"
         autocomplete="off"
         @finish="onFinish"
       >
@@ -65,7 +65,7 @@
           <a-input v-model:value="formState.code" />
         </a-form-item>
 
-        <a-form-item :wrapper-col="{ offset: 5, span: 19 }">
+        <a-form-item :wrapper-col="{ offset: 6, span: 18 }">
           <a-button type="primary" html-type="submit">{{ formState.mode }}</a-button>
         </a-form-item>
       </a-form>

@@ -1,193 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Modal } from 'ant-design-vue'
-import { createVNode, ref } from 'vue'
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
-import store from '@/store'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import _ from 'lodash'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
-import Model from '@/types/model'
-import { baseTypes, Cond, methods } from '@/types'
+import { Cond, methods } from '@/types'
 import Service, { emitTypeOpns } from '@/types/service'
 import Deploy from '@/types/deploy'
-
-export function onSync() {
-  Modal.confirm({
-    title: '确定同步项目到服务器？',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: createVNode(
-      'div',
-      {
-        style: 'color:red;'
-      },
-      '同步过程中，该项目已有的服务将暂时停用！'
-    ),
-    onOk: () => store.dispatch('project/sync')
-  })
-}
-
-export function onStop() {
-  Modal.confirm({
-    title: '是否停止项目？',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: '项目实例所提供的服务也将同时停止！',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk: () => store.dispatch('project/stop')
-  })
-}
-
-export const modelEmitter = new Emitter()
-
-export const ModelColumns = [
-  new Column('模型名', 'name'),
-  new Column('描述', 'desc'),
-  new Column('记录时间', 'logTime'),
-  new Column('数据集', 'dataset'),
-  new Column('导出类', 'expCls'),
-  new Column('设计', 'dsgnForm')
-]
-
-export const ModelMapper = new Mapper({
-  name: {
-    label: '模型名',
-    type: 'Input',
-    rules: [{ required: true, message: '请输入模型名！', trigger: 'blur' }]
-  },
-  desc: {
-    type: 'Input'
-  },
-  logTime: {
-    label: '是否记录新增时间和更新时间',
-    type: 'Switch'
-  },
-  dataset: {},
-  props: {
-    expanded: true
-  },
-  expCls: {},
-  dsgnForm: {}
-})
-
-export const expClsVsb = ref(false)
-
-export class ExpClsForm {
-  key: string
-  name: string
-  expType: 'typescript' | 'javascript'
-  genCopy: boolean
-  genReset: boolean
-
-  constructor() {
-    this.key = ''
-    this.name = ''
-    this.expType = 'typescript'
-    this.genCopy = true
-    this.genReset = true
-  }
-
-  reset() {
-    this.key = ''
-    this.name = ''
-    this.expType = 'typescript'
-    this.genCopy = true
-    this.genReset = true
-  }
-
-  update(model: Model): ExpClsForm {
-    this.key = model.key
-    this.name = _.upperFirst(model.name)
-    return this
-  }
-
-  static copy(src: any, tgt?: ExpClsForm): ExpClsForm {
-    tgt = tgt || new ExpClsForm()
-    tgt.key = src.key || tgt.key
-    tgt.name = src.name || tgt.name
-    tgt.expType = src.expType || tgt.expType
-    tgt.genCopy = src.genCopy || tgt.genCopy
-    tgt.genReset = src.genReset || tgt.genReset
-    return tgt
-  }
-}
-
-export const expClsForm = new ExpClsForm()
-
-export const ExpClsMapper = new Mapper({
-  name: {
-    label: '类名',
-    type: 'Input'
-  },
-  expType: {
-    label: '导出类型',
-    type: 'Select',
-    options: ['typescript', 'javascript'].map(opn => ({
-      label: opn,
-      value: opn
-    }))
-  },
-  genCopy: {
-    label: '生成复制函数',
-    type: 'Checkbox'
-  },
-  genReset: {
-    label: '生成重置函数',
-    type: 'Checkbox'
-  }
-})
-
-export const propEmitter = new Emitter()
-
-export const PropColumns = [
-  new Column('字段名', 'name'),
-  new Column('标签', 'label'),
-  new Column('字段类型', 'type'),
-  new Column('是否为索引', 'index'),
-  new Column('是否唯一', 'unique'),
-  new Column('是否可访问', 'visible'),
-  new Column('备注', 'remark')
-]
-
-export const PropMapper = new Mapper({
-  name: {
-    label: '字段名',
-    type: 'Input',
-    rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
-  },
-  label: {
-    label: '标签',
-    type: 'Input',
-    rules: [{ required: true, message: '请输入标签！', trigger: 'blur' }]
-  },
-  type: {
-    label: '字段类型',
-    type: 'Select',
-    options: baseTypes.map(bsTyp => ({
-      label: bsTyp,
-      value: bsTyp
-    })),
-    rules: [{ type: 'array', required: true, message: '请选择字段类型！', trigger: 'change' }]
-  },
-  index: {
-    label: '是否为索引',
-    type: 'Switch'
-  },
-  unique: {
-    label: '是否唯一',
-    type: 'Switch'
-  },
-  visible: {
-    label: '是否可访问',
-    type: 'Switch'
-  },
-  remark: {
-    label: '备注',
-    type: 'Input'
-  }
-})
+import Transfer from '@/types/transfer'
 
 export const svcEmitter = new Emitter()
 
@@ -373,57 +193,25 @@ export class DeployForm {
   }
 }
 
-export class TransferForm {
-  show: boolean
-  emitter: Emitter
-  mapper: Mapper
+export const tsEmitter = new Emitter()
 
-  constructor() {
-    this.show = false
-    this.emitter = new Emitter()
-    this.mapper = new Mapper({
-      file: {
-        label: '上传传送文件',
-        type: 'Upload',
-        onChange: (_record: Transfer, info: any) => {
-          for (const file of info.fileList) {
-            if (file.status !== 'done') {
-              this.emitter.emit('editable', false)
-              return
-            }
-          }
-          this.emitter.emit('editable', true)
+export const tsMapper = new Mapper({
+  file: {
+    label: '上传传送文件',
+    type: 'Upload',
+    onChange: (_record: Transfer, info: any) => {
+      for (const file of info.fileList) {
+        if (file.status !== 'done') {
+          tsEmitter.emit('editable', false)
+          return
         }
-      },
-      dest: {
-        label: '投放位置',
-        desc: '基于容器/app位置（注意：文件名不能修改，所以这里只能填写目录！）',
-        type: 'Input'
       }
-    })
+      tsEmitter.emit('editable', true)
+    }
+  },
+  dest: {
+    label: '投放位置',
+    desc: '基于容器/app位置（注意：文件名不能修改，所以这里只能填写目录！）',
+    type: 'Input'
   }
-}
-
-export class Transfer {
-  file: string[] // 上传文件在服务器的临时位置
-  dest: string // 文件投放到docker容器的位置（基于/app）
-  project?: string // 项目名，也是docker容器名
-
-  constructor() {
-    this.file = []
-    this.dest = ''
-  }
-
-  reset() {
-    this.file = []
-    this.dest = ''
-  }
-
-  static copy(src: any, tgt?: Transfer): Transfer {
-    tgt = tgt || new Transfer()
-    tgt.file = src.file || tgt.file
-    tgt.dest = src.dest || tgt.dest
-    tgt.project = src.project || tgt.project
-    return tgt
-  }
-}
+})

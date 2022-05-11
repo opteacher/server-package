@@ -58,11 +58,13 @@ export class BaseMapper {
 }
 
 export class InputMapper extends BaseMapper {
+  iptType: string
   prefix: string
   suffix: string
 
   constructor() {
     super()
+    this.iptType = ''
     this.prefix = ''
     this.suffix = ''
   }
@@ -70,6 +72,7 @@ export class InputMapper extends BaseMapper {
   static copy(src: any, tgt?: InputMapper): InputMapper {
     tgt = tgt || new InputMapper()
     BaseMapper.copy(src, tgt)
+    tgt.iptType = src.iptType || tgt.iptType
     tgt.prefix = src.prefix || tgt.prefix
     tgt.suffix = src.suffix || tgt.suffix
     return tgt

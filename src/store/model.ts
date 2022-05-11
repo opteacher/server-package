@@ -3,7 +3,7 @@
 import Model from '@/types/model'
 import router from '@/router'
 import { reqAll, reqDelete, reqGet, reqPost, reqPut, skipIgnores } from '@/utils'
-import { ExpClsForm } from '../views/Project'
+import ExpCls from '@/types/expCls'
 import Compo from '@/types/compo'
 import Field from '@/types/field'
 import Form from '@/types/form'
@@ -13,6 +13,7 @@ import Table from '@/types/table'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Project from '@/types/project'
 import { Modal } from 'ant-design-vue'
+import { mdlAPI } from '../apis'
 
 type ModelState = {
   emitter: Emitter
@@ -54,18 +55,16 @@ export default {
       { state, dispatch, rootGetters }: { state: ModelState; dispatch: Dispatch; rootGetters: any },
       options?: { reqDataset?: boolean }
     ) {
+      await dispatch('project/refresh', undefined, { root: true })
       const mid = router.currentRoute.value.params.mid
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
-      Model.copy(await reqGet('model', mid), state.model)
-      Form.copy(await reqPost(`model/${state.model.key}/form`, {}, { type: 'api' }), state.form)
-      Table.copy(await reqPost(`model/${state.model.key}/table`, {}, { type: 'api' }), state.table)
+      Model.copy(await mdlAPI.detail(mid), state.model)
       state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
       state.divider = ''
       state.dsgnMod = router.currentRoute.value.path.split('/').at(-2) as string
       state.emitter.emit('refresh')
       if (options && options.reqDataset) {
-        await dispatch('project/refresh', undefined, { root: true })
         const project = rootGetters['project/ins'] as Project
         if (!project.thread) {
           Modal.error({
@@ -78,7 +77,7 @@ export default {
         state.dataset = await reqGet(`project/${project.key}`, `model/${mid}/data`, { type: 'api' })
       }
     },
-    async export(_store: { state: ModelState }, expCls: ExpClsForm) {
+    async export(_store: { state: ModelState }, expCls: ExpCls) {
       const pid = router.currentRoute.value.params.pid
       const result = await reqPost(`project/${pid}/model/${expCls.key}/export`, expCls, {
         type: 'api'

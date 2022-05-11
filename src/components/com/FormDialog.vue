@@ -70,6 +70,7 @@
             <a-input
               v-if="value.type === 'Input'"
               v-model:value="formState[key]"
+              :type="value.iptType || 'text'"
               :disabled="validConds(value.disabled) || !editable"
               :addon-before="value.prefix"
               :addon-after="value.suffix"
@@ -184,10 +185,15 @@
                   })
                 "
               >
-                <template v-if="validConds(value.delable)" #opera="{ record }">
-                  <a-popconfirm title="确定删除该字段" @confirm.stop="value.onDeleted(record.key)">
-                    <a-button danger size="small" @click.stop="() => {}">删除</a-button>
-                  </a-popconfirm>
+                <template v-if="validConds(value.delable)" #bodyCell="{ column, record }">
+                  <template v-if="column.dataIndex === 'opera'">
+                    <a-popconfirm
+                      title="确定删除该字段"
+                      @confirm.stop="value.onDeleted(record.key)"
+                    >
+                      <a-button danger size="small" @click.stop="() => {}">删除</a-button>
+                    </a-popconfirm>
+                  </template>
                 </template>
               </a-table>
             </template>

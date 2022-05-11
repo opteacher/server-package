@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { message } from 'ant-design-vue'
 import axios from 'axios'
+import Service from './types/service'
 
 export interface RequestOptions {
   type?: string
@@ -15,6 +16,8 @@ export interface RequestOptions {
     succeed?: string
   }
   ignores?: string[]
+  query?: any
+  copy?: (src: any, tgt?: any) => any
 }
 
 export async function makeRequest(pms: Promise<any>, options?: RequestOptions): Promise<any> {
@@ -38,14 +41,21 @@ function reqType(options?: RequestOptions): string {
 }
 
 export function reqAll(path: string, options?: RequestOptions): Promise<any> {
-  return makeRequest(axios.get(`/server-package/${reqType(options)}/v1/${path}s`), options)
+  return makeRequest(
+    axios.get(`/server-package/${reqType(options)}/v1/${path}s`, { params: options?.query }),
+    options
+  ).then((result: any[]) =>
+    result.map((item: any) => (options && options.copy ? options.copy(item) : item))
+  )
 }
 
 export function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
   return makeRequest(
-    axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`),
+    axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`, {
+      params: options?.query
+    }),
     options
-  )
+  ).then((result: any) => (options && options.copy ? options.copy(result) : result))
 }
 
 export function reqPost(path: string, body?: any, options?: RequestOptions): Promise<any> {
@@ -69,7 +79,8 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
   return makeRequest(
     axios.post(
       `/server-package/${reqType(options)}/v1/${path}`,
-      body ? skipIgnores(body, options.ignores) : undefined
+      body ? skipIgnores(body, options.ignores) : undefined,
+      { params: options?.query }
     ),
     options
   )
@@ -89,7 +100,9 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
     options.messages.succeed = '删除成功！'
   }
   return makeRequest(
-    axios.delete(`/server-package/${reqType(options)}/v1/${path}/${iden}`),
+    axios.delete(`/server-package/${reqType(options)}/v1/${path}/${iden}`, {
+      params: options?.query
+    }),
     options
   )
 }
@@ -120,7 +133,8 @@ export function reqPut(
   return makeRequest(
     axios.put(
       `/server-package/${reqType(options)}/v1/${path}/${iden}`,
-      body ? skipIgnores(body, options.ignores) : undefined
+      body ? skipIgnores(body, options.ignores) : undefined,
+      { params: options?.query }
     ),
     options
   )
@@ -154,9 +168,9 @@ export function reqLink(
     body.child[1]
   ].join('/')
   if (link) {
-    return makeRequest(axios.put(url), options)
+    return makeRequest(axios.put(url, { params: options?.query }), options)
   } else {
-    return makeRequest(axios.delete(url), options)
+    return makeRequest(axios.delete(url, { params: options?.query }), options)
   }
 }
 
@@ -235,4 +249,19 @@ export async function waitFor(
 
 export function endsWith(text: string, suffix: string) {
   return text.toString().slice(-suffix.length) === suffix
+}
+
+export function genMdlPath(svc: Service): string {
+  switch (svc.method) {
+    case 'POST':
+      return `/mdl/v1/${svc.model}`
+    case 'DELETE':
+    case 'PUT':
+    case 'GET':
+      return `/mdl/v1/${svc.model}/:index`
+    case 'ALL':
+      return `/mdl/v1/${svc.model}s`
+    default:
+      return ''
+  }
 }

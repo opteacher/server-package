@@ -1,9 +1,8 @@
 import { db } from '../utils/index.js'
 
-export default db.defineModel(
+export default db.defineModel(''/*return `\'${model.name}\'`*/,
   {
-    __modelName: ''/*return `\'${model.name}\'`*/,
-    /*return model.props.map((prop) => `${prop.name}: db.PropTypes.${prop.type}`).join(',\n    ')*/
+    /*return model.props.map((prop) => `${prop.name}: db.PropTypes.${prop.ptype}`).join(',\n    ')*/
   },
   {
     router: {
