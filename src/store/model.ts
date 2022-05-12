@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from '@/types/model'
 import router from '@/router'
-import { reqAll, reqDelete, reqGet, reqPost, reqPut, skipIgnores } from '@/utils'
-import ExpCls from '@/types/expCls'
+import { reqAll, reqPut } from '@/utils'
 import Compo from '@/types/compo'
 import Field from '@/types/field'
 import Form from '@/types/form'
@@ -74,103 +73,8 @@ export default {
           state.dataset = []
           return
         }
-        state.dataset = await reqGet(`project/${project.key}`, `model/${mid}/data`, { type: 'api' })
+        state.dataset = await mdlAPI.dataset()
       }
-    },
-    async export(_store: { state: ModelState }, expCls: ExpCls) {
-      const pid = router.currentRoute.value.params.pid
-      const result = await reqPost(`project/${pid}/model/${expCls.key}/export`, expCls, {
-        type: 'api'
-      })
-
-      const link = document.createElement('a')
-      const body = document.querySelector('body')
-
-      // 创建对象url
-      link.href = window.URL.createObjectURL(new Blob([result.content]))
-      link.download = result.fileName
-
-      // fix Firefox
-      link.style.display = 'none'
-      body?.appendChild(link)
-
-      link.click()
-      body?.removeChild(link)
-
-      // 通过调用 URL.createObjectURL() 创建的 URL 对象
-      window.URL.revokeObjectURL(link.href)
-    },
-    async saveForm({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, form: any) {
-      await reqPut('form', state.form.key, form, {
-        messages: { notShow: true },
-        ignores: ['fields']
-      })
-      await dispatch('refresh')
-    },
-    async saveField({ dispatch }: { dispatch: Dispatch }, field: any) {
-      await reqPut('field', field.key, field, {
-        messages: { notShow: true },
-        ignores: ['key']
-      })
-      await dispatch('refresh')
-    },
-    async newField(
-      { dispatch }: { dispatch: Dispatch },
-      payload: {
-        compoType: string
-        insertPos?: { field: string; pos: 'before' | 'after' }
-      }
-    ) {
-      await dispatch('insertField', {
-        dragField: (await reqPost('field', { type: payload.compoType }))._id,
-        insertPos: payload.insertPos
-      })
-    },
-    async insertField(
-      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
-      payload: {
-        dragField: string
-        insertPos?: { field: string; pos: 'before' | 'after' }
-      }
-    ) {
-      await reqPost(`form/${state.form.key}/field/${payload.dragField}`, payload.insertPos, {
-        type: 'api'
-      })
-      await dispatch('refresh')
-    },
-    async saveFieldExt(
-      { state, dispatch }: { state: ModelState; dispatch: Dispatch },
-      payload: { fkey: string; extra: any }
-    ) {
-      await reqPut('field', payload.fkey, {
-        extra: Object.assign(state.fields[payload.fkey].extra || {}, payload.extra)
-      })
-      await dispatch('refresh')
-    },
-    async delField({ dispatch }: { dispatch: Dispatch }, fldKey: string) {
-      await reqDelete('field', fldKey)
-      await dispatch('refresh')
-    },
-    async newRecord({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, record: any) {
-      await reqPut('table', state.table.key, { demoData: record })
-      await dispatch('refresh')
-    },
-    async saveTable({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, table: any) {
-      await reqPut('table', state.table.key, table)
-      await dispatch('refresh')
-    },
-    async saveColumn({ dispatch }: { dispatch: Dispatch }, column: any) {
-      await reqPut('column', column.key, column)
-      await dispatch('refresh')
-    },
-    async saveCell({ state, dispatch }: { state: ModelState; dispatch: Dispatch }, cell: any) {
-      const cells = state.table.cells || {}
-      await reqPut('table', state.table.key, {
-        cells: Object.assign(cells, {
-          [cell.key]: Object.assign(cells[cell.key] || {}, skipIgnores(cell, ['key']))
-        })
-      })
-      await dispatch('refresh')
     },
     async publish({ rootGetters, dispatch }: { rootGetters: any; dispatch: Dispatch }) {
       await dispatch('project/refresh', undefined, { root: true })

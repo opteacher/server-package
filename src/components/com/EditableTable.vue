@@ -36,7 +36,7 @@
         <slot :name="column.key" v-bind="{ record }" />
       </template>
       <template v-else>
-        {{ text }}
+        {{ text || '-' }}
       </template>
     </template>
   </a-table>
@@ -61,7 +61,7 @@ import Mapper from '@/types/mapper'
 
 export default defineComponent({
   name: 'edtableTable',
-  emits: ['add', 'edit', 'save', 'delete'],
+  emits: ['add', 'edit', 'save', 'delete', 'refresh'],
   components: {
     InfoCircleOutlined,
     SelectOutlined,
@@ -112,15 +112,19 @@ export default defineComponent({
 
     async function refresh(data?: any[]) {
       records.data = data || (await props.api.all(records.offset, records.limit))
+      emit('refresh', records.data, (pcsData: any) => {
+        records.data = pcsData
+      })
       editing.key = ''
       editing.show = false
     }
     function onEditClicked(record?: any) {
       emit('add', record)
+      editing.key = ''
       if (record) {
         props.emitter.emit('update:data', record)
+        editing.key = record.key || ''
       }
-      editing.key = record && record.key ? record.key : ''
       editing.show = true
     }
     async function onRecordSave(record: any, reset: () => void) {

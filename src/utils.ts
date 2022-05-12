@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { message } from 'ant-design-vue'
 import axios from 'axios'
+import store from '@/store'
 import Service from './types/service'
 
 export interface RequestOptions {
@@ -252,15 +253,16 @@ export function endsWith(text: string, suffix: string) {
 }
 
 export function genMdlPath(svc: Service): string {
+  const mname = store.getters['model/ins'].name
   switch (svc.method) {
     case 'POST':
-      return `/mdl/v1/${svc.model}`
+      return `/mdl/v1/${mname}`
     case 'DELETE':
     case 'PUT':
     case 'GET':
-      return `/mdl/v1/${svc.model}/:index`
+      return `/mdl/v1/${mname}/:index`
     case 'ALL':
-      return `/mdl/v1/${svc.model}s`
+      return `/mdl/v1/${mname}s`
     default:
       return ''
   }

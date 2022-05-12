@@ -74,5 +74,9 @@ export default {
         }
       }
     )
-  }
+  },
+  status: (key: any) => reqGet('project', `${key}/stat`, {
+    type: 'api',
+    messages: { notShow: false }
+  }).then((pjt: any) => pjt.status)
 }

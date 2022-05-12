@@ -5,7 +5,7 @@
         :value="column.title"
         @change="
           e =>
-            store.dispatch('model/saveColumn', {
+            api.table.columns.save({
               key: column.key,
               title: e.target.value
             })
@@ -16,7 +16,7 @@
       <a-input-number
         class="w-100"
         :value="column.width || 0"
-        @change="width => store.dispatch('model/saveColumn', { key: column.key, width })"
+        @change="width => api.table.columns.save({ key: column.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
@@ -28,13 +28,13 @@
           { label: '右对齐', value: 'right' }
         ]"
         :value="column.align || 'left'"
-        @change="align => store.dispatch('model/saveColumn', { key: column.key, align })"
+        @change="align => api.table.columns.save({ key: column.key, align })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="可排序">
       <a-switch
         :checked="column.sorter"
-        @change="sortable => store.dispatch('model/saveColumn', { key: column.key, sortable })"
+        @change="sortable => api.table.columns.save({ key: column.key, sortable })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="默认顺序">
@@ -46,9 +46,7 @@
           { label: '降序', value: 'descend' }
         ]"
         :value="column.defaultSortOrder"
-        @change="
-          defaultSort => store.dispatch('model/saveColumn', { key: column.key, defaultSort })
-        "
+        @change="defaultSort => api.table.columns.save({ key: column.key, defaultSort })"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -57,7 +55,7 @@
 <script lang="ts">
 import Column from '@/types/column'
 import { defineComponent } from 'vue'
-import { useStore } from 'vuex'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'TableProps',
@@ -65,9 +63,8 @@ export default defineComponent({
     column: { type: Column, required: true }
   },
   setup() {
-    const store = useStore()
     return {
-      store
+      api
     }
   }
 })

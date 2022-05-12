@@ -16,7 +16,9 @@ import { defineComponent } from 'vue'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '@/components/com/EditableTable.vue'
 import Database from '../types/database'
-import { api, columns, mapper, emitter } from './Database'
+import { columns, mapper } from './Database'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { dbAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'Database',
@@ -25,6 +27,8 @@ export default defineComponent({
     EditableTable
   },
   setup() {
+    const emitter = new Emitter()
+
     return {
       Database,
 

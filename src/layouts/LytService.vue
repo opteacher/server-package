@@ -11,6 +11,10 @@
           <field-time-outlined />
           <span>任务</span>
         </a-menu-item>
+        <a-menu-item :key="`project/${pid}/model/${mid}/flow/${sid}`" disabled>
+          <edit-outlined />
+          <span>流程</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -23,26 +27,37 @@
         <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
       </a-layout-header>
       <a-layout>
-        <a-breadcrumb style="margin: 16px 24px">
-          <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
-          <a-breadcrumb-item>
-            <a
-              v-if="active.includes('/model/') || active.endsWith('auth')"
-              :href="`/server-package/project/${pid}`"
-            >
-              {{ pjtName }}
-            </a>
-            <span v-else>{{ pjtName }}</span>
-          </a-breadcrumb-item>
-          <a-breadcrumb-item>
-            <a :href="`/server-package/project/${pid}`">模型</a>
-          </a-breadcrumb-item>
-          <a-breadcrumb-item>
-            <a :href="`/server-package/project/${pid}/model/${mid}`">{{ mdlName }}</a>
-          </a-breadcrumb-item>
-          <a-breadcrumb-item v-if="active.slice(-4) === 'apis'">接口</a-breadcrumb-item>
-          <a-breadcrumb-item v-if="active.slice(-4) === 'jobs'">任务</a-breadcrumb-item>
-        </a-breadcrumb>
+        <a-space style="margin: 16px 24px">
+          <a-button @click="$router.go(-1)">
+            <template #icon><arrow-left-outlined /></template>
+          </a-button>
+          <a-breadcrumb>
+            <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item>
+              <a
+                v-if="active.includes('/model/') || active.endsWith('auth')"
+                :href="`/server-package/project/${pid}`"
+              >
+                {{ pjtName }}
+              </a>
+              <span v-else>{{ pjtName }}</span>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item>
+              <a :href="`/server-package/project/${pid}`">模型</a>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item>
+              <a :href="`/server-package/project/${pid}/model/${mid}`">{{ mdlName }}</a>
+            </a-breadcrumb-item>
+            <a-breadcrumb-item v-if="active.slice(-4) === 'apis'">接口</a-breadcrumb-item>
+            <a-breadcrumb-item v-else-if="active.slice(-4) === 'jobs'">任务</a-breadcrumb-item>
+            <template v-if="active.includes('/flow/')">
+              <a-breadcrumb-item>
+                <a :href="`/server-package/project/${pid}/model/${mid}/apis`">服务</a>
+              </a-breadcrumb-item>
+              <a-breadcrumb-item>设计流程</a-breadcrumb-item>
+            </template>
+          </a-breadcrumb>
+        </a-space>
         <a-layout-content
           :style="{
             margin: '0 24px 16px 24px',
@@ -66,7 +81,9 @@ import {
   ApiOutlined,
   FieldTimeOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined
+  MenuFoldOutlined,
+  EditOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons-vue'
 
 export default defineComponent({
@@ -74,9 +91,10 @@ export default defineComponent({
   components: {
     ApiOutlined,
     FieldTimeOutlined,
-
     MenuUnfoldOutlined,
-    MenuFoldOutlined
+    MenuFoldOutlined,
+    EditOutlined,
+    ArrowLeftOutlined
   },
   props: {
     active: { type: String, required: true }

@@ -41,18 +41,14 @@
                 showExpCls = show
               }
             "
-            @submit="formData => store.dispatch('model/export', formData)"
+            @submit="formData => mdlAPI.export(formData)"
           />
-          <a-button @click="router.push(`/server-package/project/${pid}/form/${model.key}`)">
-            <template #icon><FormOutlined /></template>
-            &nbsp;表单设计
-          </a-button>
           <a-button
             type="primary"
-            @click="router.push(`/server-package/project/${pid}/model/${model.key}/apis`)"
+            @click="router.push(`/server-package/project/${pid}/form/${model.key}`)"
           >
-            <template #icon><cloud-outlined /></template>
-            &nbsp;服务
+            <template #icon><FormOutlined /></template>
+            &nbsp;表单设计
           </a-button>
         </a-space>
       </a-col>
@@ -69,6 +65,23 @@
         @save="refresh"
         @delete="refresh"
       />
+    </div>
+    <div class="mt-24">
+      <EditableTable
+        title="服务"
+        size="small"
+        :api="svcAPI"
+        :columns="svcColumns"
+        :mapper="svcMapper"
+        :copy="Service.copy"
+        :edtable="false"
+        :delable="false"
+        @add="$router.push(`/server-package/project/${pid}/model/${mid}/apis`)"
+      >
+        <template #detail>
+          <a-button size="small">具体信息</a-button>
+        </template>
+      </EditableTable>
     </div>
   </LytProject>
 </template>
@@ -88,12 +101,11 @@ import {
   DatabaseOutlined,
   ExportOutlined,
   FormOutlined,
-  AppstoreOutlined,
-  CloudOutlined
+  AppstoreOutlined
 } from '@ant-design/icons-vue'
-import { propColumns, propMapper } from './Model'
+import { propColumns, propMapper, svcColumns, svcMapper } from './Model'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { propAPI } from '../apis'
+import { mdlAPI, propAPI, svcAPI } from '../apis'
 
 export default defineComponent({
   name: 'Model',
@@ -104,8 +116,7 @@ export default defineComponent({
     DatabaseOutlined,
     ExportOutlined,
     FormOutlined,
-    AppstoreOutlined,
-    CloudOutlined
+    AppstoreOutlined
   },
   setup() {
     const route = useRoute()
@@ -135,6 +146,7 @@ export default defineComponent({
       pid,
       mid,
       model,
+      mdlAPI,
       pstatus,
       expMapper,
       showExpCls,
@@ -143,6 +155,9 @@ export default defineComponent({
       propColumns,
       propMapper,
       propEmitter,
+      svcAPI,
+      svcColumns,
+      svcMapper,
 
       refresh
     }

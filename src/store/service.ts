@@ -39,7 +39,6 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
-  pjt: Project
   svc: Service
   emitter: Emitter
   nodes: NodesInPnl
@@ -75,7 +74,6 @@ export default {
   namespaced: true,
   state: () =>
     ({
-      pjt: new Project(),
       svc: new Service(),
       emitter: new Emitter(),
       nodes: {} as NodesInPnl,
@@ -182,15 +180,14 @@ export default {
     }
   },
   actions: {
-    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
-      if (!router.currentRoute.value.params.aid) {
+    async refresh({ state, dispatch, getters }: { state: SvcState; dispatch: Dispatch, getters: any }) {
+      if (!router.currentRoute.value.params.sid) {
         return
       }
-      const aid = router.currentRoute.value.params.aid
+      const sid = router.currentRoute.value.params.sid
 
-      const pid = router.currentRoute.value.params.pid
-      Project.copy(await reqGet('project', pid), state.pjt)
-      ServiceMapper['path'].prefix = `/${state.pjt.name}`
+      await dispatch('model/refresh', undefined, { root: true })
+      ServiceMapper['path'].prefix = `/${getters['project/ins'].name}`
 
       await dispatch('rfshDpdcs')
       EditNodeMapper['deps'].options = Object.values(state.deps).map((dep: Dep) =>
@@ -207,7 +204,7 @@ export default {
 
       await dispatch('rfshTemps')
 
-      Service.copy(await reqGet('service', aid), state.svc)
+      Service.copy(await reqGet('service', sid), state.svc)
 
       if (state.svc.flow) {
         const rootKey = state.svc.flow.key
@@ -462,7 +459,6 @@ export default {
   },
   getters: {
     ins: (state: SvcState): Service => state.svc,
-    pjt: (state: SvcState): Project => state.pjt,
     emitter: (state: SvcState): Emitter => state.emitter,
     nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes).filter(([, node]) => !node.isTemp))

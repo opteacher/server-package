@@ -6,9 +6,9 @@
         :value="field.extra.placeholder"
         @change="
           e =>
-            store.dispatch('model/saveFieldExt', {
-              fkey: field.key,
-              extra: { placeholder: e.target.value }
+            api.form.fields.save({
+              key: field.key,
+              extra: Object.assign(field.extra || {}, { placeholder: e.target.value })
             })
         "
       />
@@ -19,7 +19,7 @@
 <script lang="ts">
 import Field from '@/types/field'
 import { defineComponent } from 'vue'
-import { useStore } from 'vuex'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'InputProps',
@@ -27,9 +27,8 @@ export default defineComponent({
     field: { type: Field, required: true }
   },
   setup() {
-    const store = useStore()
     return {
-      store
+      api
     }
   }
 })

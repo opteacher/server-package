@@ -24,6 +24,43 @@ export const emitTypeOpns = [
   }
 ]
 
+export const timeUnits = [
+  {
+    label: '毫秒',
+    value: 'ms'
+  },
+  {
+    label: '秒',
+    value: 's'
+  },
+  {
+    label: '分钟',
+    value: 'm'
+  },
+  {
+    label: '小时',
+    value: 'h'
+  },
+  {
+    label: '天',
+    value: 'D'
+  },
+  {
+    label: '周',
+    value: 'W'
+  },
+  {
+    label: '月',
+    value: 'M'
+  },
+  {
+    label: '年',
+    value: 'Y'
+  }
+]
+
+export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'ALL'
+
 export default class Service {
   key: string
   name: string
@@ -31,8 +68,7 @@ export default class Service {
   emit: EmitType
   flow: Node | null
   isModel: boolean
-  model: string
-  method: string
+  method: Method
   path: string | undefined
   jobId: number
   emitCond: string
@@ -46,8 +82,7 @@ export default class Service {
     this.emit = 'api'
     this.flow = null
     this.isModel = false
-    this.model = ''
-    this.method = ''
+    this.method = 'GET'
     this.path = undefined
     this.jobId = 0
     this.emitCond = ''
@@ -62,8 +97,7 @@ export default class Service {
     this.emit = 'api'
     this.flow = null
     this.isModel = false
-    this.model = ''
-    this.method = ''
+    this.method = 'GET'
     this.path = undefined
     this.jobId = 0
     this.emitCond = ''
@@ -88,7 +122,6 @@ export default class Service {
       tgt.flow = null
     }
     tgt.isModel = src.isModel || tgt.isModel
-    tgt.model = src.model || tgt.model
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path
     tgt.jobId = src.jobId || tgt.jobId

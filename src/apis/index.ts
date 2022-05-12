@@ -1,6 +1,7 @@
+import dbAPI from './database'
 import pjtAPI from './project'
 import mdlAPI from './model'
 import propAPI from './property'
-import { apiAPI, jobAPI } from './service'
+import svcAPI from './service'
 
-export { pjtAPI, mdlAPI, propAPI, apiAPI, jobAPI }
+export { dbAPI, pjtAPI, mdlAPI, propAPI, svcAPI }

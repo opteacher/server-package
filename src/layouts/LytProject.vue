@@ -27,23 +27,28 @@
         <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
       </a-layout-header>
       <a-layout>
-        <a-breadcrumb style="margin: 16px 24px">
-          <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
-          <a-breadcrumb-item>
-            <a
-              v-if="active.includes('/model/') || active.endsWith('auth')"
-              :href="`/server-package/project/${pid}`"
-            >
-              {{ pjtName }}
-            </a>
-            <span v-else>{{ pjtName }}</span>
-          </a-breadcrumb-item>
-          <template v-if="active.includes('/model/')">
-            <a-breadcrumb-item>模型</a-breadcrumb-item>
-            <a-breadcrumb-item>{{ mdlName }}</a-breadcrumb-item>
-          </template>
-          <a-breadcrumb-item v-else-if="active.endsWith('auth')">权限</a-breadcrumb-item>
-        </a-breadcrumb>
+        <a-space style="margin: 16px 24px">
+          <a-button @click="$router.go(-1)">
+            <template #icon><arrow-left-outlined /></template>
+          </a-button>
+          <a-breadcrumb>
+            <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item>
+              <a
+                v-if="active.includes('/model/') || active.endsWith('auth')"
+                :href="`/server-package/project/${pid}`"
+              >
+                {{ pjtName }}
+              </a>
+              <span v-else>{{ pjtName }}</span>
+            </a-breadcrumb-item>
+            <template v-if="active.includes('/model/')">
+              <a-breadcrumb-item>模型</a-breadcrumb-item>
+              <a-breadcrumb-item>{{ mdlName }}</a-breadcrumb-item>
+            </template>
+            <a-breadcrumb-item v-else-if="active.endsWith('auth')">权限</a-breadcrumb-item>
+          </a-breadcrumb>
+        </a-space>
         <a-layout-content
           :style="{
             margin: '0 24px 16px 24px',
@@ -67,7 +72,8 @@ import {
   MenuFoldOutlined,
   AppstoreOutlined,
   AuditOutlined,
-  ApiOutlined
+  ApiOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -82,7 +88,8 @@ export default defineComponent({
     MenuFoldOutlined,
     AppstoreOutlined,
     AuditOutlined,
-    ApiOutlined
+    ApiOutlined,
+    ArrowLeftOutlined
   },
   props: {
     active: { type: String, required: true }

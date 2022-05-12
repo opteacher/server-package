@@ -1,5 +1,5 @@
 <template>
-  <LytFlow>
+  <LytService :active="`project/${pid}/model/${mid}/flow/${sid}`">
     <div class="flow-panel" ref="panelRef">
       <VarsPanel />
       <TmpNdPanel />
@@ -55,12 +55,12 @@
         }
       "
     />
-  </LytFlow>
+  </LytService>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import LytFlow from '../layouts/LytFlow.vue'
+import LytService from '../layouts/LytService.vue'
 import NodeCard from '../components/NodeCard.vue'
 import Node from '../types/node'
 import FormDialog from '../components/com/FormDialog.vue'
@@ -68,11 +68,12 @@ import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow
 import { useStore } from 'vuex'
 import VarsPanel from '../components/VarsPanel.vue'
 import TmpNdPanel from '../components/TmpNdPanel.vue'
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
   name: 'Flow',
   components: {
-    LytFlow,
+    LytService,
     NodeCard,
     FormDialog,
     VarsPanel,
@@ -80,6 +81,10 @@ export default defineComponent({
   },
   setup() {
     const store = useStore()
+    const route = useRoute()
+    const pid = route.params.pid
+    const mid = route.params.mid
+    const sid = route.params.sid
     const panelRef = ref()
     const node = computed(() => store.getters['service/editNode'])
     const editTitle = computed(() => {
@@ -117,6 +122,9 @@ export default defineComponent({
     return {
       Node,
 
+      pid,
+      mid,
+      sid,
       store,
       nodes,
       panelRef,

@@ -67,6 +67,7 @@ import FormProps from '../components/FormProps.vue'
 import FieldProps from '../components/FieldProps.vue'
 import InputProps from '../components/InputProps.vue'
 import SelectProps from '../components/SelectProps.vue'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'Form',
@@ -90,7 +91,7 @@ export default defineComponent({
 
     async function onDropDown(e: DragEvent) {
       const dragCompo = e.dataTransfer?.getData('text/plain') as string
-      store.dispatch('model/newField', {
+      await api.form.fields.add({
         compoType: dragCompo.substring('compo_'.length)
       })
     }

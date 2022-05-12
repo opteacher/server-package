@@ -68,7 +68,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/flow/:aid',
+    path: '/server-package/project/:pid/model/:mid/flow/:sid',
     name: 'Flow',
     component: Flow,
     meta: { reqLogin: true }

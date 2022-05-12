@@ -5,7 +5,7 @@
         :color="cell.color"
         @submit="
           ({ color, next }) => {
-            store.dispatch('model/saveCell', { key: cell.key, color }).then(next)
+            api.table.cells.save({ key: cell.key, color }).then(next)
           }
         "
       />
@@ -13,13 +13,13 @@
     <a-descriptions-item label="前缀">
       <a-input
         :value="cell.prefix"
-        @change="e => store.dispatch('model/saveCell', { key: cell.key, prefix: e.target.value })"
+        @change="e => api.table.cells.save({ key: cell.key, prefix: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="后缀">
       <a-input
         :value="cell.suffix"
-        @change="e => store.dispatch('model/saveCell', { key: cell.key, suffix: e.target.value })"
+        @change="e => api.table.cells.save({ key: cell.key, suffix: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="格式化时间">
@@ -57,8 +57,8 @@
 <script lang="ts">
 import Cell from '@/types/cell'
 import { defineComponent } from 'vue'
-import { useStore } from 'vuex'
 import ColorField from '../components/ColorField.vue'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'TableProps',
@@ -69,9 +69,8 @@ export default defineComponent({
     cell: { type: Cell, required: true }
   },
   setup() {
-    const store = useStore()
     return {
-      store
+      api
     }
   }
 })

@@ -97,6 +97,7 @@ import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'FieldCard',
@@ -164,15 +165,18 @@ export default defineComponent({
       if (instPos.length !== 3) {
         return
       }
-      const dragField = e.dataTransfer?.getData('text/plain')
-      const insertPos = { field: instPos[2], pos: instPos[1] === 'top' ? 'before' : 'after' }
+      const dragField = e.dataTransfer?.getData('text/plain') as string
+      const insertPos = {
+        field: instPos[2],
+        pos: instPos[1] === 'top' ? 'before' : ('after' as 'before' | 'after')
+      }
       if (dragField?.startsWith('compo_')) {
-        store.dispatch('model/newField', {
+        api.form.fields.add({
           compoType: dragField.substring('compo_'.length),
           insertPos
         })
       } else {
-        store.dispatch('model/insertField', { dragField, insertPos })
+        api.form.fields.insert({ dragField, insertPos })
       }
     }
     function onDragging(e: DragEvent) {

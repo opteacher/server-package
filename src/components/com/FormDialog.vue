@@ -250,8 +250,14 @@
                   style="width: 98%"
                   :options="value.options"
                   v-model:value="formState[key]"
+                  :disabled="validConds(value.disabled) || !editable"
                 />
-                <a-input v-else style="width: 98%" v-model:value="formState[key]" />
+                <a-input
+                  v-else
+                  style="width: 98%"
+                  v-model:value="formState[key]"
+                  :disabled="validConds(value.disabled) || !editable"
+                />
               </a-col>
               <a-col flex="32px">
                 <a-button
@@ -260,6 +266,7 @@
                       value.mode = value.mode === 'select' ? 'input' : 'select'
                     }
                   "
+                  :disabled="validConds(value.disabled) || !editable"
                 >
                   <template #icon>
                     <SelectOutlined v-if="value.mode === 'select'" />

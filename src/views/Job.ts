@@ -1,12 +1,11 @@
-import { Cond, methods } from '@/types'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
-import Service from '@/types/service'
-import { genMdlPath } from '@/utils'
+import { emitTypeOpns, timeUnits } from '@/types/service'
 
 export const columns = [
-  new Column('服务', 'name'),
-  new Column('接口', 'interface'),
+  new Column('文件名', 'name'),
+  new Column('方法', 'interface'),
+  new Column('激发类型', 'emit'),
   new Column('任务参数', 'emitCond'),
   new Column('流程', 'flow'),
   new Column('控制', 'ctrl')
@@ -14,7 +13,7 @@ export const columns = [
 
 export const mapper = new Mapper({
   name: {
-    label: '名称',
+    label: '文件名',
     desc: '所在文件，可以直接选择为模型名',
     type: 'SelOrIpt'
   },
@@ -23,39 +22,20 @@ export const mapper = new Mapper({
     desc: '指定函数',
     type: 'Input'
   },
-  isModel: {
-    label: '是否为模型路由',
-    type: 'Checkbox',
-    onChange: (svc: Service, to: boolean) => {
-      if (to) {
-        svc.path = genMdlPath(svc)
-      }
-    },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
-  },
-  method: {
-    label: '访问方式',
+  emit: {
+    label: '激发类型',
     type: 'Select',
-    options: methods.map(mthd => ({
-      label: mthd,
-      value: mthd
-    })),
-    onChange: (svc: Service) => {
-      if (svc.isModel) {
-        svc.path = genMdlPath(svc)
-      }
-    },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+    options: emitTypeOpns.filter((opn: any) => opn.value !== 'api' && opn.value !== 'none')
   },
-  path: {
-    label: '路由',
-    type: 'Input',
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
-    onChange: (svc: Service, path: string) => {
-      if (!path.startsWith('/')) {
-        svc.path = `/${path}`
-      }
-    }
+  cdValue: {
+    label: '触发值',
+    desc: '指定时间间隔或时刻',
+    type: 'Input'
+  },
+  cdUnit: {
+    label: '触发值',
+    desc: '指定时间间隔或时刻',
+    type: 'Select',
+    options: timeUnits
   }
 })

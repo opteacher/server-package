@@ -4,7 +4,6 @@ export default db.defineModel(
   'service',
   {
     name: db.PropTypes.String,
-    model: db.PropTypes.String,
     interface: db.PropTypes.String,
     // api / timeout / interval / none
     emit: db.PropTypes.String,

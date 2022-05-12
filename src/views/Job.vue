@@ -1,35 +1,89 @@
 <template>
   <LytService :active="`project/${pid}/model/${mid}/jobs`">
     <EditableTable
-      title="接口"
+      title="任务"
       size="small"
       :api="api"
       :columns="columns"
       :mapper="mapper"
       :copy="Service.copy"
       :emitter="emitter"
+      @add="onAddClicked"
       @save="refresh"
       @delete="refresh"
-    />
+      @refresh="filterJob"
+    >
+      <template #emit="{ record: svc }">
+        <template v-if="svc.emit === 'timeout'">延时</template>
+        <template v-else-if="svc.emit === 'interval'">定时</template>
+      </template>
+      <template #flow="{ record: svc }">
+        <a-button
+          v-if="!svc.isModel"
+          type="primary"
+          size="small"
+          @click="$router.push(`/server-package/project/${pid}/model/${mid}/flow/${svc.key}`)"
+        >
+          <template #icon><edit-outlined /></template>
+          &nbsp;设计流程
+        </a-button>
+        <a-tooltip v-else>
+          <template #title>模型路由流程固定</template>
+          <InfoCircleOutlined />
+        </a-tooltip>
+      </template>
+      <template #ctrl="{ record: svc }">
+        <template v-if="svc.emit === 'timeout' || svc.emit === 'interval'">
+          <ul class="unstyled-list">
+            <li class="mb-3">
+              <a-tooltip>
+                <template #title>需先启动项目后才能启动任务！</template>
+                <a-button
+                  size="small"
+                  type="primary"
+                  :disabled="pstatus !== 'running'"
+                  @click="api.restartJob(svc.key)"
+                >
+                  启动
+                </a-button>
+              </a-tooltip>
+            </li>
+            <li v-if="svc.jobId">
+              <a-button
+                size="small"
+                danger
+                :disabled="pstatus !== 'running'"
+                @click="api.stopJob(svc.key)"
+              >
+                停止
+              </a-button>
+            </li>
+          </ul>
+        </template>
+      </template>
+    </EditableTable>
   </LytService>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue'
+import { computed, defineComponent, onMounted } from 'vue'
 import LytService from '@/layouts/LytService.vue'
 import { useRoute } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Service from '../types/service'
-import { jobAPI as api } from '../apis'
+import { svcAPI as api } from '../apis'
 import { columns, mapper } from './Job'
 import { useStore } from 'vuex'
+import { InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'Jobs',
   components: {
     LytService,
-    EditableTable
+    EditableTable,
+    InfoCircleOutlined,
+    EditOutlined
   },
   setup() {
     const store = useStore()
@@ -37,11 +91,18 @@ export default defineComponent({
     const pid = route.params.pid
     const mid = route.params.mid
     const emitter = new Emitter()
+    const pstatus = computed(() => store.getters['project/ins'].status)
 
     onMounted(refresh)
 
     async function refresh() {
       await store.dispatch('model/refresh')
+    }
+    function filterJob(svcs: any[], callback: (data: any) => void) {
+      callback(svcs.filter((svc: any) => svc.emit === 'timeout' || svc.emit === 'interval'))
+    }
+    function onAddClicked() {
+      emitter.emit('update:data', { name: store.getters['model/ins'].name, emit: 'timeout' })
     }
     return {
       Service,
@@ -52,8 +113,11 @@ export default defineComponent({
       emitter,
       columns,
       mapper,
+      pstatus,
 
-      refresh
+      refresh,
+      filterJob,
+      onAddClicked
     }
   }
 })

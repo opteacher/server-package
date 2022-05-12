@@ -51,7 +51,7 @@ export default defineComponent({
     const store = useStore()
     const router = useRouter()
     const svc = computed(() => store.getters['service/ins'])
-    const pjt = computed(() => store.getters['service/pjt'])
+    const pjt = computed(() => store.getters['project/ins'])
 
     async function onConfig(svcForm: any) {
       await reqPut('service', svc.value.key, svcForm, { ignores: ['flow'] })

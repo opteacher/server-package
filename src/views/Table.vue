@@ -108,6 +108,7 @@ import TableProps from '../components/TableProps.vue'
 import ColumnProps from '../components/ColumnProps.vue'
 import CellProps from '../components/CellProps.vue'
 import Cell from '@/types/cell'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'Table',
@@ -167,7 +168,7 @@ export default defineComponent({
       e.stopPropagation()
     }
     async function onFormSubmit(formState: any, next: () => void) {
-      await store.dispatch('model/newRecord', formState)
+      await api.table.record.set(formState)
       next()
     }
     return {

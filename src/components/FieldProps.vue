@@ -10,7 +10,7 @@
     <a-descriptions-item label="标签">
       <a-input
         :value="field?.label"
-        @change="e => store.dispatch('model/saveField', { key: field.key, label: e.target.value })"
+        @change="e => api.form.fields.save({ key: field.key, label: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="类型">
@@ -24,7 +24,7 @@
       <a-textarea
         :value="field?.desc"
         :auto-size="{ minRows: 2 }"
-        @change="e => store.dispatch('model/saveField', { key: field.key, desc: e.target.value })"
+        @change="e => api.form.fields.save({ key: field.key, desc: e.target.value })"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -36,6 +36,7 @@ import Field from '@/types/field'
 import Model from '@/types/model'
 import { computed, defineComponent } from 'vue'
 import { useStore } from 'vuex'
+import { mdlAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'TableProps',
@@ -46,7 +47,7 @@ export default defineComponent({
     const store = useStore()
     const props = computed(() => (store.getters['model/ins'] as Model).props)
     return {
-      store,
+      api,
       props,
       compoTypes
     }
