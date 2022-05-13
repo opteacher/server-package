@@ -57,8 +57,8 @@
 <script lang="ts">
 import Cell from '@/types/cell'
 import { defineComponent } from 'vue'
-import ColorField from '../components/ColorField.vue'
-import { mdlAPI as api } from '../apis'
+import ColorField from '@/components/table/ColorField.vue'
+import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',

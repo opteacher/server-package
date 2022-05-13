@@ -11,5 +11,7 @@ export default {
   update: (data: any) =>
     reqPut('model', store.getters['model/ins'].key, { [`props[{name:${data.name}}]`]: data }),
   all: () => [],
-  detail: (key: any) => {}
+  detail: (key: any) => {
+    console.log(key)
+  }
 }

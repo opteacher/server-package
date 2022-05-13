@@ -97,7 +97,7 @@ import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
-import { mdlAPI as api } from '../apis'
+import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'FieldCard',

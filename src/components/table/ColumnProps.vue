@@ -55,7 +55,7 @@
 <script lang="ts">
 import Column from '@/types/column'
 import { defineComponent } from 'vue'
-import { mdlAPI as api } from '../apis'
+import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',

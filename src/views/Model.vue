@@ -45,10 +45,10 @@
           />
           <a-button
             type="primary"
-            @click="router.push(`/server-package/project/${pid}/form/${model.key}`)"
+            @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
           >
             <template #icon><FormOutlined /></template>
-            &nbsp;表单设计
+            &nbsp;表单/表项设计
           </a-button>
         </a-space>
       </a-col>
@@ -72,12 +72,27 @@
         size="small"
         :api="svcAPI"
         :columns="svcColumns"
-        :mapper="svcMapper"
         :copy="Service.copy"
         :edtable="false"
         :delable="false"
         @add="$router.push(`/server-package/project/${pid}/model/${mid}/apis`)"
       >
+        <template #emit="{ record: svc }">
+          <template v-if="svc.emit === 'api'">接口</template>
+          <template v-else-if="svc.emit === 'timeout'">延时任务</template>
+          <template v-else-if="svc.emit === 'interval'">定时任务</template>
+        </template>
+        <template #pathCond="{ record: svc }">
+          <template v-if="svc.emit === 'api'">
+            {{ svc.path }}
+          </template>
+          <template v-else-if="svc.emit === 'timeout'">
+            {{ `${svc.condition}后` }}
+          </template>
+          <template v-else-if="svc.emit === 'interval'">
+            {{ `每${svc.condition}` }}
+          </template>
+        </template>
         <template #detail>
           <a-button size="small">具体信息</a-button>
         </template>
@@ -103,7 +118,7 @@ import {
   FormOutlined,
   AppstoreOutlined
 } from '@ant-design/icons-vue'
-import { propColumns, propMapper, svcColumns, svcMapper } from './Model'
+import { propColumns, propMapper, svcColumns } from './Model'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { mdlAPI, propAPI, svcAPI } from '../apis'
 
@@ -157,7 +172,6 @@ export default defineComponent({
       propEmitter,
       svcAPI,
       svcColumns,
-      svcMapper,
 
       refresh
     }

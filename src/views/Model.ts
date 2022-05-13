@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { baseTypes, Cond, methods } from '@/types/index'
+import { baseTypes } from '@/types/index'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
-import Service, { emitTypeOpns } from '@/types/service'
-import { genMdlPath } from '@/utils'
-import store from '@/store'
 
 export const columns = [
   new Column('模型名', 'name'),
@@ -102,83 +99,7 @@ export const propMapper = new Mapper({
 
 export const svcColumns = [
   new Column('激活方式', 'emit'),
-  new Column('服务', 'name'),
-  new Column('接口', 'interface'),
+  new Column('访问方式', 'method'),
+  new Column('路由/激发条件', 'pathCond'),
   new Column('详细', 'detail')
 ]
-
-export const svcMapper = new Mapper({
-  emit: {
-    type: 'Select',
-    options: emitTypeOpns,
-    onChange: (svc: Service, to: string) => {
-      switch (to) {
-        case 'timeout':
-        case 'interval':
-          svc.method = 'GET'
-          svc.path = `/job/v1/${store.getters['model/ins'].name}`
-          break
-        case 'api':
-          svc.cdUnit = 's'
-          svc.cdValue = 1
-          svc.emitCond = ''
-          svc.path = ''
-          break
-        default:
-          svc.method = 'GET'
-          svc.path = ''
-          svc.cdUnit = 's'
-          svc.cdValue = 1
-          svc.emitCond = ''
-      }
-    }
-  },
-  isModel: {
-    type: 'Switch',
-    onChange: (svc: Service, to: boolean) => {
-      if (to) {
-        svc.path = genMdlPath(svc)
-      }
-    },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
-  },
-  method: {
-    type: 'Select',
-    options: methods.map(mthd => ({
-      label: mthd,
-      value: mthd
-    })),
-    onChange: (svc: Service) => {
-      if (svc.isModel) {
-        svc.path = genMdlPath(svc)
-      }
-    },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
-  },
-  path: {
-    type: 'Input',
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
-    onChange: (svc: Service, path: string) => {
-      if (!path.startsWith('/')) {
-        svc.path = `/${path}`
-      }
-    }
-  },
-  emitCond: {
-    display: {
-      OR: [
-        Cond.copy({ key: 'emit', cmp: '==', val: 'timeout' }),
-        Cond.copy({ key: 'emit', cmp: '==', val: 'interval' })
-      ]
-    }
-  },
-  name: {
-    type: 'SelOrIpt'
-  },
-  interface: {
-    type: 'Input'
-  },
-  flow: {},
-  ctrl: {}
-})

@@ -1,6 +1,7 @@
 <template>
   <LytMain active="database">
     <EditableTable
+      size="small"
       :api="api"
       :columns="columns"
       :mapper="mapper"

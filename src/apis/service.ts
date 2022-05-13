@@ -6,6 +6,7 @@ import axios from 'axios'
 export default {
   add: async (data: any) => {
     const mid = store.getters['model/ins'].key
+    data.condition = `${data.cdValue}${data.cdUnit}`
     const svc = Service.copy(await reqPost('service', data))
     return reqPut(`model/${mid}`, `svcs/${svc.key}`)
   },
@@ -14,7 +15,12 @@ export default {
     await reqDelete(`model/${mid}`, `svcs/${key}`)
     return reqDelete('service', key)
   },
-  update: (data: any) => reqPut('service', data.key, data),
+  update: (data: any) => {
+    if (data.cdValue) {
+      data.condition = `${data.cdValue}${data.cdUnit}`
+    }
+    return reqPut('service', data.key, data)
+  },
   all: async () => {
     await store.dispatch('model/refresh')
     return store.getters['model/ins'].svcs

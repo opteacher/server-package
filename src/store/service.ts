@@ -3,39 +3,25 @@
 import Node, { NodeTypeMapper } from '@/types/node'
 import Service from '@/types/service'
 import Variable from '@/types/variable'
-import Project from '@/types/project'
 import Dep from '@/types/dep'
 import { OpnType } from '@/types'
 import { LstOpnType } from '@/types/mapper'
+import { reqGet, until, reqAll } from '@/utils'
 import {
-  reqDelete,
-  reqGet,
-  reqLink,
-  reqPost,
-  reqPut,
-  makeRequest,
-  skipIgnores,
-  until,
-  reqAll
-} from '@/utils'
-import {
-  EditNodeEmitter,
-  EditNodeMapper,
-  ServiceMapper,
+  edtNdEmitter,
+  edtNdMapper,
   ArrowHlfHgt,
   CardGutter,
   CardHlfWid,
   CardHlfGutter,
   CardWidth,
-  ArrowHeight,
-  NodeInPnl
+  ArrowHeight
 } from '@/views/Flow'
-import axios from 'axios'
 import { Dispatch } from 'vuex'
 import router from '@/router'
-import { notification } from 'ant-design-vue'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import NodeInPnl from '@/types/ndInPnl'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -45,7 +31,6 @@ type SvcState = {
   width: number
   node: Node
   locVars: Variable[]
-  svcVsb: boolean
   nodeVsb: boolean
   joinVsb: boolean
   tempVsb: boolean
@@ -80,7 +65,6 @@ export default {
       width: 0,
       node: new Node(),
       locVars: [] as Variable[],
-      svcVsb: false,
       nodeVsb: false,
       joinVsb: false,
       tempVsb: false,
@@ -98,52 +82,47 @@ export default {
       }
       state.node.reset()
       Node.copy(payload.node, state.node)
-      if (state.node.previous && state.nodes[state.node.previous].type === 'condition') {
+      if (state.node.previous && state.nodes[state.node.previous].ntype === 'condition') {
         // 添加修改条件节点
-        state.node.type = 'condNode'
-        EditNodeMapper.delete.display = state.node.key !== ''
-        EditNodeMapper.type.options = [{ label: '条件节点', value: 'condNode' }]
-      } else if (state.node.type === 'endNode') {
+        state.node.ntype = 'condNode'
+        edtNdMapper.delete.display = state.node.key !== ''
+        edtNdMapper.ntype.options = [{ label: '条件节点', value: 'condNode' }]
+      } else if (state.node.ntype === 'endNode') {
         // 修改循环结束节点
-        EditNodeMapper.delete.display = false
-        EditNodeMapper.type.options = [{ label: '循环结束节点', value: 'endNode' }]
+        edtNdMapper.delete.display = false
+        edtNdMapper.ntype.options = [{ label: '循环结束节点', value: 'endNode' }]
       } else if (state.node.key) {
         // 修改结束节点
-        EditNodeMapper.delete.display = true
-        EditNodeMapper.type.options = [
+        edtNdMapper.delete.display = true
+        edtNdMapper.ntype.options = [
           {
-            label: NodeTypeMapper[state.node.type],
-            value: state.node.type
+            label: NodeTypeMapper[state.node.ntype],
+            value: state.node.ntype
           }
         ]
       } else {
         // 添加结束节点
-        EditNodeMapper.delete.display = false
-        EditNodeMapper.type.options = Object.entries(NodeTypeMapper)
+        edtNdMapper.delete.display = false
+        edtNdMapper.ntype.options = Object.entries(NodeTypeMapper)
           .map(([key, val]) => ({
             label: val,
             value: key
           }))
           .filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
-      EditNodeMapper.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
-      if (EditNodeMapper.inputs.mapper) {
-        EditNodeMapper.inputs.mapper['value'].options = getLocVars(state).map(
-          (locVar: Variable) => ({
-            label: locVar.value || locVar.name,
-            value: locVar.value || locVar.name
-          })
-        )
+      edtNdMapper.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
+      if (edtNdMapper.inputs.mapper) {
+        edtNdMapper.inputs.mapper['value'].options = getLocVars(state).map((locVar: Variable) => ({
+          label: locVar.value || locVar.name,
+          value: locVar.value || locVar.name
+        }))
       }
-      EditNodeMapper.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
+      edtNdMapper.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
-      EditNodeEmitter.emit('viewOnly', payload.viewOnly)
+      edtNdEmitter.emit('viewOnly', payload.viewOnly)
     },
     SET_NODE_INVSB(state: SvcState) {
       state.nodeVsb = false
-    },
-    SET_SVC_VSB(state: SvcState, payload?: boolean) {
-      state.svcVsb = typeof payload !== 'undefined' ? payload : false
     },
     RESET_NODE(state: SvcState) {
       state.node.reset()
@@ -180,17 +159,14 @@ export default {
     }
   },
   actions: {
-    async refresh({ state, dispatch, getters }: { state: SvcState; dispatch: Dispatch, getters: any }) {
+    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
       if (!router.currentRoute.value.params.sid) {
         return
       }
       const sid = router.currentRoute.value.params.sid
-
       await dispatch('model/refresh', undefined, { root: true })
-      ServiceMapper['path'].prefix = `/${getters['project/ins'].name}`
-
-      await dispatch('rfshDpdcs')
-      EditNodeMapper['deps'].options = Object.values(state.deps).map((dep: Dep) =>
+      await dispatch('refreshDeps')
+      edtNdMapper['deps'].options = Object.values(state.deps).map((dep: Dep) =>
         LstOpnType.copy({
           key: dep.key,
           title: dep.name,
@@ -201,11 +177,8 @@ export default {
           ].join('')
         })
       )
-
-      await dispatch('rfshTemps')
-
+      await dispatch('refreshTemps')
       Service.copy(await reqGet('service', sid), state.svc)
-
       if (state.svc.flow) {
         const rootKey = state.svc.flow.key
         // commit('RESET_NODES')
@@ -279,7 +252,7 @@ export default {
         if (!node.previous) {
           node.posLT[0] = (state.width >> 1) - CardHlfWid
           node.posLT[1] = height
-        } else if (node.type === 'endNode') {
+        } else if (node.ntype === 'endNode') {
           const relNode = state.nodes[node.relative]
           node.posLT[0] = relNode.posLT[0]
           let maxHeight = 0
@@ -319,113 +292,14 @@ export default {
         })
       }
     },
-    async saveNode({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, node: Node) {
-      await reqPost(`service/${state.svc.key}/node${node.key ? '/' + node.key : ''}`, node, {
-        type: 'api'
-      })
-      await dispatch('refresh')
-    },
-    async delNode({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, key: string) {
-      await reqDelete(`service/${state.svc.key}/node`, key, { type: 'api' })
-      await dispatch('refresh')
-    },
-    async rfshNode({ state }: { state: SvcState }, key?: string) {
+    async refreshNode({ state }: { state: SvcState }, key?: string) {
       const nkey = key || state.node.key
       Node.copy(await reqGet('node', nkey), state.nodes[nkey])
       if (!key) {
         Node.copy(state.nodes[nkey], state.node)
       }
     },
-    async saveInOutput(
-      { state, dispatch }: { state: SvcState; dispatch: Dispatch },
-      payload: { name: string; edited: Variable }
-    ) {
-      if (!payload.edited.key) {
-        const addIOpt = Variable.copy(await reqPost('variable', payload.edited))
-        await reqLink({
-          parent: ['node', state.node.key],
-          child: [`${payload.name}s`, addIOpt.key]
-        })
-      } else {
-        await reqPut('variable', payload.edited.key, payload.edited)
-      }
-      await dispatch('rfshNode')
-    },
-    async delInOutput(
-      { state, dispatch }: { state: SvcState; dispatch: Dispatch },
-      payload: { name: string; delKey: string }
-    ) {
-      await reqLink(
-        {
-          parent: ['node', state.node.key],
-          child: [`${payload.name}s`, payload.delKey]
-        },
-        false
-      )
-      await reqDelete('variable', payload.delKey)
-      await dispatch('rfshNode')
-    },
-    async joinLibrary({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, group: string) {
-      const baseURL = '/server-package/api/v1/node/temp'
-      // 组和标题与数据库中模板节点相等的，判定为不可入库
-      if (
-        (
-          await makeRequest(
-            axios.get(`${baseURL}/exists`, {
-              params: { group, title: state.node.title }
-            })
-          )
-        ).length
-      ) {
-        notification.error({
-          message: '加入模板库错误！',
-          description: '模板库已有相应节点存在，如需修改，点击模板节点库查看修改'
-        })
-        return
-      }
-      const tempNode = Node.copy(
-        await makeRequest(
-          axios.post(
-            baseURL,
-            Object.assign(
-              skipIgnores(state.node, [
-                'key',
-                'inputs',
-                'outputs',
-                'nexts',
-                'previous',
-                'relative'
-              ]),
-              { group, isTemp: true }
-            )
-          )
-        )
-      )
-      for (const input of state.node.inputs) {
-        await reqLink({
-          parent: ['node', tempNode.key],
-          child: [
-            'inputs',
-            (
-              await reqPost('variable', input, {
-                ignores: ['value', 'prop']
-              })
-            )._id
-          ]
-        })
-      }
-      for (const output of state.node.outputs) {
-        await reqLink({
-          parent: ['node', tempNode.key],
-          child: ['outputs', (await reqPost('variable', output))._id]
-        })
-      }
-      state.joinVsb = false
-      await reqPut('node', state.node.key, { group })
-      await dispatch('rfshTemps')
-      await dispatch('rfshNode')
-    },
-    async rfshTemps({ state }: { state: SvcState }) {
+    async refreshTemps({ state }: { state: SvcState }) {
       const resp = await reqAll('node/temp', { type: 'api' })
       for (const node of resp.map((tmpNd: any) => Node.copy(tmpNd))) {
         state.nodes[node.key] = node
@@ -438,7 +312,7 @@ export default {
           groups[tmpNd.group] = [tmpNd]
         }
       }
-      EditNodeMapper['temp'].options = Object.entries(groups).map(([group, nodes]) => ({
+      edtNdMapper['temp'].options = Object.entries(groups).map(([group, nodes]) => ({
         label: group,
         value: group,
         children: nodes
@@ -449,7 +323,7 @@ export default {
           : []
       }))
     },
-    async rfshDpdcs({ state }: { state: SvcState }) {
+    async refreshDeps({ state }: { state: SvcState }) {
       state.deps = Object.fromEntries(
         (await reqGet('dependencys'))
           .map((dep: any) => Dep.copy(dep))
@@ -472,7 +346,6 @@ export default {
     nodeVsb: (state: SvcState): boolean => state.nodeVsb,
     locVars: (state: SvcState) => state.locVars,
     joinVsb: (state: SvcState): boolean => state.joinVsb,
-    svcVsb: (state: SvcState): boolean => state.svcVsb,
     tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
@@ -481,6 +354,6 @@ export default {
       (state: SvcState) =>
       (key: string): Dep[] =>
         state.nodes[key].deps,
-    tempGrps: () => (EditNodeMapper['temp'].options as OpnType[]).map(reactive)
+    tempGrps: () => (edtNdMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

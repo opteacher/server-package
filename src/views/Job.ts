@@ -1,3 +1,4 @@
+import { OpnType } from '@/types'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
 import { emitTypeOpns, timeUnits } from '@/types/service'
@@ -6,7 +7,7 @@ export const columns = [
   new Column('文件名', 'name'),
   new Column('方法', 'interface'),
   new Column('激发类型', 'emit'),
-  new Column('任务参数', 'emitCond'),
+  new Column('任务参数', 'condition'),
   new Column('流程', 'flow'),
   new Column('控制', 'ctrl')
 ]
@@ -25,7 +26,7 @@ export const mapper = new Mapper({
   emit: {
     label: '激发类型',
     type: 'Select',
-    options: emitTypeOpns.filter((opn: any) => opn.value !== 'api' && opn.value !== 'none')
+    options: emitTypeOpns.filter((opn: OpnType) => opn.value !== 'api' && opn.value !== 'none')
   },
   cdValue: {
     label: '触发值',

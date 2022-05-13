@@ -1,20 +1,22 @@
 <template>
   <LytService :active="`project/${pid}/model/${mid}/flow/${sid}`">
-    <div class="flow-panel" ref="panelRef">
-      <VarsPanel />
-      <TmpNdPanel />
-      <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
-      <template v-else>
-        <NodeCard
-          v-for="node in Object.values(nodes)"
-          :key="node.key"
-          :nd-key="node.key"
-          @click:card="() => store.commit('service/SET_NODE', { node })"
-          @click:addBtn="onAddBtnClicked"
-          @mouseenter="store.commit('service/UPDATE_LOCVARS', node)"
-          @mouseleave="store.commit('service/UPDATE_LOCVARS')"
-        />
-      </template>
+    <div style="position: relative; width: 100%; height: 100%">
+      <div class="flow-panel" ref="panelRef">
+        <VarsPanel />
+        <TmpNdPanel />
+        <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
+        <template v-else>
+          <NodeCard
+            v-for="node in Object.values(nodes)"
+            :key="node.key"
+            :nd-key="node.key"
+            @click:card="() => store.commit('service/SET_NODE', { node })"
+            @click:addBtn="onAddBtnClicked"
+            @mouseenter="store.commit('service/UPDATE_LOCVARS', node)"
+            @mouseleave="store.commit('service/UPDATE_LOCVARS')"
+          />
+        </template>
+      </div>
     </div>
     <FormDialog
       :title="editTitle"
@@ -22,18 +24,18 @@
       :column="[2, 22]"
       :copy="Node.copy"
       :show="store.getters['service/nodeVsb']"
-      :mapper="EditNodeMapper"
+      :mapper="edtNdMapper"
       :object="store.getters['service/editNode']"
-      :emitter="EditNodeEmitter"
+      :emitter="edtNdEmitter"
       @update:show="() => store.commit('service/SET_NODE_INVSB')"
       @submit="onNodeSaved"
-      @initialize="store.dispatch('service/rfshTemps')"
+      @initialize="store.dispatch('service/refreshTemps')"
     />
     <FormDialog
       title="选择组"
       width="35vw"
       :show="store.getters['service/joinVsb']"
-      :mapper="JoinMapper"
+      :mapper="joinMapper"
       :copy="
         (src, tgt) => {
           tgt = tgt || { group: '' }
@@ -43,15 +45,15 @@
       "
       @submit="
         async edited => {
-          await store.dispatch('service/joinLibrary', edited.group)
-          EditNodeEmitter.emit('refresh')
+          await api.joinLib(edited.group)
+          edtNdEmitter.emit('refresh')
         }
       "
       @update:show="() => store.commit('service/SET_JOIN_VSB', false)"
       @initialize="
         ;async () => {
-          await store.dispatch('service/rfshTemps')
-          JoinMapper['group'].options = store.getters['service/tempGrps']
+          await store.dispatch('service/refreshTemps')
+          joinMapper['group'].options = store.getters['service/tempGrps']
         }
       "
     />
@@ -61,14 +63,15 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
 import LytService from '../layouts/LytService.vue'
-import NodeCard from '../components/NodeCard.vue'
+import NodeCard from '../components/flow/NodeCard.vue'
 import Node from '../types/node'
 import FormDialog from '../components/com/FormDialog.vue'
-import { EditNodeEmitter, EditNodeMapper, JoinMapper, onNodeSaved } from './Flow'
+import { edtNdEmitter, edtNdMapper, joinMapper } from './Flow'
 import { useStore } from 'vuex'
-import VarsPanel from '../components/VarsPanel.vue'
-import TmpNdPanel from '../components/TmpNdPanel.vue'
+import VarsPanel from '../components/flow/VarsPanel.vue'
+import TmpNdPanel from '../components/flow/TmpNdPanel.vue'
 import { useRoute } from 'vue-router'
+import { ndAPI as api } from '../apis'
 
 export default defineComponent({
   name: 'Flow',
@@ -119,19 +122,24 @@ export default defineComponent({
         node: pvsKey ? { previous: pvsKey } : undefined
       })
     }
+    async function onNodeSaved(node: Node, next: () => void) {
+      await api.save(node)
+      next()
+    }
     return {
       Node,
 
       pid,
       mid,
       sid,
+      api,
       store,
       nodes,
       panelRef,
       editTitle,
-      JoinMapper,
-      EditNodeEmitter,
-      EditNodeMapper,
+      joinMapper,
+      edtNdEmitter,
+      edtNdMapper,
 
       onNodeSaved,
       onAddBtnClicked
@@ -143,10 +151,10 @@ export default defineComponent({
 <style lang="less">
 .flow-panel {
   position: absolute;
-  top: 150px;
-  left: 100px;
-  bottom: 50px;
-  right: 100px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   overflow-y: auto;
 }
 </style>

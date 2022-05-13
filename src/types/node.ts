@@ -19,7 +19,7 @@ export default class Node implements Record<string, any> {
   group: string
   title: string
   desc: string
-  type: NodeType
+  ntype: NodeType
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   isFun: boolean
@@ -36,7 +36,7 @@ export default class Node implements Record<string, any> {
     this.group = ''
     this.title = ''
     this.desc = ''
-    this.type = 'normal'
+    this.ntype = 'normal'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -54,7 +54,7 @@ export default class Node implements Record<string, any> {
     this.group = ''
     this.title = ''
     this.desc = ''
-    this.type = 'normal'
+    this.ntype = 'normal'
     this.inputs = []
     this.outputs = []
     this.code = ''
@@ -73,7 +73,7 @@ export default class Node implements Record<string, any> {
     tgt.group = src.group || tgt.group
     tgt.title = src.title || tgt.title
     tgt.desc = src.desc || tgt.desc
-    tgt.type = src.type || tgt.type
+    tgt.ntype = src.ntype || tgt.ntype
     if (src.inputs instanceof Array) {
       tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
     }

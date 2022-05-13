@@ -3,7 +3,6 @@
     v-if="node && node.previous"
     :style="{
       position: 'absolute',
-      'z-index': -100,
       width: `${arwTopSvgSizeW}px`,
       height: `${ArrowHlfHgt}px`,
       left: `${arwTopSvgPosLT[0]}px`,
@@ -127,7 +126,8 @@
     :style="{
       position: 'absolute',
       left: `${addBtnPosLT[0]}px`,
-      top: `${addBtnPosLT[1]}px`
+      top: `${addBtnPosLT[1]}px`,
+      'z-index': 1
     }"
     @click="$emit('click:addBtn', node.key)"
   >
@@ -137,7 +137,6 @@
     v-if="ndKey"
     :style="{
       position: 'absolute',
-      'z-index': -100,
       width: `${arwBtmSvgSizeW}px`,
       height: `${node.btmSvgHgt}px`,
       left: `${arwBtmSvgPosLT[0]}px`,
@@ -172,14 +171,14 @@ import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant
 import Node, { NodeTypeMapper, NodeType } from '@/types/node'
 import {
   CardMinHgt,
-  NodeInPnl,
   AddBtnHlfWH,
   ArrowHeight,
   ArrowHlfHgt,
   CardWidth,
   CardHlfWid
-} from '../views/Flow'
+} from '@/views/Flow'
 import { useStore } from 'vuex'
+import NodeInPnl from '@/types/ndInPnl'
 
 export default defineComponent({
   name: 'NodeCard',
@@ -199,13 +198,13 @@ export default defineComponent({
     const node = reactive(
       props.ndKey
         ? store.getters['service/node'](props.ndKey)
-        : Object.assign(Node.copy({ type: 'normal' }), {
+        : Object.assign(Node.copy({ ntype: 'normal' }), {
             posLT: [(store.getters['service/width'] >> 1) - CardHlfWid, 0],
             size: [0, 0],
             btmSvgHgt: ArrowHlfHgt
           })
     )
-    const title = computed(() => `# ${NodeTypeMapper[node.type as NodeType]} - ${node.title}`)
+    const title = computed(() => `# ${NodeTypeMapper[node.ntype as NodeType]} - ${node.title}`)
     const addBtnPosLT = computed(() =>
       props.ndKey
         ? [
@@ -223,7 +222,7 @@ export default defineComponent({
       node.posLT[1] - ArrowHlfHgt
     ])
     const arwTopSvgSizeW = computed(() => {
-      if (node.type === 'endNode') {
+      if (node.ntype === 'endNode') {
         return getWidByNexts(store.getters['service/node'](node.relative))
       } else {
         return CardWidth
@@ -231,7 +230,7 @@ export default defineComponent({
     })
     const arwBtmSvgSizeW = computed(() => getWidByNexts(node))
     const color = computed(() => {
-      switch (node.type) {
+      switch (node.ntype) {
         case 'normal':
           return '#FF9900'
         case 'condition':
@@ -249,7 +248,7 @@ export default defineComponent({
     )
     const multiCond = computed(() => {
       const relative = store.getters['service/node'](node.relative)
-      return node.type === 'endNode' && relative.nexts.length > 1
+      return node.ntype === 'endNode' && relative.nexts.length > 1
     })
 
     onMounted(refresh)

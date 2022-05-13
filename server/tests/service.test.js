@@ -68,7 +68,7 @@ describe('# 任务服务', () => {
       isModel: false,
       path: '/abcd/job/v1/model1/interval',
       jobId: 0,
-      emitCond: '3s'
+      condition: '3s'
     })
     intervalSid = service.id
     await db.saveOne(Model, model.id, { svcs: intervalSid }, { updMode: 'append' })
@@ -81,7 +81,7 @@ describe('# 任务服务', () => {
       isModel: false,
       path: '/abcd/job/v1/model1/timeout',
       jobId: 0,
-      emitCond: '22/05/09T23:05:00'
+      condition: '22/05/09T23:05:00'
     })
     timeoutSid = service.id
     await db.saveOne(Model, model.id, { svcs: timeoutSid }, { updMode: 'append' })

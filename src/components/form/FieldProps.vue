@@ -36,7 +36,7 @@ import Field from '@/types/field'
 import Model from '@/types/model'
 import { computed, defineComponent } from 'vue'
 import { useStore } from 'vuex'
-import { mdlAPI as api } from '../apis'
+import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',

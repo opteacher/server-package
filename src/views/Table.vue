@@ -1,114 +1,109 @@
 <template>
-  <LytDesign @change:height="height => (hdHeight = height)">
-    <div class="table-container" :style="{ top: `${40 + hdHeight}px` }">
-      <a-layout class="h-100">
-        <a-layout-content class="main-panel" @click="selected = ''">
-          <div class="white-bkgd p-10">
-            <a-row class="mb-10" type="flex">
-              <a-col flex="auto">
-                <a-space>
-                  <h3 class="mb-0">{{ table.title }}</h3>
-                  <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
-                </a-space>
-              </a-col>
-              <a-col v-if="table.operable.includes('可增加')" flex="100px">
-                <a-button class="float-right" type="primary">添加</a-button>
-              </a-col>
-            </a-row>
-            <a-table
-              class="demo-table"
-              :columns="columns"
-              :data-source="records"
-              :size="table.size"
-              :rowClassName="() => 'white-bkgd'"
-              :pagination="table.hasPages"
-              bordered
-            >
-              <template #headerCell="{ title, column }">
-                <span
-                  :style="{ color: selected === `head_${column.key}` ? '#1890ff' : '#000000d9' }"
-                >
-                  {{ title }}
-                </span>
-              </template>
-              <template #bodyCell="{ text, column }">
-                <template v-if="column.dataIndex === 'opera'">
-                  <template v-if="table.operaStyle === 'button'">
-                    <a-button v-if="table.operable.includes('可编辑')" size="small" class="mb-5">
-                      编辑
-                    </a-button>
-                    <a-button v-if="table.operable.includes('可删除')" size="small" danger>
-                      删除
-                    </a-button>
-                  </template>
-                  <template v-else>
-                    <a v-if="table.operable.includes('可编辑')" class="mr-5">编辑</a>
-                    <a v-if="table.operable.includes('可删除')" style="color: #ff4d4f">删除</a>
-                  </template>
-                </template>
-                <span
-                  v-else
-                  :style="{
-                    color:
-                      selected === `cell_${column.dataIndex}`
-                        ? '#1890ff'
-                        : cells[column.dataIndex].color
-                  }"
-                >
-                  {{
-                    cells[column.dataIndex].prefix &&
-                    !text.startsWith(cells[column.dataIndex].prefix)
-                      ? cells[column.dataIndex].prefix
-                      : ''
-                  }}{{ text
-                  }}{{
-                    cells[column.dataIndex].suffix &&
-                    !endsWith(text, cells[column.dataIndex].suffix)
-                      ? cells[column.dataIndex].suffix
-                      : ''
-                  }}
-                </span>
-              </template>
-              <template #emptyText>
-                <a-empty>
-                  <template #description>未查询到数据</template>
-                  <a-button
-                    type="primary"
-                    @click.stop="fmEmitter.emit('update:show', { show: true })"
-                  >
-                    点击创建一条演示记录
+  <LytDesign :active="`project/${pid}/model/${mid}/table`">
+    <a-layout class="h-100">
+      <a-layout-content class="main-panel" @click="selected = ''">
+        <div class="white-bkgd p-10">
+          <a-row class="mb-10" type="flex">
+            <a-col flex="auto">
+              <a-space>
+                <h3 class="mb-0">{{ table.title }}</h3>
+                <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
+              </a-space>
+            </a-col>
+            <a-col v-if="table.operable.includes('可增加')" flex="100px">
+              <a-button class="float-right" type="primary">添加</a-button>
+            </a-col>
+          </a-row>
+          <a-table
+            class="demo-table"
+            :columns="columns"
+            :data-source="records"
+            :size="table.size"
+            :rowClassName="() => 'white-bkgd'"
+            :pagination="table.hasPages"
+            bordered
+          >
+            <template #headerCell="{ title, column }">
+              <span :style="{ color: selected === `head_${column.key}` ? '#1890ff' : '#000000d9' }">
+                {{ title }}
+              </span>
+            </template>
+            <template #bodyCell="{ text, column }">
+              <template v-if="column.dataIndex === 'opera'">
+                <template v-if="table.operaStyle === 'button'">
+                  <a-button v-if="table.operable.includes('可编辑')" size="small" class="mb-5">
+                    编辑
                   </a-button>
-                  <DemoForm :emitter="fmEmitter" @submit="onFormSubmit" />
-                </a-empty>
+                  <a-button v-if="table.operable.includes('可删除')" size="small" danger>
+                    删除
+                  </a-button>
+                </template>
+                <template v-else>
+                  <a v-if="table.operable.includes('可编辑')" class="mr-5">编辑</a>
+                  <a v-if="table.operable.includes('可删除')" style="color: #ff4d4f">删除</a>
+                </template>
               </template>
-            </a-table>
-          </div>
-        </a-layout-content>
-        <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
-          <TableProps v-if="!selected" :table="table" />
-          <ColumnProps v-else-if="selected.startsWith('head_')" :column="selColumn" />
-          <CellProps v-else-if="selected.startsWith('cell')" :cell="selCell" />
-        </a-layout-sider>
-      </a-layout>
-    </div>
+              <span
+                v-else
+                :style="{
+                  color:
+                    selected === `cell_${column.dataIndex}`
+                      ? '#1890ff'
+                      : cells[column.dataIndex].color
+                }"
+              >
+                {{
+                  cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
+                    ? cells[column.dataIndex].prefix
+                    : ''
+                }}{{ text
+                }}{{
+                  cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
+                    ? cells[column.dataIndex].suffix
+                    : ''
+                }}
+              </span>
+            </template>
+            <template #emptyText>
+              <a-empty>
+                <template #description>未查询到数据</template>
+                <a-button
+                  type="primary"
+                  @click.stop="fmEmitter.emit('update:show', { show: true })"
+                >
+                  点击创建一条演示记录
+                </a-button>
+                <DemoForm :emitter="fmEmitter" @submit="onFormSubmit" />
+              </a-empty>
+            </template>
+          </a-table>
+        </div>
+      </a-layout-content>
+      <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
+        <TableProps v-if="!selected" :table="table" />
+        <ColumnProps v-else-if="selected.startsWith('head_')" :column="selColumn" />
+        <CellProps v-else-if="selected.startsWith('cell')" :cell="selCell" />
+      </a-layout-sider>
+    </a-layout>
   </LytDesign>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import DemoForm from '../components/DemoForm.vue'
+import DemoForm from '../components/form/DemoForm.vue'
 import Column from '@/types/column'
 import Table from '@/types/table'
 import { skipIgnores, endsWith } from '@/utils'
-import TableProps from '../components/TableProps.vue'
-import ColumnProps from '../components/ColumnProps.vue'
-import CellProps from '../components/CellProps.vue'
+import TableProps from '../components/table/TableProps.vue'
+import ColumnProps from '../components/table/ColumnProps.vue'
+import CellProps from '../components/table/CellProps.vue'
 import Cell from '@/types/cell'
 import { mdlAPI as api } from '../apis'
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
   name: 'Table',
@@ -121,6 +116,9 @@ export default defineComponent({
   },
   setup() {
     const store = useStore()
+    const route = useRoute()
+    const pid = route.params.pid
+    const mid = route.params.mid
     const hdHeight = ref(0)
     const columns = computed(() => {
       const ret = store.getters['model/columns'].map((column: Column) =>
@@ -159,6 +157,8 @@ export default defineComponent({
       return Cell.copy({ key }, table.value.cells[key])
     })
 
+    onMounted(() => store.dispatch('model/refresh'))
+
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = `head_${colKey}`
       e.stopPropagation()
@@ -173,6 +173,8 @@ export default defineComponent({
     }
     return {
       store,
+      pid,
+      mid,
       table,
       hdHeight,
       columns,

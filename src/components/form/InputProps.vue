@@ -19,7 +19,7 @@
 <script lang="ts">
 import Field from '@/types/field'
 import { defineComponent } from 'vue'
-import { mdlAPI as api } from '../apis'
+import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'InputProps',

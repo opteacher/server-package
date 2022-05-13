@@ -57,7 +57,7 @@ export class BaseMapper {
   }
 }
 
-export class InputMapper extends BaseMapper {
+export class iptMapper extends BaseMapper {
   iptType: string
   prefix: string
   suffix: string
@@ -69,8 +69,8 @@ export class InputMapper extends BaseMapper {
     this.suffix = ''
   }
 
-  static copy(src: any, tgt?: InputMapper): InputMapper {
-    tgt = tgt || new InputMapper()
+  static copy(src: any, tgt?: iptMapper): iptMapper {
+    tgt = tgt || new iptMapper()
     BaseMapper.copy(src, tgt)
     tgt.iptType = src.iptType || tgt.iptType
     tgt.prefix = src.prefix || tgt.prefix
@@ -299,8 +299,8 @@ export class EditListMapper extends BaseMapper {
 
 const EleTypeCopies = {
   Unknown: BaseMapper.copy,
-  Input: InputMapper.copy,
-  Number: InputMapper.copy,
+  Input: iptMapper.copy,
+  Number: iptMapper.copy,
   Textarea: TextareaMapper.copy,
   Select: SelectMapper.copy,
   Cascader: SelectMapper.copy,

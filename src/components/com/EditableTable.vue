@@ -53,7 +53,6 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { InfoCircleOutlined, SelectOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import FormDialog from './FormDialog.vue'
 import Column from '@/types/column'
@@ -63,15 +62,12 @@ export default defineComponent({
   name: 'edtableTable',
   emits: ['add', 'edit', 'save', 'delete', 'refresh'],
   components: {
-    InfoCircleOutlined,
-    SelectOutlined,
-    EditOutlined,
     FormDialog
   },
   props: {
     api: { type: Object /* ComAPI */, required: true },
     columns: { type: Array, required: true },
-    mapper: { type: Mapper, required: true },
+    mapper: { type: Mapper, default: new Mapper() },
     copy: { type: Function, default: () => ({ key: '#' }) },
     emitter: { type: Emitter, default: null },
     title: { type: String, default: '' },

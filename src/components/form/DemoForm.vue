@@ -66,7 +66,7 @@ export default defineComponent({
     const model = computed(() => store.getters['model/ins'] as Model)
     const form = computed(() => store.getters['model/form'] as Form)
     const formState = reactive(
-      Object.fromEntries(model.value.props.map(prop => [prop.name, toDefault(prop.type)]))
+      Object.fromEntries(model.value.props.map(prop => [prop.name, toDefault(prop.ptype)]))
     )
     const fields = computed(() => Object.values(store.getters['model/fields']) as Field[])
 
@@ -84,7 +84,7 @@ export default defineComponent({
 
     function reset() {
       for (const prop of model.value.props) {
-        formState[prop.name] = toDefault(prop.type)
+        formState[prop.name] = toDefault(prop.ptype)
       }
     }
     async function onOkClick() {

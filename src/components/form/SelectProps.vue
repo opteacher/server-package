@@ -26,7 +26,7 @@ import { defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
 
 export default defineComponent({
-  name: 'InputProps',
+  name: 'SelectProps',
   props: {
     field: { type: Field, required: true }
   },

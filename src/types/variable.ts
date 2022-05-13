@@ -6,7 +6,7 @@ import { BaseTypes } from './index'
 export default class Variable {
   key: string
   name: string
-  type: BaseTypes | Model
+  vtype: BaseTypes | Model
   value: any
   prop: string
   index: string
@@ -18,7 +18,7 @@ export default class Variable {
   constructor() {
     this.key = ''
     this.name = ''
-    this.type = 'Unknown'
+    this.vtype = 'Unknown'
     this.value = undefined
     this.prop = ''
     this.index = ''
@@ -31,7 +31,7 @@ export default class Variable {
   reset() {
     this.key = ''
     this.name = ''
-    this.type = 'Unknown'
+    this.vtype = 'Unknown'
     this.value = undefined
     this.prop = ''
     this.index = ''
@@ -45,7 +45,7 @@ export default class Variable {
     tgt = tgt || new Variable()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
-    tgt.type = src.type || tgt.type
+    tgt.vtype = src.vtype || tgt.vtype
     tgt.value = src.value || tgt.value
     tgt.prop = src.prop || tgt.prop
     tgt.index = src.index || tgt.index

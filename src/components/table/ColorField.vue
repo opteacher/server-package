@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive } from 'vue'
-import ColorSelect from './com/ColorSelect.vue'
+import ColorSelect from '../com/ColorSelect.vue'
 
 export default defineComponent({
   name: 'ColorField',

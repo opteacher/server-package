@@ -86,19 +86,19 @@ const routes: Array<RouteRecordRaw> = [
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/form/:mid',
+    path: '/server-package/project/:pid/model/:mid/form',
     name: 'Form',
     component: Form,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/table/:mid',
+    path: '/server-package/project/:pid/model/:mid/table',
     name: 'Table',
     component: Table,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/demo/:mid',
+    path: '/server-package/project/:pid/model/:mid/demo',
     name: 'Demo',
     component: Demo,
     meta: { reqLogin: true }

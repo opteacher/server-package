@@ -134,7 +134,7 @@ import { useStore } from 'vuex'
 import Table from '@/types/table'
 import Model from '@/types/model'
 import { BorderlessTableOutlined } from '@ant-design/icons-vue'
-import DemoForm from '../components/DemoForm.vue'
+import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export default defineComponent({

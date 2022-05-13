@@ -63,7 +63,7 @@
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { GoldOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
-import Node from '../types/node'
+import Node from '@/types/node'
 
 export default defineComponent({
   name: 'TempNodePanel',
@@ -93,7 +93,7 @@ export default defineComponent({
 
     async function rfshGroup(force = true) {
       if (force) {
-        await store.dispatch('service/rfshTemps')
+        await store.dispatch('service/refreshTemps')
       }
       const tempNodes = store.getters['service/tempNodes']
       for (const prop in tmpNdsByGp) {

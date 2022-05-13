@@ -19,40 +19,40 @@ export async function restart(pid, jid, authorization) {
     )
   }
   let timestamp = 0
-  if (RangeRegexp.test(svc.emitCond)) {
+  if (RangeRegexp.test(svc.condition)) {
     // 以Y/M/D/h/m/s/ms结尾，则表示时间段
     // 对于time，则在此时间段后激发；对于interval，则每过此时间段就执行一次。
-    switch (svc.emitCond.slice(-1)) {
+    switch (svc.condition.slice(-1)) {
       case 'Y':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 365 * 24 * 60 * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 365 * 24 * 60 * 60 * 1000
         break
       case 'M':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 30 * 24 * 60 * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 30 * 24 * 60 * 60 * 1000
         break
       case 'W':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 7 * 24 * 60 * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 7 * 24 * 60 * 60 * 1000
         break
       case 'D':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 24 * 60 * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 24 * 60 * 60 * 1000
         break
       case 'h':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 60 * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 60 * 60 * 1000
         break
       case 'm':
-        timestamp = parseInt(svc.emitCond.slice(0, -1)) * 60 * 1000
+        timestamp = parseInt(svc.condition.slice(0, -1)) * 60 * 1000
         break
       case 's':
-        if (svc.emitCond.endsWith('ms')) {
-          timestamp = parseInt(svc.emitCond.slice(0, -2))
+        if (svc.condition.endsWith('ms')) {
+          timestamp = parseInt(svc.condition.slice(0, -2))
         } else {
-          timestamp = parseInt(svc.emitCond.slice(0, -1)) * 1000
+          timestamp = parseInt(svc.condition.slice(0, -1)) * 1000
         }
         break
     }
-  } else if (TimeRegexp.test(svc.emitCond)) {
+  } else if (TimeRegexp.test(svc.condition)) {
     // 除此以外，如果是--/--/00T00:00:00格式存储，则在该时间点执行，激发方式随意
     const now = new Date()
-    const result = TimeRegexp.exec(svc.emitCond)
+    const result = TimeRegexp.exec(svc.condition)
     if (!result || result.length < 7) {
       return { error: '错误的时间点格式' }
     }
