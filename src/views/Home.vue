@@ -11,10 +11,14 @@
       @add="onEditStart"
     >
       <template #name="{ record: project }">
-        <a :href="`/server-package/project/${project.key}`">{{ project.name }}</a>
+        <a :href="`/server-package/project/${project.key}`" @click.stop="">{{ project.name }}</a>
       </template>
       <template #database="{ record: project }">
-        {{ project.database[0] }} / {{ project.database[1] }}
+        <a-tooltip v-if="project.dropDbs">
+          <template #title>启动时清空</template>
+          <clear-outlined />
+        </a-tooltip>
+        &nbsp;{{ project.database[0] }} / {{ project.database[1] }}
       </template>
       <template #status="{ record: project }">
         <template v-if="project.thread === 0">
@@ -54,11 +58,11 @@
 
 <script lang="ts">
 import Project from '@/types/project'
-import { defineComponent, ref, onMounted, reactive } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { SyncOutlined, PoweroffOutlined } from '@ant-design/icons-vue'
+import { SyncOutlined, PoweroffOutlined, ClearOutlined } from '@ant-design/icons-vue'
 import Database from '../types/database'
 import { pjtAPI as api } from '../apis'
 
@@ -68,7 +72,8 @@ export default defineComponent({
     LytMain,
     EditableTable,
     SyncOutlined,
-    PoweroffOutlined
+    PoweroffOutlined,
+    ClearOutlined
   },
   setup() {
     const projects = ref([])

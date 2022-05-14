@@ -52,7 +52,7 @@ export default db.defineModel(
           filterable: db.PropTypes.Boolean
         }
       ],
-      cells: db.PropTypes.Any,
+      cells: db.PropTypes.Object, // [colDataIdx]: { color: string, prefix: string, suffix: string }
       operable: db.PropTypes.Array // 可增加, 可编辑, 可删除
     }
   },

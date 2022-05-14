@@ -491,6 +491,9 @@ export default defineComponent({
     function fmtDrpdwnValue(options: OpnType[], value: any | any[]) {
       if (value instanceof Array) {
         const vals = []
+        if (!options || !options.length) {
+          return value.join(' / ')
+        }
         let opns = options
         for (let i = 0; i < value.length; ++i) {
           const opn = opns.find((opn: OpnType) => opn.value === value[i])

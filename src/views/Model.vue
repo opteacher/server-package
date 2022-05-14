@@ -70,9 +70,10 @@
       <EditableTable
         title="服务"
         size="small"
-        :api="svcAPI"
+        :api="{ all: () => [] }"
         :columns="svcColumns"
         :copy="Service.copy"
+        :emitter="svcEmitter"
         :edtable="false"
         :delable="false"
         @add="$router.push(`/server-package/project/${pid}/model/${mid}/apis`)"
@@ -120,7 +121,7 @@ import {
 } from '@ant-design/icons-vue'
 import { propColumns, propMapper, svcColumns } from './Model'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { mdlAPI, propAPI, svcAPI } from '../apis'
+import { mdlAPI, propAPI } from '../apis'
 
 export default defineComponent({
   name: 'Model',
@@ -144,12 +145,14 @@ export default defineComponent({
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
     const propEmitter = new Emitter()
+    const svcEmitter = new Emitter()
 
     onMounted(refresh)
 
     async function refresh() {
       await store.dispatch('model/refresh')
       propEmitter.emit('refresh', model.value.props)
+      svcEmitter.emit('refresh', model.value.svcs)
     }
     return {
       ExpCls,
@@ -170,8 +173,8 @@ export default defineComponent({
       propColumns,
       propMapper,
       propEmitter,
-      svcAPI,
       svcColumns,
+      svcEmitter,
 
       refresh
     }

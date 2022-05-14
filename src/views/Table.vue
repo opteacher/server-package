@@ -147,7 +147,7 @@ export default defineComponent({
     const fmEmitter = new Emitter()
     const selected = ref('')
     const table = computed(() => store.getters['model/table'] as Table)
-    const cells = computed(() => (store.getters['model/table'] as Table).cells)
+    const cells = computed(() => store.getters['model/cells'])
     const selColumn = computed(() => {
       const key = selected.value.substring('head_'.length)
       return store.getters['model/columns'].find((column: any) => column.key === key)

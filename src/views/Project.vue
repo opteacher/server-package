@@ -110,7 +110,9 @@
         @delete="refresh"
       >
         <template #name="{ record: model }">
-          <a :href="`/server-package/project/${pid}/model/${model.key}`">{{ model.name }}</a>
+          <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop="">
+            {{ model.name }}
+          </a>
         </template>
       </EditableTable>
     </div>
@@ -119,7 +121,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref, createVNode, reactive, onMounted } from 'vue'
+import { computed, defineComponent, ref, createVNode } from 'vue'
 import { Modal } from 'ant-design-vue'
 import {
   SettingOutlined,

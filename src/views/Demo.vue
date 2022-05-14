@@ -1,11 +1,7 @@
 <template>
-  <div class="container">
-    <a-page-header
-      style="border: 1px solid rgb(235, 237, 240)"
-      sub-title="回到编辑页"
-      @back="router.go(-1)"
-    >
-      <template #extra>
+  <LytDesign :active="`project/${pid}/model/${mid}/demo`">
+    <div class="w-100 text-right">
+      <a-space>
         <a-switch
           v-model:checked="useRealData"
           checked-children="真实"
@@ -14,114 +10,100 @@
         />
         &nbsp;数据
         <a-button v-if="useRealData" @click="onRefresh">刷新</a-button>
-      </template>
-    </a-page-header>
-    <a-layout class="mt-10 h-100">
-      <a-layout-sider>
-        <a-menu
-          :selectedKeys="[model.key]"
-          mode="inline"
-          :style="{ height: '100%', borderRight: 0 }"
+      </a-space>
+    </div>
+    <a-divider />
+    <a-row class="mb-10" type="flex">
+      <a-col flex="auto">
+        <a-space>
+          <h3 class="mb-0">{{ table.title }}</h3>
+          <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
+        </a-space>
+      </a-col>
+      <a-col v-if="table.operable.includes('可增加')" flex="100px">
+        <a-button
+          class="float-right"
+          type="primary"
+          @click="fmEmitter.emit('update:show', { show: true })"
         >
-          <a-menu-item :key="model.key">
-            <template #icon>
-              <BorderlessTableOutlined />
-            </template>
-            <span>{{ model.desc || model.name }}</span>
-          </a-menu-item>
-        </a-menu>
-      </a-layout-sider>
-      <a-layout-content class="pt-10 pb-10 pr-10 pl-20 white-bkgd">
-        <a-row class="mb-10" type="flex">
-          <a-col flex="auto">
-            <a-space>
-              <h3 class="mb-0">{{ table.title }}</h3>
-              <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
-            </a-space>
-          </a-col>
-          <a-col v-if="table.operable.includes('可增加')" flex="100px">
+          添加
+        </a-button>
+      </a-col>
+    </a-row>
+    <a-table
+      :columns="columns"
+      :data-source="records"
+      :size="table.size"
+      :rowClassName="() => 'white-bkgd'"
+      :pagination="table.hasPages"
+      bordered
+      :custom-row="
+        record => ({
+          onClick: () => onRecordClick(record)
+        })
+      "
+    >
+      <template #bodyCell="{ text, column, record }">
+        <template v-if="column.dataIndex === 'opera'">
+          <template v-if="table.operaStyle === 'button'">
             <a-button
-              class="float-right"
-              type="primary"
-              @click="fmEmitter.emit('update:show', { show: true })"
+              v-if="table.operable.includes('可编辑')"
+              size="small"
+              class="mb-5"
+              @click="fmEmitter.emit('update:show', { show: true, record })"
             >
-              添加
+              编辑
             </a-button>
-          </a-col>
-        </a-row>
-        <a-table
-          :columns="columns"
-          :data-source="records"
-          :size="table.size"
-          :rowClassName="() => 'white-bkgd'"
-          :pagination="table.hasPages"
-          bordered
-        >
-          <template #bodyCell="{ text, column, record }">
-            <template v-if="column.dataIndex === 'opera'">
-              <template v-if="table.operaStyle === 'button'">
-                <a-button
-                  v-if="table.operable.includes('可编辑')"
-                  size="small"
-                  class="mb-5"
-                  @click="fmEmitter.emit('update:show', { show: true, record })"
-                >
-                  编辑
-                </a-button>
-                <a-popconfirm
-                  v-if="table.operable.includes('可删除')"
-                  title="确定删除该记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="onRecordDel(record)"
-                >
-                  <a-button size="small" danger @click.stop="e => e.preventDefault()">
-                    删除
-                  </a-button>
-                </a-popconfirm>
-              </template>
-              <template v-else>
-                <a
-                  v-if="table.operable.includes('可编辑')"
-                  class="mr-5"
-                  @click="fmEmitter.emit('update:show', { show: true, record })"
-                >
-                  编辑
-                </a>
-                <a-popconfirm
-                  v-if="table.operable.includes('可删除')"
-                  title="确定删除该记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="onRecordDel(record)"
-                >
-                  <a style="color: #ff4d4f">删除</a>
-                </a-popconfirm>
-              </template>
-            </template>
-            <span
-              v-else
-              :style="{
-                color: cells[column.dataIndex].color
-              }"
+            <a-popconfirm
+              v-if="table.operable.includes('可删除')"
+              title="确定删除该记录吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="onRecordDel(record)"
             >
-              {{
-                cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
-                  ? cells[column.dataIndex].prefix
-                  : ''
-              }}{{ text
-              }}{{
-                cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
-                  ? cells[column.dataIndex].suffix
-                  : ''
-              }}
-            </span>
+              <a-button size="small" danger @click.stop="e => e.preventDefault()">删除</a-button>
+            </a-popconfirm>
           </template>
-        </a-table>
-        <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
-      </a-layout-content>
-    </a-layout>
-  </div>
+          <template v-else>
+            <a
+              v-if="table.operable.includes('可编辑')"
+              class="mr-5"
+              @click="fmEmitter.emit('update:show', { show: true, record })"
+            >
+              编辑
+            </a>
+            <a-popconfirm
+              v-if="table.operable.includes('可删除')"
+              title="确定删除该记录吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="onRecordDel(record)"
+            >
+              <a style="color: #ff4d4f">删除</a>
+            </a-popconfirm>
+          </template>
+        </template>
+        <span
+          v-else
+          :style="{
+            color: cells[column.dataIndex].color
+          }"
+        >
+          {{
+            cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
+              ? cells[column.dataIndex].prefix
+              : ''
+          }}{{ text
+          }}{{
+            cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
+              ? cells[column.dataIndex].suffix
+              : ''
+          }}
+        </span>
+      </template>
+    </a-table>
+    <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
+  </LytDesign>
 </template>
 
 <script lang="ts">
@@ -129,23 +111,28 @@
 import Column from '@/types/column'
 import { skipIgnores, endsWith } from '@/utils'
 import { computed, defineComponent, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Table from '@/types/table'
 import Model from '@/types/model'
 import { BorderlessTableOutlined } from '@ant-design/icons-vue'
 import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import LytDesign from '../layouts/LytDesign.vue'
 
 export default defineComponent({
   name: 'Demo',
   components: {
     BorderlessTableOutlined,
-    DemoForm
+    DemoForm,
+    LytDesign
   },
   setup() {
     const store = useStore()
+    const route = useRoute()
     const router = useRouter()
+    const pid = route.params.pid
+    const mid = route.params.mid
     const model = computed(() => store.getters['model/ins'] as Model)
     const columns = computed(() => {
       const ret = store.getters['model/columns'].map((column: Column) =>
@@ -161,9 +148,9 @@ export default defineComponent({
       }
     })
     const table = computed(() => store.getters['model/table'] as Table)
-    const cells = computed(() => (store.getters['model/table'] as Table).cells)
+    const cells = computed(() => store.getters['model/cells'])
     const records = computed(() => store.getters['model/records'](useRealData.value))
-    const useRealData = ref(true)
+    const useRealData = ref(false)
     const fmEmitter = new Emitter()
 
     onMounted(onRefresh)
@@ -178,7 +165,13 @@ export default defineComponent({
     function onRecordDel(record: any) {
       console.log(record)
     }
+    function onRecordClick(record: any) {
+      fmEmitter.emit('viewOnly', true)
+      fmEmitter.emit('update:show', { show: true, record })
+    }
     return {
+      pid,
+      mid,
       router,
       model,
       columns,
@@ -191,7 +184,8 @@ export default defineComponent({
       onRefresh,
       endsWith,
       onRecordSave,
-      onRecordDel
+      onRecordDel,
+      onRecordClick
     }
   }
 })

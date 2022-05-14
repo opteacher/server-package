@@ -1,15 +1,19 @@
 import store from '@/store'
-import { reqPut } from '@/utils'
+import { reqDelete, reqPost, reqPut } from '@/utils'
 
 export default {
-  add: (data: any) =>
-    reqPut('model', `${store.getters['model/ins'].key}?updMode=append`, { props: data }),
-  remove: (key: any) =>
-    reqPut('model', `${store.getters['model/ins'].key}?updMode=delete`, {
-      [`props[{_id:${key}}]`]: null
-    }),
-  update: (data: any) =>
-    reqPut('model', store.getters['model/ins'].key, { [`props[{name:${data.name}}]`]: data }),
+  add: (data: any) => {
+    const mid = store.getters['model/ins'].key
+    return reqPost(`model/${mid}/property`, data, { type: 'api' })
+  },
+  remove: (key: any) => {
+    const mid = store.getters['model/ins'].key
+    return reqDelete(`model/${mid}`, `property/${key}`, { type: 'api' })
+  },
+  update: (data: any) => {
+    const mid = store.getters['model/ins'].key
+    return reqPut(`model/${mid}`, `property/${data.key}`, data, { type: 'api' })
+  },
   all: () => [],
   detail: (key: any) => {
     console.log(key)

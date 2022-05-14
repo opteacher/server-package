@@ -8,7 +8,7 @@
     @dragover.stop="e => e.preventDefault()"
     @dragenter.stop="e => onDragEnter(e, `divider_top_${field.key}`)"
     @dragleave.stop="onDragLeave"
-    @drop="onDropDown"
+    @drop.stop="e => onDropDown(e)"
   >
     <div
       v-show="
@@ -27,10 +27,10 @@
         <InfoCircleOutlined style="color: #1890ff" />
       </a-tooltip>
     </template>
-    <a-input v-if="field.type === 'Input'" :placeholder="field.extra.placeholder" />
-    <a-select v-else-if="field.type === 'Select'" class="w-100" />
-    <a-input-number v-else-if="field.type === 'Number'" class="w-100" />
-    <a-checkbox v-else-if="field.type === 'Checkbox'" />
+    <a-input v-if="field.ftype === 'Input'" :placeholder="field.extra.placeholder" />
+    <a-select v-else-if="field.ftype === 'Select'" class="w-100" />
+    <a-input-number v-else-if="field.ftype === 'Number'" class="w-100" />
+    <a-checkbox v-else-if="field.ftype === 'Checkbox'" />
   </a-form-item>
   <div
     :style="{
@@ -40,7 +40,7 @@
     @dragover.stop="e => e.preventDefault()"
     @dragenter.stop="e => onDragEnter(e, `divider_btm_${field.key}`)"
     @dragleave.stop="onDragLeave"
-    @drop="onDropDown"
+    @drop.stop="e => onDropDown(e)"
   >
     <div
       v-show="
@@ -64,7 +64,7 @@
       border: active === field.key ? '2px solid #1890ff' : '',
       'border-radius': '4px'
     }"
-    @click.stop="$emit('update:active', field.key)"
+    @click.stop="$emit('update:active', field)"
     :draggable="true"
     @mouseenter="mosMvOver = true"
     @mouseleave="mosMvOver = false"
@@ -73,7 +73,7 @@
     @dragleave.stop="onDragLeave"
     @dragover.stop="e => e.preventDefault()"
     @drag.stop="onDragging"
-    @drop.stop="onDropDown"
+    @drop.stop="e => onDropDown(e)"
   >
     <a-button
       v-if="active === field.key"
@@ -97,7 +97,6 @@ import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
-import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'FieldCard',
@@ -108,7 +107,8 @@ export default defineComponent({
   props: {
     index: { type: Number, required: true },
     field: { type: Field, required: true },
-    active: { type: String, required: true }
+    active: { type: String, required: true },
+    onDropDown: { type: Function, required: true }
   },
   emits: ['delete', 'update:active', 'drag'],
   setup(props, { emit }) {
@@ -118,12 +118,19 @@ export default defineComponent({
     const mosMvOver = ref(false)
 
     onMounted(async () => {
-      rszObs.observe(await onFieldResized())
+      const el = await onFieldResized()
+      if (el) {
+        rszObs.observe(el)
+      }
     })
     store.getters['model/emitter'].on('refresh', onFieldResized)
 
     async function onFieldResized() {
-      const el = (await waitFor(props.field.key)) as HTMLElement
+      const res = await waitFor(props.field.key)
+      if (!res) {
+        return
+      }
+      const el = res as HTMLElement
       cmpRect[0] = el.offsetLeft
       cmpRect[1] = el.offsetTop
       cmpRect[2] = el.clientWidth
@@ -145,7 +152,7 @@ export default defineComponent({
     }
     function onDragStart(e: DragEvent) {
       e.dataTransfer?.setData('text/plain', props.field.key)
-      emit('drag', props.field.key)
+      emit('drag', props.field)
     }
     function onDragEnter(e: DragEvent, key?: string) {
       store.commit('model/SET_DRAG_ON', key || props.field.key)
@@ -154,30 +161,6 @@ export default defineComponent({
     function onDragLeave() {
       mosMvOver.value = false
       // store.commit('model/SET_DRAG_ON', '')
-    }
-    function onDropDown(e: DragEvent) {
-      e.preventDefault()
-      const instPos = (
-        store.getters['model/dragOn'].startsWith('divider')
-          ? store.getters['model/dragOn']
-          : store.getters['model/divider']
-      ).split('_')
-      if (instPos.length !== 3) {
-        return
-      }
-      const dragField = e.dataTransfer?.getData('text/plain') as string
-      const insertPos = {
-        field: instPos[2],
-        pos: instPos[1] === 'top' ? 'before' : ('after' as 'before' | 'after')
-      }
-      if (dragField?.startsWith('compo_')) {
-        api.form.fields.add({
-          compoType: dragField.substring('compo_'.length),
-          insertPos
-        })
-      } else {
-        api.form.fields.insert({ dragField, insertPos })
-      }
     }
     function onDragging(e: DragEvent) {
       const dgOnKey = store.getters['model/dragOn']
@@ -211,8 +194,7 @@ export default defineComponent({
       onDragStart,
       onDragEnter,
       onDragLeave,
-      onDragging,
-      onDropDown
+      onDragging
     }
   }
 })

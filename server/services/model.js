@@ -163,6 +163,14 @@ function initColumn(prop) {
   }
 }
 
+function initCell() {
+  return {
+    color: '#000000',
+    prefix: '',
+    suffix: ''
+  }
+}
+
 export async function genForm(mid) {
   const model = await db.select(Model, { _index: mid })
   return db.saveOne(Model, mid, {
@@ -184,7 +192,9 @@ export async function genTable(mid) {
       size: 'default',
       hasPages: true,
       columns: model.props.map(prop => initColumn(prop)),
-      cells: Object.fromEntries(model.props.map(prop => [prop.name, genDefault(prop.ptype)]))
+      cells: model.props.length
+        ? Object.fromEntries(model.props.map(prop => [prop.name, initCell()]))
+        : {}
     }
   })
 }
@@ -192,27 +202,39 @@ export async function genTable(mid) {
 /**
  *
  * @param {*} mid
- * @param {*} field
- * @param {*} istPos idx: number; pos: 'before' | 'after'
+ * @param {*} fid
+ * @param {*} istPos field: string; pos: 'before' | 'after'
  * @returns
+ * @description 该方法不新增field，只是将已经存在的field（fid指代），插入到istPos中的field附近
  */
-export async function insertField(mid, field, istPos) {
-  if (!istPos) {
-    return db.saveOne(Model, mid, { 'form.fields': field }, { updMode: 'append' })
-  }
+export async function insertField(mid, fid, istPos) {
   const model = await db.select(Model, { _index: mid })
   const fields = model.form.fields
-  let index = istPos.idx
-  if (istPos.pos === 'after') {
-    index++
+  if (!istPos) {
+    istPos = { field: fields[fields.length - 1]._id, pos: 'after' }
   }
-  fields.splice(index, 0, field)
-  return db.saveOne(Model, mid, { 'form.fields': fields }, { updMode: 'cover' })
+  const dragIdx = fields.findIndex(field => field._id == fid)
+  let dropIdx = fields.findIndex(field => field._id == istPos.field)
+  if (dragIdx === dropIdx) {
+    return
+  }
+  if (istPos.pos === 'after') {
+    dropIdx++
+  }
+  ;[fields[dragIdx], fields[dropIdx]] = [fields[dropIdx], fields[dragIdx]]
+  return db.saveOne(Model, mid, { 'form.fields': fields.filter(field => field) })
 }
 
-export async function saveProp(data, mid, pname) {
-  if (!pname) {
-    return db.saveOne(
+export async function saveProp(data, mid, pid) {
+  if (!pid) {
+    const model = await db.select(Model, { _index: mid })
+    if (!model.form || !model.form.title) {
+      await genForm(mid)
+    }
+    if (!model.table || !model.table.title) {
+      await genTable(mid)
+    }
+    await db.saveOne(
       Model,
       mid,
       {
@@ -222,19 +244,27 @@ export async function saveProp(data, mid, pname) {
       },
       { updMode: 'append' }
     )
+    return db.saveOne(
+      Model,
+      mid,
+      { 'table.cells': { [data.name]: initCell() } },
+      { updMode: 'merge' }
+    )
   } else {
-    return db.saveOne(Model, mid, { [`props[{name:${pname}}]`]: data })
+    return db.saveOne(Model, mid, { [`props[{_id:${pid}}]`]: data })
   }
 }
 
-export function delProp(pname, mid) {
+export async function delProp(mid, pid) {
+  const model = await db.select(Model, { _index: mid })
+  const prop = model.props.find(prop => prop.id == pid)
   return db.saveOne(
     Model,
     mid,
     {
-      [`props[{name:${pname}}]`]: null,
-      [`form.fields[{refer:${pname}}]`]: null,
-      [`table.columns[{dataIndex:${pname}}]`]: null
+      [`props[{_id:${pid}}]`]: null,
+      [`form.fields[{refer:${prop.name}}]`]: null,
+      [`table.columns[{dataIndex:${prop.name}}]`]: null
     },
     { updMode: 'delete' }
   )

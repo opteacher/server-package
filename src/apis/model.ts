@@ -56,9 +56,10 @@ const expDft = {
       await reqPut(
         'model',
         mid,
-        { form },
+        { form: skipIgnores(form, ['fields']) },
         {
-          messages: { notShow: true }
+          messages: { notShow: true },
+          query: { updMode: 'merge' }
         }
       )
       await store.dispatch('model/refresh')
@@ -86,16 +87,19 @@ const expDft = {
           await reqPut(
             'model',
             mid,
-            { [`fields[{id:${field.key}}]`]: field },
             {
-              messages: { notShow: true }
+              [`form.fields[{id:${field.key}}]`]: skipIgnores(field, ['key'])
+            },
+            {
+              messages: { notShow: true },
+              query: { updMode: 'merge' }
             }
           )
         } else {
           await reqPut(
             'model',
             mid,
-            { fields: field },
+            { 'form.fields': field },
             {
               messages: { notShow: true },
               query: { updMode: 'append' }
@@ -136,14 +140,28 @@ const expDft = {
     },
     save: async (table: any) => {
       const mid = store.getters['model/ins'].key
-      await reqPut('model', mid, { table })
+      await reqPut(
+        'model',
+        mid,
+        { table: skipIgnores(table, ['columns']) },
+        {
+          query: { updMode: 'merge' }
+        }
+      )
       await store.dispatch('model/refresh')
     },
     columns: {
       save: async (column: any) => {
         const mid = store.getters['model/ins'].key
         if (column.key) {
-          await reqPut('model', mid, { [`table.columns[{id:${column.key}}]`]: column })
+          await reqPut(
+            'model',
+            mid,
+            {
+              [`table.columns[{id:${column.key}}]`]: column
+            },
+            { query: { updMode: 'merge' } }
+          )
         } else {
           await reqPut('model', mid, { 'table.columns': column }, { query: { updMode: 'append' } })
         }
@@ -153,12 +171,14 @@ const expDft = {
     cells: {
       save: async (cell: any) => {
         const model = store.getters['model/ins']
-        await reqPut('model', model.key, {
-          [`table.cells.${cell.key}`]: Object.assign(
-            model.table.cells[cell.key] || {},
-            skipIgnores(cell, ['key'])
-          )
-        })
+        await reqPut(
+          'model',
+          model.key,
+          {
+            [`table.cells.${cell.key}`]: skipIgnores(cell, ['key'])
+          },
+          { query: { updMode: 'merge' } }
+        )
         await store.dispatch('model/refresh')
       }
     }

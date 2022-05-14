@@ -18,10 +18,15 @@
     :pagination="false"
     bordered
     :scroll="{ y: sclHeight }"
+    :custom-row="
+      record => ({
+        onClick: () => onRowClick(record)
+      })
+    "
   >
     <template #bodyCell="{ text, column, record }">
       <template v-if="column.key === 'opera'">
-        <a v-if="edtable" class="mr-5" @click="onEditClicked(record)">编辑</a>
+        <a v-if="edtable" class="mr-5" @click.stop="onEditClicked(record)">编辑</a>
         <a-popconfirm
           v-if="delable"
           title="确定删除该记录吗？"
@@ -29,7 +34,7 @@
           cancel-text="取消"
           @confirm="onRecordDel(record.key)"
         >
-          <a style="color: #ff4d4f">删除</a>
+          <a style="color: #ff4d4f" @click.stop="">删除</a>
         </a-popconfirm>
       </template>
       <template v-else-if="$slots[column.key]">
@@ -121,6 +126,7 @@ export default defineComponent({
         props.emitter.emit('update:data', record)
         editing.key = record.key || ''
       }
+      props.emitter.emit('viewOnly', false)
       editing.show = true
     }
     async function onRecordSave(record: any, reset: () => void) {
@@ -166,6 +172,11 @@ export default defineComponent({
         expRowKeys.push(record.key)
       }
     }
+    function onRowClick(record: any) {
+      props.emitter.emit('viewOnly', true)
+      props.emitter.emit('update:data', record)
+      editing.show = true
+    }
     return {
       cols,
       editMapper,
@@ -179,7 +190,8 @@ export default defineComponent({
       onRecordDel,
       hasExpand,
       onRowExpand,
-      isCustomEmpty
+      isCustomEmpty,
+      onRowClick
     }
   }
 })

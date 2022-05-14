@@ -2,6 +2,8 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Database from '../views/Database.vue'
+import Component from '../views/Compo.vue'
+import Dependency from '../views/Dep.vue'
 import Project from '../views/Project.vue'
 import Model from '../views/Model.vue'
 import API from '../views/API.vue'
@@ -36,6 +38,18 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/database',
     name: 'Database',
     component: Database,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/dependency',
+    name: 'Dependency',
+    component: Dependency,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/component',
+    name: 'Component',
+    component: Component,
     meta: { reqLogin: true }
   },
   {

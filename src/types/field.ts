@@ -6,7 +6,7 @@ export default class Field {
   key: string
   label: string
   desc: string
-  type: string // 表单组件类型
+  ftype: string // 表单组件类型
   rules: any[]
   refer: string
   extra: any
@@ -15,7 +15,7 @@ export default class Field {
     this.key = ''
     this.label = ''
     this.desc = ''
-    this.type = ''
+    this.ftype = ''
     this.rules = []
     this.refer = ''
     this.extra = {}
@@ -25,7 +25,7 @@ export default class Field {
     this.key = ''
     this.label = ''
     this.desc = ''
-    this.type = ''
+    this.ftype = ''
     this.rules = []
     this.refer = ''
     this.extra = {}
@@ -36,7 +36,7 @@ export default class Field {
     tgt.key = src.key || src._id || tgt.key
     tgt.label = src.label || tgt.label
     tgt.desc = src.desc || tgt.desc
-    tgt.type = src.type || tgt.type
+    tgt.ftype = src.ftype || tgt.ftype
     tgt.rules = src.rules || tgt.rules
     tgt.refer = src.refer || tgt.refer
     tgt.extra = src.extra || tgt.extra

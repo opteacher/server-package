@@ -11,9 +11,13 @@
           <database-outlined />
           <span>数据库</span>
         </a-menu-item>
-        <a-menu-item key="dependencies">
+        <a-menu-item key="dependency">
           <partition-outlined />
           <span>依赖</span>
+        </a-menu-item>
+        <a-menu-item key="component">
+          <build-outlined />
+          <span>组件</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -41,7 +45,8 @@ import {
   DatabaseOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  PartitionOutlined
+  PartitionOutlined,
+  BuildOutlined
 } from '@ant-design/icons-vue'
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -53,7 +58,8 @@ export default defineComponent({
     DatabaseOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
-    PartitionOutlined
+    PartitionOutlined,
+    BuildOutlined
   },
   props: {
     active: { type: String, required: true }

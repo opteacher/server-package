@@ -16,7 +16,7 @@
     <a-descriptions-item label="类型">
       <a-select
         class="w-100"
-        :value="field?.type"
+        :value="field?.ftype"
         :options="compoTypes.map(cmpTyp => ({ label: cmpTyp, value: cmpTyp }))"
       />
     </a-descriptions-item>

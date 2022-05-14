@@ -22,7 +22,7 @@
         @change="e => api.table.cells.save({ key: cell.key, suffix: e.target.value })"
       />
     </a-descriptions-item>
-    <a-descriptions-item label="格式化时间">
+    <!-- <a-descriptions-item label="格式化时间">
       <a-row class="mb-5" :gutter="4">
         <a-col :span="8">
           <a-select
@@ -50,7 +50,7 @@
           <a-select class="w-100" placeholder="秒" />
         </a-col>
       </a-row>
-    </a-descriptions-item>
+    </a-descriptions-item> -->
   </a-descriptions>
 </template>
 

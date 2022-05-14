@@ -1,5 +1,13 @@
 import Router from 'koa-router'
-import { create, del, genForm, genTable, saveProp, delProp } from '../../../../../services/model.js'
+import {
+  create,
+  del,
+  genForm,
+  genTable,
+  saveProp,
+  delProp,
+  insertField
+} from '../../../../../services/model.js'
 
 const router = new Router()
 
@@ -41,7 +49,17 @@ router.put('/:mid/property/:pid', async ctx => {
 
 router.delete('/:mid/property/:pid', async ctx => {
   ctx.body = {
-    result: await delProp(ctx.params.pid, ctx.params.mid)
+    result: await delProp(ctx.params.mid, ctx.params.pid)
+  }
+})
+
+router.post('/:mid/field/:fid', async ctx => {
+  ctx.body = {
+    result: await insertField(
+      ctx.params.mid,
+      ctx.params.fid,
+      ctx.request.body.field ? ctx.request.body : undefined
+    )
   }
 })
 

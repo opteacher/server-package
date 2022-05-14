@@ -14,6 +14,7 @@ export const emitter = new Emitter()
 
 export const columns = [
   new Column('名称', 'name'),
+  new Column('说明', 'desc'),
   new Column('占用端口', 'port'),
   new Column('数据库', 'database'),
   new Column('状态', 'status', { width: 80 }),

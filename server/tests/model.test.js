@@ -65,32 +65,66 @@ describe('# 模型服务', () => {
   })
 
   describe('# field', () => {
+    let iptId1 = ''
     test('# 新增', async () => {
-      await insertField(mid, {
-        label: '测试输入框1',
-        desc: '测试测试测试',
-        ftype: 'Input',
-        refer: 'input1'
-      })
-      const model = await db.select(Model, { _index: mid })
-      expect(model.form.fields.map(field => field.refer)).toContain('input1')
-    })
-    test('# 插入', async () => {
-      await insertField(
+      await db.saveOne(
+        Model,
         mid,
         {
-          label: '测试数字输入框1',
-          desc: '测试测试测试',
-          ftype: 'Number',
-          refer: 'num1'
+          'form.fields': {
+            label: '测试输入框1',
+            desc: '测试测试测试',
+            ftype: 'Input',
+            refer: 'input1'
+          }
         },
-        { idx: 0, pos: 'after' }
+        { updMode: 'append' }
       )
       const model = await db.select(Model, { _index: mid })
-      expect(model.form.fields.map(field => field.refer)).toContain('num1')
-      expect(model.form.fields.findIndex(field => field.refer === 'num1')).toBeGreaterThan(
-        model.form.fields.findIndex(field => field.refer === 'input1')
-      )
+      expect(model.form.fields.map(field => field.refer)).toContain('input1')
+      iptId1 = model.form.fields.find(field => field.refer === 'input1').id
+    })
+    describe('# 插入', () => {
+      let numId1 = ''
+      beforeAll(async () => {
+        // 再新增一条用于insert
+        const model = await db.saveOne(
+          Model,
+          mid,
+          {
+            'form.fields': {
+              label: '测试数字输入框1',
+              desc: '测试测试测试',
+              ftype: 'Number',
+              refer: 'num1'
+            }
+          },
+          { updMode: 'append' }
+        )
+        numId1 = model.form.fields.find(field => field.refer === 'num1').id
+      })
+      test('# 将新增的num1插入到input1之前', async () => {
+        let model = await db.select(Model, { _index: mid })
+        let refers = model.form.fields.map(field => field.refer)
+        const fnum = refers.length
+        expect(refers).toContain('input1')
+        let ipt1Idx = model.form.fields.findIndex(field => field.refer === 'input1')
+        expect(refers).toContain('num1')
+        let num1Idx = model.form.fields.findIndex(field => field.refer === 'num1')
+        expect(num1Idx).toBeGreaterThan(ipt1Idx)
+        await insertField(mid, numId1, {
+          field: iptId1,
+          pos: 'before'
+        })
+        model = await db.select(Model, { _index: mid })
+        refers = model.form.fields.map(field => field.refer)
+        expect(refers).toContain('input1')
+        ipt1Idx = model.form.fields.findIndex(field => field.refer === 'input1')
+        expect(refers).toContain('num1')
+        num1Idx = model.form.fields.findIndex(field => field.refer === 'num1')
+        expect(refers.length).toEqual(fnum)
+        expect(ipt1Idx).toBeGreaterThan(num1Idx)
+      })
     })
     test('# 删', async () => {
       await db.saveOne(Model, mid, { 'form.fields[{refer:input1}]': null }, { updMode: 'delete' })
@@ -146,9 +180,8 @@ describe('# 模型服务', () => {
       expect(result.content).not.toEqual('')
     })
 
-
     test('# javascript', async () => {
-      const result = await exportClass(mid, { expType: 'javascript'})
+      const result = await exportClass(mid, { expType: 'javascript' })
       const model = await db.select(Model, { _index: mid })
       expect(result).toHaveProperty('fileName', `${model.name}.js`)
       expect(result).toHaveProperty('content')

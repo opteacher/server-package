@@ -12,8 +12,8 @@ export default class Model {
   logTime: boolean
   props: Property[]
   svcs: Service[]
-  form: Form | undefined
-  table: Table | undefined
+  form: Form
+  table: Table
 
   constructor() {
     this.key = ''
@@ -22,8 +22,8 @@ export default class Model {
     this.logTime = true
     this.props = []
     this.svcs = []
-    this.form = undefined
-    this.table = undefined
+    this.form = new Form()
+    this.table = new Table()
   }
 
   reset() {
@@ -33,8 +33,8 @@ export default class Model {
     this.logTime = true
     this.props = []
     this.svcs = []
-    this.form = undefined
-    this.table = undefined
+    this.form = new Form()
+    this.table = new Table()
   }
 
   static copy(src: any, tgt?: Model): Model {
@@ -61,12 +61,12 @@ export default class Model {
     if (src.form) {
       Form.copy(src.form, tgt.form)
     } else {
-      tgt.form = undefined
+      tgt.form = new Form()
     }
     if (src.table) {
       Table.copy(src.table, tgt.table)
     } else {
-      tgt.table = undefined
+      tgt.table = new Table()
     }
     return tgt
   }

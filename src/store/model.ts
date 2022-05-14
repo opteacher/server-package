@@ -4,27 +4,24 @@ import Model from '@/types/model'
 import router from '@/router'
 import { reqAll, reqPut } from '@/utils'
 import Compo from '@/types/compo'
-import Field from '@/types/field'
-import Form from '@/types/form'
 import { Dispatch } from 'vuex'
 import Column from '@/types/column'
-import Table from '@/types/table'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Project from '@/types/project'
 import { Modal } from 'ant-design-vue'
 import { mdlAPI } from '../apis'
+import Form from '@/types/form'
+import Field from '@/types/field'
+import Table from '@/types/table'
+import Cell from '@/types/cell'
 
 type ModelState = {
   emitter: Emitter
   model: Model
-  form: Form
-  table: Table
   dataset: any[]
   compos: Compo[]
-  fields: Record<string, Field>
   dragOn: string
   divider: string
-  dsgnMod: string
 }
 
 export default {
@@ -32,14 +29,10 @@ export default {
   state: {
     emitter: new Emitter(),
     model: new Model(),
-    form: new Form(),
-    table: new Table(),
     dataset: [] as any[],
     compos: [] as Compo[],
-    fields: {} as Record<string, Field>,
     dragOn: '',
-    divider: '',
-    dsgnMod: 'form'
+    divider: ''
   },
   mutations: {
     SET_DRAG_ON(state: ModelState, payload: string) {
@@ -58,10 +51,8 @@ export default {
       const mid = router.currentRoute.value.params.mid
       state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
       Model.copy(await mdlAPI.detail(mid), state.model)
-      state.fields = Object.fromEntries(state.form.fields.map(field => [field.key, field]))
       state.dragOn = ''
       state.divider = ''
-      state.dsgnMod = router.currentRoute.value.path.split('/').at(-2) as string
       state.emitter.emit('refresh')
       if (options && options.reqDataset) {
         const project = rootGetters['project/ins'] as Project
@@ -92,18 +83,30 @@ export default {
   getters: {
     emitter: (state: ModelState): Emitter => state.emitter,
     ins: (state: ModelState): Model => state.model,
-    form: (state: ModelState): Form => state.form,
-    table: (state: ModelState): Table => state.table,
+    form: (state: ModelState): Form => state.model.form,
+    fields: (state: ModelState): Field[] => state.model.form.fields,
+    field:
+      (state: ModelState) =>
+      (key: any): Field | undefined =>
+        state.model.form.fields.find((field: Field) => field.key === key),
     records:
       (state: ModelState) =>
       (useReal: boolean): any[] =>
-        useReal ? state.dataset : state.table.demoData ? [state.table.demoData] : [],
+        useReal ? state.dataset : (state.model.table.demoData ? [state.model.table.demoData] : []),
     dataset: (state: ModelState): any[] => state.dataset,
     compos: (state: ModelState): Compo[] => state.compos,
-    fields: (state: ModelState): Record<string, Field> => state.fields,
-    columns: (state: ModelState): Column[] => state.table.columns,
+    table: (state: ModelState): Table => state.model.table,
+    columns: (state: ModelState): Column[] => state.model.table.columns,
+    column:
+      (state: ModelState) =>
+      (key: any): Column | undefined =>
+        state.model.table.columns.find((column: Column) => column.key === key),
+    cells: (state: ModelState) => state.model.table.cells,
+    cell:
+      (state: ModelState) =>
+      (key: any): Cell =>
+        state.model.table.cells[key],
     dragOn: (state: ModelState): string => state.dragOn,
-    divider: (state: ModelState): string => state.divider,
-    dsgnMod: (state: ModelState): string => state.dsgnMod
+    divider: (state: ModelState): string => state.divider
   }
 }
