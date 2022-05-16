@@ -257,7 +257,10 @@ export async function saveProp(data, mid, pid) {
 
 export async function delProp(mid, pid) {
   const model = await db.select(Model, { _index: mid })
-  const prop = model.props.find(prop => prop.id == pid)
+  if (typeof pid !== 'string') {
+    pid = pid.toString()
+  }
+  const prop = model.props.find(prop => prop.id.toString() == pid)
   return db.saveOne(
     Model,
     mid,

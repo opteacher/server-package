@@ -7,7 +7,9 @@
       </a-space>
     </a-col>
     <a-col style="text-align: right" v-if="addable" flex="100px">
-      <a-button class="float-right" type="primary" @click="onEditClicked()">添加</a-button>
+      <a-button class="float-right" type="primary" @click="onEditClicked()" :disabled="disabled">
+        添加
+      </a-button>
     </a-col>
   </a-row>
   <a-table
@@ -16,19 +18,29 @@
     :size="size"
     :rowClassName="() => 'white-bkgd'"
     :pagination="false"
+    v-model:expandedRowKeys="expRowKeys"
     bordered
     :scroll="{ y: sclHeight }"
     :custom-row="
-      record => ({
+      (record: any) => ({
         onClick: () => onRowClick(record)
       })
     "
+    @expand="(_expanded: unknown, record: any) => onRowExpand(record)"
   >
     <template #bodyCell="{ text, column, record }">
       <template v-if="column.key === 'opera'">
-        <a v-if="edtable" class="mr-5" @click.stop="onEditClicked(record)">编辑</a>
+        <a v-if="disabled" disabled @click.stop="">编辑</a>
+        <a
+          v-else-if="edtable && filter(record, 'edit')"
+          class="mr-5"
+          @click.stop="onEditClicked(record)"
+        >
+          编辑
+        </a>
+        <a v-if="disabled" disabled @click.stop="">删除</a>
         <a-popconfirm
-          v-if="delable"
+          v-else-if="delable && filter(record, 'delete')"
           title="确定删除该记录吗？"
           ok-text="确定"
           cancel-text="取消"
@@ -44,6 +56,9 @@
         {{ text || '-' }}
       </template>
     </template>
+    <template v-if="hasExpand()" #expandedRowRender="{ record }">
+      <slot name="expandedRowRender" v-bind="{ record }" />
+    </template>
   </a-table>
   <FormDialog
     v-model:show="editing.show"
@@ -57,7 +72,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import { defineComponent, onMounted, reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import FormDialog from './FormDialog.vue'
 import Column from '@/types/column'
@@ -84,7 +99,8 @@ export default defineComponent({
     filter: { type: Function, default: () => true },
     edtable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true },
-    delable: { type: Boolean, default: true }
+    delable: { type: Boolean, default: true },
+    disabled: { type: Boolean, default: false }
   },
   setup(props, { emit }) {
     const cols =

@@ -24,7 +24,7 @@
             class="ptb-30"
             v-if="!fields.length"
             description="无组件"
-            @dragover="e => e.preventDefault()"
+            @dragover="(e: any) => e.preventDefault()"
             @drop="onDropDownEmpty"
           />
           <a-form

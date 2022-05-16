@@ -5,7 +5,8 @@ import Transfer from '@/types/transfer'
 import DataBase from '@/types/database'
 
 export default {
-  add: (data: any) => reqPost('project', data),
+  add: (data: any) =>
+    reqPost('project', Object.assign(data, { auth: { roles: [{ name: 'guest', rules: [{}] }] } })),
   remove: (key: any) => reqDelete('project', key, { type: 'api' }),
   update: (data: any) => reqPut('project', data.key, data, { ignores: ['models'] }),
   all: (offset: number, limit: number) =>
@@ -75,8 +76,9 @@ export default {
       }
     )
   },
-  status: (key: any) => reqGet('project', `${key}/stat`, {
-    type: 'api',
-    messages: { notShow: false }
-  }).then((pjt: any) => pjt.status)
+  status: (key: any) =>
+    reqGet('project', `${key}/stat`, {
+      type: 'api',
+      messages: { notShow: false }
+    }).then((pjt: any) => pjt.status)
 }

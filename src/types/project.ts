@@ -16,7 +16,7 @@ export default class Project {
   commands: string
   frontend?: Deploy
   models: Model[]
-  auth: Auth | null
+  auth: Auth
   status: 'loading' | 'running' | 'stopped'
 
   constructor() {
@@ -29,7 +29,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
-    this.auth = null
+    this.auth = new Auth()
     this.status = 'stopped'
   }
 
@@ -43,7 +43,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.models = []
-    this.auth = null
+    this.auth = new Auth()
     this.status = 'stopped'
   }
 

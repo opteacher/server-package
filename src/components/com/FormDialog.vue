@@ -74,14 +74,14 @@
               :disabled="validConds(value.disabled) || !editable"
               :addon-before="value.prefix"
               :addon-after="value.suffix"
-              @change="e => value.onChange(formState, e.target.value)"
+              @change="(e: any) => value.onChange(formState, e.target.value)"
             />
             <a-input-number
               v-else-if="value.type === 'Number'"
               class="w-100"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             />
             <a-select
               v-else-if="value.type === 'Select'"
@@ -90,7 +90,7 @@
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
               @dropdownVisibleChange="value.onDropdown"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             >
               <template v-if="value.loading" #notFoundContent>
                 <a-spin size="small" />
@@ -101,7 +101,7 @@
               :name="key"
               v-model:checked="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             >
               {{
                 formState[key]
@@ -118,14 +118,14 @@
               v-model:value="formState[key]"
               :rows="value.maxRows"
               :disabled="validConds(value.disabled) || !editable"
-              @change="val => value.onChange(formState, val)"
+              @change="(val: any) => value.onChange(formState, val)"
             />
             <a-cascader
               v-else-if="value.type === 'Cascader'"
               :options="value.options"
               v-model:value="formState[key]"
               :disabled="validConds(value.disabled) || !editable"
-              @change="e => value.onChange(formState, e)"
+              @change="(e: any) => value.onChange(formState, e)"
             />
             <a-button
               v-else-if="value.type === 'Button'"
@@ -176,7 +176,7 @@
                 :pagination="false"
                 size="small"
                 :custom-row="
-                  record => ({
+                  (record: any) => ({
                     onClick: () => {
                       value.emitter.emit('viewOnly', !value.edtable)
                       value.show = true
@@ -211,7 +211,7 @@
                     :showUploadList="false"
                     v-model:file-list="formState[key]"
                     action="/server-package/api/v1/temp/file"
-                    @change="info => value.onChange(formState, info)"
+                    @change="(info: any) => value.onChange(formState, info)"
                   >
                     <a-menu @click="onUploadClicked">
                       <a-menu-item key="file">
@@ -303,8 +303,8 @@
                     </a-list-item-meta>
                     <template #actions>
                       <a-checkbox
-                        :checked="formState[key].map(itm => itm.key).includes(option.key)"
-                        @change="e => onLstSelChecked(e.target.checked, key, option.key)"
+                        :checked="formState[key].map((itm: any) => itm.key).includes(option.key)"
+                        @change="(e: any) => onLstSelChecked(e.target.checked, key as string, option.key)"
                       />
                     </template>
                   </a-list-item>
@@ -341,7 +341,7 @@
                     </template>
                     <template v-else>
                       <template v-if="value.mode === 'select'">
-                        {{ value.options.find(opn => opn.value === item).label }}
+                        {{ value.options.find((opn: any) => opn.value === item).label }}
                       </template>
                       <template v-else>{{ item }}</template>
                     </template>
@@ -416,6 +416,7 @@ export default defineComponent({
       })
       props.emitter.on('update:show', (show: boolean) => {
         emit('update:show', show)
+        formState.reset && formState.reset()
       })
       props.emitter.on('update:data', (data: any) => {
         props.copy(data, formState)

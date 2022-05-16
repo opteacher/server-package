@@ -59,7 +59,7 @@
     </div>
     <ul class="preset">
       <li
-        v-for="item in preset"
+        v-for="item in (preset as string[])"
         :key="item"
         :style="`background-color: ${item}`"
         @click="presetChange(item)"

@@ -24,7 +24,7 @@ export async function bindPtCdNodes(parent, child) {
 }
 
 export async function save(node, sid) {
-  const deps = node.deps ? node.deps.map(dep => dep.key || dep) : []
+  const deps = node.deps ? node.deps.map(dep => dep.id || dep) : []
   if (node.key) {
     // 覆盖依赖
     await db.saveOne(Node, node.key, { deps })

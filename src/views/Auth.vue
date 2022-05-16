@@ -1,25 +1,54 @@
 <template>
-  <LytAuth>
+  <LytProject :active="`project/${pid}/auth`">
+    <a-row class="mb-10">
+      <a-col :span="12">
+        <p style="margin-bottom: 0; font-size: 15pt; font-weight: bold">
+          <audit-outlined />
+          &nbsp;权限系统
+        </p>
+      </a-col>
+      <a-col class="text-right" :span="12">
+        <a-button v-if="!bindMdl" type="primary" @click="onAuthShow(true)">
+          <template #icon><unlock-outlined /></template>
+          绑定
+        </a-button>
+        <a-button v-else @click="onAuthShow(true)">
+          <template #icon><lock-outlined /></template>
+          已绑定
+        </a-button>
+      </a-col>
+    </a-row>
+    <FormDialog
+      title="配置"
+      :show="authVsb"
+      :copy="Auth.copy"
+      :mapper="mapper"
+      :emitter="emitter"
+      :object="auth"
+      @update:show="onAuthShow"
+      @submit="onBindModel"
+    />
     <EditableTable
       title="自定义接口"
-      dsKey="auth/apis"
+      size="small"
+      :api="apiAPI"
       :columns="apiColumn"
       :mapper="apiMapper"
       :copy="API.copy"
       :emitter="apiEmitter"
-      :filter="record => record.model === '自定义'"
+      :filter="(record: any) => record.model === '自定义'"
       @add="apiMapper['path'].prefix = `/${pjtName}`"
       @edit="apiMapper['path'].prefix = `/${pjtName}`"
-      @save="(api, refresh) => onApiSave(api, refresh)"
-      @delete="(key, refresh) => onApiDel(key, refresh)"
+      @save="refresh"
+      @delete="refresh"
     >
-      <template #path="{ record: api }">/{{ pjtName }}{{ api.path }}</template>
-      <template #roles="{ record: api }">
-        {{ api.roles.length ? api.roles.join(' , ') : '-' }}
+      <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
+      <template #roles="{ record }">
+        {{ record.roles.length ? record.roles.join(' , ') : '-' }}
       </template>
-      <template #sign="{ record: api }">
+      <template #sign="{ record }">
         <a-button
-          v-if="api.svc === 'auth' && api.path.slice(-'sign'.length) === 'sign'"
+          v-if="record.svc === 'auth' && record.path.slice(-'sign'.length) === 'sign'"
           @click="onSignConfig()"
         >
           <template #icon>
@@ -31,71 +60,79 @@
     </EditableTable>
     <FormDialog
       title="配置签发逻辑"
-      :show="configSign.show"
-      :copy="ConfigSign.copy"
-      :mapper="ConfigSign.mapper"
-      :emitter="ConfigSign.emitter"
-      @update:show="show => (configSign.show = show)"
-      @submit="ConfigSign.onSave"
+      :show="showSgn"
+      :copy="SgnProp.copy"
+      :mapper="signMapper"
+      :emitter="signEmitter"
+      @update:show="show => (showSgn = show)"
+      @submit="
+        () => {
+          /* 保存签发逻辑 */
+        }
+      "
     />
-    <EditableTable
-      title="角色"
-      dsKey="auth/ins.roles"
-      :columns="roleColumns"
-      :mapper="roleMapper"
-      :copy="Role.copy"
-      :emitter="roleEmitter"
-      :filter="record => record.name !== 'guest'"
-      @save="onRoleSave"
-      @delete="onRoleDel"
-    >
-      <template #expandedRowRender="{ record: role }">
-        <EditableTable
-          title="权限"
-          :dsKey="`auth/ins.roles.[${role.key}].rules`"
-          :columns="ruleColumns"
-          :mapper="ruleMapper"
-          :copy="Rule.copy"
-          :emitter="ruleEmitter"
-          @save="(rule, refresh) => onRuleSave(rule, role.key, refresh)"
-          @delete="(key, refresh) => onRuleDel(key, role.key, refresh)"
-        >
-          <template #methodEdit="{ editing: api }">
-            <a-select
-              class="w-100"
-              v-model:value="api.method"
-              :options="
-                methods
-                  .map(mthd => ({ label: mthd, value: mthd }))
-                  .concat({ label: '*', value: '*' })
-              "
-            />
-          </template>
-          <template #path="{ record: api }">/{{ pjtName }}{{ api.path }}</template>
-          <template #pathEdit="{ editing: api }">
-            <a-input-group compact>
-              <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
-              <a-cascader
-                :options="allAPIs"
-                :value="api.path.split('/')"
-                style="width: 80%"
-                expand-trigger="hover"
-                change-on-select
-                :allow-clear="true"
-                @change="val => onPathChange(api, val)"
+    <div class="mt-20">
+      <EditableTable
+        title="角色"
+        size="small"
+        :api="roleAPI"
+        :columns="roleColumns"
+        :mapper="roleMapper"
+        :copy="Role.copy"
+        :emitter="roleEmitter"
+        :filter="(record: any) => record.name !== 'guest'"
+        :disabled="auth.model === ''"
+        @save="refresh"
+        @delete="refresh"
+      >
+        <template #expandedRowRender="{ record: role }">
+          <EditableTable
+            title="权限"
+            size="small"
+            :api="genRuleAPI(role.key)"
+            :columns="ruleColumns"
+            :mapper="ruleMapper"
+            :copy="Rule.copy"
+            :emitter="ruleEmitter"
+            @save="refresh"
+            @delete="refresh"
+          >
+            <template #methodEdit="{ editing }">
+              <a-select
+                class="w-100"
+                v-model:value="editing.method"
+                :options="
+                  methods
+                    .map(mthd => ({ label: mthd, value: mthd }))
+                    .concat({ label: '*', value: '*' })
+                "
               />
-            </a-input-group>
-          </template>
-        </EditableTable>
-      </template>
-    </EditableTable>
-  </LytAuth>
+            </template>
+            <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
+            <template #pathEdit="{ editing }">
+              <a-input-group compact>
+                <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
+                <a-cascader
+                  :options="apiAPI.all()"
+                  :value="editing.path.split('/')"
+                  style="width: 80%"
+                  expand-trigger="hover"
+                  change-on-select
+                  :allow-clear="true"
+                  @change="(val: any) => onPathChange(editing, val)"
+                />
+              </a-input-group>
+            </template>
+          </EditableTable>
+        </template>
+      </EditableTable>
+    </div>
+  </LytProject>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed } from 'vue'
-import LytAuth from '../layouts/LytAuth.vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import {
@@ -108,87 +145,47 @@ import {
   roleColumns,
   roleEmitter,
   roleMapper,
-  ConfigSign,
-  configSign
+  mapper,
+  emitter,
+  onAuthShow,
+  signMapper,
+  signEmitter,
+  authVsb,
+  refresh
 } from './Auth'
 import { useStore } from 'vuex'
-import { AuditOutlined } from '@ant-design/icons-vue'
+import { AuditOutlined, UnlockOutlined, LockOutlined } from '@ant-design/icons-vue'
 import API from '@/types/api'
 import Role from '@/types/role'
 import Rule from '@/types/rule'
 import { methods } from '@/types'
 import Auth from '@/types/auth'
+import LytProject from '@/layouts/LytProject.vue'
+import { useRoute } from 'vue-router'
+import { authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
+import SgnProp from '@/types/sgnProp'
 
 export default defineComponent({
   name: 'Authorization',
   components: {
-    LytAuth,
     EditableTable,
     FormDialog,
-
-    AuditOutlined
+    LytProject,
+    AuditOutlined,
+    UnlockOutlined,
+    LockOutlined
   },
   setup() {
     const store = useStore()
+    const route = useRoute()
+    const pid = route.params.pid
+    const auth = computed(() => store.getters['project/ins'].auth)
     const pjtName = computed(() => store.getters['project/ins'].name)
-    const allAPIs = computed(() => {
-      const ret = {} as Record<string, any>
-      for (const api of store.getters['auth/apis']) {
-        let obj = ret
-        for (const ptPath of api.path.split('/').filter((str: string) => str)) {
-          if (!(ptPath in obj)) {
-            obj[ptPath] = {} as Record<string, any>
-          }
-          obj = obj[ptPath]
-        }
-      }
-      return recuAPIs(ret)
-    })
+    const bindMdl = computed(() => store.getters['project/ins'].auth.model)
+    const showSgn = ref(false)
 
-    function recuAPIs(obj: any): any[] {
-      const ret = []
-      for (const key of Object.keys(obj)) {
-        ret.push({
-          label: key,
-          value: key,
-          children: recuAPIs(obj[key])
-        })
-      }
-      return ret
-    }
-    async function onApiSave(api: API, refresh: () => void) {
-      await store.dispatch('auth/saveAPI', api)
-      refresh()
-    }
-    async function onApiDel(key: string, refresh: () => void) {
-      await store.dispatch('auth/delAPI', key)
-      refresh()
-    }
-    async function onRoleSave(role: Role, refresh: () => void) {
-      await store.dispatch('auth/saveRole', role)
-      refresh()
-    }
-    async function onRoleDel(key: string, refresh: () => void) {
-      await store.dispatch('auth/delRole', key)
-      refresh()
-    }
-    async function onRuleSave(rule: Rule, roleId: string, refresh: () => void) {
-      // 之前控制了methods，所以在提交权限之前要还原，不然更新之后GET可能不会出现在methods中
-      ruleEmitter.emit('update:mapper', {
-        method: {
-          type: 'Select',
-          options: methods
-            .map((mthd: string) => ({ label: mthd, value: mthd }))
-            .concat({ label: '*', value: '*' })
-        }
-      })
-      await store.dispatch('auth/saveRule', { rule, roleId })
-      refresh()
-    }
-    async function onRuleDel(ruleId: string, roleId: string, refresh: () => void) {
-      await store.dispatch('auth/delRule', { ruleId, roleId })
-      refresh()
-    }
+    onMounted(refresh)
+
     function onPathChange(edtAPI: API, val: string[]) {
       edtAPI.path = `/${val.join('/')}`
       const ret = Array.from(
@@ -208,20 +205,32 @@ export default defineComponent({
         }
       })
     }
+    async function onBindModel(form: any) {
+      await api.save(form)
+      await refresh()
+      authVsb.value = false
+    }
     function onSignConfig() {
-      configSign.show = true
-      const auth = store.getters['auth/ins'] as Auth
-      configSign.cmpProps = auth.props
-      ConfigSign.emitter.emit('update:data', configSign)
+      showSgn.value = true
+      signMapper.cmpProps = auth.value.props
+      signEmitter.emit('update:data', signMapper)
     }
     return {
+      Auth,
       Role,
       Rule,
       API,
-      ConfigSign,
+      SgnProp,
 
+      pid,
+      api,
+      auth,
+      mapper,
+      emitter,
       pjtName,
-      allAPIs,
+      bindMdl,
+      apiAPI,
+      roleAPI,
       methods,
       roleColumns,
       roleMapper,
@@ -232,16 +241,17 @@ export default defineComponent({
       apiColumn,
       apiMapper,
       apiEmitter,
-      configSign,
+      authVsb,
+      showSgn,
+      signMapper,
+      signEmitter,
 
-      onApiSave,
-      onApiDel,
-      onRoleSave,
-      onRoleDel,
-      onRuleSave,
-      onRuleDel,
+      refresh,
       onPathChange,
-      onSignConfig
+      onSignConfig,
+      genRuleAPI,
+      onAuthShow,
+      onBindModel
     }
   }
 })

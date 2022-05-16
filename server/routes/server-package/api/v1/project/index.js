@@ -10,7 +10,7 @@ import {
   publish
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
-import { save as saveAuth, del as delAuth, genSignLgc } from '../../../../../services/auth.js'
+import { bind, unbind, genSign } from '../../../../../services/auth.js'
 
 const router = new Router()
 
@@ -68,21 +68,21 @@ router.get('/:pid/apis', async ctx => {
   }
 })
 
-router.post('/:pid/auth', async ctx => {
+router.post('/:pid/auth/bind', async ctx => {
   ctx.body = {
-    result: await saveAuth(ctx.params.pid, ctx.request.body)
+    result: await bind(ctx.params.pid, ctx.request.body)
   }
 })
 
-router.delete('/:pid/auth', async ctx => {
+router.delete('/:pid/auth/unbind', async ctx => {
   ctx.body = {
-    resut: await delAuth(ctx.params.pid)
+    resut: await unbind(ctx.params.pid)
   }
 })
 
 router.post('/:pid/auth/sign', async ctx => {
   ctx.body = {
-    result: await genSignLgc(ctx.params.pid, ctx.request.body.props)
+    result: await genSign(ctx.params.pid, ctx.request.body.props)
   }
 })
 

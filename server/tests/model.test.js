@@ -22,8 +22,9 @@ describe('# 模型服务', () => {
   })
 
   describe('# prop', () => {
+    let pid = ''
     test('# 增', async () => {
-      await saveProp(
+      const prop1 = await saveProp(
         {
           name: 'prop1',
           label: '字段1',
@@ -44,19 +45,19 @@ describe('# 模型服务', () => {
 
     test('# 改，修改子文档必须给出全字段数据，不能只给出需要修改的字段', async () => {
       let model = await db.select(Model, { _index: mid })
-      const prop1 = model.props.find(prop => prop.name === 'prop1')
+      let prop1 = model.props.find(prop => prop.name === 'prop1')
       prop1.remark += '，这是后修改的'
-      await saveProp(prop1, mid, 'prop1')
+      await saveProp(prop1, mid, prop1.id)
       model = await db.select(Model, { _index: mid })
       expect(model.props.length).toBeGreaterThan(0)
       expect(model.props.map(prop => prop.name)).toContain('prop1')
-      expect(model.props.find(prop => prop.name === 'prop1').remark).toEqual(
-        '测试测试字段，这是后修改的'
-      )
+      prop1 = model.props.find(prop => prop.name === 'prop1')
+      expect(prop1.remark).toEqual('测试测试字段，这是后修改的')
+      pid = prop1.id.toString()
     })
 
     test('# 删', async () => {
-      await delProp('prop1', mid)
+      await delProp(mid, pid)
       const model = await db.select(Model, { _index: mid })
       expect(model.props.map(prop => prop.name)).not.toContain('prop1')
       expect(model.form.fields.map(field => field.refer)).not.toContain('prop1')

@@ -27,7 +27,7 @@
         <a-form-item label="模式" name="mode">
           <a-switch
             :checked="formState.mode === '登录'"
-            @change="checked => (checked ? (formState.mode = '登录') : (formState.mode = '注册'))"
+            @change="(checked: any) => (checked ? (formState.mode = '登录') : (formState.mode = '注册'))"
           />
           &nbsp;{{ formState.mode }}
         </a-form-item>

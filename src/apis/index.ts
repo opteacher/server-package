@@ -6,5 +6,22 @@ import svcAPI from './service'
 import ndAPI from './node'
 import cmpAPI from './compo'
 import depAPI from './dep'
+import apiAPI from './api'
+import roleAPI from './role'
+import genRuleAPI from './rule'
+import authAPI from './auth'
 
-export { dbAPI, pjtAPI, mdlAPI, propAPI, svcAPI, ndAPI, cmpAPI, depAPI }
+export {
+  dbAPI,
+  pjtAPI,
+  mdlAPI,
+  propAPI,
+  svcAPI,
+  ndAPI,
+  cmpAPI,
+  depAPI,
+  authAPI,
+  apiAPI,
+  roleAPI,
+  genRuleAPI
+}

@@ -38,7 +38,7 @@
       :pagination="table.hasPages"
       bordered
       :custom-row="
-        record => ({
+        (record: any) => ({
           onClick: () => onRecordClick(record)
         })
       "
@@ -61,7 +61,9 @@
               cancel-text="取消"
               @confirm="onRecordDel(record)"
             >
-              <a-button size="small" danger @click.stop="e => e.preventDefault()">删除</a-button>
+              <a-button size="small" danger @click.stop="(e: any) => e.preventDefault()">
+                删除
+              </a-button>
             </a-popconfirm>
           </template>
           <template v-else>
@@ -115,7 +117,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Table from '@/types/table'
 import Model from '@/types/model'
-import { BorderlessTableOutlined } from '@ant-design/icons-vue'
 import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
@@ -123,7 +124,6 @@ import LytDesign from '../layouts/LytDesign.vue'
 export default defineComponent({
   name: 'Demo',
   components: {
-    BorderlessTableOutlined,
     DemoForm,
     LytDesign
   },

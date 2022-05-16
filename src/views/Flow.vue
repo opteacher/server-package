@@ -7,7 +7,7 @@
         <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
         <template v-else>
           <NodeCard
-            v-for="node in Object.values(nodes)"
+            v-for="node in (Object.values(nodes) as NodeInPnl[])"
             :key="node.key"
             :nd-key="node.key"
             @click:card="() => store.commit('service/SET_NODE', { node })"
@@ -37,14 +37,14 @@
       :show="store.getters['service/joinVsb']"
       :mapper="joinMapper"
       :copy="
-        (src, tgt) => {
+        (src: any, tgt: any) => {
           tgt = tgt || { group: '' }
           tgt.group = src.group || tgt.group
           return tgt
         }
       "
       @submit="
-        async edited => {
+        ;async (edited: any) => {
           await api.joinLib(edited.group)
           edtNdEmitter.emit('refresh')
         }
@@ -72,6 +72,7 @@ import VarsPanel from '../components/flow/VarsPanel.vue'
 import TmpNdPanel from '../components/flow/TmpNdPanel.vue'
 import { useRoute } from 'vue-router'
 import { ndAPI as api } from '../apis'
+import NodeInPnl from '@/types/ndInPnl'
 
 export default defineComponent({
   name: 'Flow',
@@ -128,6 +129,7 @@ export default defineComponent({
     }
     return {
       Node,
+      NodeInPnl,
 
       pid,
       mid,

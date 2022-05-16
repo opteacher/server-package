@@ -5,6 +5,7 @@ import Project from '@/types/project'
 import router from '@/router'
 import { Dispatch } from 'vuex'
 import { pjtAPI } from '../apis'
+import Auth from '@/types/auth'
 
 export default {
   namespaced: true,
@@ -51,6 +52,7 @@ export default {
       (state: Project) =>
       (mkey: string): Model => {
         return state.models.find((mdl: Model) => mdl.key === mkey) as Model
-      }
+      },
+    auth: (state: Project): Auth => state.auth
   }
 }
