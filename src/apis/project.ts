@@ -3,6 +3,9 @@ import { reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 import Project from '@/types/project'
 import Transfer from '@/types/transfer'
 import DataBase from '@/types/database'
+import { Modal } from 'ant-design-vue'
+import { createVNode } from 'vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 
 export default {
   add: (data: any) =>
@@ -14,33 +17,46 @@ export default {
   detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
-  sync: async (key: any) => {
-    await reqPut('project', `${key}/sync`, undefined, {
-      type: 'api',
-      messages: {
-        loading: '同步中……',
-        succeed: '同步成功！'
+  sync: (key: any) => {
+    Modal.confirm({
+      title: '确定（重）启动项目？',
+      icon: createVNode(ExclamationCircleOutlined),
+      onOk: async () => {
+        await reqPut('project', `${key}/sync`, undefined, {
+          type: 'api',
+          messages: {
+            loading: '同步中……',
+            succeed: '同步成功！'
+          }
+        })
+        await store.dispatch('project/refresh')
       }
     })
-    await store.dispatch('project/refresh')
   },
-  stop: async (key: any) => {
-    await reqPut('project', `${key}/stop`, undefined, {
-      type: 'api',
-      middles: {
-        before: () => {
-          store.commit('SET_STATUS', 'loading')
-        },
-        after: () => {
-          store.commit('SET_STATUS', 'stopped')
-        }
-      },
-      messages: {
-        loading: '停止中……',
-        succeed: '操作成功！'
+  stop: (key: any) => {
+    Modal.confirm({
+      title: '确定停止项目？',
+      icon: createVNode(ExclamationCircleOutlined),
+      content: createVNode('div', { style: 'color:red;' }, '项目停止后相关服务也暂停！'),
+      onOk: async () => {
+        await reqPut('project', `${key}/stop`, undefined, {
+          type: 'api',
+          middles: {
+            before: () => {
+              store.commit('SET_STATUS', 'loading')
+            },
+            after: () => {
+              store.commit('SET_STATUS', 'stopped')
+            }
+          },
+          messages: {
+            loading: '停止中……',
+            succeed: '操作成功！'
+          }
+        })
+        await store.dispatch('project/refresh')
       }
     })
-    await store.dispatch('project/refresh')
   },
   transfer: (info: Transfer) => {
     const project = store.getters['project/ins']
@@ -80,5 +96,6 @@ export default {
     reqGet('project', `${key}/stat`, {
       type: 'api',
       messages: { notShow: false }
-    }).then((pjt: any) => pjt.status)
+    }).then((pjt: any) => pjt.status),
+  apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' })
 }

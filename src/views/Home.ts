@@ -18,7 +18,7 @@ export const columns = [
   new Column('占用端口', 'port'),
   new Column('数据库', 'database'),
   new Column('状态', 'status', { width: 80 }),
-  new Column('操作项目', 'operation', { width: 120 })
+  new Column('操作项目', 'operation', { width: 200 })
 ]
 
 export const mapper = new Mapper({

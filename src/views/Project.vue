@@ -39,7 +39,7 @@
             type="primary"
             :disabled="project.status === 'loading'"
             :loading="project.status === 'loading'"
-            @click="onSync"
+            @click="api.sync(pid)"
           >
             <template #icon><SyncOutlined /></template>
             &nbsp;同步
@@ -70,7 +70,7 @@
             "
             @submit="onTransfer"
           />
-          <a-button v-if="project.thread" class="ml-5" danger @click="onStop">
+          <a-button v-if="project.thread" class="ml-5" danger @click="api.stop(pid)">
             <template #icon><PoweroffOutlined /></template>
             &nbsp;停止
           </a-button>
@@ -121,12 +121,10 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref, createVNode } from 'vue'
-import { Modal } from 'ant-design-vue'
+import { computed, defineComponent, ref } from 'vue'
 import {
   SettingOutlined,
   InfoCircleOutlined,
-  ExclamationCircleOutlined,
   SyncOutlined,
   UploadOutlined,
   PoweroffOutlined,
@@ -174,31 +172,6 @@ export default defineComponent({
       await store.dispatch('project/refresh')
       mdlEmitter.emit('refresh', project.value.models)
     }
-    async function onSync() {
-      Modal.confirm({
-        title: '确定同步项目到服务器？',
-        icon: createVNode(ExclamationCircleOutlined),
-        content: createVNode(
-          'div',
-          {
-            style: 'color:red;'
-          },
-          '同步过程中，该项目已有的服务将暂时停用！'
-        ),
-        onOk: () => api.sync(pid)
-      })
-    }
-    async function onStop() {
-      Modal.confirm({
-        title: '是否停止项目？',
-        icon: createVNode(ExclamationCircleOutlined),
-        content: '项目实例所提供的服务也将同时停止！',
-        okText: 'Yes',
-        okType: 'danger',
-        cancelText: 'No',
-        onOk: () => api.stop(pid)
-      })
-    }
     return {
       Project,
       Transfer,
@@ -210,6 +183,7 @@ export default defineComponent({
       mdlColumns,
       mdlMapper,
       pid,
+      api,
       store,
       router,
       projMapper,
@@ -220,8 +194,6 @@ export default defineComponent({
       tsEmitter,
 
       refresh,
-      onSync,
-      onStop,
       onConfig: (pjt: Project) => api.update(pjt),
       onTransfer: (info: Transfer) => api.transfer(info)
     }

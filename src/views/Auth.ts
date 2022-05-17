@@ -13,7 +13,7 @@ import { createVNode, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import SgnProp from '@/types/sgnProp'
-import { authAPI } from '../apis'
+import { authAPI, pjtAPI } from '../apis'
 
 export async function refresh() {
   await store.dispatch('project/refresh')
@@ -52,7 +52,7 @@ export const mapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          await authAPI.save({ model: '' })
+          await authAPI.unbind()
           emitter.emit('update:show', false)
           await refresh()
         }
@@ -65,11 +65,15 @@ export const mapper = new Mapper({
 export async function onAuthShow(show: boolean) {
   if (show) {
     mapper['model'].loading = true
-    emitter.emit('update:mapper', mapper)
     await store.dispatch('project/refresh')
-    mapper['model'].options = store.getters['project/ins'].models.map((mdl: Model) => ({
+    const project = store.getters['project/ins']
+    mapper['model'].options = project.models.map((mdl: Model) => ({
       label: mdl.name,
       value: mdl.key
+    }))
+    mapper['skips'].options = (await pjtAPI.apis(project.key)).map((svc: any) => ({
+      label: svc.path,
+      value: svc.path
     }))
     emitter.emit('update:mapper', mapper)
     mapper['model'].loading = false
@@ -103,7 +107,7 @@ export const ruleMapper = new Mapper({
   method: {
     label: '访问方式',
     type: 'Select',
-    options: methods.map((method: any) => ({ label: method, value: method }))
+    options: methods.concat('ALL').map((method: any) => ({ label: method, value: method }))
   },
   path: {
     label: '路由',
@@ -169,18 +173,17 @@ export const signMapper = new Mapper({
     label: '校验字段',
     type: 'Table',
     show: false,
-    emitter: new Emitter(),
     columns: [new Column('字段名', 'name'), new Column('加密算法', 'alg')],
     mapper: new Mapper({
       name: {
         label: '字段名',
         type: 'Select',
         options: [],
-        onDropdown: async (open: boolean) => {
+        onDropdown: (open: boolean) => {
           if (open) {
             const model = Model.copy(
               store.getters['project/ins'].models.find(
-                (mdl: Model) => mdl.key === store.getters['auth/ins'].model
+                (mdl: Model) => mdl.key === store.getters['project/auth'].model
               )
             )
             signMapper['cmpProps'].mapper['name'].options = model.props
@@ -203,18 +206,17 @@ export const signMapper = new Mapper({
       }
     }),
     copy: SgnProp.copy,
-    onSaved: (cmpProp: any, next: () => void) => {
-      signMapper.cmpProps.push(signMapper['cmpProps'].copy(cmpProp))
-      signMapper.emitter.emit('update:data', signMapper)
-      next()
+    onSaved: async (cmpProp: any, cmpProps: any[]) => {
+      signEmitter.emit('update:data', { cmpProps: cmpProps.concat(SgnProp.copy(cmpProp)) })
+      signMapper['cmpProps'].show = false
     },
-    onDeleted: (key: any, next: () => void) => {
-      const index = signMapper.cmpProps.findIndex((cmpProp: SgnProp) => cmpProp.key == key)
-      if (index !== -1) {
-        signMapper.cmpProps.splice(index, 1)
-      }
-      signMapper.emitter.emit('update:data', signMapper)
-      next()
+    onDeleted: async (key: any, cmpProps: any[]) => {
+      cmpProps.splice(
+        cmpProps.findIndex((prop: any) => prop.key === key),
+        1
+      )
+      signEmitter.emit('update:data', { cmpProps })
+      signMapper['cmpProps'].show = false
     }
   }
 })
@@ -229,4 +231,16 @@ export function chkIsAuthSignAPI(api: API, svc: Service) {
 
 export function chkIsAuthVerifyAPI(api: API, svc: Service) {
   return chkIsAuthAPI(svc) && api.path.slice(-'verify'.length) === 'verify'
+}
+
+export function recuAPIs(obj: any): any[] {
+  const ret = []
+  for (const key of Object.keys(obj)) {
+    ret.push({
+      label: key,
+      value: key,
+      children: recuAPIs(obj[key])
+    })
+  }
+  return ret
 }

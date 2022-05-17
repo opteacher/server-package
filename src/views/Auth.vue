@@ -29,47 +29,39 @@
       @submit="onBindModel"
     />
     <EditableTable
-      title="自定义接口"
+      title="接口"
       size="small"
       :api="apiAPI"
       :columns="apiColumn"
       :mapper="apiMapper"
       :copy="API.copy"
       :emitter="apiEmitter"
-      :filter="(record: any) => record.model === '自定义'"
       @add="apiMapper['path'].prefix = `/${pjtName}`"
       @edit="apiMapper['path'].prefix = `/${pjtName}`"
       @save="refresh"
       @delete="refresh"
     >
       <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
-      <template #roles="{ record }">
-        {{ record.roles.length ? record.roles.join(' , ') : '-' }}
-      </template>
       <template #sign="{ record }">
         <a-button
           v-if="record.svc === 'auth' && record.path.slice(-'sign'.length) === 'sign'"
-          @click="onSignConfig()"
+          size="small"
+          :type="!record.flow ? 'primary' : 'default'"
+          @click.stop="onSignShow(true)"
         >
-          <template #icon>
-            <AuditOutlined />
-          </template>
-          &nbsp;签发配置
+          <template #icon><AuditOutlined /></template>
+          签发配置
         </a-button>
       </template>
     </EditableTable>
     <FormDialog
       title="配置签发逻辑"
       :show="showSgn"
-      :copy="SgnProp.copy"
+      :copy="Sign.copy"
       :mapper="signMapper"
       :emitter="signEmitter"
-      @update:show="show => (showSgn = show)"
-      @submit="
-        () => {
-          /* 保存签发逻辑 */
-        }
-      "
+      @update:show="onSignShow"
+      @submit="onSignCfg"
     />
     <div class="mt-20">
       <EditableTable
@@ -80,11 +72,20 @@
         :mapper="roleMapper"
         :copy="Role.copy"
         :emitter="roleEmitter"
-        :filter="(record: any) => record.name !== 'guest'"
-        :disabled="auth.model === ''"
+        :filter="(record: any) => showGuest || record.name !== 'guest'"
+        :disabled="(record: any) => record.name !== 'guest'"
+        :addable="auth.model !== ''"
         @save="refresh"
         @delete="refresh"
       >
+        <template #nameHD="{ column }">
+          {{ column.title }}
+          （
+          <a-checkbox v-model:checked="showGuest">
+            <a-typography-text type="secondary">显示访客角色</a-typography-text>
+          </a-checkbox>
+          ）
+        </template>
         <template #expandedRowRender="{ record: role }">
           <EditableTable
             title="权限"
@@ -94,26 +95,17 @@
             :mapper="ruleMapper"
             :copy="Rule.copy"
             :emitter="ruleEmitter"
+            @add="onRuleEdit"
             @save="refresh"
             @delete="refresh"
           >
-            <template #methodEdit="{ editing }">
-              <a-select
-                class="w-100"
-                v-model:value="editing.method"
-                :options="
-                  methods
-                    .map(mthd => ({ label: mthd, value: mthd }))
-                    .concat({ label: '*', value: '*' })
-                "
-              />
-            </template>
-            <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
-            <template #pathEdit="{ editing }">
+            <template #pathEDT="{ editing, mapper }">
               <a-input-group compact>
-                <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
+                <a-form-item-rest>
+                  <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
+                </a-form-item-rest>
                 <a-cascader
-                  :options="apiAPI.all()"
+                  :options="mapper.options"
                   :value="editing.path.split('/')"
                   style="width: 80%"
                   expand-trigger="hover"
@@ -132,7 +124,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed, ref, onMounted } from 'vue'
+import { defineComponent, computed, ref, onMounted, watch } from 'vue'
 import FormDialog from '../components/com/FormDialog.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import {
@@ -151,7 +143,8 @@ import {
   signMapper,
   signEmitter,
   authVsb,
-  refresh
+  refresh,
+  recuAPIs
 } from './Auth'
 import { useStore } from 'vuex'
 import { AuditOutlined, UnlockOutlined, LockOutlined } from '@ant-design/icons-vue'
@@ -162,8 +155,8 @@ import { methods } from '@/types'
 import Auth from '@/types/auth'
 import LytProject from '@/layouts/LytProject.vue'
 import { useRoute } from 'vue-router'
-import { authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
-import SgnProp from '@/types/sgnProp'
+import { pjtAPI, authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
+import Sign from '@/types/cfgSign'
 
 export default defineComponent({
   name: 'Authorization',
@@ -183,8 +176,13 @@ export default defineComponent({
     const pjtName = computed(() => store.getters['project/ins'].name)
     const bindMdl = computed(() => store.getters['project/ins'].auth.model)
     const showSgn = ref(false)
+    const showGuest = ref(false)
 
     onMounted(refresh)
+    watch(
+      () => showGuest.value,
+      () => roleEmitter.emit('refresh')
+    )
 
     function onPathChange(edtAPI: API, val: string[]) {
       edtAPI.path = `/${val.join('/')}`
@@ -206,21 +204,43 @@ export default defineComponent({
       })
     }
     async function onBindModel(form: any) {
-      await api.save(form)
+      await api.bind(form)
       await refresh()
       authVsb.value = false
     }
-    function onSignConfig() {
-      showSgn.value = true
-      signMapper.cmpProps = auth.value.props
-      signEmitter.emit('update:data', signMapper)
+    function onSignShow(show: boolean) {
+      if (show) {
+        signEmitter.emit('update:data', {
+          cmpProps: store.getters['project/auth'].props
+        })
+      }
+      showSgn.value = show
+    }
+    async function onSignCfg(form: any) {
+      await api.sign.gen(form.cmpProps)
+      await refresh()
+      showSgn.value = false
+    }
+    async function onRuleEdit() {
+      const ret = {} as Record<string, any>
+      for (const api of await pjtAPI.apis(pid)) {
+        let obj = ret
+        for (const ptPath of api.path.split('/').filter((str: string) => str)) {
+          if (!(ptPath in obj)) {
+            obj[ptPath] = {} as Record<string, any>
+          }
+          obj = obj[ptPath]
+        }
+      }
+      ruleMapper['path'].options = recuAPIs(ret)
+      ruleEmitter.emit('update:mapper', ruleMapper)
     }
     return {
       Auth,
       Role,
       Rule,
       API,
-      SgnProp,
+      Sign,
 
       pid,
       api,
@@ -245,13 +265,16 @@ export default defineComponent({
       showSgn,
       signMapper,
       signEmitter,
+      showGuest,
 
       refresh,
       onPathChange,
-      onSignConfig,
       genRuleAPI,
       onAuthShow,
-      onBindModel
+      onBindModel,
+      onSignShow,
+      onSignCfg,
+      onRuleEdit
     }
   }
 })

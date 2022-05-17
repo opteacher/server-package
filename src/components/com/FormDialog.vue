@@ -66,6 +66,9 @@
               />
             </template>
           </template>
+          <template v-else-if="$slots[key]">
+            <slot :name="key" v-bind="{ formState }" />
+          </template>
           <template v-else>
             <a-input
               v-if="value.type === 'Input'"
@@ -124,6 +127,7 @@
               v-else-if="value.type === 'Cascader'"
               :options="value.options"
               v-model:value="formState[key]"
+              change-on-select
               :disabled="validConds(value.disabled) || !editable"
               @change="(e: any) => value.onChange(formState, e)"
             />
@@ -166,10 +170,10 @@
                 :emitter="value.emitter"
                 :object="value.editing"
                 @update:show="value.show = false"
-                @submit="value.onSaved"
+                @submit="(form: any) => value.onSaved(form, formState[key])"
               />
               <a-table
-                class="mt-3"
+                class="mt-5"
                 v-show="formState[key] && formState[key].length"
                 :columns="value.columns.concat([new Column('操作', 'opera', { width: 80 })])"
                 :data-source="formState[key]"
@@ -189,7 +193,7 @@
                   <template v-if="column.dataIndex === 'opera'">
                     <a-popconfirm
                       title="确定删除该字段"
-                      @confirm.stop="value.onDeleted(record.key)"
+                      @confirm.stop="value.onDeleted(record.key, formState[key])"
                     >
                       <a-button danger size="small" @click.stop="() => {}">删除</a-button>
                     </a-popconfirm>
@@ -348,6 +352,9 @@
                   </a-list-item>
                 </template>
               </a-list>
+            </template>
+            <template v-else>
+              {{ formState[key] }}
             </template>
           </template>
         </a-form-item>

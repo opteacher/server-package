@@ -28,7 +28,7 @@ export default {
     },
     chkStatus({ state }: { state: Project }) {
       let countdown = 0
-      const h = setInterval(async () => {
+      const chkFun = async () => {
         state.status = await pjtAPI.status(state.key)
         if (state.status === 'loading') {
           console.log(`等待项目${state.name}启动……，已等待${countdown}秒`)
@@ -43,7 +43,9 @@ export default {
         }
         clearInterval(h)
         console.log(`项目${state.name}已成功${state.status === 'running' ? '启动' : '停止'}！`)
-      }, 5000)
+      }
+      const h = setInterval(chkFun, 5000)
+      chkFun()
     }
   },
   getters: {

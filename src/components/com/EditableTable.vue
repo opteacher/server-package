@@ -7,9 +7,7 @@
       </a-space>
     </a-col>
     <a-col style="text-align: right" v-if="addable" flex="100px">
-      <a-button class="float-right" type="primary" @click="onEditClicked()" :disabled="disabled">
-        添加
-      </a-button>
+      <a-button class="float-right" type="primary" @click="onEditClicked()">添加</a-button>
     </a-col>
   </a-row>
   <a-table
@@ -28,19 +26,18 @@
     "
     @expand="(_expanded: unknown, record: any) => onRowExpand(record)"
   >
+    <template #headerCell="{ column }">
+      <template v-if="$slots[column.key + 'HD']">
+        <slot :name="column.key + 'HD'" v-bind="{ column }" />
+      </template>
+    </template>
     <template #bodyCell="{ text, column, record }">
       <template v-if="column.key === 'opera'">
-        <a v-if="disabled" disabled @click.stop="">编辑</a>
-        <a
-          v-else-if="edtable && filter(record, 'edit')"
-          class="mr-5"
-          @click.stop="onEditClicked(record)"
-        >
-          编辑
-        </a>
-        <a v-if="disabled" disabled @click.stop="">删除</a>
+        <a v-if="disabled('edit', record)" class="mr-5" disabled @click.stop="">编辑</a>
+        <a v-else-if="edtable" class="mr-5" @click.stop="onEditClicked(record)">编辑</a>
+        <a v-if="disabled('delete', record)" disabled @click.stop="">删除</a>
         <a-popconfirm
-          v-else-if="delable && filter(record, 'delete')"
+          v-else-if="delable"
           title="确定删除该记录吗？"
           ok-text="确定"
           cancel-text="取消"
@@ -52,9 +49,9 @@
       <template v-else-if="$slots[column.key]">
         <slot :name="column.key" v-bind="{ record }" />
       </template>
-      <template v-else>
-        {{ text || '-' }}
-      </template>
+      <template v-else-if="typeof text === 'undefined' || text === null">-</template>
+      <template v-else-if="typeof text === 'boolean'">{{ text ? '是' : '否' }}</template>
+      <template v-else>{{ text }}</template>
     </template>
     <template v-if="hasExpand()" #expandedRowRender="{ record }">
       <slot name="expandedRowRender" v-bind="{ record }" />
@@ -67,7 +64,15 @@
     :emitter="emitter"
     :mapper="editMapper"
     @submit="onRecordSave"
-  />
+  >
+    <template
+      v-for="pname in Object.keys(editMapper).filter((key: any) => $slots[key + 'EDT'])"
+      :key="pname"
+      #[pname]="{ formState }"
+    >
+      <slot :name="pname + 'EDT'" v-bind="{ editing: formState, mapper: editMapper[pname] }" />
+    </template>
+  </FormDialog>
 </template>
 
 <script lang="ts">
@@ -100,7 +105,7 @@ export default defineComponent({
     edtable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true },
     delable: { type: Boolean, default: true },
-    disabled: { type: Boolean, default: false }
+    disabled: { type: Function, default: () => false }
   },
   setup(props, { emit }) {
     const cols =
@@ -128,7 +133,9 @@ export default defineComponent({
     }
 
     async function refresh(data?: any[]) {
-      records.data = data || (await props.api.all(records.offset, records.limit))
+      records.data = (data || (await props.api.all(records.offset, records.limit))).filter(
+        props.filter
+      )
       emit('refresh', records.data, (pcsData: any) => {
         records.data = pcsData
       })

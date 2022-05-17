@@ -1,5 +1,5 @@
 FROM node:latest
-ENV ENV prod
+ENV NODE_ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /tmp
 COPY . /tmp
@@ -18,7 +18,7 @@ RUN cd /tmp \
   && mv ./public/server-package/index.html ./views/index.html
 
 FROM node:latest
-ENV ENV prod
+ENV NODE_ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /app
 COPY --from=0 /tmp/server/dist/ /app/

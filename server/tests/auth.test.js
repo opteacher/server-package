@@ -121,12 +121,10 @@ describe('# 权限服务', () => {
       await bind(pid, { model: mid, skips: ['/test'] })
     })
     test('# 为不带签名服务的权限模型生成签名逻辑', async () => {
-      await genSign(pid, {
-        props: [
-          { name: 'username', alg: 'none' },
-          { name: 'password', alg: 'sha256' }
-        ]
-      })
+      await genSign(pid, [
+        { name: 'username', alg: 'none' },
+        { name: 'password', alg: 'sha256' }
+      ])
       const project = await db.select(Project, { _index: pid })
       const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
       const sgnIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')

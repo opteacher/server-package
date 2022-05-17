@@ -26,7 +26,7 @@ export default (rid: string) => ({
   all: (offset: number, limit: number) =>
     store.getters['project/ins'].auth.roles
       .find((role: any) => role.key === rid)
-      .rules.slice(offset + 1, offset + limit),
+      .rules.slice(offset, offset + limit),
   detail: (key: any) => {
     console.log(key)
   }

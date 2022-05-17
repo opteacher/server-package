@@ -5,14 +5,12 @@ import ExpCls from '@/types/expCls'
 
 const expDft = {
   add: async (data: any) => {
-    const model = Model.copy(await reqPost('model', data))
-    const pid = store.getters['project/ins'].key
-    await reqPut(`project/${pid}`, `models/${model.key}`)
+    const model = Model.copy(await reqPost('model', data, { type: 'api' }))
+    await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
     return model
   },
   remove: async (key: any) => {
-    const pid = store.getters['project/ins'].key
-    await reqDelete(`project/${pid}`, `models/${key}`)
+    await reqDelete(`project/${store.getters['project/ins'].key}`, `models/${key}`)
     return reqDelete('model', key, { type: 'api' })
   },
   update: (data: any) => reqPut('model', data.key, data),
@@ -22,10 +20,13 @@ const expDft = {
   },
   detail: (key: any) => reqGet('model', key).then((mdl: any) => Model.copy(mdl)),
   export: async (expCls: ExpCls) => {
-    const pid = store.getters['project/ins'].key
-    const result = await reqPost(`project/${pid}/model/${expCls.key}/export`, expCls, {
-      type: 'api'
-    })
+    const result = await reqPost(
+      `project/${store.getters['project/ins'].key}/model/${expCls.key}/export`,
+      expCls,
+      {
+        type: 'api'
+      }
+    )
 
     const link = document.createElement('a')
     const body = document.querySelector('body')
@@ -52,10 +53,9 @@ const expDft = {
     ),
   form: {
     save: async (form: any) => {
-      const mid = store.getters['model/ins'].key
       await reqPut(
         'model',
-        mid,
+        store.getters['model/ins'].key,
         { form: skipIgnores(form, ['fields']) },
         {
           messages: { notShow: true },
@@ -69,10 +69,9 @@ const expDft = {
         compoType: string
         insertPos?: { field: string; pos: 'before' | 'after' }
       }) => {
-        const mid = store.getters['model/ins'].key
         const field = await reqPut(
           'model',
-          mid,
+          store.getters['model/ins'].key,
           { 'form.fields': { type: payload.compoType } },
           { query: { updMode: 'append' } }
         )
@@ -112,17 +111,19 @@ const expDft = {
         dragField: string
         insertPos?: { field: string; pos: 'before' | 'after' }
       }) => {
-        const mid = store.getters['model/ins'].key
-        await reqPost(`model/${mid}/field/${payload.dragField}`, payload.insertPos, {
-          type: 'api'
-        })
+        await reqPost(
+          `model/${store.getters['model/ins'].key}/field/${payload.dragField}`,
+          payload.insertPos,
+          {
+            type: 'api'
+          }
+        )
         await store.dispatch('model/refresh')
       },
       remove: async (key: any) => {
-        const mid = store.getters['model/ins'].key
         await reqPut(
           'model',
-          mid,
+          store.getters['model/ins'].key,
           { [`form.fields[{id:${key}}]`]: null },
           { query: { updMode: 'delete' } }
         )
@@ -133,16 +134,14 @@ const expDft = {
   table: {
     record: {
       set: async (record: any) => {
-        const mid = store.getters['model/ins'].key
-        await reqPut('model', mid, { 'table.demoData': record })
+        await reqPut('model', store.getters['model/ins'].key, { 'table.demoData': record })
         await store.dispatch('model/refresh')
       }
     },
     save: async (table: any) => {
-      const mid = store.getters['model/ins'].key
       await reqPut(
         'model',
-        mid,
+        store.getters['model/ins'].key,
         { table: skipIgnores(table, ['columns']) },
         {
           query: { updMode: 'merge' }
@@ -170,10 +169,9 @@ const expDft = {
     },
     cells: {
       save: async (cell: any) => {
-        const model = store.getters['model/ins']
         await reqPut(
           'model',
-          model.key,
+          store.getters['model/ins'].key,
           {
             [`table.cells.${cell.key}`]: skipIgnores(cell, ['key'])
           },

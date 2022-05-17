@@ -25,6 +25,10 @@
           <a-badge status="error" />
           <span style="color: #f5222d">停止</span>
         </template>
+        <template v-else-if="project.status === 'loading'">
+          <loading-outlined />
+          <span style="color: #faad14">加载中</span>
+        </template>
         <template v-else>
           <a-badge status="success" />
           <span style="color: #52c41a">运行中</span>
@@ -36,7 +40,7 @@
           size="small"
           :disabled="project.status === 'loading'"
           :loading="project.status === 'loading'"
-          @click="api.sync(project.key)"
+          @click.stop="api.sync(project.key)"
         >
           <template #icon><SyncOutlined /></template>
           &nbsp;同步
@@ -46,7 +50,7 @@
           class="ml-5"
           size="small"
           danger
-          @click="api.stop(project.key)"
+          @click.stop="api.stop(project.key)"
         >
           <template #icon><PoweroffOutlined /></template>
           &nbsp;停止
@@ -58,13 +62,14 @@
 
 <script lang="ts">
 import Project from '@/types/project'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { SyncOutlined, PoweroffOutlined, ClearOutlined } from '@ant-design/icons-vue'
 import Database from '../types/database'
 import { pjtAPI as api } from '../apis'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'Home',
@@ -76,8 +81,16 @@ export default defineComponent({
     ClearOutlined
   },
   setup() {
+    const store = useStore()
     const projects = ref([])
     const loading = ref(false)
+
+    watch(
+      () => store.getters['project/ins'].status,
+      () => {
+        emitter.emit('refresh')
+      }
+    )
 
     async function onEditStart() {
       mapper.database.options = (await api.databases()).map((database: Database) => ({

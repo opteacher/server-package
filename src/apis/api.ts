@@ -1,17 +1,6 @@
 import store from '@/store'
 import { reqPut, skipIgnores } from '@/utils'
-
-function recuAPIs(obj: any): any[] {
-  const ret = []
-  for (const key of Object.keys(obj)) {
-    ret.push({
-      label: key,
-      value: key,
-      children: recuAPIs(obj[key])
-    })
-  }
-  return ret
-}
+import pjtAPI from './project'
 
 export default {
   add: (data: any) =>
@@ -32,25 +21,14 @@ export default {
     reqPut('project', store.getters['project/ins'].key, {
       [`auth.apis[{_id:${data.key}}]`]: skipIgnores(data, ['key'])
     }),
-  all: (offset?: number, limit?: number) => {
-    const ret = {} as Record<string, any>
-    for (const api of store.getters['project/auth'].apis) {
-      let obj = ret
-      for (const ptPath of api.path.split('/').filter((str: string) => str)) {
-        if (!(ptPath in obj)) {
-          obj[ptPath] = {} as Record<string, any>
-        }
-        obj = obj[ptPath]
-      }
+  all: () => {
+    const pid = store.getters['project/ins'].key
+    if (!pid) {
+      return []
     }
-    if (limit) {
-      return recuAPIs(ret).slice(offset || 0 + 1, offset || 0 + limit)
-    } else {
-      return recuAPIs(ret)
-    }
+    return pjtAPI.apis(pid)
   },
   detail: (_key: any) => {
     console.log('get project detail')
-  },
-
+  }
 }

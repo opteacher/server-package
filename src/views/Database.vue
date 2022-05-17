@@ -7,7 +7,7 @@
       :mapper="mapper"
       :copy="Database.copy"
       :emitter="emitter"
-      title="项目"
+      title="数据库"
     />
   </LytMain>
 </template>

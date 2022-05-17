@@ -5,6 +5,7 @@ import Project from '../models/project.js'
 import Model from '../models/model.js'
 import Service from '../models/service.js'
 import Dep from '../models/dep.js'
+import Node from '../models/node.js'
 import { del as delNode, save as saveNode, scanNextss } from './node.js'
 
 export async function bind(pid, auth) {
@@ -13,15 +14,20 @@ export async function bind(pid, auth) {
   // 查看欲绑定的模型下是否有role字段，没有则创建
   const roleIdx = model.props.findIndex(prop => prop.name === 'role')
   if (roleIdx === -1) {
-    await db.saveOne(Model, auth.model, {
-      props: {
-        name: 'role',
-        ptype: 'String',
-        label: '角色',
-        visible: true,
-        remark: '权限系统标识'
-      }
-    })
+    await db.saveOne(
+      Model,
+      auth.model,
+      {
+        props: {
+          name: 'role',
+          ptype: 'String',
+          label: '角色',
+          visible: true,
+          remark: '权限系统标识'
+        }
+      },
+      { updMode: 'append' }
+    )
   }
   // 检查模型是否具有签发、验证接口，没有则添加
   const skips = project.auth.skips
@@ -65,6 +71,13 @@ export async function unbind(pid) {
   const sgnSvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const sgnSid = sgnSvc ? sgnSvc.id : null
   if (sgnSid) {
+    if (sgnSvc.flow) {
+      const { allNodes } = await scanNextss(await db.select(Node, { _index: sgnSvc.flow }), '')
+      for (const nid of Object.keys(allNodes)) {
+        await delNode(nid)
+      }
+      await delNode(sgnSvc.flow, sgnSvc.id)
+    }
     await db.remove(Service, { _index: sgnSid })
     await db.saveOne(Model, project.auth.model, { svcs: sgnSid }, { updMode: 'delete' })
   }
@@ -76,7 +89,7 @@ export async function unbind(pid) {
   }
   // 清除模型role字段
   await db.saveOne(Model, project.auth.model, { 'props[{name:role}]': null }, { updMode: 'delete' })
-  return db.saveOne(Project, pid, { auth: { model: '', skips: [] } }, { updMode: 'merge' })
+  return db.saveOne(Project, pid, { auth: { model: '', skips: [], props: [] } }, { updMode: 'merge' })
 }
 
 /**
@@ -85,7 +98,7 @@ export async function unbind(pid) {
  * @param {*} { props } { props: { name: string; alg: string }[] }
  * @returns
  */
-export async function genSign(pid, { props }) {
+export async function genSign(pid, props) {
   const project = await db.select(Project, { _index: pid })
   if (!project.auth || !project.auth.model) {
     return { error: '项目未绑定模型！' }
@@ -126,8 +139,8 @@ export async function genSign(pid, { props }) {
         .map(
           prop =>
             `  '${prop.name}': ${
-              prop.alg !== '不加密' ? "crypto.createHmac('" + prop.alg + "', secret).update(" : ''
-            }ctx.request.body.${prop.name}${prop.alg !== '不加密' ? ").digest('hex')" : ''}`
+              prop.alg !== 'none' ? "crypto.createHmac('" + prop.alg + "', secret).update(" : ''
+            }ctx.request.body.${prop.name}${prop.alg !== 'none' ? ").digest('hex')" : ''}`
         )
         .join(',\n'),
       "})\nif(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
@@ -137,7 +150,9 @@ export async function genSign(pid, { props }) {
     inputs: [{ name: 'model', value: model.name }],
     outputs: [{ name: 'record' }],
     deps: await Promise.all(
-      [model.name, 'Crypto'].map(name => db.select(Dep, { name }).then(dep => dep.length ? dep[0].id : null))
+      [model.name, 'Crypto'].map(name =>
+        db.select(Dep, { name }).then(dep => (dep.length ? dep[0].id : null))
+      )
     )
   })
   const depUuid = (await db.select(Dep, { name: 'UUID' }))[0]

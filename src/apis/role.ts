@@ -24,7 +24,7 @@ export default {
       { query: { updMode: 'merge' } }
     ),
   all: (offset: number, limit: number) =>
-    store.getters['project/ins'].auth.roles.slice(offset + 1, offset + limit),
+    store.getters['project/auth'].roles.slice(offset, offset + limit),
   detail: (key: any) => {
     console.log(key)
   }

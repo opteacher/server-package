@@ -400,7 +400,7 @@ export async function run(pjt) {
     {
       stdio: 'inherit',
       shell: true,
-      env: { ENV: '' } // 暂时不支持环境
+      env: { NODE_ENV: '' } // 暂时不支持环境
     }
   ).on('error', err => {
     console.log(err)
@@ -417,7 +417,7 @@ export async function run(pjt) {
  * @returns
  */
 async function adjAndRestartNginx(projects) {
-  if (process.env.ENV !== 'prod') {
+  if (process.env.NODE_ENV !== 'prod') {
     return Promise.resolve()
   }
   if (typeof projects === 'undefined') {
@@ -546,7 +546,7 @@ export async function status(pid) {
   } else {
     try {
       await axios.get(
-        `http://${process.env.ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
+        `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
           project.name
         }/mdl/v1`
       )
@@ -664,6 +664,9 @@ export async function getAllAPIs(pid) {
             path: service.path + '/:tmot'
           })
           break
+      }
+      if (service.flow) {
+        ret[ret.length - 1].flow = service.flow
       }
     }
   }

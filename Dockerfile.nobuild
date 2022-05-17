@@ -1,5 +1,5 @@
 FROM node:latest
-ENV ENV prod
+ENV NODE_ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /app
 COPY ./server/dist/ /app/

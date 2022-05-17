@@ -19,12 +19,14 @@ describe('# 模型服务', () => {
     })
     expect(model.id).not.toBeUndefined()
     mid = model.id
+    const dep = await db.select(Dep, { _index: mid })
+    expect(dep).not.toBeNull()
   })
 
   describe('# prop', () => {
     let pid = ''
     test('# 增', async () => {
-      const prop1 = await saveProp(
+      await saveProp(
         {
           name: 'prop1',
           label: '字段1',

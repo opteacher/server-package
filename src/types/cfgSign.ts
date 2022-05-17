@@ -1,4 +1,4 @@
-import Sign from "./sgnProp"
+import Sign from './sgnProp'
 
 export default class CfgSign {
   mode: 'simple' | 'complex'

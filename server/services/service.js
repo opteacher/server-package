@@ -9,7 +9,7 @@ const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\
 
 export async function restart(pid, jid, authorization) {
   const pjt = await db.select(Project, { _index: pid })
-  const host = process.env.ENV === 'prod' ? pjt.name : '127.0.0.1'
+  const host = process.env.NODE_ENV === 'prod' ? pjt.name : '127.0.0.1'
   const baseURL = `http://${host}:${pjt.port}/${pjt.name}`
   const svc = await db.select(Service, { _index: jid })
   if (svc.jobId) {
@@ -82,7 +82,7 @@ export async function restart(pid, jid, authorization) {
 
 export async function stop(pid, jid, authorization) {
   const pjt = await db.select(Project, { _index: pid })
-  const host = process.env.ENV === 'prod' ? pjt.name : '127.0.0.1'
+  const host = process.env.NODE_ENV === 'prod' ? pjt.name : '127.0.0.1'
   const baseURL = `http://${host}:${pjt.port}/${pjt.name}`
   const svc = await db.select(Service, { _index: jid })
   if (!svc.jobId) {
