@@ -12,7 +12,7 @@ export default class Rule {
     this.key = ''
     this.method = 'GET'
     this.path = ''
-    this.value = '*'
+    this.value = '*/*'
     this.action = ''
   }
 
@@ -20,7 +20,7 @@ export default class Rule {
     this.key = ''
     this.method = 'GET'
     this.path = ''
-    this.value = '*'
+    this.value = '*/*'
     this.action = ''
   }
 

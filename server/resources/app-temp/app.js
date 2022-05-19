@@ -8,18 +8,16 @@ import views from 'koa-views'
 import cors from 'koa2-cors'
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
-import { db } from './utils/index.js'
-import { auth } from './services/auth.js'
+/*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 const router = await genApiRoutes(path.resolve('routes'))
-const models = (await genMdlRoutes(db, path.resolve('models'), path.resolve('configs', 'models')))
-  .router
+const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'))
 const app = new Koa()
 // 跨域配置
 app.use(cors())
 // 日志输出
 app.use(logger())
 // 鉴权
-// app.use(auth())
+/*return project.auth.model ? 'app.use(auth())' : '// 无权限系统'*/
 // 上传配置
 app.use(
   koaBody({
@@ -38,7 +36,7 @@ app.use(json())
 // 指定静态目录
 app.use(statc(path.resolve('public')))
 // 模型路由
-app.use(models.routes()).use(models.allowedMethods())
+app.use(models.router.routes()).use(models.router.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
 // 指定页面目录
@@ -49,3 +47,5 @@ app.use(ctx => ctx.render('index'))
 app.listen(0/*return project.port*/, undefined, () => {
   console.log('服务已部署，占用端口：/*return project.port*/')
 })
+
+export default app

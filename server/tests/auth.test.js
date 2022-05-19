@@ -1,15 +1,24 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import Path from 'path'
-import { beforeAll, beforeEach, afterAll, expect, test } from '@jest/globals'
+import { beforeAll, beforeEach, afterAll, expect, test, jest } from '@jest/globals'
 import { db } from '../utils/index.js'
 import Project from '../models/project'
 import Model from '../models/model'
 import Service from '../models/service'
 import Node from '../models/node'
 import Dep from '../models/dep'
+import { generate as genApp } from '../services/project'
 import { create } from '../services/model'
 import { bind, unbind, genSign } from '../services/auth'
+import getApp from '../appTest'
+import supertest from 'supertest'
+import { v4 as uuidv4 } from 'uuid'
+import fs from 'fs'
+import { readConfig } from '../lib/backend-library/utils/index'
+import crypto from 'crypto'
+
+jest.setTimeout(300000)
 
 describe('# 权限服务', () => {
   let pid = ''
@@ -66,19 +75,19 @@ describe('# 权限服务', () => {
     mid = model.id.toString()
     await db.saveOne(Project, pid, { models: mid }, { updMode: 'append' })
 
-    const svcForSkip = await db.save(Service, {
+    const svcTest = await db.save(Service, {
       name: 'model1',
       interface: 'test',
       emit: 'api',
       isModel: true,
       method: 'POST',
-      path: '/api/v1/model1/test'
+      path: '/mdl/v1/model1'
     })
-    sid = svcForSkip.id.toString()
+    sid = svcTest.id.toString()
     await db.saveOne(Model, model.id, { svcs: sid }, { updMode: 'append' })
   })
   test('# bind', async () => {
-    await bind(pid, { model: mid, skips: ['/api/v1/model1/test'] })
+    await bind(pid, { model: mid, skips: ['/mdl/v1/model1/test'] })
     const project = await db.select(Project, { _index: pid })
     expect(project.auth.model).toEqual(mid)
     expect(project.auth.skips.length).toEqual(3)
@@ -122,8 +131,8 @@ describe('# 权限服务', () => {
     })
     test('# 为不带签名服务的权限模型生成签名逻辑', async () => {
       await genSign(pid, [
-        { name: 'username', alg: 'none' },
-        { name: 'password', alg: 'sha256' }
+        { key: uuidv4(), name: 'username', alg: 'none' },
+        { key: uuidv4(), name: 'password', alg: 'sha256' }
       ])
       const project = await db.select(Project, { _index: pid })
       const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
@@ -140,6 +149,138 @@ describe('# 权限服务', () => {
       const pkgAndSgn = await db.select(Node, { _index: qryRecord.nexts[0] })
       expect(pkgAndSgn.title).toEqual('包装荷载并签名')
       expect(pkgAndSgn.nexts.length).toEqual(0)
+    })
+  })
+  describe('# auth', () => {
+    let request = null
+    beforeAll(async () => {
+      request = supertest((await getApp()).callback())
+    })
+
+    test('# 启动后台项目成功，并访问畅通', async () => {
+      const resp = await request.get('/server-package/mdl/v1').expect(200)
+      expect(resp.body).not.toBeUndefined()
+    })
+
+    describe('# 生成权限服务和关联的模型，并修正其引入模块的位置', () => {
+      let authSvc = null
+      let model1 = null
+      beforeAll(async () => {
+        process.env.BASE_URL = ''
+        await genApp(pid)
+        const authPath = Path.resolve('tests', 'services')
+        fs.rmSync(authPath, { recursive: true })
+        fs.mkdirSync(authPath)
+        const mdlPath = Path.resolve('tests', 'models')
+        fs.rmSync(mdlPath, { recursive: true })
+        fs.mkdirSync(mdlPath)
+
+        const project = await db.select(Project, { _index: pid }, { ext: true })
+        const svrCfg = await readConfig(Path.resolve('configs', 'server'))
+        const pjtPath = Path.resolve(svrCfg.apps, project.name)
+        const authFile = Path.join(authPath, 'auth.js')
+        fs.copyFileSync(Path.join(pjtPath, 'services', 'auth.js'), authFile)
+        fs.writeFileSync(authFile, fs.readFileSync(authFile).toString().replace('../utils', '../../utils'))
+        const mdlFile = Path.join(mdlPath, `${project.models[0].name}.js`)
+        fs.copyFileSync(Path.join(pjtPath, 'models', `${project.models[0].name}.js`), mdlFile)
+        fs.writeFileSync(mdlFile, fs.readFileSync(mdlFile).toString().replace('../utils', '../../utils'))
+
+        authSvc = await import(authFile)
+        model1 = (await import(mdlFile)).default
+        await db.sync(model1)
+      })
+
+      test('# 无账户记录', async () => {
+        const result = await authSvc.sign({
+          request: {
+            body: {
+              username: 'abcd',
+              password: '1234'
+            }
+          }
+        })
+        expect(result).not.toHaveProperty('token')
+        expect(result).toHaveProperty('error', '签名失败！提交表单错误')
+      })
+
+      describe('# 添加一条账户信息', () => {
+        let token = ''
+        let aid = ''
+
+        beforeAll(async () => {
+          const svrCfg = await readConfig(Path.resolve('configs', 'server'))
+          const result = await db.save(model1, {
+            username: 'abcd',
+            password: crypto.createHmac('sha256', svrCfg.secret).update('1234').digest('hex')
+          })
+          aid = result.id.toString()
+        })
+
+        test('# sign，再签名应该通过且产生正确的token', async () => {
+          const result = await authSvc.sign({
+            request: {
+              body: {
+                username: 'abcd',
+                password: '1234'
+              }
+            }
+          })
+          expect(result).not.toHaveProperty('error')
+          expect(result).toHaveProperty('token')
+          expect(result.token).not.toEqual('abcd')
+          token = result.token
+        })
+
+        describe('# verify', () => {
+          test('# 无效token（空）', async () => {
+            const result = await authSvc.verify({
+              headers: {}
+            })
+            expect(result).toHaveProperty('error', '无鉴权口令')
+          })
+
+          test('# 无效token（错误1）', async () => {
+            const result = await authSvc.verify({
+              headers: { authorization: 'abcd' + token }
+            })
+            expect(result).toHaveProperty('error', '错误的鉴权请求！')
+          })
+
+          test('# 无效token（错误2）', async () => {
+            const result = await authSvc.verify({
+              headers: { authorization: 'cctv abcd' }
+            })
+            expect(result).toHaveProperty('error', '鉴权失败！未知鉴权方式：cctv')
+          })
+
+          test('# 无效token（错误3）', async () => {
+            const result = await authSvc.verify({
+              headers: { authorization: 'bearer abcd' }
+            })
+            expect(result).toHaveProperty('error')
+            expect(result.error.startsWith('鉴权失败！')).toBeTruthy()
+            console.log(result.error)
+          })
+
+          test('# 正确token', async () => {
+            const result = await authSvc.verify({
+              headers: { authorization: 'bearer ' + token }
+            })
+            expect(result).not.toHaveProperty('error')
+            expect(result).toHaveProperty('message', '验证通过！')
+            expect(result).toHaveProperty('payload')
+            expect(result.payload).toHaveProperty('sub', aid)
+            console.log(result.payload)
+          })
+        })
+
+        describe('# verifyDeep', () => {
+          test('# 错误的路由', async () => {
+            const result = await authSvc.verifyDeep({ path: '/cctv/123' })
+            expect(result).toHaveProperty('error', '未找到指定项目！')
+          })
+        })
+      })
     })
   })
 })

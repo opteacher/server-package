@@ -189,6 +189,18 @@ async function recuNode(key, indent, callback, endKey) {
 }
 
 export async function sync(pid) {
+  const project = await generate(pid)
+
+  console.log('更新项目的进程ID……')
+  await db.save(Project, { thread: -1 }, { _index: pid })
+
+  console.log('启动项目……')
+  const thread = await run(project)
+  await adjAndRestartNginx()
+  return Promise.resolve(thread)
+}
+
+export async function generate(pid) {
   console.log('从数据库获取项目实例……')
   const project = await db.select(Project, { _index: pid }, { ext: true })
   if (project.thread) {
@@ -246,37 +258,12 @@ export async function sync(pid) {
   console.log(`调整工具文件：${utilsTmp} -> ${utilsGen}`)
   adjustFile(utilsTmp, utilsGen)
 
+  const deps = {}
   const svcPath = Path.join(genPath, 'services')
   fs.mkdirSync(svcPath)
-  const authTmp = Path.join(tmpPath, 'services', 'auth.js')
-  const authGen = Path.join(genPath, 'services', 'auth.js')
-  console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
-  const deps = {}
-  const args = {
-    pjtName: project.name,
-    mdlName: 'test',
-    skips: project.auth.skips || [],
-    nodes: [],
-    deps: []
-  }
   if (project.auth.model) {
-    const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
-    const authSvc = authMdl.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
-    const mdlDep = (await db.select(Dep, { name: authMdl.name }))[0]
-    args.mdlName = authMdl.name
-    deps[mdlDep.id] = mdlDep.toObject()
-    if (authSvc && authSvc.flow) {
-      args.nodes = await recuNode(authSvc.flow, 4, node => {
-        for (const dep of node.deps) {
-          if (!(dep.id in deps)) {
-            deps[dep.id] = dep.toObject()
-          }
-        }
-      })
-      args.deps = Object.values(deps)
-    }
+    Object.assign(deps, await genAuth(project, tmpPath, genPath))
   }
-  adjustFile(fs.readFileSync(authTmp), authGen, args)
 
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
@@ -353,14 +340,38 @@ export async function sync(pid) {
     project,
     pkgDeps: Object.values(deps).filter(dep => dep.version)
   })
+  return project
+}
 
-  console.log('更新项目的进程ID……')
-  await db.save(Project, { thread: -1 }, { _index: pid })
-
-  console.log('启动项目……')
-  const thread = await run(project)
-  await adjAndRestartNginx()
-  return Promise.resolve(thread)
+export async function genAuth(project, tmpPath, genPath) {
+  const deps = {}
+  const authTmp = Path.join(tmpPath, 'services', 'auth.js')
+  const authGen = Path.join(genPath, 'services', 'auth.js')
+  console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
+  const args = {
+    pjtName: project.name,
+    mdlName: 'test',
+    skips: project.auth.skips || [],
+    nodes: [],
+    deps: []
+  }
+  const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
+  const authSvc = authMdl.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
+  const mdlDep = await db.select(Dep, { _index: project.auth.model })
+  args.mdlName = authMdl.name
+  deps[mdlDep.id] = mdlDep.toObject()
+  if (authSvc && authSvc.flow) {
+    args.nodes = await recuNode(authSvc.flow, 4, node => {
+      for (const dep of node.deps) {
+        if (!(dep.id in deps)) {
+          deps[dep.id] = dep.toObject()
+        }
+      }
+    })
+    args.deps = Object.values(deps)
+  }
+  adjustFile(fs.readFileSync(authTmp), authGen, args)
+  return deps
 }
 
 /**
@@ -641,7 +652,8 @@ export async function getAllAPIs(pid) {
         case 'api':
           ret.push({
             key: service.id,
-            svc: service.name,
+            name: service.name,
+            func: service.interface,
             model: model.name,
             method: service.method,
             path: service.path
@@ -651,14 +663,16 @@ export async function getAllAPIs(pid) {
         case 'interval':
           ret.push({
             key: `${service.id}_restart`,
-            svc: service.name,
+            name: service.name,
+            func: service.interface,
             model: model.name,
             method: 'POST',
             path: service.path
           })
           ret.push({
             key: `${service.id}_stop`,
-            svc: service.name,
+            name: service.name,
+            interface: service.interface,
             model: model.name,
             method: 'DELETE',
             path: service.path + '/:tmot'

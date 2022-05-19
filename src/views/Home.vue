@@ -66,7 +66,12 @@ import { defineComponent, ref, watch } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
-import { SyncOutlined, PoweroffOutlined, ClearOutlined } from '@ant-design/icons-vue'
+import {
+  SyncOutlined,
+  PoweroffOutlined,
+  ClearOutlined,
+  LoadingOutlined
+} from '@ant-design/icons-vue'
 import Database from '../types/database'
 import { pjtAPI as api } from '../apis'
 import { useStore } from 'vuex'
@@ -78,7 +83,8 @@ export default defineComponent({
     EditableTable,
     SyncOutlined,
     PoweroffOutlined,
-    ClearOutlined
+    ClearOutlined,
+    LoadingOutlined
   },
   setup() {
     const store = useStore()

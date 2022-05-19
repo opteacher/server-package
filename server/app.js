@@ -7,23 +7,14 @@ import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
 
-import { readConfig } from './lib/backend-library/utils/index.js'
-import { getDbByName } from './lib/backend-library/databases/index.js'
-import { db, cfgPath } from './utils/index.js'
-
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 
 import { runAll } from './services/project.js'
-
-global.db = await getDbByName(
-  readConfig(Path.join(cfgPath, 'models')).type,
-  Path.join(cfgPath, 'db')
-)
+import { db } from './utils/index.js'
 
 const router = await genApiRoutes(Path.resolve('routes'))
-const models = (await genMdlRoutes(db, Path.resolve('models'), Path.resolve('configs', 'models')))
-  .router
+const models = await genMdlRoutes(Path.resolve('models'), Path.resolve('configs', 'models'), db)
 
 const app = new Koa()
 
@@ -51,7 +42,7 @@ app.use(json())
 // 指定静态目录
 app.use(statc(Path.resolve('public')))
 // 模型路由
-app.use(models.routes()).use(models.allowedMethods())
+app.use(models.router.routes()).use(models.router.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
 // 以页面路由结尾

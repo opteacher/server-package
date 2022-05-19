@@ -10,7 +10,7 @@
     <a-descriptions-item label="标签">
       <a-input
         :value="field?.label"
-        @change="e => api.form.fields.save({ key: field.key, label: e.target.value })"
+        @change="(e: any) => api.form.fields.save({ key: field.key, label: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="类型">
@@ -24,7 +24,7 @@
       <a-textarea
         :value="field?.desc"
         :auto-size="{ minRows: 2 }"
-        @change="e => api.form.fields.save({ key: field.key, desc: e.target.value })"
+        @change="(e: any) => api.form.fields.save({ key: field.key, desc: e.target.value })"
       />
     </a-descriptions-item>
   </a-descriptions>

@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken'
-import { db, makeRequest } from '../utils/index.js'
-/*return deps.map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
+import { db, makeRequest } from '../../utils/index.js'
+import model1 from '../models/model1.js'
+import crypto from 'crypto'
+import { v4 } from 'uuid'
 
 const svrPkgURL = `http://${
   typeof process.env.BASE_URL !== 'undefined'
@@ -9,7 +11,47 @@ const svrPkgURL = `http://${
 }:4000/server-package`
 
 export async function sign(ctx) {
-  /*return `try {\n${nodes.join('\n\n')}\n  } catch (e) {\n    return { error: e.message || JSON.stringify(e) }\n  }\n`*/
+  try {
+    /** 获取密钥
+     * @returns {undefined} undefined
+    **/
+    let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
+    if (result.error) {
+      return result
+    }
+    const secret = result.secret
+
+    /** 查询满足列的记录
+     * @param {undefined} model undefined
+     * @returns {undefined} undefined
+    **/
+    result = await db.select(model1, {
+      'username': ctx.request.body.username,
+      'password': crypto.createHmac('sha256', secret).update(ctx.request.body.password).digest('hex')
+    })
+    if(!result.length) {
+      return { error: '签名失败！提交表单错误' }
+    }
+    const record = result[0]
+
+    // 包装荷载并签名
+    const payload = {
+      sub: record.id,
+      aud: 'abcd',
+      iat: Date.now(),
+      jti: v4(),
+      iss: 'server-package/op',
+      exp: Date.now() + 24 * 60 * 60 * 1000 // 1 day
+    }
+    return {
+      record,
+      token: jwt.sign(payload, secret),
+      message: '登录成功！'
+    }
+  } catch (e) {
+    return { error: e.message || JSON.stringify(e) }
+  }
+
 }
 
 export async function verify(ctx) {
@@ -73,7 +115,7 @@ export async function verifyDeep(ctx) {
   if (!verRes.error && payload) {
     console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
-    const visitor = await db.select(0/*return mdlName*/, { _index: payload.sub })
+    const visitor = await db.select(model1, { _index: payload.sub })
     if (!visitor || !('role' in visitor)) {
       return { error: '访问者的角色信息有误！' }
     }
@@ -123,8 +165,10 @@ export async function verifyDeep(ctx) {
 }
 
 const skips = [
-  /\//*return pjtName*/\/mdl\/v1/,
-  /*return skips.map(skip => new RegExp(`/${pjtName}${skip}`)).join(',\n  ')*/
+  /\/abcd\/mdl\/v1/,
+  /\/abcd\/test/,
+  /\/abcd\/api\/v1\/model1\/sign/,
+  /\/abcd\/api\/v1\/model1\/verify/
 ]
 
 export function auth() {

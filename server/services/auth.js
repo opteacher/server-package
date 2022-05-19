@@ -89,7 +89,12 @@ export async function unbind(pid) {
   }
   // 清除模型role字段
   await db.saveOne(Model, project.auth.model, { 'props[{name:role}]': null }, { updMode: 'delete' })
-  return db.saveOne(Project, pid, { auth: { model: '', skips: [], props: [] } }, { updMode: 'merge' })
+  return db.saveOne(
+    Project,
+    pid,
+    { auth: { model: '', skips: [], props: [] } },
+    { updMode: 'merge' }
+  )
 }
 
 /**
@@ -122,19 +127,22 @@ export async function genSign(pid, props) {
   const getSecret = await saveNode(
     {
       title: '获取密钥',
+      ntype: 'normal',
       code: [
-        "const result = await makeRequest('GET', `${svrPkgURL}/api/v1/auth/secret`)",
+        "let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)",
         'if (result.error) {\n  return result\n}',
         'const secret = result.secret'
       ].join('\n'),
-      outputs: [{ name: 'secret' }]
+      outputs: [{ name: 'secret' }],
+      isFun: false
     },
     service.id
   )
   const qryRecord = await saveNode({
     title: '查询满足列的记录',
+    ntype: 'normal',
     code: [
-      'const result = await db.select(model, {',
+      'result = await db.select(model, {',
       props
         .map(
           prop =>
@@ -153,11 +161,13 @@ export async function genSign(pid, props) {
       [model.name, 'Crypto'].map(name =>
         db.select(Dep, { name }).then(dep => (dep.length ? dep[0].id : null))
       )
-    )
+    ),
+    isFun: false
   })
   const depUuid = (await db.select(Dep, { name: 'UUID' }))[0]
   await saveNode({
     title: '包装荷载并签名',
+    ntype: 'normal',
     code: [
       'const payload = {',
       '  sub: record.id,',

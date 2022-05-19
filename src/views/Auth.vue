@@ -44,7 +44,7 @@
       <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
       <template #sign="{ record }">
         <a-button
-          v-if="record.svc === 'auth' && record.path.slice(-'sign'.length) === 'sign'"
+          v-if="record.name === 'auth' && record.func === 'sign'"
           size="small"
           :type="!record.flow ? 'primary' : 'default'"
           @click.stop="onSignShow(true)"
@@ -99,6 +99,7 @@
             @save="refresh"
             @delete="refresh"
           >
+            <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
             <template #pathEDT="{ editing, mapper }">
               <a-input-group compact>
                 <a-form-item-rest>
@@ -155,7 +156,7 @@ import { methods } from '@/types'
 import Auth from '@/types/auth'
 import LytProject from '@/layouts/LytProject.vue'
 import { useRoute } from 'vue-router'
-import { pjtAPI, authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
+import { authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
 import Sign from '@/types/cfgSign'
 
 export default defineComponent({
@@ -188,7 +189,7 @@ export default defineComponent({
       edtAPI.path = `/${val.join('/')}`
       const ret = Array.from(
         new Set<string>(
-          store.getters['auth/apis']
+          store.getters['project/apis']
             .filter((api: API) => api.path.startsWith(edtAPI.path))
             .map((api: API) => api.method)
         )
@@ -198,6 +199,7 @@ export default defineComponent({
       }
       ruleEmitter.emit('update:mapper', {
         method: {
+          label: '访问方式',
           type: 'Select',
           options: ret.map((mthd: string) => ({ label: mthd, value: mthd }))
         }
@@ -221,9 +223,9 @@ export default defineComponent({
       await refresh()
       showSgn.value = false
     }
-    async function onRuleEdit() {
+    function onRuleEdit() {
       const ret = {} as Record<string, any>
-      for (const api of await pjtAPI.apis(pid)) {
+      for (const api of store.getters['project/apis']) {
         let obj = ret
         for (const ptPath of api.path.split('/').filter((str: string) => str)) {
           if (!(ptPath in obj)) {

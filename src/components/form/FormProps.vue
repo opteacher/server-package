@@ -1,7 +1,11 @@
 <template>
-  <a-descriptions class="mb-50" title="表单参数" :column="1" bordered size="small">
+  <a-descriptions class="mb-50" :column="1" bordered size="small">
+    <template #title>
+      <control-outlined />
+      &nbsp;表单参数
+    </template>
     <a-descriptions-item label="标题">
-      <a-input :value="form.title" @change="e => api.form.save({ title: e.target.value })" />
+      <a-input :value="form.title" @change="(e: any) => api.form.save({ title: e.target.value })" />
     </a-descriptions-item>
     <a-descriptions-item label="表单宽度">
       <a-input-number
@@ -9,8 +13,8 @@
         :value="form.width"
         :min="1"
         :max="100"
-        :formatter="value => `${value}%`"
-        @change="width => api.form.save({ width })"
+        :formatter="(value: any) => `${value}%`"
+        @change="(width: any) => api.form.save({ width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="标签宽度">
@@ -19,7 +23,7 @@
         :value="form.labelWidth"
         :min="1"
         :max="23"
-        @change="labelWidth => api.form.save({ labelWidth })"
+        @change="(labelWidth: any) => api.form.save({ labelWidth })"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -29,9 +33,13 @@
 import Form from '@/types/form'
 import { defineComponent } from 'vue'
 import { mdlAPI as api } from '@/apis'
+import { ControlOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'TableProps',
+  components: {
+    ControlOutlined
+  },
   props: {
     form: { type: Form, required: true }
   },
