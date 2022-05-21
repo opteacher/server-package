@@ -8,6 +8,7 @@ import Model from '../models/model'
 import Service from '../models/service'
 import Node from '../models/node'
 import Dep from '../models/dep'
+import Admin from '../models/admin'
 import { generate as genApp } from '../services/project'
 import { create } from '../services/model'
 import { bind, unbind, genSign } from '../services/auth'
@@ -17,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
 import { readConfig } from '../lib/backend-library/utils/index'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
 
 jest.setTimeout(300000)
 
@@ -24,7 +26,10 @@ describe('# 权限服务', () => {
   let pid = ''
   let mid = ''
   let sid = ''
+  let svrCfg = null
   beforeAll(async () => {
+    svrCfg = await readConfig(Path.resolve('configs', 'server'))
+
     await db.sync(Project)
     await db.sync(Model)
     await db.sync(Service)
@@ -168,22 +173,26 @@ describe('# 权限服务', () => {
       beforeAll(async () => {
         process.env.BASE_URL = ''
         await genApp(pid)
-        const authPath = Path.resolve('tests', 'services')
-        fs.rmSync(authPath, { recursive: true })
-        fs.mkdirSync(authPath)
-        const mdlPath = Path.resolve('tests', 'models')
-        fs.rmSync(mdlPath, { recursive: true })
-        fs.mkdirSync(mdlPath)
+        fs.rmSync(Path.resolve('tmp'), { force: true, recursive: true })
+        const authPath = Path.resolve('tmp', 'services')
+        fs.mkdirSync(authPath, { recursive: true })
+        const mdlPath = Path.resolve('tmp', 'models')
+        fs.mkdirSync(mdlPath, { recursive: true })
 
         const project = await db.select(Project, { _index: pid }, { ext: true })
-        const svrCfg = await readConfig(Path.resolve('configs', 'server'))
         const pjtPath = Path.resolve(svrCfg.apps, project.name)
         const authFile = Path.join(authPath, 'auth.js')
         fs.copyFileSync(Path.join(pjtPath, 'services', 'auth.js'), authFile)
-        fs.writeFileSync(authFile, fs.readFileSync(authFile).toString().replace('../utils', '../../utils'))
+        fs.writeFileSync(
+          authFile,
+          fs.readFileSync(authFile).toString().replace('../utils', '../../utils')
+        )
         const mdlFile = Path.join(mdlPath, `${project.models[0].name}.js`)
         fs.copyFileSync(Path.join(pjtPath, 'models', `${project.models[0].name}.js`), mdlFile)
-        fs.writeFileSync(mdlFile, fs.readFileSync(mdlFile).toString().replace('../utils', '../../utils'))
+        fs.writeFileSync(
+          mdlFile,
+          fs.readFileSync(mdlFile).toString().replace('../utils', '../../utils')
+        )
 
         authSvc = await import(authFile)
         model1 = (await import(mdlFile)).default
@@ -208,7 +217,6 @@ describe('# 权限服务', () => {
         let aid = ''
 
         beforeAll(async () => {
-          const svrCfg = await readConfig(Path.resolve('configs', 'server'))
           const result = await db.save(model1, {
             username: 'abcd',
             password: crypto.createHmac('sha256', svrCfg.secret).update('1234').digest('hex')
@@ -275,9 +283,230 @@ describe('# 权限服务', () => {
         })
 
         describe('# verifyDeep', () => {
-          test('# 错误的路由', async () => {
+          beforeAll(async () => {
+            await db.save(Project, {
+              name: 'dcba',
+              desc: '12345',
+              port: 2000,
+              database: ['mongo', 'test'],
+              dropDbs: true,
+              commands: 'echo "Hello World"',
+              auth: {
+                model: '',
+                skips: [],
+                roles: [],
+                apis: []
+              }
+            })
+          })
+
+          test('# 错误的路由（未找到项目）', async () => {
             const result = await authSvc.verifyDeep({ path: '/cctv/123' })
             expect(result).toHaveProperty('error', '未找到指定项目！')
+          })
+
+          test('# 错误的路由（项目未配置权限）', async () => {
+            const result = await authSvc.verifyDeep({ path: '/dcba/mdl/v1/model1' })
+            expect(result).toHaveProperty('error', '未配置权限系统')
+          })
+
+          describe('# 角色信息有误', () => {
+            test('# verify出错', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                headers: { authorization: '' }
+              })
+              expect(result).toHaveProperty('error')
+            })
+
+            describe('# token可用，但关联的是管理员', () => {
+              let admToken = ''
+              beforeAll(async () => {
+                await db.sync(Admin)
+                const admin = await db.save(Admin, {
+                  name: 'admin',
+                  phone: '13918559376',
+                  password: '12345'
+                })
+                admToken = jwt.sign(
+                  {
+                    sub: admin.id,
+                    aud: 'abcd',
+                    iat: Date.now(),
+                    jti: uuidv4(),
+                    iss: 'server-package/op',
+                    exp: Date.now() + 24 * 60 * 60 * 1000 // 1 day
+                  },
+                  svrCfg.secret
+                )
+              })
+              test('# 管理员token', async () => {
+                const result = await authSvc.verifyDeep({
+                  path: '/abcd/mdl/v1/model1',
+                  headers: { authorization: 'bearer ' + admToken }
+                })
+                expect(result).not.toHaveProperty('error')
+              })
+            })
+
+            test('# 未分配角色的账户', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                headers: { authorization: 'bearer ' + token }
+              })
+              expect(result).toHaveProperty('error', '未找到指定角色！')
+            })
+
+            describe('# 分配未记录过的角色信息', () => {
+              beforeAll(async () => {
+                await db.saveOne(model1, aid, { role: 'admin' })
+              })
+              test('# token正常，但解析出的角色没有记录', async () => {
+                const result = await authSvc.verifyDeep({
+                  path: '/abcd/mdl/v1/model1',
+                  headers: { authorization: 'bearer ' + token }
+                })
+                expect(result).toHaveProperty('error', '未找到指定角色！')
+              })
+            })
+
+            describe('# 添加一条admin角色记录并分配权限', () => {
+              beforeAll(async () => {
+                await db.saveOne(
+                  Project,
+                  pid,
+                  { 'auth.roles': { name: 'admin', rules: [] } },
+                  { updMode: 'append' }
+                )
+              })
+              test('# token正常，也有相应角色记录，但角色没有指定权限', async () => {
+                const result = await authSvc.verifyDeep({
+                  path: '/abcd/mdl/v1/model1',
+                  headers: { authorization: 'bearer ' + token }
+                })
+                expect(result).toHaveProperty('error', '你不具备访问该资源的权限！')
+              })
+            })
+          })
+
+          describe('# 为admin角色分配权限（全路径匹配）', () => {
+            beforeAll(async () => {
+              await db.saveOne(
+                Project,
+                pid,
+                {
+                  'auth.roles[{name:admin}].rules': {
+                    method: 'GET',
+                    path: '/abcd/mdl/v1/model1',
+                    value: ''
+                  }
+                },
+                { updMode: 'append' }
+              )
+            })
+            test('# 通过', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                method: 'GET',
+                headers: { authorization: 'bearer ' + token }
+              })
+              expect(result).not.toHaveProperty('error')
+            })
+            afterAll(async () => {
+              await db.saveOne(Project, pid, {
+                'auth.roles[{name:admin}].rules': []
+              })
+            })
+          })
+
+          describe('# 为admin角色分配权限（一层子路径匹配）', () => {
+            beforeAll(async () => {
+              await db.saveOne(
+                Project,
+                pid,
+                {
+                  'auth.roles[{name:admin}].rules': {
+                    method: 'GET',
+                    path: '/abcd/mdl/v1',
+                    value: '*'
+                  }
+                },
+                { updMode: 'append' }
+              )
+            })
+            test('# 通过', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                method: 'GET',
+                headers: { authorization: 'bearer ' + token }
+              })
+              expect(result).not.toHaveProperty('error')
+            })
+            afterAll(async () => {
+              await db.saveOne(Project, pid, {
+                'auth.roles[{name:admin}].rules': []
+              })
+            })
+          })
+
+          describe('# 为admin角色分配权限（多层子路径匹配）', () => {
+            beforeAll(async () => {
+              await db.saveOne(
+                Project,
+                pid,
+                {
+                  'auth.roles[{name:admin}].rules': {
+                    method: 'GET',
+                    path: '/abcd',
+                    value: '*/*'
+                  }
+                },
+                { updMode: 'append' }
+              )
+            })
+            test('# 通过', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                method: 'GET',
+                headers: { authorization: 'bearer ' + token }
+              })
+              expect(result).not.toHaveProperty('error')
+            })
+            afterAll(async () => {
+              await db.saveOne(Project, pid, {
+                'auth.roles[{name:admin}].rules': []
+              })
+            })
+          })
+
+          describe('# 为admin角色分配权限（错误的method）', () => {
+            beforeAll(async () => {
+              await db.saveOne(
+                Project,
+                pid,
+                {
+                  'auth.roles[{name:admin}].rules': {
+                    method: 'POST',
+                    path: '/abcd',
+                    value: '*/*'
+                  }
+                },
+                { updMode: 'append' }
+              )
+            })
+            test('# 无权限', async () => {
+              const result = await authSvc.verifyDeep({
+                path: '/abcd/mdl/v1/model1',
+                method: 'GET',
+                headers: { authorization: 'bearer ' + token }
+              })
+              expect(result).toHaveProperty('error', '你不具备访问该资源的权限！')
+            })
+            afterAll(async () => {
+              await db.saveOne(Project, pid, {
+                'auth.roles[{name:admin}].rules': []
+              })
+            })
           })
         })
       })

@@ -5,6 +5,7 @@ dist
 apps
 package-lock.json
 coverage
+server/tmp
 
 
 # local env files

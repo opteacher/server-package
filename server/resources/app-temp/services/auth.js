@@ -53,49 +53,45 @@ export async function verifyDeep(ctx) {
     return { error: '未找到指定项目！' }
   }
   const project = result[0]
-  if (!project.auth) {
+  if (!project.auth || !project.auth.model) {
     return { error: '未配置权限系统' }
   }
   const auth = project.auth
-  if (!auth.model) {
-    // return { error: '项目未绑定模型！' }
-    return {}
-  }
   // 获取token解析出来的载荷
-  let role = auth.roles.find(role => role.name === 'guest')
-  if (!role) {
-    return { error: '项目权限系统未配置访客角色！' }
-  }
-  let roleId = role.id
+  let rname = 'guest'
   const verRes = await verify(ctx)
-  console.log(verRes)
   const payload = verRes.payload
   if (!verRes.error && payload) {
     console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
     const visitor = await db.select(0/*return mdlName*/, { _index: payload.sub })
-    if (!visitor || !('role' in visitor)) {
-      return { error: '访问者的角色信息有误！' }
+    if (visitor && 'role' in visitor) {
+      rname = visitor['role']
+    } else {
+      rname = ''
     }
-    roleId = visitor['role']
+  } else {
+    return verRes
   }
-  console.log(roleId)
-  // 获取对应的角色
-  role = await makeRequest('GET', `${svrPkgURL}/mdl/v1/role/${roleId}`)
-  if (!role) {
-    // 检查是否是server-package的超级管理员
-    if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${roleId}`)) {
+  console.log(rname)
+  if (!rname) {
+    // 如果角色为空，检查是否是server-package的超级管理员
+    if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
       return {}
     } else {
       return { error: '未找到指定角色！' }
     }
   }
   // 遍历角色授权的规则，查找其中是否满足当前请求包含的申请
+  const role = project.auth.roles.find(role => role.name === rname)
+  if (!role) {
+    return { error: '未找到指定角色！' }
+  }
   for (const rule of role.rules) {
-    if (rule.method !== '*' && rule.method.toLowerCase() !== ctx.method.toLowerCase()) {
+    if (rule.method !== 'ALL' && rule.method.toLowerCase() !== ctx.method.toLowerCase()) {
       continue
     }
-    if (payload && payload.sub) {
+    if (rule.action) {
       if (payload.sub.toLowerCase() !== rule.action.toLowerCase()) {
         continue
       }
