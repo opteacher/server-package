@@ -282,8 +282,8 @@ export async function generate(pid) {
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
   for (const model of project.models) {
-    const svcs = model.svcs.filter(svc => svc.name)
-    model.svcs = model.svcs.filter(svc => !svc.name)
+    const svcs = model.svcs.filter(svc => !svc.isModel)
+    model.svcs = model.svcs.filter(svc => svc.isModel)
 
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
@@ -348,10 +348,19 @@ export async function genAuth(project, tmpPath, genPath) {
   const authTmp = Path.join(tmpPath, 'services', 'auth.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
+  const apis = await getAllAPIs(project.id)
   const args = {
-    pjtName: project.name,
+    project,
     mdlName: 'test',
     skips: project.auth.skips || [],
+    apis: apis.filter(api => api.name !== 'auth').map(api => {
+      if (api.path.includes(':')) {
+        api.path = new RegExp(api.path.replace(/:([^\/]*)/g, '([^/]*)'))
+      }
+      api.path = `/${project.name}${api.path}`
+      api.method = api.method.toUpperCase()
+      return api
+    }),
     nodes: [],
     deps: []
   }
@@ -675,7 +684,7 @@ export async function getAllAPIs(pid) {
             interface: service.interface,
             model: model.name,
             method: 'DELETE',
-            path: service.path + '/:tmot'
+            path: `${service.path}/:tmot`
           })
           break
       }

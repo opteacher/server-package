@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import _ from 'lodash'
 import Mapper from '@/types/mapper'
 import Transfer from '@/types/transfer'
 

@@ -48,7 +48,6 @@
             <template #title>传输本地文件到项目实例中</template>
             <a-button
               v-if="project.thread"
-              class="ml-5"
               :disabled="project.status === 'loading'"
               :loading="project.status === 'loading'"
               @click="showTsfm = true"
@@ -70,7 +69,7 @@
             "
             @submit="onTransfer"
           />
-          <a-button v-if="project.thread" class="ml-5" danger @click="api.stop(pid)">
+          <a-button v-if="project.thread" danger @click="api.stop(pid)">
             <template #icon><PoweroffOutlined /></template>
             &nbsp;停止
           </a-button>

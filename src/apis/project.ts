@@ -43,10 +43,10 @@ export default {
           type: 'api',
           middles: {
             before: () => {
-              store.commit('SET_STATUS', 'loading')
+              store.commit('project/SET_STATUS', 'loading')
             },
             after: () => {
-              store.commit('SET_STATUS', 'stopped')
+              store.commit('project/SET_STATUS', 'stopped')
             }
           },
           messages: {
@@ -79,10 +79,10 @@ export default {
         type: 'api',
         middles: {
           before: () => {
-            store.commit('SET_STATUS', 'loading')
+            store.commit('project/SET_STATUS', 'loading')
           },
           after: () => {
-            store.commit('SET_STATUS', 'running')
+            store.commit('project/SET_STATUS', 'running')
           }
         },
         messages: {

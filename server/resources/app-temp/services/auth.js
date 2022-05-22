@@ -5,7 +5,7 @@ import { db, makeRequest } from '../utils/index.js'
 const svrPkgURL = `http://${
   typeof process.env.BASE_URL !== 'undefined'
   ? process.env.BASE_URL
-  : (process.env.NODE_ENV === 'prod' ? 'server-package' : '127.0.0.1')
+  : (process.env.NODE_ENV === 'prod' ? 'server-package' : 'host.docker.internal')
 }:4000/server-package`
 
 export async function sign(ctx) {
@@ -13,6 +13,9 @@ export async function sign(ctx) {
 }
 
 export async function verify(ctx) {
+  if (!ctx.headers) {
+    return { error: '无鉴权口令' }
+  }
   const token = ctx.headers['authorization']
   if (!token) {
     return { error: '无鉴权口令' }
@@ -46,17 +49,10 @@ export async function verify(ctx) {
 
 export async function verifyDeep(ctx) {
   // 获取项目绑定的用户模型
-  const path = ctx.path.startsWith('/') ? ctx.path.substring(1) : ctx.path
-  const pjtName = path.substring(0, path.indexOf('/'))
-  let result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/projects?name=${pjtName}`)
-  if (!result.length) {
-    return { error: '未找到指定项目！' }
-  }
-  const project = result[0]
+  const project = await makeRequest('GET', `${svrPkgURL}/mdl/v1/project//*return project.id*/`)
   if (!project.auth || !project.auth.model) {
     return { error: '未配置权限系统' }
   }
-  const auth = project.auth
   // 获取token解析出来的载荷
   let rname = 'guest'
   const verRes = await verify(ctx)
@@ -71,7 +67,8 @@ export async function verifyDeep(ctx) {
       rname = ''
     }
   } else {
-    return verRes
+    // @_@：让guest角色起效
+    // return verRes
   }
   console.log(rname)
   if (!rname) {
@@ -96,17 +93,18 @@ export async function verifyDeep(ctx) {
         continue
       }
     }
-    if (rule.path === ctx.path) {
+    const path = `/${project.name}${rule.path}`
+    if (path === ctx.path) {
       return {}
     }
-    if (ctx.path.startsWith(rule.path)) {
+    if (ctx.path.startsWith(path)) {
       switch (rule.value) {
         case '*/*':
           return {}
         case '*':
           if (
             ctx.path
-              .substring(rule.path.length)
+              .substring(path.length)
               .split('/')
               .filter(part => part).length === 1
           ) {
@@ -119,17 +117,40 @@ export async function verifyDeep(ctx) {
 }
 
 const skips = [
-  /\//*return pjtName*/\/mdl\/v1/,
-  /*return skips.map(skip => new RegExp(`/${pjtName}${skip}`)).join(',\n  ')*/
+  /*return `\'/${project.name}/mdl/v1\'`*/,
+  /*return skips.map(skip => `\'/${project.name}${skip}\'`).join(',\n  ')*/
 ]
+
+const apis = [
+  /*return apis.map(api => `{ method: \'${api.method}\', path: ${typeof api.path !== 'string' ? api.path : '\'' + api.path + '\''} }`).join(',\n  ')*/
+]
+
+export async function chk404(ctx) {
+  for (const api of apis) {
+    if (api.method.toUpperCase() !== ctx.method.toUpperCase()) {
+      continue
+    }
+    if (typeof api.path === 'string') {
+      if (api.path === ctx.path) {
+        return true
+      }
+    } else if (api.path.test(ctx.path)) {
+      return true
+    }
+  }
+  return false
+}
 
 export function auth() {
   return async (ctx, next) => {
-    const canSkip = skips.map((skip) => skip.test(ctx.path)).reduce((a, b) => a || b)
+    const canSkip = skips.map((skip) => skip === ctx.path).reduce((a, b) => a || b)
     if (!canSkip) {
+      if (!(await chk404(ctx))) {
+        ctx.throw(404)
+      }
       const result = await verifyDeep(ctx)
-      if (result && result.error) {
-        ctx.throw(403, `授权验证失败！${result.error}`)
+      if (!result || result.error) {
+        ctx.throw(403, `授权验证失败！${result && result.error ? result.error.message : ''}`)
       }
     }
     await next()

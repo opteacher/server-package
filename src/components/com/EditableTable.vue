@@ -33,9 +33,9 @@
     </template>
     <template #bodyCell="{ text, column, record }">
       <template v-if="column.key === 'opera'">
-        <a v-if="disabled('edit', record)" class="mr-5" disabled @click.stop="">编辑</a>
+        <a v-if="disabled(record, 'edit')" class="mr-5" disabled @click.stop="">编辑</a>
         <a v-else-if="edtable" class="mr-5" @click.stop="onEditClicked(record)">编辑</a>
-        <a v-if="disabled('delete', record)" disabled @click.stop="">删除</a>
+        <a v-if="disabled(record, 'delete')" disabled @click.stop="">删除</a>
         <a-popconfirm
           v-else-if="delable"
           title="确定删除该记录吗？"

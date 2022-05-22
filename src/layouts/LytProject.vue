@@ -28,8 +28,8 @@
       </a-layout-header>
       <a-layout>
         <a-space style="margin: 16px 24px">
-          <a-button @click="$router.go(-1)">
-            <template #icon><arrow-left-outlined /></template>
+          <a-button @click="$router.push('/server-package')">
+            <template #icon><home-outlined /></template>
           </a-button>
           <a-breadcrumb>
             <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
@@ -68,13 +68,11 @@
 <script lang="ts">
 import {
   ProjectOutlined,
-  DatabaseOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   AppstoreOutlined,
   AuditOutlined,
-  ApiOutlined,
-  ArrowLeftOutlined
+  HomeOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -84,13 +82,11 @@ export default defineComponent({
   name: 'MainLayout',
   components: {
     ProjectOutlined,
-    DatabaseOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
     AppstoreOutlined,
     AuditOutlined,
-    ApiOutlined,
-    ArrowLeftOutlined
+    HomeOutlined
   },
   props: {
     active: { type: String, required: true }

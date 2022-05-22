@@ -19,13 +19,13 @@ export const mapper = new Mapper({
     label: '文件名',
     desc: '所在文件，可以直接选择为模型名',
     type: 'SelOrIpt',
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
   },
   interface: {
     label: '方法',
     desc: '指定函数',
     type: 'Input',
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
   },
   isModel: {
     label: '是否为模型路由',

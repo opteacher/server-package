@@ -35,10 +35,10 @@ app.use(
 app.use(json())
 // 指定静态目录
 app.use(statc(path.resolve('public')))
-// 模型路由
-app.use(models.router.routes()).use(models.router.allowedMethods())
 // 路径分配
 app.use(router.routes()).use(router.allowedMethods())
+// 模型路由
+app.use(models.router.routes()).use(models.router.allowedMethods())
 // 指定页面目录
 app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾（如果没有则index.html默认为404页面）

@@ -14,7 +14,16 @@ import { runAll } from './services/project.js'
 
 export default async db => {
   const router = await genApiRoutes(Path.resolve('routes'))
-  const models = await genMdlRoutes(Path.resolve('models'), Path.resolve('configs', 'models'), db)
+  const models = await genMdlRoutes(
+    Path.resolve('models'),
+    {
+      version: 1,
+      prefix: 'server-package',
+      type: 'mongo',
+      sync: false
+    },
+    db
+  )
 
   const app = new Koa()
 
