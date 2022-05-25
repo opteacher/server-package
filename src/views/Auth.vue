@@ -201,7 +201,7 @@ export default defineComponent({
         method: {
           label: '访问方式',
           type: 'Select',
-          options: ret.map((mthd: string) => ({ label: mthd, value: mthd }))
+          options: ['ALL'].concat(ret).map((mthd: string) => ({ label: mthd, value: mthd }))
         }
       })
     }

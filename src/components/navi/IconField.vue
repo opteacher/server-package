@@ -1,0 +1,119 @@
+<template>
+  <a-button class="w-100" :size="size" @click="visible = true">
+    <template #icon>
+      <keep-alive v-if="icon">
+        <component :is="icon" />
+      </keep-alive>
+    </template>
+    {{ icon }}
+  </a-button>
+  <a-modal v-model:visible="visible" title="选择图标" width="60vw" @ok="onIconSelect">
+    <a-input v-model:value="search" placeholder="筛选图标" />
+    <a-tabs v-model:activeKey="selTab">
+      <a-tab-pane key="ant-design" tab="ant图表库">
+        <a-row v-for="iconGp in icons.slice(pages.cur - 1, pages.cur + 3)" :key="iconGp[0]">
+          <a-col
+            :span="6"
+            class="text-center hover-grey"
+            v-for="icon of iconGp"
+            :key="icon"
+            :style="{ border: selIcon === icon ? '2px solid #1890ff' : 'none' }"
+            @click="selIcon = icon"
+          >
+            <keep-alive>
+              <component
+                :is="icon"
+                v-bind="{ style: { 'font-size': '32px', 'margin-top': '10px' } }"
+              />
+            </keep-alive>
+            <p>{{ icon }}</p>
+          </a-col>
+        </a-row>
+        <a-divider />
+        <a-row type="flex">
+          <a-col flex="100px" style="line-height: 42px; vertical-align: middle">
+            选中图标：{{ selIcon }}
+          </a-col>
+          <a-col flex="auto" class="text-right">
+            <a-pagination
+              class="mt-10"
+              v-model:current="pages.cur"
+              :total="pages.num"
+              show-less-items
+            />
+          </a-col>
+        </a-row>
+      </a-tab-pane>
+    </a-tabs>
+  </a-modal>
+</template>
+
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from 'vue'
+import * as antdIcons from '@ant-design/icons-vue/lib/icons'
+
+type IconsKey = 'ant-design'
+
+const iconsMapper = {
+  'ant-design': antdIcons
+}
+
+export default defineComponent({
+  name: 'IconField',
+  emits: ['select'],
+  props: {
+    size: { type: String, default: 'default' },
+    icon: { type: String, required: true }
+  },
+  components: antdIcons,
+  setup(_props, { emit }) {
+    const visible = ref(false)
+    const search = ref('')
+    const selTab = ref('ant-design' as IconsKey)
+    const icons = reactive([] as string[][])
+    const pages = reactive({
+      num: 0,
+      cur: 1
+    })
+    const selIcon = ref('')
+
+    onMounted(refresh)
+
+    function refresh() {
+      const iconsLibs = Object.keys(iconsMapper[selTab.value])
+      icons.splice(0, icons.length)
+      for (let i = 0; i < iconsLibs.length; i += 4) {
+        const group = [iconsLibs[i]]
+        if (i + 1 < iconsLibs.length) {
+          group.push(iconsLibs[i + 1])
+        }
+        if (i + 2 < iconsLibs.length) {
+          group.push(iconsLibs[i + 2])
+        }
+        if (i + 3 < iconsLibs.length) {
+          group.push(iconsLibs[i + 3])
+        }
+        icons.push(group)
+      }
+      if (icons.length > 4) {
+        pages.num = icons.length >> 2
+        pages.cur = 1
+      }
+    }
+    function onIconSelect() {
+      emit('select', selIcon.value)
+      visible.value = false
+    }
+    return {
+      visible,
+      search,
+      selTab,
+      icons,
+      pages,
+      selIcon,
+
+      onIconSelect
+    }
+  }
+})
+</script>

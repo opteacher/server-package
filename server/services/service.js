@@ -3,6 +3,7 @@ import { db } from '../utils/index.js'
 import Service from '../models/service.js'
 import Project from '../models/project.js'
 import axios from 'axios'
+import { scanNextss, del as delNode } from './node.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
@@ -93,4 +94,16 @@ export async function stop(pid, jid, authorization) {
     authorization ? { headers: { authorization } } : undefined
   )
   return db.save(Service, { jobId: 0 }, { _index: jid })
+}
+
+export async function del(sid) {
+  const service = await db.select(Service, { _index: sid }, { ext: true })
+  if (service.flow && service.flow.id) {
+    const { allNodes } = await scanNextss(service.flow, '')
+    for (const nid of Object.keys(allNodes)) {
+      await delNode(nid)
+    }
+    await delNode(service.flow.id, service.id)
+  }
+  return db.remove(Service, { _index: sid })
 }

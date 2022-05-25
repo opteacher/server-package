@@ -4,6 +4,8 @@ export default db.defineModel(
   'model',
   {
     name: db.PropTypes.String,
+    label: db.PropTypes.String,
+    icon: db.PropTypes.String,
     desc: db.PropTypes.String,
     logTime: db.PropTypes.Boolean,
     props: [

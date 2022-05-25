@@ -95,7 +95,7 @@
           </template>
         </template>
         <template #detail>
-          <a-button size="small">具体信息</a-button>
+          <a-button size="small">测试</a-button>
         </template>
       </EditableTable>
     </div>

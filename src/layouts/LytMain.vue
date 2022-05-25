@@ -13,7 +13,7 @@
         </a-menu-item>
         <a-menu-item key="dependency">
           <partition-outlined />
-          <span>依赖</span>
+          <span>模组</span>
         </a-menu-item>
         <a-menu-item key="component">
           <build-outlined />

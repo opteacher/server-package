@@ -1,10 +1,10 @@
 <template>
-  <a-input placeholder="输入颜色代码" :value="color">
+  <a-input placeholder="输入颜色代码" :value="color" :size="size">
     <template #suffix>
       <div
         :style="{
-          width: '20px',
-          height: '20px',
+          width: `${colDspSz}px`,
+          height: `${colDspSz}px`,
           cursor: 'pointer',
           border: '1px solid black',
           'background-color': color
@@ -29,8 +29,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { computed, defineComponent, reactive } from 'vue'
 import ColorSelect from '../com/ColorSelect.vue'
+
+const szMap = { default: 20, large: 25, small: 15 }
 
 export default defineComponent({
   name: 'ColorField',
@@ -39,13 +41,15 @@ export default defineComponent({
   },
   emits: ['submit'],
   props: {
-    color: { type: String, default: '' }
+    color: { type: String, default: '' },
+    size: { type: String, default: 'default' }
   },
-  setup(_props, { emit }) {
+  setup(props, { emit }) {
     const formState = reactive({
       visible: false,
       color: '#000000'
     })
+    const colDspSz = computed(() => szMap[props.size as 'default' | 'large' | 'small'])
 
     function onSubmit() {
       emit('submit', {
@@ -57,6 +61,7 @@ export default defineComponent({
     }
     return {
       formState,
+      colDspSz,
       onSubmit
     }
   }

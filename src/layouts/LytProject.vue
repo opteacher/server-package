@@ -15,6 +15,10 @@
           <audit-outlined />
           <span>权限</span>
         </a-menu-item>
+        <a-menu-item :key="`project/${pid}/ds/login`">
+          <layout-outlined />
+          <span>中台</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -72,7 +76,8 @@ import {
   MenuFoldOutlined,
   AppstoreOutlined,
   AuditOutlined,
-  HomeOutlined
+  HomeOutlined,
+  LayoutOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -86,7 +91,8 @@ export default defineComponent({
     MenuFoldOutlined,
     AppstoreOutlined,
     AuditOutlined,
-    HomeOutlined
+    HomeOutlined,
+    LayoutOutlined
   },
   props: {
     active: { type: String, required: true }

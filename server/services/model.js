@@ -4,8 +4,10 @@ import { db, genDefault } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import Dep from '../models/dep.js'
+import Service from '../models/service.js'
 import axios from 'axios'
 import _ from 'lodash'
+import { del as delSvc } from './service.js'
 
 const typeMapper = {
   Any: 'any',
@@ -121,6 +123,53 @@ export async function create(data) {
     from: `../models/${model.name}.js`,
     default: true
   })
+  if (data.pid) {
+    const project = await db.select(Project, { _index: data.pid })
+    let svc = await db.save(Service, {
+      name: model.name,
+      emit: 'api',
+      isModel: true,
+      method: 'POST',
+      path: `/${project.name}/mdl/v1/${model.name}`
+    })
+    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+
+    svc = await db.save(Service, {
+      name: model.name,
+      emit: 'api',
+      isModel: true,
+      method: 'DELETE',
+      path: `/${project.name}/mdl/v1/${model.name}/:index`
+    })
+    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+
+    svc = await db.save(Service, {
+      name: model.name,
+      emit: 'api',
+      isModel: true,
+      method: 'PUT',
+      path: `/${project.name}/mdl/v1/${model.name}/:index`
+    })
+    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+
+    svc = await db.save(Service, {
+      name: model.name,
+      emit: 'api',
+      isModel: true,
+      method: 'GET',
+      path: `/${project.name}/mdl/v1/${model.name}/:index`
+    })
+    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+
+    svc = await db.save(Service, {
+      name: model.name,
+      emit: 'api',
+      isModel: true,
+      method: 'GET',
+      path: `/${project.name}/mdl/v1/${model.name}s`
+    })
+    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+  }
   await genForm(model.id)
   await genTable(model.id)
   return db.select(Model, { _index: model.id })
@@ -128,6 +177,8 @@ export async function create(data) {
 
 export async function del(key) {
   await db.remove(Dep, { _index: key })
+  const model = await db.select(Model, { _index: key })
+  await Promise.all(model.svcs.map(sid => delSvc(sid)))
   return db.remove(Model, { _index: key })
 }
 

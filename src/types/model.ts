@@ -8,6 +8,8 @@ import Service from './service'
 export default class Model {
   key: string
   name: string
+  label: string
+  icon: string
   desc: string
   logTime: boolean
   props: Property[]
@@ -18,6 +20,8 @@ export default class Model {
   constructor() {
     this.key = ''
     this.name = ''
+    this.label = ''
+    this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true
     this.props = []
@@ -29,6 +33,8 @@ export default class Model {
   reset() {
     this.key = ''
     this.name = ''
+    this.label = ''
+    this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true
     this.props = []
@@ -45,6 +51,8 @@ export default class Model {
     }
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
+    tgt.label = src.label || tgt.label
+    tgt.icon = src.icon || tgt.icon
     tgt.desc = src.desc || tgt.desc
     if (typeof src.logTime !== 'undefined') {
       tgt.logTime = src.logTime

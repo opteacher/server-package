@@ -97,5 +97,6 @@ export default {
       type: 'api',
       messages: { notShow: false }
     }).then((pjt: any) => pjt.status),
-  apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' })
+  apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
+  publish: (key: any) => reqGet('project', `${key}/publish`, { type: 'api' })
 }

@@ -5,7 +5,11 @@ import ExpCls from '@/types/expCls'
 
 const expDft = {
   add: async (data: any) => {
-    const model = Model.copy(await reqPost('model', data, { type: 'api' }))
+    const model = Model.copy(
+      await reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
+        type: 'api'
+      })
+    )
     await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
     return model
   },
