@@ -11,13 +11,13 @@
     <a-input v-model:value="search" placeholder="筛选图标" />
     <a-tabs v-model:activeKey="selTab">
       <a-tab-pane key="ant-design" tab="ant图表库">
-        <a-row v-for="iconGp in icons.slice(pages.cur - 1, pages.cur + 3)" :key="iconGp[0]">
+        <a-row v-for="group in icons.slice(begIdx, begIdx + 4)" :key="group[0]">
           <a-col
             :span="6"
             class="text-center hover-grey"
-            v-for="icon of iconGp"
+            v-for="icon of group"
             :key="icon"
-            :style="{ border: selIcon === icon ? '2px solid #1890ff' : 'none' }"
+            :style="{ border: selIcon === icon ? '2px solid #1890ff' : '2px solid white' }"
             @click="selIcon = icon"
           >
             <keep-alive>
@@ -30,11 +30,11 @@
           </a-col>
         </a-row>
         <a-divider />
-        <a-row type="flex">
-          <a-col flex="100px" style="line-height: 42px; vertical-align: middle">
+        <a-row>
+          <a-col :span="12" style="line-height: 42px; vertical-align: middle">
             选中图标：{{ selIcon }}
           </a-col>
-          <a-col flex="auto" class="text-right">
+          <a-col :span="12" class="text-right">
             <a-pagination
               class="mt-10"
               v-model:current="pages.cur"
@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 
 type IconsKey = 'ant-design'
@@ -76,6 +76,7 @@ export default defineComponent({
       cur: 1
     })
     const selIcon = ref('')
+    const begIdx = computed(() => (pages.cur - 1) << 2)
 
     onMounted(refresh)
 
@@ -111,6 +112,7 @@ export default defineComponent({
       icons,
       pages,
       selIcon,
+      begIdx,
 
       onIconSelect
     }

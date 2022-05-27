@@ -1,5 +1,5 @@
 <template>
-  <LytMiddle :active="`project/${pid}/ds/navigate`">
+  <LytMiddle :active="`project/${pid}/mid/navigate`">
     <a-row style="height: 65vh" :gutter="24">
       <a-col :span="16" style="background-color: #ededed">
         <div
@@ -13,19 +13,19 @@
             :style="{
               height: '10%',
               cursor: 'pointer',
-              padding: selKey === '#' ? '12px' : '14px',
-              border: selKey === '#' ? '2px solid #1890ff' : 'none',
+              padding: selMuKey === '#' ? '12px' : '14px',
+              border: selMuKey === '#' ? '2px solid #1890ff' : 'none',
               color: navProps.theme === 'dark' ? '#FFFFFFA6' : '#001529',
               'background-color': navProps.theme === 'dark' ? '#001529' : 'white'
             }"
-            @click="selKey = '#'"
+            @click="selMuKey = '#'"
           >
             <picture-outlined />
             &nbsp;Logo
           </div>
           <a-menu
             :style="{ height: '90%', display: 'flex' }"
-            :selectedKeys="[selKey]"
+            :selectedKeys="[selMuKey]"
             mode="inline"
             :theme="navProps.theme"
             @select="onMuItemSelect"
@@ -45,10 +45,10 @@
         <a-descriptions class="mb-20" title="菜单参数" :column="1" size="small" bordered>
           <template #extra>
             <a-button
-              type="primary"
+              :type="!navProps.equals(midNav) ? 'primary' : 'default'"
               @click="
                 () => {
-                  selKey = ''
+                  selMuKey = ''
                 }
               "
             >
@@ -66,13 +66,13 @@
             />
           </a-descriptions-item>
         </a-descriptions>
-        <a-descriptions v-if="selKey === '#'" title="菜单项参数" :column="1" size="small" bordered>
+        <a-descriptions v-if="selMuKey === '#'" title="Logo参数" :column="1" size="small" bordered>
           <template #extra>
             <a-button
-              type="primary"
+              :type="!navProps.equals(midNav) ? 'primary' : 'default'"
               @click="
                 () => {
-                  selKey = ''
+                  selMuKey = ''
                 }
               "
             >
@@ -95,13 +95,13 @@
             </a-upload>
           </a-descriptions-item>
         </a-descriptions>
-        <a-descriptions v-else-if="selKey" title="菜单项参数" :column="1" size="small" bordered>
+        <a-descriptions v-else-if="selMuKey" title="菜单项参数" :column="1" size="small" bordered>
           <template #extra>
             <a-button
               type="primary"
               @click="
                 () => {
-                  selKey = ''
+                  selMuKey = ''
                 }
               "
             >
@@ -140,9 +140,10 @@ import LytMiddle from '../layouts/LytMiddle.vue'
 import { BorderlessTableOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import Model from '../types/model'
 import IconField from '../components/navi/IconField.vue'
+import MidNav from '@/types/midNav'
 
 export default defineComponent({
-  name: 'DesignNavigate',
+  name: 'MiddleNavigate',
   components: {
     LytMiddle,
     IconField,
@@ -154,28 +155,33 @@ export default defineComponent({
     const store = useStore()
     const route = useRoute()
     const pid = route.params.pid
-    const selKey = ref('')
+    const selMuKey = ref('')
     const models = computed(() => store.getters['project/ins'].models)
-    const navProps = reactive({
-      theme: 'dark' as 'dark' | 'light',
-      logo: []
-    })
+    const midNav = computed(() => store.getters['project/ins'].middle.navigate)
+    const navProps = reactive(new MidNav())
     const nvItmProps = reactive(new Model())
 
-    onMounted(() => store.dispatch('project/refresh'))
+    onMounted(refresh)
 
+    async function refresh() {
+      await store.dispatch('project/refresh')
+      MidNav.copy(store.getters['project/ins'].middle.navigate, navProps)
+    }
     function onMuItemSelect({ key }: { key: string }) {
-      selKey.value = key
+      selMuKey.value = key
       Model.copy(
         models.value.find((model: Model) => model.key === key),
         nvItmProps
       )
     }
-    function onUpldImgChange() {}
+    function onUpldImgChange() {
+      console.log()
+    }
     return {
       pid,
       models,
-      selKey,
+      selMuKey,
+      midNav,
       navProps,
       nvItmProps,
 

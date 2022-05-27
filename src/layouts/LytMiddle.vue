@@ -3,11 +3,11 @@
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item :key="`project/${pid}/ds/login`">
+        <a-menu-item :key="`project/${pid}/mid/login`">
           <login-outlined />
           <span>登录页</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/ds/navigate`">
+        <a-menu-item :key="`project/${pid}/mid/navigate`">
           <hdd-outlined />
           <span>导航栏</span>
         </a-menu-item>

@@ -1,5 +1,13 @@
-'use strict'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { v4 as uuidv4 } from 'uuid'
+
 export default class Cell {
+  key: string
+  color: string
+  prefix: string
+  suffix: string
+
   constructor() {
     this.key = ''
     this.color = '#000000'
@@ -14,9 +22,9 @@ export default class Cell {
     this.suffix = ''
   }
 
-  static copy(src, tgt) {
+  static copy(src: any, tgt?: Cell): Cell {
     tgt = tgt || new Cell()
-    tgt.key = src.key || src.id || src._id || tgt.key
+    tgt.key = src.key || uuidv4()
     tgt.color = src.color || tgt.color
     tgt.prefix = src.prefix || tgt.prefix
     tgt.suffix = src.suffix || tgt.suffix

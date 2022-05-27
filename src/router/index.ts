@@ -11,8 +11,8 @@ import Job from '../views/Job.vue'
 import Flow from '../views/Flow.vue'
 import DataSet from '../views/DataSet.vue'
 import Auth from '../views/Auth.vue'
-import DsLgn from '../views/DsLgn.vue'
-import DsNav from '../views/DsNav.vue'
+import MidLgn from '../views/MidLgn.vue'
+import MidNav from '../views/MidNav.vue'
 import Form from '../views/Form.vue'
 import Table from '../views/Table.vue'
 import Demo from '../views/Demo.vue'
@@ -102,15 +102,15 @@ const routes: Array<RouteRecordRaw> = [
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/ds/login',
-    name: 'DesignLogin',
-    component: DsLgn,
+    path: '/server-package/project/:pid/mid/login',
+    name: 'MiddleLogin',
+    component: MidLgn,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/ds/navigate',
-    name: 'DesignNavigate',
-    component: DsNav,
+    path: '/server-package/project/:pid/mid/navigate',
+    name: 'MiddleNavigate',
+    component: MidNav,
     meta: { reqLogin: true }
   },
   {

@@ -98,5 +98,10 @@ export default {
       messages: { notShow: false }
     }).then((pjt: any) => pjt.status),
   apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
-  publish: (key: any) => reqGet('project', `${key}/publish`, { type: 'api' })
+  publish: (key: any) => reqGet('project', `${key}/publish`, { type: 'api' }),
+  middle: {
+    login: {
+      save: (data: any) => reqPut('project', data.pid, { 'middle.login': data }, { ignores: ['pid'] })
+    }
+  }
 }

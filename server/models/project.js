@@ -35,6 +35,25 @@ export default db.defineModel(
           desc: db.PropTypes.String
         }
       ]
+    },
+    middle: {
+      login: {
+        bkgdColor: db.PropTypes.String,
+        background: db.PropTypes.Array,
+        lblWidth: db.PropTypes.Number,
+        width: db.PropTypes.Number,
+        height: db.PropTypes.Number,
+        align: db.PropTypes.String,
+        radius: db.PropTypes.Number,
+        fmBkgdColor: db.PropTypes.String,
+        registerable: db.PropTypes.Boolean,
+        logAccount: db.PropTypes.Boolean,
+        hasLabel:  db.PropTypes.Boolean
+      },
+      navigate: {
+        theme: db.PropTypes.String,
+        logo: db.PropTypes.Array
+      }
     }
   },
   {

@@ -353,14 +353,16 @@ export async function genAuth(project, tmpPath, genPath) {
     project,
     mdlName: 'test',
     skips: project.auth.skips || [],
-    apis: apis.filter(api => api.name !== 'auth').map(api => {
-      if (api.path.includes(':')) {
-        api.path = new RegExp(api.path.replace(/:([^\/]*)/g, '([^/]*)'))
-      }
-      api.path = `/${project.name}${api.path}`
-      api.method = api.method.toUpperCase()
-      return api
-    }),
+    apis: apis
+      .filter(api => api.name !== 'auth')
+      .map(api => {
+        if (api.path.includes(':')) {
+          api.path = new RegExp(api.path.replace(/:([^\/]*)/g, '([^/]*)'))
+        }
+        api.path = `/${project.name}${api.path}`
+        api.method = api.method.toUpperCase()
+        return api
+      }),
     nodes: [],
     deps: []
   }
@@ -696,24 +698,111 @@ export async function getAllAPIs(pid) {
   return ret
 }
 
-export async function publish(pid) {
-  const project = ProjType.copy(await db.select(Project, { _index: pid }, { ext: true }))
-  // for (const { key } of project.models) {
-  //   const model = MdlType.copy(await db.select(Model, { _index: key }, { ext: true}))
-  //   if (!model.form || !model.table) {
-  //     continue
-  //   }
-  //   const form = FmType.copy(await db.select(Form, { _index: model.form.key }, { ext: true }))
-  //   const table = TblType.copy(await db.select(Table, { _index: model.table.key }, { ext: true}))
-  // }
+export async function pubMidPlatform(pid) {
+  const project = await db.select(Project, { _index: pid })
+  const hasAuth = project.auth.model
 
-  const genPath = Path.resolve(svrCfg.apps, project.name)
+  const svrCfg = await readConfig(Path.resolve('configs', 'server'))
+  const tmpPath = Path.resolve('resources', 'mid-temp')
+  const genPath = Path.resolve(svrCfg.apps, `${project.name}-mid`)
+  console.log('初始化中台项目……')
+  try {
+    fs.rmSync(genPath)
+  } catch (e) {}
+  fs.mkdirSync(genPath, { recursive: true })
+
+  const pkgTmp = Path.join(tmpPath, 'package.json')
+  const pkgGen = Path.join(genPath, 'package.json')
+  console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
+  adjustFile(pkgTmp, pkgGen, { project })
+  const vueTmp = Path.join(tmpPath, 'vue.config.js')
+  const vueGen = Path.join(genPath, 'vue.config.js')
+  console.log(`调整vue配置文件：${vueTmp} -> ${vueGen}`)
+  adjustFile(vueTmp, vueGen, { project })
+  const tsTmp = Path.join(tmpPath, 'tsconfig.json')
+  const tsGen = Path.join(genPath, 'tsconfig.json')
+  console.log(`复制ts配置文件：${tsTmp} -> ${tsGen}`)
+  fs.copyFileSync(tsTmp, tsGen)
+  const bblTmp = Path.join(tmpPath, 'babel.config.js')
+  const bblGen = Path.join(genPath, 'babel.config.js')
+  console.log(`复制babel配置文件：${bblTmp} -> ${bblGen}`)
+  fs.copyFileSync(bblTmp, bblGen)
+  fs.mkdirSync(Path.join(genPath, 'public'), { recursive: true })
+  const idxTmp = Path.join(tmpPath, 'public', 'index.html')
+  const idxGen = Path.join(genPath, 'public', 'index.html')
+  console.log(`复制html原始文件：${idxTmp} -> ${idxGen}`)
+  fs.copyFileSync(idxTmp, idxGen)
+  const icoTmp = Path.join(tmpPath, 'public', 'favicon.ico')
+  const icoGen = Path.join(genPath, 'public', 'favicon.ico')
+  console.log(`复制html原始文件：${icoTmp} -> ${icoGen}`)
+  fs.copyFileSync(icoTmp, icoGen)
+
+  const tmpSrcPath = Path.join(tmpPath, 'src')
+  const genSrcPath = Path.join(genPath, 'src')
+  fs.mkdirSync(genSrcPath, { recursive: true })
+  const mnTmp = Path.join(tmpSrcPath, 'main.ts')
+  const mnGen = Path.join(genSrcPath, 'main.ts')
+  console.log(`复制src/main文件：${mnTmp} -> ${mnGen}`)
+  fs.copyFileSync(mnTmp, mnGen)
+  const appTmp = Path.join(tmpSrcPath, 'App.vue')
+  const appGen = Path.join(genSrcPath, 'App.vue')
+  console.log(`复制src/App.vue文件：${appTmp} -> ${appGen}`)
+  fs.copyFileSync(appTmp, appGen)
+  const cssTmp = Path.join(tmpSrcPath, 'styles.less')
+  const cssGen = Path.join(genSrcPath, 'styles.less')
+  console.log(`复制src/styles.less文件：${cssTmp} -> ${cssGen}`)
+  fs.copyFileSync(cssTmp, cssGen)
+  const utlTmp = Path.join(tmpSrcPath, 'utils.ts')
+  const utlGen = Path.join(genSrcPath, 'utils.ts')
+  console.log(`调整src/utils.ts文件：${utlTmp} -> ${utlGen}`)
+  adjustFile(utlTmp, utlGen, { project })
+  const svueTmp = Path.join(tmpSrcPath, 'shims-vue.d.ts')
+  const svueGen = Path.join(genSrcPath, 'shims-vue.d.ts')
+  console.log(`复制src/shims-vue.d.ts文件：${svueTmp} -> ${svueGen}`)
+  fs.copyFileSync(svueTmp, svueGen)
+  const typTmp = Path.join(tmpSrcPath, 'types')
+  const typGen = Path.join(genSrcPath, 'types')
+  console.log(`复制src/types文件夹：${typTmp} -> ${typGen}`)
+  copyDir(typTmp, typGen)
+  const apiTmp = Path.join(tmpSrcPath, 'apis')
+  const apiGen = Path.join(genSrcPath, 'apis')
+  console.log(`复制src/apis文件夹：${apiTmp} -> ${apiGen}`)
+  copyDir(apiTmp, apiGen)
+  const cmpTmp = Path.join(tmpSrcPath, 'components')
+  const cmpGen = Path.join(genSrcPath, 'components')
+  console.log(`复制src/components文件夹：${cmpTmp} -> ${cmpGen}`)
+  copyDir(cmpTmp, cmpGen)
+  const astTmp = Path.join(tmpSrcPath, 'assets')
+  const astGen = Path.join(genSrcPath, 'assets')
+  console.log(`复制src/assets文件夹：${astTmp} -> ${astGen}`)
+  copyDir(astTmp, astGen)
+
+  console.log('根据权限生成登录页面，并配置路由……')
+  fs.mkdirSync(Path.join(genSrcPath, 'router'), { recursive: true })
+  const rtTmp = Path.join(tmpSrcPath, 'router', 'index.ts')
+  const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
+  console.log(`调整src/router/index.ts文件：${utlTmp} -> ${utlGen}`)
+  adjustFile(rtTmp, rtGen, { hasAuth, project })
+  fs.mkdirSync(Path.join(genSrcPath, 'views'), { recursive: true })
+  if (hasAuth) {
+    const lgnTmp = Path.join(tmpSrcPath, 'views', 'Login.vue')
+    const lgnGen = Path.join(genSrcPath, 'views', 'Login.vue')
+    console.log(`复制src/views/Login.vue文件：${lgnTmp} -> ${lgnGen}`)
+    fs.copyFileSync(lgnTmp, lgnGen)
+  }
+  const hmTmp = Path.join(tmpSrcPath, 'views', 'Home.vue')
+  const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
+  console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
+  fs.copyFileSync(hmTmp, hmGen)
+  console.log('根据导航栏信息，生成布局……')
+  console.log('生成中台首页……')
+
   console.log(`发布中台到目录：${genPath}`)
   spawn(
     [
       'npm config set registry http://registry.npm.taobao.org',
-      'npm install -g --unsafe-perm=true --allow-root vue',
-      `vue create ${project.name}-mid`
+      'npm install --unsafe-perm=true --allow-root',
+      'npm run serve'
     ].join(' && '),
     {
       cwd: genPath,

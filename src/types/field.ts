@@ -34,7 +34,7 @@ export default class Field {
   static copy(src: any, tgt?: Field): Field {
     tgt = tgt || new Field()
     tgt.key = src.key || src._id || tgt.key
-    tgt.label = src.label || tgt.label
+    tgt.label = typeof src.label !== 'undefined' ? src.label : tgt.label
     tgt.desc = src.desc || tgt.desc
     tgt.ftype = src.ftype || tgt.ftype
     tgt.rules = src.rules || tgt.rules

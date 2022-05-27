@@ -15,7 +15,7 @@
           <audit-outlined />
           <span>权限</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/ds/login`">
+        <a-menu-item :key="`project/${pid}/mid/login`">
           <layout-outlined />
           <span>中台</span>
         </a-menu-item>

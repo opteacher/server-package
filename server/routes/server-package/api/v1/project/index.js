@@ -7,7 +7,7 @@ import {
   deploy,
   transfer,
   getAllAPIs,
-  publish
+  pubMidPlatform
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -86,9 +86,9 @@ router.post('/:pid/auth/sign', async ctx => {
   }
 })
 
-router.put('/:pid/publish', async ctx => {
+router.post('/:pid/mid/publish', async ctx => {
   ctx.body = {
-    result: await publish(ctx.params.pid)
+    result: await pubMidPlatform(ctx.params.pid)
   }
 })
 
