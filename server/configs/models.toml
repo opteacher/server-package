@@ -1,6 +1,6 @@
 version=1
 prefix="server-package"
 type="mongo"
-sync=false
+sync=true
 # sync=['database', 'dependency', 'component']
-# inits={ database = "./resources/database/database.json", dependency = "./resources/database/dependency.json", component = "./resources/database/component.json" }
+inits={ database = "./resources/database/database.json", dependency = "./resources/database/dependency.json", component = "./resources/database/component.json" }

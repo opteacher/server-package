@@ -1,5 +1,13 @@
 module.exports = {
-  publicPath: '//*return project.name*/',
-  outputDir: 'server/dist/public/server-package',
-  assetsDir: 'static'
+  outputDir: 'server/dist/public//*return project.name*/',
+  assetsDir: 'static',
+  devServer: {
+    proxy: {
+      '//*return project.name*//(mdl|api)': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
+      }
+    }
+  }
 }

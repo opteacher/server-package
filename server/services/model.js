@@ -124,13 +124,12 @@ export async function create(data) {
     default: true
   })
   if (data.pid) {
-    const project = await db.select(Project, { _index: data.pid })
     let svc = await db.save(Service, {
       name: model.name,
       emit: 'api',
       isModel: true,
       method: 'POST',
-      path: `/${project.name}/mdl/v1/${model.name}`
+      path: `/mdl/v1/${model.name}`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -139,7 +138,7 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'DELETE',
-      path: `/${project.name}/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -148,7 +147,7 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'PUT',
-      path: `/${project.name}/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -157,7 +156,7 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'GET',
-      path: `/${project.name}/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -166,7 +165,7 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'GET',
-      path: `/${project.name}/mdl/v1/${model.name}s`
+      path: `/mdl/v1/${model.name}s`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
   }

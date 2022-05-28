@@ -36,6 +36,7 @@
           </a-col>
           <a-col :span="12" class="text-right">
             <a-pagination
+              v-if="pages.num"
               class="mt-10"
               v-model:current="pages.cur"
               :total="pages.num"
@@ -97,7 +98,10 @@ export default defineComponent({
         icons.push(group)
       }
       if (icons.length > 4) {
-        pages.num = icons.length >> 2
+        pages.num = icons.length
+        pages.cur = 1
+      } else {
+        pages.num = 0
         pages.cur = 1
       }
     }
@@ -119,3 +123,9 @@ export default defineComponent({
   }
 })
 </script>
+
+<style lang="less" scoped>
+:deep(.ant-pagination-options) {
+  display: none !important;
+}
+</style>

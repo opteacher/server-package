@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs'
 import Path from 'path'
-import { db } from '../utils/index.js'
+import { db, skipIgnores } from '../utils/index.js'
 import { readConfig, copyDir } from '../lib/backend-library/utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
@@ -509,7 +509,15 @@ function adjustFile(src, dest, args) {
     for (let i = 0; i < slots.length; ++i) {
       const slot = slots[i]
       let begIdx = slot[0]
-      if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === "''") {
+      if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === "[] ") {
+        begIdx -= 3
+      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === "[]") {
+        begIdx -= 2
+      } else if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === "'' ") {
+        begIdx -= 3
+      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === "''") {
+        begIdx -= 2
+      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === '0 ') {
         begIdx -= 2
       } else if (slot[0] - 1 >= 0 && strData.substring(slot[0] - 1, slot[0]) === '0') {
         begIdx -= 1
@@ -699,7 +707,7 @@ export async function getAllAPIs(pid) {
 }
 
 export async function pubMidPlatform(pid) {
-  const project = await db.select(Project, { _index: pid })
+  const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
   const hasAuth = project.auth.model
 
   const svrCfg = await readConfig(Path.resolve('configs', 'server'))
@@ -764,10 +772,10 @@ export async function pubMidPlatform(pid) {
   const typGen = Path.join(genSrcPath, 'types')
   console.log(`复制src/types文件夹：${typTmp} -> ${typGen}`)
   copyDir(typTmp, typGen)
-  const apiTmp = Path.join(tmpSrcPath, 'apis')
-  const apiGen = Path.join(genSrcPath, 'apis')
-  console.log(`复制src/apis文件夹：${apiTmp} -> ${apiGen}`)
-  copyDir(apiTmp, apiGen)
+  const apiTmp = Path.join(tmpSrcPath, 'api.ts')
+  const apiGen = Path.join(genSrcPath, 'api.ts')
+  console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
+  fs.copyFileSync(apiTmp, apiGen)
   const cmpTmp = Path.join(tmpSrcPath, 'components')
   const cmpGen = Path.join(genSrcPath, 'components')
   console.log(`复制src/components文件夹：${cmpTmp} -> ${cmpGen}`)
@@ -788,16 +796,30 @@ export async function pubMidPlatform(pid) {
     const lgnTmp = Path.join(tmpSrcPath, 'views', 'Login.vue')
     const lgnGen = Path.join(genSrcPath, 'views', 'Login.vue')
     console.log(`复制src/views/Login.vue文件：${lgnTmp} -> ${lgnGen}`)
-    fs.copyFileSync(lgnTmp, lgnGen)
+    const model = (await db.select(Model, { _index: project.auth.model })).toObject()
+    const fields = project.auth.props
+      .map(prop => model.form.fields.find(field => field.refer === prop.name))
+      .filter(field => field)
+      .map(field => Object.assign(skipIgnores(field, ['_id']), { key: field._id }))
+    project.middle.login = skipIgnores(project.middle.login, ['_id'])
+    adjustFile(lgnTmp, lgnGen, { project, fields })
   }
+
+  console.log('根据导航栏信息，生成布局……')
+  fs.mkdirSync(Path.join(genSrcPath, 'layout'), { recursive: true })
+  const lytTmp = Path.join(tmpSrcPath, 'layout', 'index.vue')
+  const lytGen = Path.join(genSrcPath, 'layout', 'index.vue')
+  console.log(`调整src/layout/index.vue文件：${lytTmp} -> ${lytGen}`)
+  adjustFile(lytTmp, lytGen, { project })
+
+  console.log('生成中台首页……')
   const hmTmp = Path.join(tmpSrcPath, 'views', 'Home.vue')
   const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
   console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
-  fs.copyFileSync(hmTmp, hmGen)
-  console.log('根据导航栏信息，生成布局……')
-  console.log('生成中台首页……')
+  adjustFile(hmTmp, hmGen, { models: project.models })
 
   console.log(`发布中台到目录：${genPath}`)
+  process.env.BASE_URL = ''
   spawn(
     [
       'npm config set registry http://registry.npm.taobao.org',

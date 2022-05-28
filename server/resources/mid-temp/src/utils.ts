@@ -37,7 +37,12 @@ function reqType(options?: RequestOptions): string {
   return options && options.type ? options.type : 'mdl'
 }
 
-const baseURL = typeof process.env.BASE_URL !== 'undefined' ? process.env.BASE_URL : 'http:///*return project.name*/'
+const baseURL =
+  typeof process.env.BASE_URL !== 'undefined'
+    ? process.env.BASE_URL.endsWith('/')
+      ? process.env.BASE_URL.substring(0, process.env.BASE_URL.length - 1)
+      : process.env.BASE_URL
+    : 'http:///*return `${project.name}:${project.port}`*/'
 
 export async function reqAll(path: string, options?: RequestOptions): Promise<any> {
   const result = await makeRequest(

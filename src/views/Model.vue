@@ -84,9 +84,7 @@
           <template v-else-if="svc.emit === 'interval'">定时任务</template>
         </template>
         <template #pathCond="{ record: svc }">
-          <template v-if="svc.emit === 'api'">
-            {{ svc.path }}
-          </template>
+          <template v-if="svc.emit === 'api'">/{{ pjtName }}{{ svc.path }}</template>
           <template v-else-if="svc.emit === 'timeout'">
             {{ `${svc.condition}后` }}
           </template>
@@ -141,6 +139,7 @@ export default defineComponent({
     const pid = route.params.pid as string
     const mid = route.params.mid as string
     const model = computed(() => store.getters['model/ins'])
+    const pjtName = computed(() => store.getters['project/ins'].name)
     const pstatus = computed(() => store.getters['project/ins'].status)
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
@@ -164,6 +163,7 @@ export default defineComponent({
       pid,
       mid,
       model,
+      pjtName,
       mdlAPI,
       pstatus,
       expMapper,
