@@ -4,11 +4,11 @@ export default class MidLgn {
   background: any[]
   lblWidth: number
   width: number
-  height: number
   align: string
   radius: number
   fmBkgdColor: string
   registerable: boolean
+  title: string
   logAccount: boolean
   hasLabel: boolean
 
@@ -18,11 +18,11 @@ export default class MidLgn {
     this.background = []
     this.lblWidth = 4
     this.width = 50
-    this.height = 300
     this.align = 'center'
     this.radius = 0
     this.fmBkgdColor = '#EFEFEF'
     this.registerable = false
+    this.title = '登录标题'
     this.logAccount = true
     this.hasLabel = true
   }
@@ -33,11 +33,11 @@ export default class MidLgn {
     this.background = []
     this.lblWidth = 4
     this.width = 50
-    this.height = 300
     this.align = 'center'
     this.radius = 0
     this.fmBkgdColor = '#EFEFEF'
     this.registerable = false
+    this.title = ''
     this.logAccount = true
     this.hasLabel = true
   }
@@ -49,11 +49,11 @@ export default class MidLgn {
     tgt.background = src.background || tgt.background
     tgt.lblWidth = src.lblWidth || tgt.lblWidth
     tgt.width = src.width || tgt.width
-    tgt.height = src.height || tgt.height
     tgt.align = src.align || tgt.align
     tgt.radius = src.radius || tgt.radius
     tgt.fmBkgdColor = src.fmBkgdColor || tgt.fmBkgdColor
     tgt.registerable = typeof src.registerable !== 'undefined' ? src.registerable : tgt.registerable
+    tgt.title = typeof src.title !== 'undefined' ? src.title : tgt.title
     tgt.logAccount = typeof src.logAccount !== 'undefined' ? src.logAccount : tgt.logAccount
     tgt.hasLabel = typeof src.hasLabel !== 'undefined' ? src.hasLabel : tgt.hasLabel
     return tgt
@@ -65,11 +65,11 @@ export default class MidLgn {
       this.background === to.background &&
       this.lblWidth === to.lblWidth &&
       this.width === to.width &&
-      this.height === to.height &&
       this.align === to.align &&
       this.radius === to.radius &&
       this.fmBkgdColor === to.fmBkgdColor &&
       this.registerable === to.registerable &&
+      this.title === to.title &&
       this.logAccount === to.logAccount &&
       this.hasLabel === to.hasLabel
     )

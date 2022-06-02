@@ -219,12 +219,7 @@ export async function generate(pid) {
 
   const genPath = Path.resolve(svrCfg.apps, project.name)
   console.log(`生成项目到目录：${genPath}`)
-  try {
-    fs.accessSync(genPath)
-    fs.rmSync(genPath, { recursive: true })
-  } catch (e) {
-    console.log('项目目录为空，重新创建')
-  }
+  fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
 
   fs.mkdirSync(Path.join(genPath, 'configs'))
@@ -250,13 +245,16 @@ export async function generate(pid) {
   const libTmp = Path.resolve('lib')
   const libGen = Path.join(genPath, 'lib')
   console.log(`复制库文件夹：${libTmp} -> ${libGen}`)
-  copyDir(libTmp, libGen)
+  copyDir(libTmp, libGen, { ignores: ['node_modules'] })
 
   fs.mkdirSync(Path.join(genPath, 'utils'))
   const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
   const utilsGen = Path.join(genPath, 'utils', 'index.js')
   console.log(`调整工具文件：${utilsTmp} -> ${utilsGen}`)
   adjustFile(utilsTmp, utilsGen)
+
+  console.log(`生成public文件夹：${Path.join(genPath, 'public')}`)
+  fs.mkdirSync(Path.join(genPath, 'public'))
 
   const deps = {}
   const svcPath = Path.join(genPath, 'services')
@@ -509,9 +507,9 @@ function adjustFile(src, dest, args) {
     for (let i = 0; i < slots.length; ++i) {
       const slot = slots[i]
       let begIdx = slot[0]
-      if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === "[] ") {
+      if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === '[] ') {
         begIdx -= 3
-      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === "[]") {
+      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === '[]') {
         begIdx -= 2
       } else if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === "'' ") {
         begIdx -= 3
@@ -571,15 +569,21 @@ export async function stop(pjt) {
 
 export async function status(pid) {
   const project = await db.select(Project, { _index: pid })
+  const chkPms = axios.get(
+    `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
+      project.name
+    }/mdl/v1`
+  )
   if (!project.thread) {
-    return { status: 'stopped' }
+    try {
+      await chkPms
+    } catch (e) {
+      return { status: 'stopped' }
+    }
+    return { status: 'loading' }
   } else {
     try {
-      await axios.get(
-        `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
-          project.name
-        }/mdl/v1`
-      )
+      await chkPms
     } catch (e) {
       return { status: 'loading' }
     }
@@ -706,7 +710,7 @@ export async function getAllAPIs(pid) {
   return ret
 }
 
-export async function pubMidPlatform(pid) {
+export async function pubMiddle(pid, pubInfo) {
   const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
   const hasAuth = project.auth.model
 
@@ -714,9 +718,7 @@ export async function pubMidPlatform(pid) {
   const tmpPath = Path.resolve('resources', 'mid-temp')
   const genPath = Path.resolve(svrCfg.apps, `${project.name}-mid`)
   console.log('初始化中台项目……')
-  try {
-    fs.rmSync(genPath)
-  } catch (e) {}
+  fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
 
   const pkgTmp = Path.join(tmpPath, 'package.json')
@@ -816,15 +818,19 @@ export async function pubMidPlatform(pid) {
   const hmTmp = Path.join(tmpSrcPath, 'views', 'Home.vue')
   const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
   console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
-  adjustFile(hmTmp, hmGen, { models: project.models })
+  adjustFile(hmTmp, hmGen, {
+    models: await Promise.all(project.models.map(model => db.select(Model, { _index: model.id })))
+  })
 
   console.log(`发布中台到目录：${genPath}`)
-  process.env.BASE_URL = ''
+  await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
   spawn(
     [
       'npm config set registry http://registry.npm.taobao.org',
       'npm install --unsafe-perm=true --allow-root',
-      'npm run serve'
+      'npm run build',
+      `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public`,
+      `docker exec -it ${project.name} mv /app/public/index.html /app/views/index.html`
     ].join(' && '),
     {
       cwd: genPath,
@@ -832,4 +838,30 @@ export async function pubMidPlatform(pid) {
       shell: true
     }
   )
+  return {
+    midURL: [
+      `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
+      `:${project.port}/${project.name}`,
+      project.middle.prefix ? `/${project.middle.prefix}` : '',
+      '/home'
+    ].join('')
+  }
+}
+
+export async function chkMiddle(pid) {
+  const project = await db.select(Project, { _index: pid })
+  const chkPms = axios.get(
+    [
+      `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
+      `:${project.port}/${project.name}`,
+      project.middle.prefix ? `/${project.middle.prefix}` : '',
+      '/home'
+    ].join('')
+  )
+  try {
+    await chkPms
+  } catch (e) {
+    return { status: 'loading' }
+  }
+  return { status: 'published' }
 }

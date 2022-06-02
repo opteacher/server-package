@@ -37,12 +37,14 @@ export default db.defineModel(
       ]
     },
     middle: {
+      lclDep: db.PropTypes.Boolean,
+      prefix: db.PropTypes.String,
       login: {
         bkgdColor: db.PropTypes.String,
         background: db.PropTypes.Array,
+        title: db.PropTypes.String,
         lblWidth: db.PropTypes.Number,
         width: db.PropTypes.Number,
-        height: db.PropTypes.Number,
         align: db.PropTypes.String,
         radius: db.PropTypes.Number,
         fmBkgdColor: db.PropTypes.String,

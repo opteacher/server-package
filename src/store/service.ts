@@ -244,7 +244,9 @@ export default {
         if (!domEle) {
           domEle = document.getElementById(ndKey)
         }
-        return domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0
+        return Promise.resolve(
+          domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0
+        )
       })
       if (domEle) {
         node.size[0] = domEle.clientWidth

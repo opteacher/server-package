@@ -31,18 +31,6 @@
             保存
           </a-button>
         </template>
-        <a-descriptions-item>
-          <template #label>
-            展示高度&nbsp;
-            <a-tooltip>
-              <template #title>只用于编辑时展示，不影响线上页面</template>
-              <info-circle-outlined />
-            </a-tooltip>
-          </template>
-          <a-input size="small" style="width: 12vw" v-model:value="lgnProps.height" type="number">
-            <template #suffix>px</template>
-          </a-input>
-        </a-descriptions-item>
         <a-descriptions-item label="背景颜色">
           <ColorField
             size="small"
@@ -101,6 +89,20 @@
             un-checked-children="不可注册"
           />
         </a-descriptions-item> -->
+        <a-descriptions-item label="标题">
+          <a-input-group size="small">
+            <a-row :gutter="8">
+              <a-col :span="12">
+                <a-input size="small" style="width: 100%" v-model:value="lgnProps.title" />
+              </a-col>
+              <a-col :span="12">
+                <a-button size="small" @click="lgnProps.title = middle.title">
+                  使用发布标题
+                </a-button>
+              </a-col>
+            </a-row>
+          </a-input-group>
+        </a-descriptions-item>
         <a-descriptions-item label="记录历史账户">
           <a-switch
             v-model:checked="lgnProps.logAccount"
@@ -135,43 +137,48 @@
       <div
         id="pnlDisplay"
         :style="{
-          padding: '0 24px',
-          height: `${lgnProps.height}px`,
+          padding: '50px 24px',
           display: 'flex',
           'align-items': 'center',
           'justify-content': lgnProps.align,
           'background-color': lgnProps.bkgdColor
         }"
       >
-        <a-form
+        <div
           :style="{
             padding: '16px 20px 0 20px',
             'border-radius': `${lgnProps.radius}px`,
             width: `${lgnProps.width}%`,
             'background-color': lgnProps.fmBkgdColor
           }"
-          :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
-          :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
         >
-          <FormItem
-            v-for="field in lgnFields"
-            :key="field.key"
-            :field="fixField(field)"
-            :form="{}"
-          />
+          <h1 :style="{ 'font-size': '20pt', 'text-align': 'center', 'margin-bottom': '20px' }">
+            {{ lgnProps.title }}
+          </h1>
+          <a-form
+            :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
+            :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
+          >
+            <FormItem
+              v-for="field in lgnFields"
+              :key="field.key"
+              :field="fixField(field)"
+              :form="{}"
+            />
 
-          <a-form-item v-if="lgnProps.logAccount" name="remember">
-            <a-checkbox>记住</a-checkbox>
-          </a-form-item>
+            <a-form-item v-if="lgnProps.logAccount" name="remember">
+              <a-checkbox>记住</a-checkbox>
+            </a-form-item>
 
-          <a-form-item>
-            <a-button type="primary" html-type="submit">登录</a-button>
-            <template v-if="lgnProps.registerable">
-              &nbsp;或&nbsp;
-              <a href="">前往注册</a>
-            </template>
-          </a-form-item>
-        </a-form>
+            <a-form-item>
+              <a-button type="primary" html-type="submit">登录</a-button>
+              <template v-if="lgnProps.registerable">
+                &nbsp;或&nbsp;
+                <a href="">前往注册</a>
+              </template>
+            </a-form-item>
+          </a-form>
+        </div>
       </div>
     </div>
   </LytMiddle>
@@ -182,7 +189,7 @@ import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import LytMiddle from '../layouts/LytMiddle.vue'
-import { UploadOutlined, PercentageOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import { UploadOutlined, PercentageOutlined } from '@ant-design/icons-vue'
 import ColorField from '../components/table/ColorField.vue'
 import MidLgn from '@/types/midLgn'
 import { waitFor } from '@/utils'
@@ -199,8 +206,7 @@ export default defineComponent({
     LytMiddle,
     ColorField,
     UploadOutlined,
-    PercentageOutlined,
-    InfoCircleOutlined
+    PercentageOutlined
   },
   setup() {
     const store = useStore()
@@ -214,6 +220,7 @@ export default defineComponent({
     const dspMask = reactive([0, 0, 0, 0])
     const hasAuth = computed(() => store.getters['project/ins'].auth.model as boolean)
     const lgnFields = reactive([] as Field[])
+    const middle = computed(() => store.getters['project/middle'])
 
     onMounted(refresh)
 
@@ -256,7 +263,7 @@ export default defineComponent({
       next()
     }
     async function onLoginSave() {
-      await pjtAPI.middle.login.save(Object.assign({ pid }, lgnProps))
+      await pjtAPI.middle.login.save(pid, lgnProps)
       await refresh()
     }
     function fixField(field: Field): Field {
@@ -277,6 +284,7 @@ export default defineComponent({
       dspMask,
       hasAuth,
       lgnFields,
+      middle,
 
       onUpldImgChange,
       onBkgdColSubmit,

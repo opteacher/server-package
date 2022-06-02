@@ -7,7 +7,8 @@ import {
   deploy,
   transfer,
   getAllAPIs,
-  pubMidPlatform
+  pubMiddle,
+  chkMiddle
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -86,9 +87,15 @@ router.post('/:pid/auth/sign', async ctx => {
   }
 })
 
-router.post('/:pid/mid/publish', async ctx => {
+router.post('/:pid/middle/publish', async ctx => {
   ctx.body = {
-    result: await pubMidPlatform(ctx.params.pid)
+    result: await pubMiddle(ctx.params.pid, ctx.request.body)
+  }
+})
+
+router.get('/:pid/middle/status', async ctx => {
+  ctx.body = {
+    result: await chkMiddle(ctx.params.pid)
   }
 })
 

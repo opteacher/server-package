@@ -48,23 +48,23 @@
           }"
         >
           <a-space class="mb-16">
-            <a-button type="primary" @click="showPub = true">
+            <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
               <template #icon><cloud-upload-outlined /></template>
               发布中台
             </a-button>
             <FormDialog
               title="配置中台"
-              :copy="Publish.copy"
+              :copy="Middle.copy"
               :show="showPub"
               :mapper="pubMapper"
               :emitter="pubEmitter"
-              @update:show="
-                show => {
-                  showPub = show
-                }
-              "
+              @update:show="onPubDlgShow"
               @submit="onPublish"
             />
+            <a-button :disabled="middle.loading || !middle.url" @click="$router.push(middle.url)">
+              <template #icon><layout-outlined /></template>
+              浏览中台
+            </a-button>
           </a-space>
           <slot />
         </a-layout-content>
@@ -83,12 +83,13 @@ import {
   ArrowLeftOutlined,
   CloudUploadOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined
+  MenuFoldOutlined,
+  LayoutOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import FormDialog from '../components/com/FormDialog.vue'
-import Publish from '@/types/publish'
+import Middle from '@/types/middle'
 import { pjtAPI as api } from '../apis'
 
 export default defineComponent({
@@ -100,6 +101,7 @@ export default defineComponent({
     CloudUploadOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
+    LayoutOutlined,
 
     FormDialog
   },
@@ -120,18 +122,35 @@ export default defineComponent({
         desc: '登录页和首页的标题',
         type: 'Input'
       },
+      prefix: {
+        label: '路由前缀',
+        desc: '/项目名/中台前缀/(home|login)',
+        type: 'Input'
+      },
       lclDep: {
         label: '本地部署',
-        desc: '是否部署到项目实例，相当于前后端分离',
+        desc: '是否部署到项目实例，【非本地部署】相当于前后端分离',
         type: 'Checkbox'
       }
     })
+    const middle = computed(() => store.getters['project/middle'])
 
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }
+    function onPubDlgShow(show: boolean) {
+      if (show) {
+        pubEmitter.emit('update:data', store.getters['project/middle'])
+      }
+      showPub.value = show
+    }
+    async function onPublish(info: Middle) {
+      await api.middle.publish(pid, info)
+      store.dispatch('project/chkMidStatus')
+      showPub.value = false
+    }
     return {
-      Publish,
+      Middle,
 
       pid,
       pjtName,
@@ -139,9 +158,11 @@ export default defineComponent({
       showPub,
       pubEmitter,
       pubMapper,
+      middle,
 
       onItemSelected,
-      onPublish: (info: Publish) => api.publish(info)
+      onPublish,
+      onPubDlgShow
     }
   }
 })

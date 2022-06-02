@@ -3,6 +3,7 @@
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu
+        class="h-100"
         :selectedKeys="[active]"
         :theme="navigate.theme"
         mode="inline"

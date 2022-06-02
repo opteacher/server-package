@@ -18,7 +18,7 @@
       </a-col>
     </a-row>
     <a-table
-      :columns="columns"
+      :columns="table.columns"
       :data-source="records"
       :size="table.size"
       :rowClassName="() => 'white-bkgd'"
@@ -75,58 +75,56 @@
         <span
           v-else
           :style="{
-            color: cells[column.dataIndex].color
+            color: table.cells[column.dataIndex].color
           }"
         >
           {{
-            cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
-              ? cells[column.dataIndex].prefix
+            table.cells[column.dataIndex].prefix &&
+            !text.startsWith(table.cells[column.dataIndex].prefix)
+              ? table.cells[column.dataIndex].prefix
               : ''
           }}{{ text
           }}{{
-            cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
-              ? cells[column.dataIndex].suffix
+            table.cells[column.dataIndex].suffix &&
+            !endsWith(text, table.cells[column.dataIndex].suffix)
+              ? table.cells[column.dataIndex].suffix
               : ''
           }}
         </span>
       </template>
     </a-table>
-    <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
+    <!-- <DemoForm :emitter="fmEmitter" @submit="onRecordSave" /> -->
   </IndexLayout>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { defineComponent, onMounted, reactive, ref } from 'vue'
 import IndexLayout from '../layout/index.vue'
-import FormDialog from '../components/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Table from '../types/table'
-import Cell from '../types/cell'
 import { endsWith } from '../utils'
 import api from '../api'
 
-const models: any[] = [
-  /*return models.map(model => JSON.stringify(model)).join(',\n  ')*/
-]
+const models: any[] = [] /*return models.map(model => JSON.stringify(model)).join(',\n  ')*/
 
 export default defineComponent({
   name: 'Home',
   components: {
-    IndexLayout,
-    FormDialog
+    IndexLayout
   },
   setup() {
     const actMdl = ref('')
     const table = reactive(new Table())
-    const columns = computed(() => table.columns)
-    const cells = reactive({} as { [cname: string]: Cell })
     const records = reactive([] as any[])
     const fmEmitter = new Emitter()
 
-    onMounted(refresh)
-
     async function refresh() {
-      records.splice(0, records.length, await api.all(actMdl.value))
+      if (!actMdl.value) {
+        return
+      }
+      const model = models.find((mdl: any) => mdl.name === actMdl.value)
+      Table.copy(model.table, table)
+      records.splice(0, records.length, ...(await api.all(actMdl.value)))
     }
     function onRecordSave(record: any, next: () => void) {
       console.log(record)
@@ -141,17 +139,10 @@ export default defineComponent({
     }
     async function onMuItmChange(mname: string) {
       actMdl.value = mname
-      const model = models.find((mdl: any) => mdl.name === mname)
-      Table.copy(model.table, table)
-      for (const [cname, cell] of Object.entries(model.table.cells)) {
-        Cell.copy(cell, cells[cname])
-      }
       await refresh()
     }
     return {
       table,
-      columns,
-      cells,
       records,
       fmEmitter,
 

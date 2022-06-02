@@ -1,7 +1,7 @@
 <template>
   <div
     :style="{
-      padding: '0 24px',
+      padding: '50px 24px',
       height: '100%',
       display: 'flex',
       'align-items': 'center',
@@ -9,30 +9,37 @@
       'background-color': lgnProps.bkgdColor
     }"
   >
-    <a-form
+    <div
       :style="{
         padding: '16px 20px 0 20px',
         'border-radius': `${lgnProps.radius}px`,
         width: `${lgnProps.width}%`,
         'background-color': lgnProps.fmBkgdColor
       }"
-      :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
-      :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
     >
-      <FormItem v-for="field in lgnFields" :key="field.key" :field="field" :form="{}" />
+      <h1 :style="{ 'font-size': '20pt', 'text-align': 'center', 'margin-bottom': '20px' }">
+        {{ lgnProps.title }}
+      </h1>
+      <a-form
+        :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
+        :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
+        @finish="onFinish"
+      >
+        <FormItem v-for="field in lgnFields" :key="field.key" :field="field" :form="{}" />
 
-      <a-form-item v-if="lgnProps.logAccount" name="remember">
-        <a-checkbox>记住</a-checkbox>
-      </a-form-item>
+        <a-form-item v-if="lgnProps.logAccount" name="remember">
+          <a-checkbox>记住</a-checkbox>
+        </a-form-item>
 
-      <a-form-item>
-        <a-button type="primary" html-type="submit">登录</a-button>
-        <template v-if="lgnProps.registerable">
-          &nbsp;或&nbsp;
-          <a href="">前往注册</a>
-        </template>
-      </a-form-item>
-    </a-form>
+        <a-form-item>
+          <a-button type="primary" html-type="submit">登录</a-button>
+          <template v-if="lgnProps.registerable">
+            &nbsp;或&nbsp;
+            <a href="">前往注册</a>
+          </template>
+        </a-form-item>
+      </a-form>
+    </div>
   </div>
 </template>
 
@@ -60,9 +67,15 @@ export default defineComponent({
         return ret
       }) as Field[]
     )
+
+    function onFinish(values: any) {
+      console.log(values)
+    }
     return {
       lgnProps,
-      lgnFields
+      lgnFields,
+
+      onFinish
     }
   }
 })

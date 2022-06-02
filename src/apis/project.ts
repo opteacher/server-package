@@ -98,10 +98,17 @@ export default {
       messages: { notShow: false }
     }).then((pjt: any) => pjt.status),
   apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
-  publish: (key: any) => reqGet('project', `${key}/publish`, { type: 'api' }),
   middle: {
     login: {
-      save: (data: any) => reqPut('project', data.pid, { 'middle.login': data }, { ignores: ['pid'] })
-    }
+      save: (key: any, data: any) => reqPut('project', key, { 'middle.login': data })
+    },
+    navigate: {
+      save: (key: any, data: any) => reqPut('project', key, { 'middle.navigate': data })
+    },
+    publish: async (key: any, data: any) => {
+      const result = await reqPost(`project/${key}/middle/publish`, data, { type: 'api' })
+      store.commit('project/SET_MID_URL', result.midURL)
+    },
+    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' }),
   }
 }

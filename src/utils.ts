@@ -198,9 +198,9 @@ export function skipIgnores(obj: { [key: string]: any }, ignores: string[]): any
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
 }
 
-export async function until(cdFun: () => boolean, lpLimit = 500) {
+export async function until(cdFun: () => Promise<boolean>, lpLimit = 500) {
   for (let i = 0; i < lpLimit; ++i) {
-    if (cdFun()) {
+    if (await cdFun()) {
       return Promise.resolve()
     }
     await new Promise(res => setTimeout(res, 200))
@@ -266,4 +266,51 @@ export function genMdlPath(svc: Service): string {
     default:
       return ''
   }
+}
+
+export function intervalCheck(options: {
+  chkFun: () => Promise<boolean>
+  middle?: {
+    waiting?: (countdown: number) => void
+    failed?: () => void
+    succeed?: () => void
+  }
+  interval?: number
+  limit?: number
+}) {
+  if (!options.middle) {
+    options.middle = {}
+  }
+  if (!options.middle.waiting) {
+    options.middle.waiting = () => { console.log() }
+  }
+  if (!options.middle.failed) {
+    options.middle.failed = () => { console.log() }
+  }
+  if (!options.middle.succeed) {
+    options.middle.succeed = () => { console.log() }
+  }
+  if (!options.limit) {
+    options.limit = 60
+  }
+  let countdown = 0
+  const func = async () => {
+    if (!(await options.chkFun())) {
+      // 检查状态不满足要求
+      options.middle?.waiting && options.middle.waiting(countdown)
+      if (countdown > (options.limit || 60)) {
+        // 如果超过等待极限时间，告知
+        options.middle?.failed && options.middle.failed()
+        clearInterval(h)
+      } else {
+        ++countdown
+      }
+      return
+    }
+    clearInterval(h)
+    // 状态满足要求，告知
+    options.middle?.succeed && options.middle.succeed()
+  }
+  const h = setInterval(func, options.interval || 1000)
+  setTimeout(func, 200)
 }

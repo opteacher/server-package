@@ -125,7 +125,7 @@ const apis = [
   /*return apis.map(api => `{ method: \'${api.method}\', path: ${typeof api.path !== 'string' ? api.path : '\'' + api.path + '\''} }`).join(',\n  ')*/
 ]
 
-export async function chk404(ctx) {
+export async function chkReqAva(ctx) {
   for (const api of apis) {
     if (api.method.toUpperCase() !== ctx.method.toUpperCase()) {
       continue
@@ -145,12 +145,11 @@ export function auth() {
   return async (ctx, next) => {
     const canSkip = skips.map((skip) => skip === ctx.path).reduce((a, b) => a || b)
     if (!canSkip) {
-      if (!(await chk404(ctx))) {
-        ctx.throw(404)
-      }
-      const result = await verifyDeep(ctx)
-      if (!result || result.error) {
-        ctx.throw(403, `授权验证失败！${result && result.error ? result.error.message : ''}`)
+      if (await chkReqAva(ctx)) {
+        const result = await verifyDeep(ctx)
+        if (!result || result.error) {
+          ctx.throw(403, `授权验证失败！${result && result.error ? result.error.message : ''}`)
+        }
       }
     }
     await next()

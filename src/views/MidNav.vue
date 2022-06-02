@@ -36,7 +36,7 @@
                   <component :is="model.icon" />
                 </keep-alive>
               </template>
-              <span>{{ model.name }}</span>
+              <span>{{ model.label || model.name }}</span>
             </a-menu-item>
           </a-menu>
         </div>
@@ -44,14 +44,7 @@
       <a-col :span="8">
         <a-descriptions class="mb-20" title="菜单参数" :column="1" size="small" bordered>
           <template #extra>
-            <a-button
-              :type="!navProps.equals(midNav) ? 'primary' : 'default'"
-              @click="
-                () => {
-                  selMuKey = ''
-                }
-              "
-            >
+            <a-button :type="!navProps.equals(midNav) ? 'primary' : 'default'" @click="onNaviSave">
               保存
             </a-button>
           </template>
@@ -81,14 +74,13 @@
           </template>
           <a-descriptions-item label="Logo图片">
             <a-upload
-              class="w-100"
               name="file"
               :maxCount="1"
               v-model:file-list="navProps.logo"
               action="/server-package/api/v1/image"
               @change="onUpldImgChange"
             >
-              <a-button>
+              <a-button class="w-100">
                 <template #icon><upload-outlined /></template>
                 上传图片
               </a-button>
@@ -98,12 +90,8 @@
         <a-descriptions v-else-if="selMuKey" title="菜单项参数" :column="1" size="small" bordered>
           <template #extra>
             <a-button
-              type="primary"
-              @click="
-                () => {
-                  selMuKey = ''
-                }
-              "
+              :type="!mdlEqual(selModel, nvItmProps) ? 'primary' : 'default'"
+              @click="onNvItmSave"
             >
               保存
             </a-button>
@@ -117,15 +105,6 @@
           <a-descriptions-item label="标签名">
             <a-input v-model:value="nvItmProps.label" />
           </a-descriptions-item>
-          <a-descriptions-item label="连接">
-            <a-select
-              class="w-100"
-              :options="[
-                { label: '啊啊啊', value: 'aaa' },
-                { label: '不不不', value: 'bbb' }
-              ]"
-            />
-          </a-descriptions-item>
         </a-descriptions>
       </a-col>
     </a-row>
@@ -137,25 +116,27 @@ import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import LytMiddle from '../layouts/LytMiddle.vue'
-import { BorderlessTableOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 import Model from '../types/model'
 import IconField from '../components/navi/IconField.vue'
 import MidNav from '@/types/midNav'
+import { pjtAPI, mdlAPI } from '../apis'
 
 export default defineComponent({
   name: 'MiddleNavigate',
-  components: {
-    LytMiddle,
-    IconField,
-    BorderlessTableOutlined,
-    PictureOutlined,
-    UploadOutlined
-  },
+  components: Object.assign(
+    {
+      LytMiddle,
+      IconField
+    },
+    antdIcons
+  ),
   setup() {
     const store = useStore()
     const route = useRoute()
     const pid = route.params.pid
     const selMuKey = ref('')
+    const selModel = computed(() => store.getters['project/model'](selMuKey.value))
     const models = computed(() => store.getters['project/ins'].models)
     const midNav = computed(() => store.getters['project/ins'].middle.navigate)
     const navProps = reactive(new MidNav())
@@ -164,6 +145,7 @@ export default defineComponent({
     onMounted(refresh)
 
     async function refresh() {
+      selMuKey.value = ''
       await store.dispatch('project/refresh')
       MidNav.copy(store.getters['project/ins'].middle.navigate, navProps)
     }
@@ -177,6 +159,20 @@ export default defineComponent({
     function onUpldImgChange() {
       console.log()
     }
+    async function onNaviSave() {
+      await pjtAPI.middle.navigate.save(pid, navProps)
+      await refresh()
+    }
+    async function onNvItmSave() {
+      await mdlAPI.update({ key: selMuKey.value, icon: nvItmProps.icon, label: nvItmProps.label })
+      await refresh()
+    }
+    function mdlEqual(
+      mdl1: { icon: string; label: string },
+      mdl2: { icon: string; label: string }
+    ) {
+      return mdl1.icon === mdl2.icon && mdl1.label === mdl2.label
+    }
     return {
       pid,
       models,
@@ -184,9 +180,13 @@ export default defineComponent({
       midNav,
       navProps,
       nvItmProps,
+      selModel,
 
       onMuItemSelect,
-      onUpldImgChange
+      onUpldImgChange,
+      onNaviSave,
+      onNvItmSave,
+      mdlEqual
     }
   }
 })

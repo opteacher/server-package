@@ -364,7 +364,6 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '../types/column'
 import Mapper from '../types/mapper'
 import { Cond, OpnType } from '../types'

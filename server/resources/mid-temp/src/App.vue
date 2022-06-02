@@ -3,6 +3,10 @@
 </template>
 
 <style lang="less">
+body {
+  overflow-y: hidden;
+}
+
 #app {
   height: 100%;
   font-family: Avenir, Helvetica, Arial, sans-serif;

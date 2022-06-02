@@ -7,6 +7,8 @@ import { Dispatch } from 'vuex'
 import { pjtAPI } from '../apis'
 import Auth from '@/types/auth'
 import API from '@/types/api'
+import Middle from '@/types/middle'
+import { intervalCheck } from '@/utils'
 
 type PjtState = { project: Project; apis: API[] }
 
@@ -19,6 +21,9 @@ export default {
   mutations: {
     SET_STATUS(state: PjtState, payload: 'loading' | 'running' | 'stopped') {
       state.project.status = payload
+    },
+    SET_MID_URL(state: PjtState, payload: string) {
+      state.project.middle.url = payload
     }
   },
   actions: {
@@ -28,33 +33,61 @@ export default {
       }
       const pid = router.currentRoute.value.params.pid
       Project.copy(await pjtAPI.detail(pid), state.project)
-      if (state.project.thread) {
-        dispatch('chkStatus')
-      }
+      dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
     },
-    chkStatus({ state }: { state: PjtState }) {
-      let countdown = 0
-      const chkFun = async () => {
-        state.project.status = await pjtAPI.status(state.project.key)
-        if (state.project.status === 'loading') {
-          console.log(`等待项目${state.project.name}启动……，已等待${countdown}秒`)
-          if (countdown > 15 * 60) {
-            console.log('已超过15分钟，项目启动失败！')
-            state.project.status = 'stopped'
-            clearInterval(h)
-          } else {
-            ++countdown
+    chkStatus({ state }: { state: PjtState }, expect: 'running' | 'stopped') {
+      const msgTxt = expect === 'running' ? '启动' : '停止'
+      intervalCheck({
+        chkFun: async () => {
+          state.project.status = await pjtAPI.status(state.project.key)
+          return expect === state.project.status
+        },
+        middle: {
+          waiting: (countdown: number) => {
+            console.log(`等待项目${state.project.name}${msgTxt}……，已等待${countdown << 2}秒`)
+          },
+          failed: () => {
+            console.log(`已超过15分钟，项目${msgTxt}失败！`)
+            state.project.status = expect === 'running' ? 'stopped' : 'running'
+          },
+          succeed: () => {
+            console.log(
+              `项目${state.project.name}已成功${
+                state.project.status === 'running' ? '启动' : '停止'
+              }！`
+            )
           }
-          return
-        }
-        clearInterval(h)
-        console.log(
-          `项目${state.project.name}已成功${state.project.status === 'running' ? '启动' : '停止'}！`
-        )
-      }
-      const h = setInterval(chkFun, 5000)
-      chkFun()
+        },
+        interval: 4000,
+        limit: 15 * 60
+      })
+    },
+    chkMidStatus({ state }: { state: PjtState }) {
+      state.project.middle.loading = true
+      intervalCheck({
+        chkFun: async () => {
+          const result = await pjtAPI.middle.status(state.project.key)
+          return result.status === 'published'
+        },
+        middle: {
+          waiting: (countdown: number) => {
+            console.log(`等待中台${state.project.name}启动……，已等待${countdown << 2}秒`)
+          },
+          failed: () => {
+            console.log(`已超过15分钟，中台启动失败！`)
+            state.project.middle.loading = false
+          },
+          succeed: () => {
+            console.log(
+              `项目${state.project.name}的中台已成功启动！`
+            )
+            state.project.middle.loading = false
+          }
+        },
+        interval: 4000,
+        limit: 15 * 60
+      })
     }
   },
   getters: {
@@ -64,6 +97,7 @@ export default {
       (mkey: string): Model =>
         state.project.models.find((mdl: Model) => mdl.key === mkey) as Model,
     auth: (state: PjtState): Auth => state.project.auth,
-    apis: (state: PjtState): API[] => state.apis
+    apis: (state: PjtState): API[] => state.apis,
+    middle: (state: PjtState): Middle => state.project.middle
   }
 }
