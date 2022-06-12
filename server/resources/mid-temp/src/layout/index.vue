@@ -19,12 +19,28 @@
     </a-layout-sider>
     <a-layout>
       <a-layout-header style="background: #fff; padding: 0">
-        <menu-unfold-outlined
-          v-if="collapsed"
-          class="trigger"
-          @click="() => (collapsed = !collapsed)"
-        />
-        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <a-row>
+          <a-col :span="12">
+            <menu-unfold-outlined
+              v-if="collapsed"
+              class="trigger"
+              @click="() => (collapsed = !collapsed)"
+            />
+            <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+          </a-col>
+          <a-col :span="12" style="text-align: right; padding-right: 24px">
+            <a-popover placement="bottomRight">
+              <template #content>
+                <a-button class="w-100" type="primary" danger @click="onLogout">退出登录</a-button>
+              </template>
+              <a-avatar
+                size="large"
+                class="p-5 avatar-float"
+                src="https://joeschmoe.io/api/v1/random"
+              />
+            </a-popover>
+          </a-col>
+        </a-row>
       </a-layout-header>
       <a-layout-content
         :style="{
@@ -46,12 +62,14 @@ import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 import { defineComponent, onMounted, reactive, ref } from 'vue'
 import Model from '../types/model'
 import MidNav from '../types/midNav'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'IndexLayout',
   emits: ['change'],
   components: antdIcons,
   setup(_props, { emit }) {
+    const router = useRouter()
     const active = ref(
       '' /*return project.models.length ? `\'${project.models[0].name}\'` : '\'\''*/
     )
@@ -71,12 +89,17 @@ export default defineComponent({
     function onItemSelected({ key }: { key: any }) {
       emit('change', key)
     }
+    function onLogout() {
+      localStorage.removeItem('token')
+      router.replace('//*return project.name*//login')
+    }
     return {
       active,
       navigate,
       collapsed: ref<boolean>(false),
       models,
-      onItemSelected
+      onItemSelected,
+      onLogout
     }
   }
 })
@@ -96,12 +119,19 @@ export default defineComponent({
 }
 
 .logo {
-  height: 32px;
+  height: 64px;
   background: rgba(255, 255, 255, 0.3);
-  margin: 16px;
 }
 
 .site-layout .site-layout-background {
   background: #fff;
+}
+
+.avatar-float {
+  border: 2px solid white;
+}
+.avatar-float:hover {
+  cursor: pointer;
+  border: 2px solid #1890ff;
 }
 </style>

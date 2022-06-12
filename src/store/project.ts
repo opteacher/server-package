@@ -68,7 +68,11 @@ export default {
       intervalCheck({
         chkFun: async () => {
           const result = await pjtAPI.middle.status(state.project.key)
-          return result.status === 'published'
+          if (result.status === 'published') {
+            state.project.middle.url = result.midURL
+            return true
+          }
+          return false
         },
         middle: {
           waiting: (countdown: number) => {
@@ -79,9 +83,7 @@ export default {
             state.project.middle.loading = false
           },
           succeed: () => {
-            console.log(
-              `项目${state.project.name}的中台已成功启动！`
-            )
+            console.log(`项目${state.project.name}的中台已成功启动！`)
             state.project.middle.loading = false
           }
         },

@@ -3,8 +3,8 @@
     <a-descriptions-item label="占位提示">
       <a-input
         class="w-100"
-        :value="field.extra.placeholder"
-        @change="
+        v-model:value="field.extra.placeholder"
+        @blur="
           e =>
             api.form.fields.save({
               key: field.key,

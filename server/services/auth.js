@@ -55,6 +55,18 @@ export async function bind(pid, auth) {
     await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
+  svcIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
+  if (svcIdx === -1) {
+    const vfySvc = await db.save(Service, {
+      name: 'auth',
+      interface: 'verifyDeep',
+      emit: 'api',
+      method: 'POST',
+      path: `/api/v1/${model.name}/verify/deep`
+    })
+    await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
+    skips.push(vfySvc.path)
+  }
   // 跳过的路由附加到授权系统中
   auth.skips = (auth.skips || []).concat(Array.from(new Set(skips)))
   project = await db.saveOne(Project, pid, { auth }, { updMode: 'merge' })
@@ -81,8 +93,14 @@ export async function unbind(pid) {
     await db.remove(Service, { _index: sgnSid })
     await db.saveOne(Model, project.auth.model, { svcs: sgnSid }, { updMode: 'delete' })
   }
-  const vfySvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'verify')
-  const vfySid = vfySvc ? vfySvc.id : null
+  let vfySvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'verify')
+  let vfySid = vfySvc ? vfySvc.id : null
+  if (vfySid) {
+    await db.remove(Service, { _index: vfySid })
+    await db.saveOne(Model, project.auth.model, { svcs: vfySid }, { updMode: 'delete' })
+  }
+  vfySvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'verifyDeep')
+  vfySid = vfySvc ? vfySvc.id : null
   if (vfySid) {
     await db.remove(Service, { _index: vfySid })
     await db.saveOne(Model, project.auth.model, { svcs: vfySid }, { updMode: 'delete' })
@@ -127,6 +145,7 @@ export async function genSign(pid, props) {
   const getSecret = await saveNode(
     {
       title: '获取密钥',
+      desc: '获取密钥',
       ntype: 'normal',
       code: [
         "let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)",
@@ -140,6 +159,7 @@ export async function genSign(pid, props) {
   )
   const qryRecord = await saveNode({
     title: '查询满足列的记录',
+    desc: '查询满足列的记录',
     ntype: 'normal',
     code: [
       'result = await db.select(model, {',
@@ -167,6 +187,7 @@ export async function genSign(pid, props) {
   const depUuid = (await db.select(Dep, { name: 'UUID' }))[0]
   await saveNode({
     title: '包装荷载并签名',
+    desc: '包装荷载并签名',
     ntype: 'normal',
     code: [
       'const payload = {',

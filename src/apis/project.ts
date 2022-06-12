@@ -105,10 +105,8 @@ export default {
     navigate: {
       save: (key: any, data: any) => reqPut('project', key, { 'middle.navigate': data })
     },
-    publish: async (key: any, data: any) => {
-      const result = await reqPost(`project/${key}/middle/publish`, data, { type: 'api' })
-      store.commit('project/SET_MID_URL', result.midURL)
-    },
-    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' }),
+    publish: (key: any, data: any) =>
+      reqPost(`project/${key}/middle/publish`, data, { type: 'api' }),
+    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' })
   }
 }

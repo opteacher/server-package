@@ -15,12 +15,28 @@
     </a-layout-sider>
     <a-layout>
       <a-layout-header style="background: #fff; padding: 0">
-        <menu-unfold-outlined
-          v-if="collapsed"
-          class="trigger"
-          @click="() => (collapsed = !collapsed)"
-        />
-        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <a-row>
+          <a-col :span="12">
+            <menu-unfold-outlined
+              v-if="collapsed"
+              class="trigger"
+              @click="() => (collapsed = !collapsed)"
+            />
+            <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+          </a-col>
+          <a-col :span="12" style="text-align: right; padding-right: 24px">
+            <a-popover placement="bottomRight">
+              <template #content>
+                <a-button class="w-100" type="primary" danger>退出登录</a-button>
+              </template>
+              <a-avatar
+                size="large"
+                class="p-5 avatar-float"
+                src="https://joeschmoe.io/api/v1/random"
+              />
+            </a-popover>
+          </a-col>
+        </a-row>
       </a-layout-header>
       <a-layout>
         <a-space style="margin: 16px 24px">
@@ -61,7 +77,7 @@
               @update:show="onPubDlgShow"
               @submit="onPublish"
             />
-            <a-button :disabled="middle.loading || !middle.url" @click="$router.push(middle.url)">
+            <a-button :disabled="middle.loading || !middle.url" :href="middle.url" target="_blank">
               <template #icon><layout-outlined /></template>
               浏览中台
             </a-button>
@@ -74,7 +90,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import {
@@ -135,6 +151,8 @@ export default defineComponent({
     })
     const middle = computed(() => store.getters['project/middle'])
 
+    onMounted(() => store.dispatch('project/chkMidStatus'))
+
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }
@@ -167,3 +185,13 @@ export default defineComponent({
   }
 })
 </script>
+
+<style lang="less">
+.avatar-float {
+  border: 2px solid white;
+}
+.avatar-float:hover {
+  cursor: pointer;
+  border: 2px solid #1890ff;
+}
+</style>

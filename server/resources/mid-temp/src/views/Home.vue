@@ -18,7 +18,7 @@
       </a-col>
     </a-row>
     <a-table
-      :columns="table.columns"
+      :columns="columns"
       :data-source="records"
       :size="table.size"
       :rowClassName="() => 'white-bkgd'"
@@ -26,7 +26,7 @@
       bordered
       :custom-row="
         (record: any) => ({
-          onClick: () => onRecordClick(record)
+          onClick: () => fmEmitter.emit('update:show', { show: true, record, viewOnly: true })
         })
       "
     >
@@ -93,29 +93,37 @@
         </span>
       </template>
     </a-table>
-    <!-- <DemoForm :emitter="fmEmitter" @submit="onRecordSave" /> -->
+    <FormDialog :emitter="fmEmitter" :form="form" @submit="onRecordSave" />
   </IndexLayout>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, reactive, ref } from 'vue'
 import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import Form from '../types/form'
 import Table from '../types/table'
 import { endsWith } from '../utils'
 import api from '../api'
+import FormDialog from '../components/FormDialog.vue'
+import Column from '../types/column'
 
 const models: any[] = [] /*return models.map(model => JSON.stringify(model)).join(',\n  ')*/
 
 export default defineComponent({
   name: 'Home',
   components: {
-    IndexLayout
+    IndexLayout,
+    FormDialog
   },
   setup() {
     const actMdl = ref('')
+    const form = reactive(new Form())
     const table = reactive(new Table())
     const records = reactive([] as any[])
+    const columns = computed(() =>
+      table.columns.concat(new Column('操作', 'opera', { width: 100 }))
+    )
     const fmEmitter = new Emitter()
 
     async function refresh() {
@@ -123,6 +131,7 @@ export default defineComponent({
         return
       }
       const model = models.find((mdl: any) => mdl.name === actMdl.value)
+      Form.copy(model.form, form)
       Table.copy(model.table, table)
       records.splice(0, records.length, ...(await api.all(actMdl.value)))
     }
@@ -133,25 +142,50 @@ export default defineComponent({
     function onRecordDel(record: any) {
       console.log(record)
     }
-    function onRecordClick(record: any) {
-      fmEmitter.emit('viewOnly', true)
-      fmEmitter.emit('update:show', { show: true, record })
-    }
     async function onMuItmChange(mname: string) {
       actMdl.value = mname
       await refresh()
     }
     return {
+      form,
       table,
       records,
       fmEmitter,
+      columns,
 
       endsWith,
       onRecordSave,
       onRecordDel,
-      onRecordClick,
       onMuItmChange
     }
   }
 })
 </script>
+
+<style lang="less">
+.unstyled-list {
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 0 !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.mb-3 {
+  margin-bottom: 3px !important;
+}
+
+.mb-10 {
+  margin-bottom: 10px !important;
+}
+
+.p-10 {
+  padding: 10px !important;
+}
+
+.w-100 {
+  width: 100%;
+}
+</style>

@@ -11,6 +11,7 @@ export interface RequestOptions {
     notShow?: boolean
     loading?: string
     succeed?: string
+    failed?: string
   }
   ignores?: string[]
   query?: any
@@ -27,10 +28,21 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
     message.destroy()
   }
   options?.middles?.after && options?.middles?.after(resp)
-  if (!options?.messages?.notShow && options?.messages?.succeed) {
-    message.success(options?.messages?.succeed)
+  const result = resp.result || resp.data
+  if (resp.error || result.error) {
+    if (!options?.messages?.notShow && options?.messages?.failed) {
+      message.error(options?.messages?.failed)
+    } else {
+      message.error(resp.error || result.error)
+    }
+  } else {
+    if (!options?.messages?.notShow && options?.messages?.succeed) {
+      message.success(options?.messages?.succeed)
+    } else if (result.message) {
+      message.success(result.message)
+    }
   }
-  return Promise.resolve(resp.result || resp.data)
+  return Promise.resolve(result)
 }
 
 function reqType(options?: RequestOptions): string {
@@ -45,6 +57,18 @@ const baseURL =
     : 'http:///*return `${project.name}:${project.port}`*/'
 
 export async function reqAll(path: string, options?: RequestOptions): Promise<any> {
+  if (!options) {
+    options = {}
+  }
+  if (!options.messages) {
+    options.messages = {}
+  }
+  if (!options?.messages?.loading) {
+    options.messages.loading = '查询中……'
+  }
+  if (!options?.messages?.succeed) {
+    options.messages.succeed = '查询成功！'
+  }
   const result = await makeRequest(
     axios.get(`${baseURL}//*return project.name*//${reqType(options)}/v1/${path}s`, {
       params: options?.query
@@ -55,6 +79,18 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
 }
 
 export async function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
+  if (!options) {
+    options = {}
+  }
+  if (!options.messages) {
+    options.messages = {}
+  }
+  if (!options?.messages?.loading) {
+    options.messages.loading = '查询中……'
+  }
+  if (!options?.messages?.succeed) {
+    options.messages.succeed = '查询成功！'
+  }
   const result = await makeRequest(
     axios.get(
       `${baseURL}//*return project.name*//${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`,

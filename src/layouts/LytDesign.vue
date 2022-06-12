@@ -1,5 +1,5 @@
 <template>
-  <a-layout class="h-100">
+  <a-layout class="h-100" @dragover.stop="e => e.preventDefault()" @drop.stop="onFieldDropDown">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
@@ -78,6 +78,7 @@ import {
   MenuFoldOutlined,
   DesktopOutlined
 } from '@ant-design/icons-vue'
+import { onFieldDropDown } from '../views/Form'
 
 export default defineComponent({
   name: 'DesignLayout',
@@ -92,7 +93,7 @@ export default defineComponent({
   props: {
     active: { type: String, required: true }
   },
-  setup(props) {
+  setup() {
     const router = useRouter()
     const route = useRoute()
     const store = useStore()
@@ -110,7 +111,8 @@ export default defineComponent({
       pjtName,
       mdlName,
       collapsed: ref<boolean>(false),
-      onItemSelected
+      onItemSelected,
+      onFieldDropDown
     }
   }
 })

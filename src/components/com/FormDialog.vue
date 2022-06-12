@@ -3,7 +3,7 @@
     :visible="show"
     :title="title"
     :width="width"
-    :confirmLoading="!editable"
+    :confirmLoading="!editable || okLoading"
     :footer="viewOnly ? null : undefined"
     @cancel="onCclClick"
   >
@@ -416,6 +416,7 @@ export default defineComponent({
     const editable = ref(true)
     const upldDir = ref(false)
     const viewOnly = ref(false)
+    const okLoading = ref(false)
 
     if (props.emitter) {
       props.emitter.on('editable', (edtb: boolean) => {
@@ -474,8 +475,10 @@ export default defineComponent({
     }
     async function onOkClick() {
       try {
+        okLoading.value = true
         await formRef.value.validate()
         emit('submit', formState, () => {
+          okLoading.value = false
           formRef.value.resetFields()
           formState.reset && formState.reset()
           emit('update:show', false)
@@ -557,6 +560,7 @@ export default defineComponent({
       editable,
       upldDir,
       viewOnly,
+      okLoading,
 
       onOkClick,
       onCclClick,

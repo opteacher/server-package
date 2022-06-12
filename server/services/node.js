@@ -169,7 +169,12 @@ export async function del(nid, sid) {
           }
           for (let i = 0; i < nxtNodes.length; ++i) {
             const nxtNode = nxtNodes[i]
-            const endNode = await delBlock(nxtNode, node.id.toString(), true, i === nxtNodes.length - 1)
+            const endNode = await delBlock(
+              nxtNode,
+              node.id.toString(),
+              true,
+              i === nxtNodes.length - 1
+            )
 
             endNxtKeys.push(...endNode.nexts)
             await db.saveOne(Node, node.id, { nexts: nxtNode.id }, { updMode: 'delete' })

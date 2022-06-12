@@ -2,8 +2,8 @@
   <a-descriptions class="mb-50" title="列" :column="1" bordered size="small">
     <a-descriptions-item label="标题">
       <a-input
-        :value="column.title"
-        @change="
+        v-model:value="column.title"
+        @blur="
           e =>
             api.table.columns.save({
               key: column.key,
@@ -15,8 +15,8 @@
     <a-descriptions-item label="宽度">
       <a-input-number
         class="w-100"
-        :value="column.width || 0"
-        @change="width => api.table.columns.save({ key: column.key, width })"
+        v-model:value="column.width"
+        @blur="width => api.table.columns.save({ key: column.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
@@ -33,7 +33,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="可排序">
       <a-switch
-        :checked="column.sorter"
+        :checked="typeof column.sorter !== 'undefined'"
         @change="sortable => api.table.columns.save({ key: column.key, sortable })"
       />
     </a-descriptions-item>

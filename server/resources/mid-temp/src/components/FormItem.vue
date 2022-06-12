@@ -1,5 +1,5 @@
 <template>
-  <a-form-item :rules="field.rules">
+  <a-form-item :name="field.refer" :rules="field.rules">
     <template v-if="field.label" #label>
       {{ field.label }}&nbsp;
       <a-tooltip v-if="field.desc">
@@ -40,25 +40,25 @@
     <template v-else>
       <a-input
         v-if="field.ftype === 'Input'"
-        :value="form[field.refer]"
+        v-model:value="form[field.refer]"
         :placeholder="field.extra.placeholder || ''"
       />
       <a-input-password
         v-if="field.ftype === 'Password'"
-        :value="form[field.refer]"
+        v-model:value="form[field.refer]"
         :placeholder="field.extra.placeholder || ''"
       />
-      <a-checkbox v-else-if="field.ftype === 'Checkbox'" :value="form[field.refer]" />
+      <a-checkbox v-else-if="field.ftype === 'Checkbox'" v-model:checked="form[field.refer]" />
       <a-select
         v-else-if="field.ftype === 'Select'"
         class="w-100"
-        :value="form[field.refer]"
+        v-model:value="form[field.refer]"
         :placeholder="field.extra.placeholder || ''"
       />
       <a-input-number
         v-else-if="field.ftype === 'Number'"
         class="w-100"
-        :value="form[field.refer]"
+        v-model:value="form[field.refer]"
         :placeholder="field.extra.placeholder || ''"
       />
     </template>

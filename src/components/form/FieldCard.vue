@@ -19,19 +19,7 @@
       :style="{ display: 'none', height: '2px', 'background-color': '#1890ff' }"
     />
   </div>
-  <a-form-item :id="field.key" class="p-10 m-0" style="position: relative">
-    <template #label>
-      {{ field.label }}&nbsp;
-      <a-tooltip v-if="field.desc">
-        <template #title>{{ field.desc }}</template>
-        <InfoCircleOutlined style="color: #1890ff" />
-      </a-tooltip>
-    </template>
-    <a-input v-if="field.ftype === 'Input'" :placeholder="field.extra.placeholder" />
-    <a-select v-else-if="field.ftype === 'Select'" class="w-100" />
-    <a-input-number v-else-if="field.ftype === 'Number'" class="w-100" />
-    <a-checkbox v-else-if="field.ftype === 'Checkbox'" />
-  </a-form-item>
+  <FormItem :id="field.key" class="p-10 m-0" :field="field" :form="{}" style="position: relative" />
   <div
     :style="{
       padding: '12px 0',
@@ -94,15 +82,18 @@
 import Field, { mgnBtm } from '@/types/field'
 import { createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
-import { CloseOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
+import { mdlAPI as api } from '../../apis'
+import FormItem from './FormItem.vue'
 
 export default defineComponent({
   name: 'FieldCard',
   components: {
-    InfoCircleOutlined,
-    CloseOutlined
+    CloseOutlined,
+
+    FormItem
   },
   props: {
     index: { type: Number, required: true },
@@ -145,9 +136,7 @@ export default defineComponent({
         okText: 'Yes',
         okType: 'danger',
         cancelText: 'No',
-        onOk: async () => {
-          await store.dispatch('model/delField', props.active)
-        }
+        onOk: () => api.form.fields.remove(props.active)
       })
     }
     function onDragStart(e: DragEvent) {

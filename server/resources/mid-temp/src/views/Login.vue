@@ -21,14 +21,15 @@
         {{ lgnProps.title }}
       </h1>
       <a-form
+        :model="formState"
         :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
         :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
         @finish="onFinish"
       >
-        <FormItem v-for="field in lgnFields" :key="field.key" :field="field" :form="{}" />
+        <FormItem v-for="field in lgnFields" :key="field.key" :field="field" :form="formState" />
 
         <a-form-item v-if="lgnProps.logAccount" name="remember">
-          <a-checkbox>记住</a-checkbox>
+          <a-checkbox v-model:checked="formState.remember">记住</a-checkbox>
         </a-form-item>
 
         <a-form-item>
@@ -44,10 +45,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, onMounted, reactive } from 'vue'
 import FormItem from '../components/FormItem.vue'
 import MidLgn from '../types/midLgn'
 import Field from '../types/field'
+import { useRouter } from 'vue-router'
+import api from '../api'
+import { message } from 'ant-design-vue'
 
 export default defineComponent({
   name: 'Login',
@@ -55,6 +59,7 @@ export default defineComponent({
     FormItem
   },
   setup() {
+    const router = useRouter()
     const lgnProps = reactive(MidLgn.copy('' /*return JSON.stringify(project.middle.login)*/))
     const lgnFields = reactive(
       [
@@ -67,13 +72,32 @@ export default defineComponent({
         return ret
       }) as Field[]
     )
+    const formState = reactive(
+      {} /*return JSON.stringify(Object.fromEntries(project.auth.props.map(prop => [prop.name, '']).concat([['remember', true]])))*/
+    )
 
-    function onFinish(values: any) {
-      console.log(values)
+    onMounted(async () => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        const result = await api.verifyDeep(token)
+        if (result.error) {
+          message.error(result.error)
+        }
+        router.replace('//*return project.name*//home')
+      }
+    })
+
+    async function onFinish(values: any) {
+      const result = await api.login(values)
+      if (result.token) {
+        localStorage.setItem('token', result.token)
+        router.push('/test/home')
+      }
     }
     return {
       lgnProps,
       lgnFields,
+      formState,
 
       onFinish
     }

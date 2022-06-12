@@ -507,7 +507,11 @@ function adjustFile(src, dest, args) {
     for (let i = 0; i < slots.length; ++i) {
       const slot = slots[i]
       let begIdx = slot[0]
-      if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === '[] ') {
+      if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === '{} ') {
+        begIdx -= 3
+      } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === '{}') {
+        begIdx -= 2
+      } else if (slot[0] - 3 >= 0 && strData.substring(slot[0] - 3, slot[0]) === '[] ') {
         begIdx -= 3
       } else if (slot[0] - 2 >= 0 && strData.substring(slot[0] - 2, slot[0]) === '[]') {
         begIdx -= 2
@@ -774,10 +778,6 @@ export async function pubMiddle(pid, pubInfo) {
   const typGen = Path.join(genSrcPath, 'types')
   console.log(`复制src/types文件夹：${typTmp} -> ${typGen}`)
   copyDir(typTmp, typGen)
-  const apiTmp = Path.join(tmpSrcPath, 'api.ts')
-  const apiGen = Path.join(genSrcPath, 'api.ts')
-  console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
-  fs.copyFileSync(apiTmp, apiGen)
   const cmpTmp = Path.join(tmpSrcPath, 'components')
   const cmpGen = Path.join(genSrcPath, 'components')
   console.log(`复制src/components文件夹：${cmpTmp} -> ${cmpGen}`)
@@ -791,20 +791,31 @@ export async function pubMiddle(pid, pubInfo) {
   fs.mkdirSync(Path.join(genSrcPath, 'router'), { recursive: true })
   const rtTmp = Path.join(tmpSrcPath, 'router', 'index.ts')
   const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
-  console.log(`调整src/router/index.ts文件：${utlTmp} -> ${utlGen}`)
-  adjustFile(rtTmp, rtGen, { hasAuth, project })
   fs.mkdirSync(Path.join(genSrcPath, 'views'), { recursive: true })
   if (hasAuth) {
+    const auth = (await db.select(Model, { _index: project.auth.model })).toObject()
+    const apiTmp = Path.join(tmpSrcPath, 'api.ts')
+    const apiGen = Path.join(genSrcPath, 'api.ts')
+    console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
+    adjustFile(apiTmp, apiGen, { auth })
+    console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
+    adjustFile(rtTmp, rtGen, { auth, project })
     const lgnTmp = Path.join(tmpSrcPath, 'views', 'Login.vue')
     const lgnGen = Path.join(genSrcPath, 'views', 'Login.vue')
     console.log(`复制src/views/Login.vue文件：${lgnTmp} -> ${lgnGen}`)
-    const model = (await db.select(Model, { _index: project.auth.model })).toObject()
     const fields = project.auth.props
-      .map(prop => model.form.fields.find(field => field.refer === prop.name))
+      .map(prop => auth.form.fields.find(field => field.refer === prop.name))
       .filter(field => field)
       .map(field => Object.assign(skipIgnores(field, ['_id']), { key: field._id }))
     project.middle.login = skipIgnores(project.middle.login, ['_id'])
     adjustFile(lgnTmp, lgnGen, { project, fields })
+  } else {
+    const apiTmp = Path.join(tmpSrcPath, 'api.ts')
+    const apiGen = Path.join(genSrcPath, 'api.ts')
+    console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
+    fs.copyFileSync(apiTmp, apiGen)
+    console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
+    adjustFile(rtTmp, rtGen, { auth: null, project })
   }
 
   console.log('根据导航栏信息，生成布局……')
@@ -843,25 +854,23 @@ export async function pubMiddle(pid, pubInfo) {
       `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
       `:${project.port}/${project.name}`,
       project.middle.prefix ? `/${project.middle.prefix}` : '',
-      '/home'
+      '/login'
     ].join('')
   }
 }
 
 export async function chkMiddle(pid) {
   const project = await db.select(Project, { _index: pid })
-  const chkPms = axios.get(
-    [
-      `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
-      `:${project.port}/${project.name}`,
-      project.middle.prefix ? `/${project.middle.prefix}` : '',
-      '/home'
-    ].join('')
-  )
+  const midURL = [
+    `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
+    `:${project.port}/${project.name}`,
+    project.middle.prefix ? `/${project.middle.prefix}` : '',
+    '/login'
+  ].join('')
   try {
-    await chkPms
+    await axios.get(midURL)
   } catch (e) {
-    return { status: 'loading' }
+    return { midURL, status: 'loading' }
   }
-  return { status: 'published' }
+  return { midURL, status: 'published' }
 }

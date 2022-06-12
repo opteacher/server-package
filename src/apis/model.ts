@@ -2,6 +2,7 @@ import store from '@/store'
 import { reqGet, reqDelete, reqPost, reqPut, skipIgnores } from '@/utils'
 import Model from '@/types/model'
 import ExpCls from '@/types/expCls'
+import Field from '@/types/field'
 
 const expDft = {
   add: async (data: any) => {
@@ -73,14 +74,17 @@ const expDft = {
         compoType: string
         insertPos?: { field: string; pos: 'before' | 'after' }
       }) => {
-        const field = await reqPut(
-          'model',
-          store.getters['model/ins'].key,
-          { 'form.fields': { type: payload.compoType } },
-          { query: { updMode: 'append' } }
+        const model = Model.copy(
+          await reqPut(
+            'model',
+            store.getters['model/ins'].key,
+            { 'form.fields': { ftype: payload.compoType } },
+            { query: { updMode: 'append' }, messages: { notShow: true } }
+          )
         )
+        const field = model.form.fields[model.form.fields.length - 1]
         await expDft.form.fields.insert({
-          dragField: field._id,
+          dragField: field.key,
           insertPos: payload.insertPos
         })
       },
@@ -119,7 +123,8 @@ const expDft = {
           `model/${store.getters['model/ins'].key}/field/${payload.dragField}`,
           payload.insertPos,
           {
-            type: 'api'
+            type: 'api',
+            messages: { notShow: true }
           }
         )
         await store.dispatch('model/refresh')
@@ -129,7 +134,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           { [`form.fields[{id:${key}}]`]: null },
-          { query: { updMode: 'delete' } }
+          { query: { updMode: 'delete' }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       }
@@ -138,7 +143,12 @@ const expDft = {
   table: {
     record: {
       set: async (record: any) => {
-        await reqPut('model', store.getters['model/ins'].key, { 'table.demoData': record })
+        await reqPut(
+          'model',
+          store.getters['model/ins'].key,
+          { 'table.demoData': record },
+          { messages: { notShow: true } }
+        )
         await store.dispatch('model/refresh')
       }
     },
@@ -148,7 +158,8 @@ const expDft = {
         store.getters['model/ins'].key,
         { table: skipIgnores(table, ['columns']) },
         {
-          query: { updMode: 'merge' }
+          query: { updMode: 'merge' },
+          messages: { notShow: true }
         }
       )
       await store.dispatch('model/refresh')
@@ -163,10 +174,15 @@ const expDft = {
             {
               [`table.columns[{id:${column.key}}]`]: column
             },
-            { query: { updMode: 'merge' } }
+            { query: { updMode: 'merge' }, messages: { notShow: true } }
           )
         } else {
-          await reqPut('model', mid, { 'table.columns': column }, { query: { updMode: 'append' } })
+          await reqPut(
+            'model',
+            mid,
+            { 'table.columns': column },
+            { query: { updMode: 'append' }, messages: { notShow: true } }
+          )
         }
         await store.dispatch('model/refresh')
       }
@@ -179,7 +195,7 @@ const expDft = {
           {
             [`table.cells.${cell.key}`]: skipIgnores(cell, ['key'])
           },
-          { query: { updMode: 'merge' } }
+          { query: { updMode: 'merge' }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       }

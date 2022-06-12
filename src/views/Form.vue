@@ -15,11 +15,7 @@
         </a-list>
       </a-layout-sider>
       <a-layout-content class="main-panel" @click="active = new Field()">
-        <div
-          class="white-bkgd h-100"
-          @dragover.stop="e => e.preventDefault()"
-          @drop.stop="onDropDown"
-        >
+        <div class="white-bkgd h-100">
           <a-empty
             class="ptb-30"
             v-if="!fields.length"
@@ -38,7 +34,7 @@
                 :index="index"
                 :field="field"
                 :active="active.key"
-                :onDropDown="onDropDown"
+                :onDropDown="onFieldDropDown"
                 @update:active="act => (active = act)"
                 @drag="act => (active = act)"
               />
@@ -64,7 +60,6 @@ import { computed, defineComponent, onMounted, ref } from 'vue'
 import LytDesign from '../layouts/LytDesign.vue'
 import CompoCard from '../components/form/CompoCard.vue'
 import FieldCard from '../components/form/FieldCard.vue'
-import { compoTypes } from '../types'
 import { useStore } from 'vuex'
 import Field from '@/types/field'
 import Compo from '@/types/compo'
@@ -76,6 +71,7 @@ import SelectProps from '../components/form/SelectProps.vue'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
+import { onFieldDropDown } from '../views/Form'
 
 export default defineComponent({
   name: 'Form',
@@ -108,30 +104,6 @@ export default defineComponent({
         compoType: dragCompo.substring('compo_'.length)
       })
     }
-    function onDropDown(e: DragEvent) {
-      e.preventDefault()
-      const instPos = (
-        store.getters['model/dragOn'].startsWith('divider')
-          ? store.getters['model/dragOn']
-          : store.getters['model/divider']
-      ).split('_')
-      if (instPos.length !== 3) {
-        return
-      }
-      const dragField = e.dataTransfer?.getData('text/plain') as string
-      const insertPos = {
-        field: instPos[2],
-        pos: instPos[1] === 'top' ? 'before' : ('after' as 'before' | 'after')
-      }
-      if (dragField?.startsWith('compo_')) {
-        api.form.fields.add({
-          compoType: dragField.substring('compo_'.length),
-          insertPos
-        })
-      } else {
-        api.form.fields.insert({ dragField, insertPos })
-      }
-    }
     return {
       Field,
 
@@ -141,12 +113,11 @@ export default defineComponent({
       compos,
       fields,
       active,
-      compoTypes,
       form,
       hdHeight,
 
       onDropDownEmpty,
-      onDropDown
+      onFieldDropDown
     }
   }
 })
