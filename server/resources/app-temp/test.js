@@ -1,10 +1,49 @@
 import puppeteer from 'puppeteer'
 
-const browser = await puppeteer.launch({
-  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  headless: true
-})
-const page = await browser.newPage()
+const result = await db.select(context, { jobId })
+let wsEndpoint = ''
+let countdown = 0
+if (result && result.length) {
+  if (result[0].countdown < 1000) {
+    wsEndpoint = result[0].wsEndpoint
+    countdown = result[0].countdown + 1
+  } else {
+    const browser = await puppeteer.connect({
+      browserWSEndpoint: result[0].wsEndpoint
+    })
+    await browser.close()
+    await db.del(context)
+  }
+}
+let browser = null
+try {
+  if (!wsEndpoint) {
+    throw new Error('没有开启的浏览器！')
+  }
+  browser = await puppeteer.connect({
+    browserWSEndpoint: wsEndpoint
+  })
+} catch (e) {
+  browser = await puppeteer.launch({
+    args: [
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+      '--disable-setuid-sandbox',
+      '--no-first-run',
+      '--no-sandbox',
+      '--no-zygote',
+      '--single-process'
+    ]
+  })
+  wsEndpoint = 0
+}
+if (!wsEndpoint) {
+  await db.save(context, { jobId, wsEndpoint: browser.wsEndpoint(), countdown: 0 })
+} else {
+  await db.save(context, { countdown }, { jobId })
+}
+const pages = await browser.pages()
+const page = pages.length ? pages[pages.length - 1] : await browser.newPage()
 page.setDefaultNavigationTimeout(3600000)
 
 console.log(`将跳转到：${'https://www.jiucaigongshe.com/'}`)
