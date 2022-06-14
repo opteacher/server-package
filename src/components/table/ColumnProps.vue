@@ -2,7 +2,7 @@
   <a-descriptions class="mb-50" title="列" :column="1" bordered size="small">
     <a-descriptions-item label="标题">
       <a-input
-        v-model:value="column.title"
+        :value="column.title"
         @blur="
           e =>
             api.table.columns.save({
@@ -15,7 +15,7 @@
     <a-descriptions-item label="宽度">
       <a-input-number
         class="w-100"
-        v-model:value="column.width"
+        :value="column.width"
         @blur="width => api.table.columns.save({ key: column.key, width })"
       />
     </a-descriptions-item>

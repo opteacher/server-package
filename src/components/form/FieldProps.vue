@@ -9,7 +9,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="标签">
       <a-input
-        v-model:value="field.label"
+        :value="field.label"
         @blur="(e: any) => api.form.fields.save({ key: field.key, label: e.target.value })"
       />
     </a-descriptions-item>
@@ -23,7 +23,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="描述">
       <a-textarea
-        v-model:value="field.desc"
+        :value="field.desc"
         :auto-size="{ minRows: 2 }"
         @blur="(e: any) => api.form.fields.save({ key: field.key, desc: e.target.value })"
       />

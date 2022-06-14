@@ -5,15 +5,12 @@
       &nbsp;表单参数
     </template>
     <a-descriptions-item label="标题">
-      <a-input
-        v-model:value="form.title"
-        @change="(e: any) => api.form.save({ title: e.target.value })"
-      />
+      <a-input :value="form.title" @change="(e: any) => api.form.save({ title: e.target.value })" />
     </a-descriptions-item>
     <a-descriptions-item label="表单宽度">
       <a-input-number
         class="w-100"
-        v-model:value="form.width"
+        :value="form.width"
         :min="1"
         :max="100"
         :formatter="(value: any) => `${value}%`"
@@ -23,7 +20,7 @@
     <a-descriptions-item label="标签宽度">
       <a-input-number
         class="w-100"
-        v-model:value="form.labelWidth"
+        :value="form.labelWidth"
         :min="1"
         :max="23"
         @blur="(labelWidth: any) => api.form.save({ labelWidth })"
