@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=dev node ./app.js",
-    "test": "cross-env NODE_ENV=dev jest --runInBand"
+    "test": "cross-env NODE_ENV=dev jest --runInBand",
+    "build": "cross-env NODE_ENV=prod node ./app.js"
   },
   "author": "",
   "license": "ISC",
