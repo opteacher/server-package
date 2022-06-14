@@ -24,7 +24,7 @@
             &nbsp;Logo
           </div>
           <a-menu
-            :style="{ height: '90%', display: 'flex' }"
+            :style="{ height: '90%' }"
             :selectedKeys="[selMuKey]"
             mode="inline"
             :theme="navProps.theme"

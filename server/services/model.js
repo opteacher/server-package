@@ -82,14 +82,14 @@ export async function exportClass(mid, options) {
   }
   if (options.genCopy) {
     if (options.expType === 'typescript') {
-      writeData += `\n  static copy(src: any, tgt?: ${options.name}): ${options.name} {\n`
+      writeData += `\n  static copy(src: any, tgt?: ${options.name}, force = false): ${options.name} {\n`
     } else {
-      writeData += `\n  static copy(src, tgt) {\n`
+      writeData += `\n  static copy(src, tgt, force = false) {\n`
     }
     writeData += `    tgt = tgt || new ${options.name}()\n`
-    writeData += '    tgt.key = src.key || src.id || src._id || tgt.key\n'
+    writeData += '    tgt.key = force ? (src.key || src.id || src._id) : (src.key || src.id || src._id || tgt.key)\n'
     for (const prop of model.props) {
-      writeData += `    tgt.${prop.name} = src.${prop.name} || tgt.${prop.name}\n`
+      writeData += `    tgt.${prop.name} = force ? src.${prop.name} : (src.${prop.name} || tgt.${prop.name})\n`
     }
     writeData += '    return tgt\n  }\n'
   }

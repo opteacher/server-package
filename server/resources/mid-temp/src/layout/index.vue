@@ -1,7 +1,13 @@
 <template>
   <a-layout class="h-100">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
-      <div class="logo" />
+      <div
+        :style="{
+          height: '10%',
+          cursor: 'pointer',
+          'background-color': navigate.theme === 'dark' ? '#001529' : 'white'
+        }"
+      />
       <a-menu
         class="h-100"
         :selectedKeys="[active]"
@@ -63,6 +69,8 @@ import { defineComponent, onMounted, reactive, ref } from 'vue'
 import Model from '../types/model'
 import MidNav from '../types/midNav'
 import { useRouter } from 'vue-router'
+import { reqAll } from '../utils'
+import { message } from 'ant-design-vue'
 
 export default defineComponent({
   name: 'IndexLayout',
@@ -82,11 +90,33 @@ export default defineComponent({
       /*return project.models.map(model => `{ icon: \'${model.icon}\', name: \'${model.name}\', label: \'${model.label}\' }`).join(',\n      ')*/
     ] as Model[])
 
-    onMounted(() => {
+    onMounted(async () => {
+      const unaccessible = []
+      for (const model of models) {
+        try {
+          await reqAll(model.name, { query: { limit: 1 } })
+        } catch (e) {
+          console.log(e)
+          unaccessible.push(model.name)
+        }
+      }
+      for (const mname of unaccessible) {
+        models.splice(
+          models.findIndex((model: Model) => model.name === mname),
+          1
+        )
+      }
+      if (!models.length) {
+        message.error('没有访问权限！', undefined, () => {
+          router.replace('/test/login')
+        })
+        return
+      }
       emit('change', active.value)
     })
 
-    function onItemSelected({ key }: { key: any }) {
+    function onItemSelected({ key }: { key: string }) {
+      active.value = key
       emit('change', key)
     }
     function onLogout() {
@@ -116,11 +146,6 @@ export default defineComponent({
 
 .trigger:hover {
   color: #1890ff;
-}
-
-.logo {
-  height: 64px;
-  background: rgba(255, 255, 255, 0.3);
 }
 
 .site-layout .site-layout-background {

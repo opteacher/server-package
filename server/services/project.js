@@ -12,6 +12,7 @@ import Node from '../models/node.js'
 import Dep from '../models/dep.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
+import { exportClass } from './model.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'app-temp')
@@ -778,6 +779,11 @@ export async function pubMiddle(pid, pubInfo) {
   const typGen = Path.join(genSrcPath, 'types')
   console.log(`复制src/types文件夹：${typTmp} -> ${typGen}`)
   copyDir(typTmp, typGen)
+  for (const model of project.models) {
+    const result = await exportClass(model._id, { name: model.name })
+    const flPath = Path.join(typGen, result.fileName)
+    fs.writeFileSync(flPath, result.content)
+  }
   const cmpTmp = Path.join(tmpSrcPath, 'components')
   const cmpGen = Path.join(genSrcPath, 'components')
   console.log(`复制src/components文件夹：${cmpTmp} -> ${cmpGen}`)
@@ -797,7 +803,7 @@ export async function pubMiddle(pid, pubInfo) {
     const apiTmp = Path.join(tmpSrcPath, 'api.ts')
     const apiGen = Path.join(genSrcPath, 'api.ts')
     console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
-    adjustFile(apiTmp, apiGen, { auth })
+    adjustFile(apiTmp, apiGen, { project, auth })
     console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
     adjustFile(rtTmp, rtGen, { auth, project })
     const lgnTmp = Path.join(tmpSrcPath, 'views', 'Login.vue')
@@ -830,7 +836,7 @@ export async function pubMiddle(pid, pubInfo) {
   const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
   console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
   adjustFile(hmTmp, hmGen, {
-    models: await Promise.all(project.models.map(model => db.select(Model, { _index: model.id })))
+    models: await Promise.all(project.models.map(model => db.select(Model, { _index: model._id })))
   })
 
   console.log(`发布中台到目录：${genPath}`)

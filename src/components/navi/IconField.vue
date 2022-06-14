@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 
 type IconsKey = 'ant-design'
@@ -80,9 +80,15 @@ export default defineComponent({
     const begIdx = computed(() => (pages.cur - 1) << 2)
 
     onMounted(refresh)
+    watch(() => search.value, refresh)
 
     function refresh() {
-      const iconsLibs = Object.keys(iconsMapper[selTab.value])
+      let iconsLibs = Object.keys(iconsMapper[selTab.value])
+      if (search.value) {
+        iconsLibs = iconsLibs.filter((icnKey: string) =>
+          icnKey.toLowerCase().includes(search.value)
+        )
+      }
       icons.splice(0, icons.length)
       for (let i = 0; i < iconsLibs.length; i += 4) {
         const group = [iconsLibs[i]]

@@ -1,5 +1,9 @@
 <template>
-  <a-layout class="h-100" @dragover.stop="e => e.preventDefault()" @drop.stop="onFieldDropDown">
+  <a-layout
+    class="h-100"
+    @dragover.stop="(e: any) => e.preventDefault()"
+    @drop.stop="onFieldDropDown"
+  >
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">

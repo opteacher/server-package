@@ -64,6 +64,9 @@ export default {
       })
     },
     chkMidStatus({ state }: { state: PjtState }) {
+      if (!state.project.key) {
+        return
+      }
       state.project.middle.loading = true
       intervalCheck({
         chkFun: async () => {

@@ -51,7 +51,6 @@ import MidLgn from '../types/midLgn'
 import Field from '../types/field'
 import { useRouter } from 'vue-router'
 import api from '../api'
-import { message } from 'ant-design-vue'
 
 export default defineComponent({
   name: 'Login',
@@ -80,10 +79,10 @@ export default defineComponent({
       const token = localStorage.getItem('token')
       if (token) {
         const result = await api.verifyDeep(token)
-        if (result.error) {
-          message.error(result.error)
+        console.log(result)
+        if (!result.error) {
+          router.replace('//*return project.name*//home')
         }
-        router.replace('//*return project.name*//home')
       }
     })
 

@@ -4,7 +4,7 @@
     :title="form.title"
     :width="`${form.width}vw`"
     @ok="onOkClick"
-    @cancel="onCclClick"
+    @cancel="emitter.emit('update:show', { show: false })"
   >
     <a-form
       ref="formRef"
@@ -20,6 +20,9 @@
         :viewOnly="viewOnly"
       />
     </a-form>
+    <template v-if="viewOnly" #footer>
+      <a-button @click="emitter.emit('update:show', { show: false })">Cancel</a-button>
+    </template>
   </a-modal>
 </template>
 
@@ -42,25 +45,30 @@ export default defineComponent({
     const formState = reactive({})
     const viewOnly = ref(false)
 
-    props.emitter.on('update:show', (args: { show: boolean; record?: any; viewOnly?: boolean }) => {
-      viewOnly.value = args.viewOnly as boolean
-      visible.value = args.show
-    })
+    props.emitter.on(
+      'update:show',
+      (args: { show: boolean; cpyRcd?: (tgt: any) => void; viewOnly?: boolean }) => {
+        if (!args.show) {
+          visible.value = false
+          return
+        }
+        viewOnly.value = typeof args.viewOnly != 'undefined' ? args.viewOnly : false
+        if (args.cpyRcd) {
+          args.cpyRcd(formState)
+        }
+        visible.value = args.show
+      }
+    )
 
     async function onOkClick() {
       try {
         await formRef.value.validate()
         emit('submit', formState, () => {
-          visible.value = false
-          // reset()
+          props.emitter.emit('update:show', { show: false })
         })
       } catch (e) {
         console.error(e)
       }
-    }
-    function onCclClick() {
-      visible.value = false
-      // reset()
     }
     return {
       visible,
@@ -68,8 +76,7 @@ export default defineComponent({
       formRef,
       formState,
 
-      onOkClick,
-      onCclClick
+      onOkClick
     }
   }
 })

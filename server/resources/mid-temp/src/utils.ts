@@ -29,16 +29,20 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   }
   options?.middles?.after && options?.middles?.after(resp)
   const result = resp.result || resp.data
-  if (resp.error || result.error) {
+  if (resp.error || (result && result.error)) {
     if (!options?.messages?.notShow && options?.messages?.failed) {
       message.error(options?.messages?.failed)
     } else {
-      message.error(resp.error || result.error)
+      if (result && result.error) {
+        message.error(result.error)
+      } else {
+        message.error(resp.error)
+      }
     }
   } else {
     if (!options?.messages?.notShow && options?.messages?.succeed) {
       message.success(options?.messages?.succeed)
-    } else if (result.message) {
+    } else if (result && result.message) {
       message.success(result.message)
     }
   }

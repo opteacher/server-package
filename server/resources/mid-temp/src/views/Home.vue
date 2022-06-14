@@ -7,11 +7,16 @@
           <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
         </a-space>
       </a-col>
-      <a-col v-if="table.operable.includes('可增加')" flex="100px">
+      <a-col v-if="table.operable.includes('可增加')" style="text-align: right" flex="100px">
         <a-button
           class="float-right"
           type="primary"
-          @click="fmEmitter.emit('update:show', { show: true })"
+          @click="
+            fmEmitter.emit('update:show', {
+              show: true,
+              cpyRcd: (tgt: any) => actCopy(actCopy({}), tgt, true)
+            })
+          "
         >
           添加
         </a-button>
@@ -26,7 +31,11 @@
       bordered
       :custom-row="
         (record: any) => ({
-          onClick: () => fmEmitter.emit('update:show', { show: true, record, viewOnly: true })
+          onClick: () => fmEmitter.emit('update:show', {
+            show: true,
+            cpyRcd: (tgt: any) => actCopy(record, tgt),
+            viewOnly: true
+          })
         })
       "
     >
@@ -37,7 +46,12 @@
               v-if="table.operable.includes('可编辑')"
               size="small"
               class="mb-5"
-              @click="fmEmitter.emit('update:show', { show: true, record })"
+              @click.stop="
+                fmEmitter.emit('update:show', {
+                  show: true,
+                  cpyRcd: (tgt: any) => actCopy(record, tgt)
+                })
+              "
             >
               编辑
             </a-button>
@@ -57,7 +71,12 @@
             <a
               v-if="table.operable.includes('可编辑')"
               class="mr-5"
-              @click="fmEmitter.emit('update:show', { show: true, record })"
+              @click.stop="
+                fmEmitter.emit('update:show', {
+                  show: true,
+                  cpyRcd: (tgt: any) => actCopy(record, tgt)
+                })
+              "
             >
               编辑
             </a>
@@ -107,8 +126,13 @@ import { endsWith } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
+/*return models.map(model => `import ${model.name} from '../types/${model.name}'`).join('\n')*/
 
-const models: any[] = [] /*return models.map(model => JSON.stringify(model)).join(',\n  ')*/
+const models: any[] =
+  [] /*return '[' + models.map(model => JSON.stringify(model)).join(',\n  ') + ']'*/
+
+const copies: Record<string, (src: any, tgt?: any, force?: boolean) => any> =
+  {} /*return '{ ' + models.map(model => `'${model.name}': ${model.name}.copy`).join(', ') + ' }'*/
 
 export default defineComponent({
   name: 'Home',
@@ -118,6 +142,7 @@ export default defineComponent({
   },
   setup() {
     const actMdl = ref('')
+    const actCopy = computed(() => copies[actMdl.value])
     const form = reactive(new Form())
     const table = reactive(new Table())
     const records = reactive([] as any[])
@@ -131,27 +156,40 @@ export default defineComponent({
         return
       }
       const model = models.find((mdl: any) => mdl.name === actMdl.value)
-      Form.copy(model.form, form)
-      Table.copy(model.table, table)
-      records.splice(0, records.length, ...(await api.all(actMdl.value)))
+      Form.copy(model.form, form, true)
+      Table.copy(model.table, table, true)
+      records.splice(
+        0,
+        records.length,
+        ...(await api.all(actMdl.value)).map((record: any) => actCopy.value(record))
+      )
     }
-    function onRecordSave(record: any, next: () => void) {
-      console.log(record)
+    async function onRecordSave(record: any, next: () => void) {
+      if (record.key) {
+        await api.update(actMdl.value, record.key, record)
+      } else {
+        await api.add(actMdl.value, record)
+      }
+      await refresh()
       next()
     }
-    function onRecordDel(record: any) {
-      console.log(record)
+    async function onRecordDel(record: any) {
+      await api.remove(actMdl.value, record.key)
+      await refresh()
     }
     async function onMuItmChange(mname: string) {
       actMdl.value = mname
       await refresh()
     }
     return {
+      actMdl,
+      actCopy,
       form,
       table,
       records,
       fmEmitter,
       columns,
+      copies,
 
       endsWith,
       onRecordSave,
@@ -175,6 +213,10 @@ export default defineComponent({
 
 .mb-3 {
   margin-bottom: 3px !important;
+}
+
+.mb-5 {
+  margin-bottom: 5px !important;
 }
 
 .mb-10 {
