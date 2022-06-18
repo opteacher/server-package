@@ -171,6 +171,7 @@ describe('# 权限服务', () => {
     beforeAll(async () => {
       request = supertest((await getApp()).callback())
       process.env.BASE_URL = ''
+      process.env.NODE_ENV = 'test'
       await genApp(pid)
       fs.rmSync(Path.resolve('tmp'), { force: true, recursive: true })
       const authPath = Path.resolve('tmp', 'services')

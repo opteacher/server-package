@@ -5,7 +5,7 @@ import { db, makeRequest } from '../utils/index.js'
 const svrPkgURL = `http://${
   typeof process.env.BASE_URL !== 'undefined'
   ? process.env.BASE_URL
-  : (process.env.NODE_ENV === 'prod' ? 'server-package' : 'host.docker.internal')
+  : (process.env.NODE_ENV === 'test' ? 'host.docker.internal' : 'server-package')
 }:4000/server-package`
 
 export async function sign(ctx) {
