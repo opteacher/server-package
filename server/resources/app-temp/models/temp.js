@@ -6,7 +6,7 @@ export default db.defineModel(''/*return `\'${model.name}\'`*/,
   },
   {
     router: {
-      methods: ['ALL', /*return model.svcs.map((svc) => `\'${svc.method}\'`).join(', ')*/]
+      methods: [/*return model.svcs.map((svc) => `\'${svc.method}\'`).join(', ')*/]
     }
   }
 )
