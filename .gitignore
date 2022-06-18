@@ -6,6 +6,7 @@ apps
 package-lock.json
 coverage
 server/tmp
+.docker
 
 
 # local env files
