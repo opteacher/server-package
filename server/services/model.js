@@ -164,7 +164,7 @@ export async function create(data) {
       name: model.name,
       emit: 'api',
       isModel: true,
-      method: 'GET',
+      method: 'ALL',
       path: `/mdl/v1/${model.name}s`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
