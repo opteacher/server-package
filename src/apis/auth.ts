@@ -24,6 +24,6 @@ export default {
   },
   sign: {
     gen: (props: any[]) =>
-      reqPost(`/project/${store.getters['project/ins'].key}/auth/sign`, { props }, { type: 'api' })
+      reqPost(`project/${store.getters['project/ins'].key}/auth/sign`, { props }, { type: 'api' })
   }
 }
