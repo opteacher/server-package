@@ -1,6 +1,5 @@
 FROM node:16.15.1
 ENV NODE_ENV prod
-ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /tmp
 COPY . /tmp
 RUN npm config set registry http://registry.npm.taobao.org
@@ -15,7 +14,6 @@ RUN cd /tmp \
 
 FROM node:16.15.1
 ENV NODE_ENV prod
-ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /app
 COPY --from=0 /tmp/server/ /app/
 RUN npm config set registry http://registry.npm.taobao.org \
