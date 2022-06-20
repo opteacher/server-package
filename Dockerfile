@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:16.15.1
 ENV NODE_ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /tmp
@@ -13,7 +13,7 @@ RUN cd /tmp \
   && mkdir ./views \
   && mv ./public/server-package/index.html ./views/index.html
 
-FROM node:latest
+FROM node:16.15.1
 ENV NODE_ENV prod
 ENV NODE_OPTIONS --openssl-legacy-provider
 WORKDIR /app
