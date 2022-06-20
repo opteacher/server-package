@@ -843,7 +843,6 @@ export async function pubMiddle(pid, pubInfo) {
   await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
   spawn(
     [
-      'export NODE_OPTIONS=--openssl-legacy-provider',
       'export NODE_OPTIONS=--max_old_space_size=2048',
       'npm config set registry http://registry.npm.taobao.org',
       'npm install --unsafe-perm=true --allow-root',
