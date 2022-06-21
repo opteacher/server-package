@@ -853,7 +853,7 @@ export async function pubMiddle(pid, pubInfo) {
       'npm install --unsafe-perm=true --allow-root',
       'npm run build',
       `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public`,
-      `docker exec -it ${project.name} mv /app/public/index.html /app/views/index.html`
+      `docker exec ${project.name} mv /app/public/index.html /app/views/index.html`
     ].join(' && '),
     {
       cwd: genPath,
@@ -897,7 +897,7 @@ export async function depMiddle(pid, depInfo) {
       .map(file => Object.assign(file, { dest: `/public/${rmvStartsOf(file.dest, 'dist/')}` }))
   })
   const project = await db.select(Project, { _index: pid })
-  spawnSync(`docker exec -it ${project.name} mv /app/public/index.html /app/views/index.html`,
+  spawnSync(`docker exec ${project.name} mv /app/public/index.html /app/views/index.html`,
     {
       stdio: 'inherit',
       shell: true
