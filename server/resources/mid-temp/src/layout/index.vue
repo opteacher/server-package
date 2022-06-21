@@ -108,7 +108,7 @@ export default defineComponent({
       }
       if (!models.length) {
         message.error('没有访问权限！', undefined, () => {
-          router.replace('/test/login')
+          router.replace('//*return project.name*//login')
         })
         return
       }

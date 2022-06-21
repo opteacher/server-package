@@ -90,7 +90,7 @@ export default defineComponent({
       const result = await api.login(values)
       if (result.token) {
         localStorage.setItem('token', result.token)
-        router.push('/test/home')
+        router.push('//*return project.name*//home')
       }
     }
     return {
