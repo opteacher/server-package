@@ -41,11 +41,12 @@ export default db.defineModel(
       prefix: db.PropTypes.String,
       login: {
         bkgdColor: db.PropTypes.String,
-        background: db.PropTypes.Array,
+        background: db.PropTypes.String,
         title: db.PropTypes.String,
         lblWidth: db.PropTypes.Number,
         width: db.PropTypes.Number,
         align: db.PropTypes.String,
+        padding: db.PropTypes.Number,
         radius: db.PropTypes.Number,
         fmBkgdColor: db.PropTypes.String,
         registerable: db.PropTypes.Boolean,
@@ -54,7 +55,7 @@ export default db.defineModel(
       },
       navigate: {
         theme: db.PropTypes.String,
-        logo: db.PropTypes.Array
+        logo: db.PropTypes.String
       }
     }
   },

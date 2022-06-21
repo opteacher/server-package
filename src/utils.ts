@@ -19,7 +19,7 @@ export interface RequestOptions {
   }
   ignores?: string[]
   query?: any
-  copy?: (src: any, tgt?: any) => any,
+  copy?: (src: any, tgt?: any) => any
   orgRes?: boolean
 }
 
@@ -29,14 +29,14 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
     message.loading(options?.messages?.loading || '加载中……')
   }
   let resp = await pms
-  if (!(options?.orgRes)) {
+  if (!options?.orgRes) {
     resp = resp.data
   }
   if (!options?.messages?.notShow) {
     message.destroy()
   }
   options?.middles?.after && options?.middles?.after(resp)
-  const result = options?.orgRes ? resp : (resp.result || resp.data || resp)
+  const result = options?.orgRes ? resp : resp.result || resp.data || resp
   if (resp.error || result.error) {
     if (!options?.messages?.notShow && options?.messages?.failed) {
       message.error(options?.messages?.failed)
@@ -102,7 +102,7 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
     }),
     options
   )
-  return (options && options.copy ? options.copy(result) : result)
+  return options && options.copy ? options.copy(result) : result
 }
 
 export function reqPost(path: string, body?: any, options?: RequestOptions): Promise<any> {
@@ -340,13 +340,19 @@ export function intervalCheck(options: {
     options.middle = {}
   }
   if (!options.middle.waiting) {
-    options.middle.waiting = () => { console.log() }
+    options.middle.waiting = () => {
+      console.log()
+    }
   }
   if (!options.middle.failed) {
-    options.middle.failed = () => { console.log() }
+    options.middle.failed = () => {
+      console.log()
+    }
   }
   if (!options.middle.succeed) {
-    options.middle.succeed = () => { console.log() }
+    options.middle.succeed = () => {
+      console.log()
+    }
   }
   if (!options.limit) {
     options.limit = 60

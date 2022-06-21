@@ -1,5 +1,5 @@
-import MidLgn from "./midLgn";
-import MidNav from "./midNav";
+import MidLgn from './midLgn'
+import MidNav from './midNav'
 
 export default class Middle {
   key: string

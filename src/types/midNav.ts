@@ -1,18 +1,18 @@
 export default class MidNav {
   key: string
   theme: 'dark' | 'light'
-  logo: any[]
+  logo: string
 
   constructor() {
     this.key = ''
     this.theme = 'dark'
-    this.logo = []
+    this.logo = ''
   }
 
   reset() {
     this.key = ''
     this.theme = 'dark'
-    this.logo = []
+    this.logo = ''
   }
 
   static copy(src: any, tgt?: MidNav): MidNav {

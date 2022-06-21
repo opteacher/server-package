@@ -43,9 +43,10 @@
           <a-upload
             name="file"
             :maxCount="1"
-            v-model:file-list="lgnProps.background"
-            action="/server-package/api/v1/image"
-            @change="onUpldImgChange"
+            :multiple="false"
+            :showUploadList="false"
+            action="/server-package/api/v1/temp/image"
+            @change="onUploadBkgdImg"
           >
             <a-button size="small">
               <template #icon><upload-outlined /></template>
@@ -63,6 +64,17 @@
             ]"
             v-model:value="lgnProps.align"
           />
+        </a-descriptions-item>
+        <a-descriptions-item label="表单边距">
+          <a-input
+            :disabled="lgnProps.align === 'center'"
+            size="small"
+            style="width: 8vw"
+            type="number"
+            v-model:value="lgnProps.padding"
+          >
+            <template #suffix>px</template>
+          </a-input>
         </a-descriptions-item>
         <a-descriptions-item label="表单宽度">
           <a-input size="small" v-model:value="lgnProps.width" style="width: 12vw">
@@ -137,10 +149,11 @@
       <div
         id="pnlDisplay"
         :style="{
-          padding: '50px 24px',
+          padding: `50px ${lgnProps.padding}px`,
           display: 'flex',
           'align-items': 'center',
           'justify-content': lgnProps.align,
+          'background-image': lgnProps.background ? `url(${lgnProps.background})` : '',
           'background-color': lgnProps.bkgdColor
         }"
       >
@@ -251,9 +264,6 @@ export default defineComponent({
       rect[3] = el.clientHeight
       return el
     }
-    function onUpldImgChange(e: { file: any }) {
-      console.log(e.file)
-    }
     function onBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
       lgnProps.bkgdColor = color
       next()
@@ -274,6 +284,11 @@ export default defineComponent({
       }
       return field
     }
+    function onUploadBkgdImg(e: any) {
+      if (e.file && e.file.status === 'done') {
+        lgnProps.background = e.file.response.result
+      }
+    }
     return {
       Field,
 
@@ -286,11 +301,11 @@ export default defineComponent({
       lgnFields,
       middle,
 
-      onUpldImgChange,
       onBkgdColSubmit,
       onFmBkgdColSubmit,
       onLoginSave,
-      fixField
+      fixField,
+      onUploadBkgdImg
     }
   }
 })

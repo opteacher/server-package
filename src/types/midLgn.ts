@@ -1,10 +1,11 @@
 export default class MidLgn {
   key: string
   bkgdColor: string
-  background: any[]
+  background: string
   lblWidth: number
   width: number
   align: string
+  padding: number
   radius: number
   fmBkgdColor: string
   registerable: boolean
@@ -15,10 +16,11 @@ export default class MidLgn {
   constructor() {
     this.key = ''
     this.bkgdColor = '#cdcdcd'
-    this.background = []
+    this.background = ''
     this.lblWidth = 4
     this.width = 50
     this.align = 'center'
+    this.padding = 24
     this.radius = 0
     this.fmBkgdColor = '#EFEFEF'
     this.registerable = false
@@ -30,10 +32,11 @@ export default class MidLgn {
   reset() {
     this.key = ''
     this.bkgdColor = '#cdcdcd'
-    this.background = []
+    this.background = ''
     this.lblWidth = 4
     this.width = 50
     this.align = 'center'
+    this.padding = 24
     this.radius = 0
     this.fmBkgdColor = '#EFEFEF'
     this.registerable = false
@@ -50,6 +53,7 @@ export default class MidLgn {
     tgt.lblWidth = src.lblWidth || tgt.lblWidth
     tgt.width = src.width || tgt.width
     tgt.align = src.align || tgt.align
+    tgt.padding = src.padding || tgt.padding
     tgt.radius = src.radius || tgt.radius
     tgt.fmBkgdColor = src.fmBkgdColor || tgt.fmBkgdColor
     tgt.registerable = typeof src.registerable !== 'undefined' ? src.registerable : tgt.registerable
@@ -66,6 +70,7 @@ export default class MidLgn {
       this.lblWidth === to.lblWidth &&
       this.width === to.width &&
       this.align === to.align &&
+      this.padding === to.padding &&
       this.radius === to.radius &&
       this.fmBkgdColor === to.fmBkgdColor &&
       this.registerable === to.registerable &&

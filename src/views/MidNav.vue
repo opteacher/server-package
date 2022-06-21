@@ -1,7 +1,7 @@
 <template>
   <LytMiddle :active="`project/${pid}/mid/navigate`">
     <a-row style="height: 65vh" :gutter="24">
-      <a-col :span="16" style="background-color: #ededed">
+      <a-col :span="16" style="background-color: #ededed" @click="selMuKey = ''">
         <div
           :style="{
             width: '25vw',
@@ -16,9 +16,10 @@
               padding: selMuKey === '#' ? '12px' : '14px',
               border: selMuKey === '#' ? '2px solid #1890ff' : 'none',
               color: navProps.theme === 'dark' ? '#FFFFFFA6' : '#001529',
-              'background-color': navProps.theme === 'dark' ? '#001529' : 'white'
+              'background-color': navProps.theme === 'dark' ? '#001529' : 'white',
+              'background-image': navProps.logo ? `url(${navProps.logo})` : ''
             }"
-            @click="selMuKey = '#'"
+            @click.stop="selMuKey = '#'"
           >
             <picture-outlined />
             &nbsp;Logo
@@ -30,7 +31,12 @@
             :theme="navProps.theme"
             @select="onMuItemSelect"
           >
-            <a-menu-item v-for="model of models" :key="model.key">
+            <a-menu-item
+              v-for="mdl of models"
+              :key="mdl.key"
+              @click.stop="(e: any) => e.preventDefault()"
+            >
+              {{ void (model = selMuKey === mdl.key ? nvItmProps : mdl) }}
               <template #icon>
                 <keep-alive v-if="model.icon">
                   <component :is="model.icon" />
@@ -60,25 +66,14 @@
           </a-descriptions-item>
         </a-descriptions>
         <a-descriptions v-if="selMuKey === '#'" title="Logo参数" :column="1" size="small" bordered>
-          <template #extra>
-            <a-button
-              :type="!navProps.equals(midNav) ? 'primary' : 'default'"
-              @click="
-                () => {
-                  selMuKey = ''
-                }
-              "
-            >
-              保存
-            </a-button>
-          </template>
           <a-descriptions-item label="Logo图片">
             <a-upload
               name="file"
               :maxCount="1"
-              v-model:file-list="navProps.logo"
-              action="/server-package/api/v1/image"
-              @change="onUpldImgChange"
+              :multiple="false"
+              :showUploadList="false"
+              action="/server-package/api/v1/temp/image"
+              @change="onUploadLogoImg"
             >
               <a-button class="w-100">
                 <template #icon><upload-outlined /></template>
@@ -153,7 +148,8 @@ export default defineComponent({
       selMuKey.value = key
       Model.copy(
         models.value.find((model: Model) => model.key === key),
-        nvItmProps
+        nvItmProps,
+        true
       )
     }
     function onUpldImgChange() {
@@ -173,6 +169,11 @@ export default defineComponent({
     ) {
       return mdl1.icon === mdl2.icon && mdl1.label === mdl2.label
     }
+    function onUploadLogoImg(e: any) {
+      if (e.file && e.file.status === 'done') {
+        navProps.logo = e.file.response.result
+      }
+    }
     return {
       pid,
       models,
@@ -186,7 +187,8 @@ export default defineComponent({
       onUpldImgChange,
       onNaviSave,
       onNvItmSave,
-      mdlEqual
+      mdlEqual,
+      onUploadLogoImg
     }
   }
 })
