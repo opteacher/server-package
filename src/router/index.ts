@@ -9,7 +9,6 @@ import Model from '../views/Model.vue'
 import API from '../views/API.vue'
 import Job from '../views/Job.vue'
 import Flow from '../views/Flow.vue'
-import DataSet from '../views/DataSet.vue'
 import Auth from '../views/Auth.vue'
 import MidLgn from '../views/MidLgn.vue'
 import MidNav from '../views/MidNav.vue'
@@ -87,12 +86,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/model/:mid/flow/:sid',
     name: 'Flow',
     component: Flow,
-    meta: { reqLogin: true }
-  },
-  {
-    path: '/server-package/project/:pid/dataset/:mid',
-    name: 'DataSet',
-    component: DataSet,
     meta: { reqLogin: true }
   },
   {

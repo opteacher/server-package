@@ -1,11 +1,12 @@
 import store from '@/store'
-import { reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
+import { endsWith, makeRequest, reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 import Project from '@/types/project'
 import Transfer from '@/types/transfer'
 import DataBase from '@/types/database'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import axios from 'axios'
 
 export default {
   add: (data: any) =>
@@ -107,6 +108,33 @@ export default {
     },
     publish: (key: any, data: any) =>
       reqPost(`project/${key}/middle/publish`, data, { type: 'api' }),
-    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' })
+    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' }),
+    generate: async (key: any) => {
+      const resp = await makeRequest(
+        axios.get(`/server-package/api/v1/project/${key}/middle/generate`, {
+          responseType: 'blob'
+        }),
+        {
+          messages: { notShow: true },
+          orgRes: true
+        }
+      )
+      const link = document.createElement('a')
+      // 创建对象url
+      link.href = window.URL.createObjectURL(
+        new Blob([resp.data], { type: resp.headers['content-type'] })
+      )
+      const filename = window.decodeURI(resp.headers['content-disposition'].split('=')[1])
+      link.download = filename.substring(
+        filename.startsWith('"') ? 1 : 0,
+        endsWith(filename, '"') ? filename.length - 1 : 0
+      )
+      link.style.display = 'none'
+      document.body?.appendChild(link)
+      link.click()
+      link.remove()
+    },
+    deploy: (key: any, data: any) =>
+      reqPut('project', `${key}/middle/deploy`, data, { type: 'api' })
   }
 }

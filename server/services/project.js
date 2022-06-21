@@ -3,7 +3,7 @@
 import fs from 'fs'
 import Path from 'path'
 import { db, skipIgnores } from '../utils/index.js'
-import { readConfig, copyDir } from '../lib/backend-library/utils/index.js'
+import { readConfig, copyDir, rmvStartsOf } from '../lib/backend-library/utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import DataBase from '../models/database.js'
@@ -13,6 +13,7 @@ import Dep from '../models/dep.js'
 import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
 import { exportClass } from './model.js'
+import sendfile from 'koa-sendfile'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'app-temp')
@@ -562,7 +563,7 @@ export async function del(pid) {
  */
 export async function stop(pjt) {
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
-  spawn(
+  spawnSync(
     [`docker container stop ${project.name}`, `docker container rm ${project.name}`].join(' && '),
     {
       stdio: 'inherit',
@@ -620,7 +621,7 @@ export async function deploy(pid, cfg) {
   fs.mkdirSync(genPath, { recursive: true })
 
   console.log('开始部署……')
-  spawn(
+  spawnSync(
     [
       `git clone ${cfg.gitURL} && cd *`,
       'npm config set registry http://registry.npm.taobao.org',
@@ -664,7 +665,7 @@ export async function transfer(info) {
       `docker cp ${file.src} ${rootPath}${file.dest}`
     ].join(' && ')
   })
-  spawn(cmds.join(' && '), {
+  spawnSync(cmds.join(' && '), {
     stdio: 'inherit',
     shell: true
   })
@@ -715,8 +716,7 @@ export async function getAllAPIs(pid) {
   return ret
 }
 
-export async function pubMiddle(pid, pubInfo) {
-  const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
+export async function buildMid(project) {
   const hasAuth = project.auth.model
 
   const svrCfg = await readConfig(Path.resolve('configs', 'server'))
@@ -838,10 +838,15 @@ export async function pubMiddle(pid, pubInfo) {
   adjustFile(hmTmp, hmGen, {
     models: await Promise.all(project.models.map(model => db.select(Model, { _index: model._id })))
   })
+  return Promise.resolve(genPath)
+}
 
+export async function pubMiddle(pid, pubInfo) {
+  const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
+  const genPath = await buildMid(project)
   console.log(`发布中台到目录：${genPath}`)
   await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
-  spawn(
+  spawnSync(
     [
       'export NODE_OPTIONS=--max_old_space_size=2048',
       'npm config set registry http://registry.npm.taobao.org',
@@ -864,6 +869,41 @@ export async function pubMiddle(pid, pubInfo) {
       '/login'
     ].join('')
   }
+}
+
+export async function genMiddle(ctx) {
+  const project = (await db.select(Project, { _index: ctx.params.pid }, { ext: true })).toObject()
+  await buildMid(project)
+  console.log('打包中台……')
+  const flName = `${project.name}-mid.tar`
+  spawnSync(`tar -cvf ${flName} ${project.name}-mid`, {
+    cwd: Path.resolve(svrCfg.apps),
+    stdio: 'inherit',
+    shell: true
+  })
+  const phName = Path.join(svrCfg.apps, flName)
+  ctx.attachment(phName)
+  await sendfile(ctx, phName)
+}
+
+export async function depMiddle(pid, depInfo) {
+  const idxHtml = depInfo.fileList.find(file => file.name !== 'index.html')
+  if (!idxHtml) {
+    return { error: '选择正确的dist文件夹：该文件夹无index.html文件' }
+  }
+  await transfer({
+    pid,
+    files: depInfo.fileList
+      .map(file => Object.assign(file, { dest: `/public/${rmvStartsOf(file.dest, 'dist/')}` }))
+  })
+  const project = await db.select(Project, { _index: pid })
+  spawnSync(`docker exec -it ${project.name} mv /app/public/index.html /app/views/index.html`,
+    {
+      stdio: 'inherit',
+      shell: true
+    }
+  )
+  return { message: '部署完毕！' }
 }
 
 export async function chkMiddle(pid) {

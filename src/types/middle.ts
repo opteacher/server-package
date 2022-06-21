@@ -37,7 +37,7 @@ export default class Middle {
     tgt = tgt || new Middle()
     tgt.title = src.title || tgt.title
     tgt.prefix = src.prefix || tgt.prefix
-    tgt.lclDep = src.lclDep || tgt.lclDep
+    tgt.lclDep = typeof src.lclDep !== 'undefined' ? src.lclDep : tgt.lclDep
     tgt.loading = typeof src.loading !== 'undefined' ? src.loading : tgt.loading
     tgt.url = src.url || tgt.url
     tgt.login = src.login ? MidLgn.copy(src.login) : tgt.login

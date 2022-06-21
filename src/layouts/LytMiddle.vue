@@ -63,25 +63,71 @@
             overflowY: 'auto'
           }"
         >
-          <a-space class="mb-16">
-            <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
-              <template #icon><cloud-upload-outlined /></template>
-              发布中台
-            </a-button>
-            <FormDialog
-              title="配置中台"
-              :copy="Middle.copy"
-              :show="showPub"
-              :mapper="pubMapper"
-              :emitter="pubEmitter"
-              @update:show="onPubDlgShow"
-              @submit="onPublish"
-            />
-            <a-button :disabled="middle.loading || !middle.url" :href="middle.url" target="_blank">
-              <template #icon><layout-outlined /></template>
-              浏览中台
-            </a-button>
-          </a-space>
+          <a-row class="mb-16">
+            <a-col :span="12">
+              <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
+                <template #icon><cloud-upload-outlined /></template>
+                发布中台
+              </a-button>
+              <FormDialog
+                title="配置中台"
+                :copy="Middle.copy"
+                :show="showPub"
+                :mapper="pubMapper"
+                :emitter="pubEmitter"
+                @update:show="onPubDlgShow"
+                @submit="onPublish"
+              >
+                <template #footer="pubInfo">
+                  <template v-if="publish">
+                    <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
+                    <a-button type="primary" @click="onPublish(pubInfo)">确定</a-button>
+                  </template>
+                  <template v-else>
+                    <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
+                    <a-button type="primary" @click="onGenMid(pubInfo)">导出</a-button>
+                    <a-divider type="vertical" />
+                    <a-upload
+                      name="file"
+                      :multiple="false"
+                      :directory="true"
+                      :showUploadList="false"
+                      action="/server-package/api/v1/temp/file"
+                      @change="(info: any) => onDepMid(info, pubInfo)"
+                    >
+                      <a-tooltip>
+                        <template #title>选择build生成的dist文件夹</template>
+                        <a-button type="primary">导入</a-button>
+                      </a-tooltip>
+                    </a-upload>
+                  </template>
+                </template>
+              </FormDialog>
+              <a-tooltip>
+                <template #title>
+                  在线编译可能导致服务器内存溢出，建议离线编译打包后在上传发布
+                </template>
+                <a-button
+                  class="ml-10"
+                  :loading="middle.loading"
+                  @click="onPubDlgShow(true, false)"
+                >
+                  <template #icon><build-outlined /></template>
+                  离线编译
+                </a-button>
+              </a-tooltip>
+            </a-col>
+            <a-col :span="12" class="text-right">
+              <a-button
+                :disabled="middle.loading || !middle.url"
+                :href="middle.url"
+                target="_blank"
+              >
+                <template #icon><eye-outlined /></template>
+                浏览中台
+              </a-button>
+            </a-col>
+          </a-row>
           <slot />
         </a-layout-content>
       </a-layout>
@@ -100,7 +146,8 @@ import {
   CloudUploadOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  LayoutOutlined
+  EyeOutlined,
+  BuildOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -117,7 +164,8 @@ export default defineComponent({
     CloudUploadOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
-    LayoutOutlined,
+    EyeOutlined,
+    BuildOutlined,
 
     FormDialog
   },
@@ -131,6 +179,7 @@ export default defineComponent({
     const pid = route.params.pid
     const pjtName = computed(() => store.getters['project/ins'].name)
     const showPub = ref(false)
+    const publish = ref(true)
     const pubEmitter = new Emitter()
     const pubMapper = new Mapper({
       title: {
@@ -156,16 +205,38 @@ export default defineComponent({
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }
-    function onPubDlgShow(show: boolean) {
+    function onPubDlgShow(show: boolean, pub = true) {
       if (show) {
         pubEmitter.emit('update:data', store.getters['project/middle'])
       }
+      publish.value = pub
       showPub.value = show
     }
     async function onPublish(info: Middle) {
       await api.middle.publish(pid, info)
       store.dispatch('project/chkMidStatus')
       showPub.value = false
+    }
+    async function onGenMid(info: Middle) {
+      await api.middle.generate(pid)
+      showPub.value = false
+    }
+    async function onDepMid(info: any, pubInfo: Middle) {
+      if (
+        info.file.status === 'done' &&
+        info.fileList
+          .map((file: any) => file.status)
+          .reduce((prev: any, curr: any) => prev && curr === 'done')
+      ) {
+        await api.middle.deploy(pid, {
+          fileList: info.fileList.map((file: any) => ({
+            name: file.name,
+            src: file.response.result,
+            dest: file.originFileObj.webkitRelativePath || file.name
+          }))
+        })
+        showPub.value = false
+      }
     }
     return {
       Middle,
@@ -174,13 +245,16 @@ export default defineComponent({
       pjtName,
       collapsed: ref<boolean>(false),
       showPub,
+      publish,
       pubEmitter,
       pubMapper,
       middle,
 
       onItemSelected,
       onPublish,
-      onPubDlgShow
+      onPubDlgShow,
+      onGenMid,
+      onDepMid
     }
   }
 })

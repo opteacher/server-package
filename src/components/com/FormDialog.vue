@@ -8,8 +8,13 @@
     @cancel="onCclClick"
   >
     <template #footer>
-      <a-button type="default" @click="onCclClick">取消</a-button>
-      <a-button type="primary" @click="onOkClick">确定</a-button>
+      <template v-if="$slots['footer']">
+        <slot name="footer" v-bind="formState" />
+      </template>
+      <template v-else>
+        <a-button type="default" @click="onCclClick">取消</a-button>
+        <a-button type="primary" @click="onOkClick">确定</a-button>
+      </template>
     </template>
     <a-form
       ref="formRef"

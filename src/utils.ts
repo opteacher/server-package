@@ -19,7 +19,8 @@ export interface RequestOptions {
   }
   ignores?: string[]
   query?: any
-  copy?: (src: any, tgt?: any) => any
+  copy?: (src: any, tgt?: any) => any,
+  orgRes?: boolean
 }
 
 export async function makeRequest(pms: Promise<any>, options?: RequestOptions): Promise<any> {
@@ -27,12 +28,15 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   if (!options?.messages?.notShow) {
     message.loading(options?.messages?.loading || '加载中……')
   }
-  const resp = (await pms).data
+  let resp = await pms
+  if (!(options?.orgRes)) {
+    resp = resp.data
+  }
   if (!options?.messages?.notShow) {
     message.destroy()
   }
   options?.middles?.after && options?.middles?.after(resp)
-  const result = resp.result || resp.data
+  const result = options?.orgRes ? resp : (resp.result || resp.data || resp)
   if (resp.error || result.error) {
     if (!options?.messages?.notShow && options?.messages?.failed) {
       message.error(options?.messages?.failed)
@@ -57,6 +61,9 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
@@ -76,6 +83,9 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
 export async function reqGet(path: string, iden?: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
   }
   if (!options.messages) {
     options.messages = {}
@@ -98,6 +108,9 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
 export function reqPost(path: string, body?: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
   }
   if (!options.messages) {
     options.messages = {}
@@ -127,6 +140,9 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
@@ -152,6 +168,9 @@ export function reqPut(
 ): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
   }
   if (!options.messages) {
     options.messages = {}
@@ -187,6 +206,9 @@ export function reqLink(
 ): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
   }
   if (!options.messages) {
     options.messages = {}
