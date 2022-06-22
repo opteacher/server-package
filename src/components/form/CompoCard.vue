@@ -4,7 +4,7 @@
     type="primary"
     ghost
     :draggable="true"
-    @dragstart="(e: any) => e.dataTransfer?.setData('text/plain', `compo_${compo.name}`)"
+    @dragstart="(e: any) => e.dataTransfer.setData('text/plain', `compo_${compo.name}`)"
   >
     {{ compo.name }}
   </a-button>

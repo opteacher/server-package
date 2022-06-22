@@ -46,7 +46,7 @@ export default class Column {
       typeof src.sorter !== 'undefined'
         ? src.sorter
         : src.sortable
-        ? (a: any, b: any) => a[tgt?.dataIndex as string] - b[tgt?.dataIndex as string]
+        ? (a: any, b: any) => (tgt ? a[tgt.dataIndex as string] - b[tgt.dataIndex as string] : 1)
         : undefined
     tgt.defaultSortOrder =
       typeof src.defaultSortOrder !== 'undefined'

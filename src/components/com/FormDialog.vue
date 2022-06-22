@@ -514,6 +514,7 @@ export default defineComponent({
         for (let i = 0; i < value.length; ++i) {
           const opn = opns.find((opn: OpnType) => opn.value === value[i])
           if (opn) {
+            opns = opn.children as OpnType[]
             vals.push(opn.label || opn.value)
           } else {
             vals.push(value[i])
@@ -521,7 +522,6 @@ export default defineComponent({
           if (i === value.length - 1) {
             break
           }
-          opns = opn?.children as OpnType[]
         }
         return vals.join(' / ')
       } else {

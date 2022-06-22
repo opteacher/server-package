@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import Auth from './auth'
-import Deploy from './deploy'
 import Middle from './middle'
 import Model from './model'
 
@@ -15,7 +14,6 @@ export default class Project {
   database: string[]
   dropDbs: boolean
   commands: string
-  frontend?: Deploy
   models: Model[]
   auth: Auth
   middle: Middle
@@ -61,9 +59,6 @@ export default class Project {
     tgt.database = src.database || tgt.database
     tgt.dropDbs = src.dropDbs || tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
-    if (src.frontend) {
-      Deploy.copy(src.frontend, tgt.frontend)
-    }
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {

@@ -16,33 +16,42 @@ export interface RequestOptions {
   ignores?: string[]
   query?: any
   copy?: (src: any, tgt?: any) => any
+  orgRes?: boolean
 }
 
 export async function makeRequest(pms: Promise<any>, options?: RequestOptions): Promise<any> {
-  options?.middles?.before && options?.middles?.before()
-  if (!options?.messages?.notShow) {
-    message.loading(options?.messages?.loading || '加载中……')
+  if (!options) {
+    options = {}
   }
-  const resp = (await pms).data
-  if (!options?.messages?.notShow) {
+  if (!options.middles) {
+    options.middles = {}
+  }
+  if (!options.messages) {
+    options.messages = {}
+  }
+  options.middles.before && options.middles.before()
+  if (!options.messages.notShow) {
+    message.loading(options.messages.loading || '加载中……')
+  }
+  let resp = await pms
+  if (!options.orgRes) {
+    resp = resp.data
+  }
+  if (!options.messages.notShow) {
     message.destroy()
   }
-  options?.middles?.after && options?.middles?.after(resp)
-  const result = resp.result || resp.data
-  if (resp.error || (result && result.error)) {
-    if (!options?.messages?.notShow && options?.messages?.failed) {
-      message.error(options?.messages?.failed)
+  options.middles.after && options.middles.after(resp)
+  const result = options.orgRes ? resp : resp.result || resp.data || resp
+  if (resp.error || result.error) {
+    if (!options.messages.notShow && options.messages.failed) {
+      message.error(options.messages.failed)
     } else {
-      if (result && result.error) {
-        message.error(result.error)
-      } else {
-        message.error(resp.error)
-      }
+      message.error(resp.error || result.error)
     }
   } else {
-    if (!options?.messages?.notShow && options?.messages?.succeed) {
-      message.success(options?.messages?.succeed)
-    } else if (result && result.message) {
+    if (!options.messages.notShow && options.messages.succeed) {
+      message.success(options.messages.succeed)
+    } else if (result.message) {
       message.success(result.message)
     }
   }
@@ -64,18 +73,21 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '查询中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
     axios.get(`${baseURL}//*return project.name*//${reqType(options)}/v1/${path}s`, {
-      params: options?.query
+      params: options.query
     }),
     options
   )
@@ -86,20 +98,23 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '查询中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
     axios.get(
       `${baseURL}//*return project.name*//${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`,
       {
-        params: options?.query
+        params: options.query
       }
     ),
     options
@@ -111,13 +126,16 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '提交中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '提交成功！'
   }
   if (!options.ignores) {
@@ -129,7 +147,7 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
     axios.post(
       `${baseURL}//*return project.name*//${reqType(options)}/v1/${path}`,
       body ? skipIgnores(body, options.ignores) : undefined,
-      { params: options?.query }
+      { params: options.query }
     ),
     options
   )
@@ -139,18 +157,21 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '删除中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '删除成功！'
   }
   return makeRequest(
     axios.delete(`${baseURL}//*return project.name*//${reqType(options)}/v1/${path}/${iden}`, {
-      params: options?.query
+      params: options.query
     }),
     options
   )
@@ -165,13 +186,16 @@ export function reqPut(
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '提交中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '提交成功！'
   }
   if (!options.ignores) {
@@ -183,7 +207,7 @@ export function reqPut(
     axios.put(
       `${baseURL}//*return project.name*//${reqType(options)}/v1/${path}/${iden}`,
       body ? skipIgnores(body, options.ignores) : undefined,
-      { params: options?.query }
+      { params: options.query }
     ),
     options
   )
@@ -200,13 +224,16 @@ export function reqLink(
   if (!options) {
     options = {}
   }
+  if (typeof options.orgRes === 'undefined') {
+    options.orgRes = false
+  }
   if (!options.messages) {
     options.messages = {}
   }
-  if (!options?.messages?.loading) {
+  if (!options.messages.loading) {
     options.messages.loading = '提交中……'
   }
-  if (!options?.messages?.succeed) {
+  if (!options.messages.succeed) {
     options.messages.succeed = '提交成功！'
   }
   const url = [
@@ -217,9 +244,9 @@ export function reqLink(
     body.child[1]
   ].join('/')
   if (link) {
-    return makeRequest(axios.put(url, { params: options?.query }), options)
+    return makeRequest(axios.put(url, { params: options.query }), options)
   } else {
-    return makeRequest(axios.delete(url, { params: options?.query }), options)
+    return makeRequest(axios.delete(url, { params: options.query }), options)
   }
 }
 

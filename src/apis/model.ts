@@ -39,16 +39,10 @@ const expDft = {
     // 创建对象url
     link.href = window.URL.createObjectURL(new Blob([result.content]))
     link.download = result.fileName
-
-    // fix Firefox
     link.style.display = 'none'
-    body?.appendChild(link)
-
+    document.body.appendChild(link)
     link.click()
-    body?.removeChild(link)
-
-    // 通过调用 URL.createObjectURL() 创建的 URL 对象
-    window.URL.revokeObjectURL(link.href)
+    document.body.removeChild(link)
   },
   dataset: () =>
     reqGet(

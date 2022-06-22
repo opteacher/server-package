@@ -130,7 +130,7 @@ export default {
         endsWith(filename, '"') ? filename.length - 1 : 0
       )
       link.style.display = 'none'
-      document.body?.appendChild(link)
+      document.body.appendChild(link)
       link.click()
       link.remove()
     },

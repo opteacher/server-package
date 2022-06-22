@@ -11,12 +11,15 @@ export async function onFieldDropDown(e: DragEvent) {
   if (instPos.length !== 3) {
     return
   }
-  const dragField = e.dataTransfer?.getData('text/plain') as string
+  if (!e.dataTransfer) {
+    return
+  }
+  const dragField = e.dataTransfer.getData('text/plain') as string
   const insertPos = {
     field: instPos[2],
     pos: instPos[1] === 'top' ? 'before' : ('after' as 'before' | 'after')
   }
-  if (dragField?.startsWith('compo_')) {
+  if (dragField.startsWith('compo_')) {
     api.form.fields.add({
       compoType: dragField.substring('compo_'.length),
       insertPos

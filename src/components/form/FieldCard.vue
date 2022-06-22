@@ -140,7 +140,10 @@ export default defineComponent({
       })
     }
     function onDragStart(e: DragEvent) {
-      e.dataTransfer?.setData('text/plain', props.field.key)
+      if (!e.dataTransfer) {
+        return
+      }
+      e.dataTransfer.setData('text/plain', props.field.key)
       emit('drag', props.field)
     }
     function onDragEnter(e: DragEvent, key?: string) {

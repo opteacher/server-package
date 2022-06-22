@@ -99,7 +99,10 @@ export default defineComponent({
     onMounted(() => store.dispatch('model/refresh'))
 
     async function onDropDownEmpty(e: DragEvent) {
-      const dragCompo = e.dataTransfer?.getData('text/plain') as string
+      if (!e.dataTransfer) {
+        return
+      }
+      const dragCompo = e.dataTransfer.getData('text/plain') as string
       await api.form.fields.add({
         compoType: dragCompo.substring('compo_'.length)
       })

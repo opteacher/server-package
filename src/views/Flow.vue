@@ -98,7 +98,7 @@ export default defineComponent({
         } else {
           return `编辑节点#${node.value.key}`
         }
-      } else if (node.value.previous?.key) {
+      } else if (node.value.previous && node.value.previous.key) {
         return `在节点#${node.value.previous.key}后新增节点`
       } else {
         return '在根节点后新增节点'
@@ -106,7 +106,7 @@ export default defineComponent({
     })
     const nodes = computed(() => store.getters['service/nodes'])
     const rszObs = new ResizeObserver(async () => {
-      store.commit('service/SET_WIDTH', panelRef.value?.clientWidth)
+      store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
       await store.dispatch('service/refresh')
     })
 

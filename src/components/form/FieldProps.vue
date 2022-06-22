@@ -16,9 +16,9 @@
     <a-descriptions-item label="类型">
       <a-select
         class="w-100"
-        :value="field?.ftype"
+        :value="field.ftype"
         :options="compoOpns"
-        @change="ftype => api.form.fields.save({ key: field.key, ftype })"
+        @change="(ftype: string) => api.form.fields.save({ key: field.key, ftype })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="描述">
