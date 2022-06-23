@@ -166,7 +166,7 @@ const expDft = {
             'model',
             mid,
             {
-              [`table.columns[{id:${column.key}}]`]: column
+              [`table.columns[{id:${column.key}}]`]: skipIgnores(column, ['key'])
             },
             { query: { updMode: 'merge' }, messages: { notShow: true } }
           )
@@ -174,7 +174,7 @@ const expDft = {
           await reqPut(
             'model',
             mid,
-            { 'table.columns': column },
+            { 'table.columns': skipIgnores(column, ['key']) },
             { query: { updMode: 'append' }, messages: { notShow: true } }
           )
         }

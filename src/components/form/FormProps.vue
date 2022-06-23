@@ -5,47 +5,56 @@
       &nbsp;表单参数
     </template>
     <a-descriptions-item label="标题">
-      <a-input :value="form.title" @change="(e: any) => api.form.save({ title: e.target.value })" />
+      <a-input
+        v-model:value="formState.title"
+        @blur="(e: any) => api.form.save({ title: e.target.value })"
+      />
     </a-descriptions-item>
     <a-descriptions-item label="表单宽度">
       <a-input-number
         class="w-100"
-        :value="form.width"
+        v-model:value="formState.width"
         :min="1"
         :max="100"
-        :formatter="(value: any) => `${value}%`"
-        @blur="(width: any) => api.form.save({ width })"
-      />
+        @blur="(e: any) => api.form.save({ width: e.target.value })"
+      >
+        <template #addonAfter><percentage-outlined /></template>
+      </a-input-number>
     </a-descriptions-item>
     <a-descriptions-item label="标签宽度">
       <a-input-number
         class="w-100"
-        :value="form.labelWidth"
+        v-model:value="formState.labelWidth"
         :min="1"
         :max="23"
         @blur="(labelWidth: any) => api.form.save({ labelWidth })"
-      />
+      >
+        <template #addonAfter>/ 24</template>
+      </a-input-number>
     </a-descriptions-item>
   </a-descriptions>
 </template>
 
 <script lang="ts">
 import Form from '@/types/form'
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 import { mdlAPI as api } from '@/apis'
-import { ControlOutlined } from '@ant-design/icons-vue'
+import { ControlOutlined, PercentageOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'TableProps',
   components: {
-    ControlOutlined
+    ControlOutlined,
+    PercentageOutlined
   },
   props: {
     form: { type: Form, required: true }
   },
-  setup() {
+  setup(props) {
+    const formState = reactive(props.form)
     return {
-      api
+      api,
+      formState
     }
   }
 })

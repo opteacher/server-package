@@ -41,25 +41,33 @@
       <a-input
         v-if="field.ftype === 'Input'"
         v-model:value="formState[field.refer]"
-        :placeholder="field.extra.placeholder || ''"
+        :placeholder="field.placeholder"
       />
       <a-input-password
         v-if="field.ftype === 'Password'"
         v-model:value="formState[field.refer]"
-        :placeholder="field.extra.placeholder || ''"
+        :placeholder="field.placeholder"
       />
-      <a-checkbox v-else-if="field.ftype === 'Checkbox'" v-model:checked="formState[field.refer]" />
+      <a-checkbox v-else-if="field.ftype === 'Checkbox'" v-model:checked="formState[field.refer]">
+        {{ field.placeholder }}
+      </a-checkbox>
       <a-select
         v-else-if="field.ftype === 'Select'"
         class="w-100"
         v-model:value="formState[field.refer]"
-        :placeholder="field.extra.placeholder || ''"
+        :placeholder="field.placeholder"
       />
       <a-input-number
         v-else-if="field.ftype === 'Number'"
         class="w-100"
         v-model:value="formState[field.refer]"
-        :placeholder="field.extra.placeholder || ''"
+        :placeholder="field.placeholder"
+      />
+      <a-date-picker
+        v-else-if="field.ftype === 'DateTime'"
+        class="w-100"
+        v-model:value="formState[field.refer]"
+        :placeholder="field.placeholder"
       />
     </template>
   </a-form-item>

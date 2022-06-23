@@ -9,6 +9,7 @@ export default class Field {
   ftype: string // 表单组件类型
   rules: any[]
   refer: string
+  placeholder: string
   extra: any
 
   constructor() {
@@ -18,6 +19,7 @@ export default class Field {
     this.ftype = ''
     this.rules = []
     this.refer = ''
+    this.placeholder = ''
     this.extra = {}
   }
 
@@ -28,6 +30,7 @@ export default class Field {
     this.ftype = ''
     this.rules = []
     this.refer = ''
+    this.placeholder = ''
     this.extra = {}
   }
 
@@ -39,6 +42,7 @@ export default class Field {
     tgt.ftype = src.ftype || tgt.ftype
     tgt.rules = src.rules || tgt.rules
     tgt.refer = src.refer || tgt.refer
+    tgt.placeholder = src.placeholder || tgt.placeholder
     tgt.extra = src.extra || tgt.extra
     return tgt
   }

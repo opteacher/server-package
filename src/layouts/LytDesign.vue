@@ -59,7 +59,7 @@
             padding: '24px',
             background: '#fff',
             minHeight: '280px',
-            overflowY: 'auto'
+            overflowY: 'hidden'
           }"
         >
           <slot />

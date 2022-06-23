@@ -1,31 +1,43 @@
 <template>
   <a-descriptions class="mb-50" title="组件基础参数" :column="1" bordered size="small">
     <a-descriptions-item label="关联">
-      <a-mentions :value="field.refer">
-        <a-mentions-option v-for="prop in props" :key="prop.key" :value="prop.name">
+      <a-mentions v-model:value="edtField.refer">
+        <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
           {{ prop.name }}
         </a-mentions-option>
       </a-mentions>
     </a-descriptions-item>
     <a-descriptions-item label="标签">
       <a-input
-        :value="field.label"
-        @blur="(e: any) => api.form.fields.save({ key: field.key, label: e.target.value })"
+        v-model:value="edtField.label"
+        @blur="(e: any) => api.form.fields.save({ key: edtField.key, label: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="类型">
       <a-select
         class="w-100"
-        :value="field.ftype"
+        v-model:value="edtField.ftype"
         :options="compoOpns"
-        @change="(ftype: string) => api.form.fields.save({ key: field.key, ftype })"
+        @change="(ftype: string) => api.form.fields.save({ key: edtField.key, ftype })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="描述">
       <a-textarea
-        :value="field.desc"
+        v-model:value="edtField.desc"
         :auto-size="{ minRows: 2 }"
-        @blur="(e: any) => api.form.fields.save({ key: field.key, desc: e.target.value })"
+        @blur="(e: any) => api.form.fields.save({ key: edtField.key, desc: e.target.value })"
+      />
+    </a-descriptions-item>
+    <a-descriptions-item label="占位提示">
+      <a-input
+        class="w-100"
+        v-model:value="edtField.placeholder"
+        @blur="
+          (e: any) => api.form.fields.save({
+            key: edtField.key,
+            placeholder: e.target.value
+          })
+        "
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -35,7 +47,7 @@
 import { compoOpns } from '@/types'
 import Field from '@/types/field'
 import Model from '@/types/model'
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, reactive, watch } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '@/apis'
 
@@ -44,12 +56,21 @@ export default defineComponent({
   props: {
     field: { type: Field, required: true }
   },
-  setup() {
+  setup(props) {
     const store = useStore()
-    const props = computed(() => (store.getters['model/ins'] as Model).props)
+    const edtField = reactive(props.field)
+    const mdlProps = computed(() => (store.getters['model/ins'] as Model).props)
+
+    watch(
+      () => props.field.key,
+      () => {
+        Field.copy(props.field, edtField, true)
+      }
+    )
     return {
       api,
-      props,
+      edtField,
+      mdlProps,
       compoOpns
     }
   }

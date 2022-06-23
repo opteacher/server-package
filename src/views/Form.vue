@@ -14,8 +14,8 @@
           </template>
         </a-list>
       </a-layout-sider>
-      <a-layout-content class="main-panel" @click="active = new Field()">
-        <div class="white-bkgd h-100">
+      <a-layout-content class="main-panel" @click="active.reset()">
+        <div class="white-bkgd h-100" style="overflow-y: auto">
           <a-empty
             class="ptb-30"
             v-if="!fields.length"
@@ -32,11 +32,11 @@
             <template v-for="(field, index) in fields" :key="field.key">
               <FieldCard
                 :index="index"
-                :field="field"
+                :field="field.key === active.key ? active : field"
                 :active="active.key"
                 :onDropDown="onFieldDropDown"
-                @update:active="act => (active = act)"
-                @drag="act => (active = act)"
+                @update:active="act => Field.copy(act, active, true)"
+                @drag="act => Field.copy(act, active, true)"
               />
             </template>
           </a-form>
@@ -56,7 +56,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import LytDesign from '../layouts/LytDesign.vue'
 import CompoCard from '../components/form/CompoCard.vue'
 import FieldCard from '../components/form/FieldCard.vue'
@@ -93,7 +93,7 @@ export default defineComponent({
     const compos = computed(() => store.getters['model/compos'] as Compo[])
     const form = computed(() => store.getters['model/form'] as Form)
     const fields = computed(() => store.getters['model/fields'] as Field[])
-    const active = ref(new Field())
+    const active = reactive(new Field())
     const hdHeight = ref(0)
 
     onMounted(() => store.dispatch('model/refresh'))

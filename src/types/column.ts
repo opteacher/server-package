@@ -8,6 +8,7 @@ export default class Column {
   align: 'left' | 'right' | 'center'
   sorter: ((a: any, b: any) => number) | undefined
   defaultSortOrder: string
+  notDisplay: boolean
 
   constructor(
     title: string,
@@ -20,6 +21,7 @@ export default class Column {
       defaultSort?: string
       searchable?: boolean
       filterable?: boolean
+      notDisplay?: boolean
     }
   ) {
     this.title = title
@@ -33,6 +35,7 @@ export default class Column {
       options && options.sortable ? (a: any, b: any) => a[dataIdx] - b[dataIdx] : undefined
     this.defaultSortOrder =
       options && typeof options.defaultSort !== 'undefined' ? options.defaultSort : ''
+    this.notDisplay = options && typeof options.notDisplay !== 'undefined' ? options.notDisplay : false
   }
 
   static copy(src: any, tgt?: Column): Column {
@@ -54,6 +57,7 @@ export default class Column {
         : typeof src.defaultSort !== 'undefined'
         ? src.defaultSort
         : ''
+    tgt.notDisplay = typeof src.notDisplay !== 'undefined' ? src.notDisplay : tgt.notDisplay
     return tgt
   }
 }

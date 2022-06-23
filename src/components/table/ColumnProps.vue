@@ -1,12 +1,20 @@
 <template>
   <a-descriptions class="mb-50" title="列" :column="1" bordered size="small">
+    <a-descriptions-item label="是否显示">
+      <a-switch
+        :checked="!colState.notDisplay"
+        @change="(notDisplay: boolean) => api.table.columns.save({ key: colState.key, notDisplay })"
+        checked-children="显示"
+        un-checked-children="不显示"
+      />
+    </a-descriptions-item>
     <a-descriptions-item label="标题">
       <a-input
-        :value="column.title"
+        v-model:value="colState.title"
         @blur="
-          e =>
+          (e: any) =>
             api.table.columns.save({
-              key: column.key,
+              key: colState.key,
               title: e.target.value
             })
         "
@@ -15,8 +23,8 @@
     <a-descriptions-item label="宽度">
       <a-input-number
         class="w-100"
-        :value="column.width"
-        @blur="width => api.table.columns.save({ key: column.key, width })"
+        v-model:value="colState.width"
+        @blur="(width: number) => api.table.columns.save({ key: colState.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
@@ -27,14 +35,14 @@
           { label: '居中对齐', value: 'center' },
           { label: '右对齐', value: 'right' }
         ]"
-        :value="column.align || 'left'"
-        @change="align => api.table.columns.save({ key: column.key, align })"
+        :value="colState.align || 'left'"
+        @change="(align: string) => api.table.columns.save({ key: colState.key, align })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="可排序">
       <a-switch
-        :checked="typeof column.sorter !== 'undefined'"
-        @change="sortable => api.table.columns.save({ key: column.key, sortable })"
+        :checked="typeof colState.sorter !== 'undefined'"
+        @change="(sortable: boolean) => api.table.columns.save({ key: colState.key, sortable })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="默认顺序">
@@ -45,8 +53,8 @@
           { label: '升序', value: 'ascend' },
           { label: '降序', value: 'descend' }
         ]"
-        :value="column.defaultSortOrder"
-        @change="defaultSort => api.table.columns.save({ key: column.key, defaultSort })"
+        :value="colState.defaultSortOrder"
+        @change="(defaultSort: string) => api.table.columns.save({ key: colState.key, defaultSort })"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -54,7 +62,7 @@
 
 <script lang="ts">
 import Column from '@/types/column'
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
@@ -62,9 +70,11 @@ export default defineComponent({
   props: {
     column: { type: Column, required: true }
   },
-  setup() {
+  setup(props) {
+    const colState = reactive(props.column)
     return {
-      api
+      api,
+      colState
     }
   }
 })

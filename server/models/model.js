@@ -31,6 +31,7 @@ export default db.defineModel(
           ftype: db.PropTypes.String, // 参考CompoType
           rules: db.PropTypes.Array,
           refer: db.PropTypes.String, // 关联字段或字段的再处理，当然也可以为空（为单字段时，该组件与字段双向绑定）
+          placeholder: db.PropTypes.String,
           extra: db.PropTypes.Any
         }
       ]
@@ -51,7 +52,8 @@ export default db.defineModel(
           sortable: db.PropTypes.Boolean,
           defaultSort: db.PropTypes.String, // | ascend | descend
           searchable: db.PropTypes.Boolean,
-          filterable: db.PropTypes.Boolean
+          filterable: db.PropTypes.Boolean,
+          notDisplay: db.PropTypes.Boolean
         }
       ],
       cells: db.PropTypes.Object, // [colDataIdx]: { color: string, prefix: string, suffix: string }

@@ -9,6 +9,7 @@ export default class Field {
   ftype: string // 表单组件类型
   rules: any[]
   refer: string
+  placeholder: string
   extra: any
 
   constructor() {
@@ -18,6 +19,7 @@ export default class Field {
     this.ftype = ''
     this.rules = []
     this.refer = ''
+    this.placeholder = ''
     this.extra = {}
   }
 
@@ -28,18 +30,21 @@ export default class Field {
     this.ftype = ''
     this.rules = []
     this.refer = ''
+    this.placeholder = ''
     this.extra = {}
   }
 
-  static copy(src: any, tgt?: Field): Field {
+  static copy(src: any, tgt?: Field, force = false): Field {
     tgt = tgt || new Field()
-    tgt.key = src.key || src._id || tgt.key
-    tgt.label = typeof src.label !== 'undefined' ? src.label : tgt.label
-    tgt.desc = src.desc || tgt.desc
-    tgt.ftype = src.ftype || tgt.ftype
-    tgt.rules = src.rules || tgt.rules
-    tgt.refer = src.refer || tgt.refer
-    tgt.extra = src.extra || tgt.extra
+    const srcKey = src.key || src._id || ''
+    tgt.key = force ? srcKey : srcKey || tgt.key
+    tgt.label = force ? src.label : src.label || tgt.label
+    tgt.desc = force ? src.desc : src.desc || tgt.desc
+    tgt.ftype = force ? src.ftype : src.ftype || tgt.ftype
+    tgt.rules = force ? src.rules : src.rules || tgt.rules
+    tgt.refer = force ? src.refer : src.refer || tgt.refer
+    tgt.placeholder = force ? src.placeholder : src.placeholder || tgt.placeholder
+    tgt.extra = force ? src.extra : src.extra || tgt.extra
     return tgt
   }
 }
