@@ -3,7 +3,7 @@
     <a-descriptions-item label="是否显示">
       <a-switch
         :checked="!colState.notDisplay"
-        @change="(notDisplay: boolean) => api.table.columns.save({ key: colState.key, notDisplay })"
+        @change="(display: boolean) => onPropChange({ key: colState.key, notDisplay: !display })"
         checked-children="显示"
         un-checked-children="不显示"
       />
@@ -13,7 +13,7 @@
         v-model:value="colState.title"
         @blur="
           (e: any) =>
-            api.table.columns.save({
+            onPropChange({
               key: colState.key,
               title: e.target.value
             })
@@ -24,7 +24,7 @@
       <a-input-number
         class="w-100"
         v-model:value="colState.width"
-        @blur="(width: number) => api.table.columns.save({ key: colState.key, width })"
+        @blur="(width: number) => onPropChange({ key: colState.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
@@ -36,13 +36,13 @@
           { label: '右对齐', value: 'right' }
         ]"
         :value="colState.align || 'left'"
-        @change="(align: string) => api.table.columns.save({ key: colState.key, align })"
+        @change="(align: string) => onPropChange({ key: colState.key, align })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="可排序">
       <a-switch
         :checked="typeof colState.sorter !== 'undefined'"
-        @change="(sortable: boolean) => api.table.columns.save({ key: colState.key, sortable })"
+        @change="(sortable: boolean) => onPropChange({ key: colState.key, sortable })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="默认顺序">
@@ -54,7 +54,7 @@
           { label: '降序', value: 'descend' }
         ]"
         :value="colState.defaultSortOrder"
-        @change="(defaultSort: string) => api.table.columns.save({ key: colState.key, defaultSort })"
+        @change="(defaultSort: string) => onPropChange({ key: colState.key, defaultSort })"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -67,14 +67,21 @@ import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',
+  emits: ['change'],
   props: {
     column: { type: Column, required: true }
   },
-  setup(props) {
+  setup(props, { emit }) {
     const colState = reactive(props.column)
+
+    async function onPropChange(prop: any) {
+      await api.table.columns.save(prop)
+      emit('change')
+    }
     return {
-      api,
-      colState
+      colState,
+
+      onPropChange
     }
   }
 })

@@ -1,5 +1,12 @@
 <template>
   <a-descriptions class="mb-50" title="表参数" :column="1" bordered size="small">
+    <template #extra>
+      <a-switch
+        v-model:checked="dispHidCol"
+        checked-children="显示隐藏的列"
+        un-checked-children="隐藏相应的列"
+      />
+    </template>
     <a-descriptions-item label="标题">
       <a-input
         v-model:value="formState.title"
@@ -61,6 +68,7 @@
 
 <script lang="ts">
 import Table from '@/types/table'
+import { dispHidCol } from '@/views/Table'
 import { defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
@@ -76,7 +84,8 @@ export default defineComponent({
     return {
       store,
       api,
-      formState
+      formState,
+      dispHidCol
     }
   }
 })

@@ -5,7 +5,7 @@
         :color="cell.color"
         @submit="
           ({ color, next }) => {
-            api.table.cells.save({ key: cell.key, color }).then(next)
+            onPropChange({ key: cell.key, color }).then(next)
           }
         "
       />
@@ -13,13 +13,13 @@
     <a-descriptions-item label="前缀">
       <a-input
         :value="cell.prefix"
-        @change="e => api.table.cells.save({ key: cell.key, prefix: e.target.value })"
+        @change="(e: any) => onPropChange({ key: cell.key, prefix: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="后缀">
       <a-input
         :value="cell.suffix"
-        @change="e => api.table.cells.save({ key: cell.key, suffix: e.target.value })"
+        @change="(e: any) => onPropChange({ key: cell.key, suffix: e.target.value })"
       />
     </a-descriptions-item>
     <!-- <a-descriptions-item label="格式化时间">
@@ -62,15 +62,20 @@ import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',
+  emits: ['change'],
   components: {
     ColorField
   },
   props: {
     cell: { type: Cell, required: true }
   },
-  setup() {
+  setup(_props, { emit }) {
+    async function onPropChange(prop: any) {
+      await api.table.columns.save(prop)
+      emit('change')
+    }
     return {
-      api
+      onPropChange
     }
   }
 })

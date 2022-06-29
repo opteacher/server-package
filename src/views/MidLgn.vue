@@ -25,22 +25,25 @@
       </a-tooltip>
     </div>
     <div id="pnlMain">
-      <a-descriptions title="登录页面参数" :column="4">
+      <a-descriptions title="登录页面参数" :column="4" :labelStyle="{ 'margin-left': '10px' }">
         <template #extra>
           <a-button :type="!lgnProps.equals(midLgn) ? 'primary' : 'default'" @click="onLoginSave">
             保存
           </a-button>
         </template>
-        <a-descriptions-item label="背景颜色">
-          <ColorField
+        <a-descriptions-item label="登录路由">
+          <a-input
             size="small"
-            style="width: 12vw"
-            :color="lgnProps.bkgdColor"
-            @submit="onBkgdColSubmit"
+            v-model:value="lgnProps.path"
+            @change="() => (lgnProps.path = fixStartsWith(lgnProps.path, '/'))"
           />
+        </a-descriptions-item>
+        <a-descriptions-item label="背景颜色">
+          <ColorField size="small" :color="lgnProps.bkgdColor" @submit="onBkgdColSubmit" />
         </a-descriptions-item>
         <a-descriptions-item label="背景图片">
           <a-upload
+            class="w-100"
             name="file"
             :maxCount="1"
             :multiple="false"
@@ -48,7 +51,7 @@
             action="/server-package/api/v1/temp/image"
             @change="onUploadBkgdImg"
           >
-            <a-button size="small">
+            <a-button class="w-100" size="small">
               <template #icon><upload-outlined /></template>
               上传图片
             </a-button>
@@ -56,6 +59,7 @@
         </a-descriptions-item>
         <a-descriptions-item label="表单位置">
           <a-select
+            class="w-100"
             size="small"
             :options="[
               { label: '右对齐', value: 'right' },
@@ -69,7 +73,6 @@
           <a-input
             :disabled="lgnProps.align === 'center'"
             size="small"
-            style="width: 8vw"
             type="number"
             v-model:value="lgnProps.padding"
           >
@@ -77,20 +80,15 @@
           </a-input>
         </a-descriptions-item>
         <a-descriptions-item label="表单宽度">
-          <a-input size="small" v-model:value="lgnProps.width" style="width: 12vw">
+          <a-input size="small" v-model:value="lgnProps.width">
             <template #suffix><percentage-outlined /></template>
           </a-input>
         </a-descriptions-item>
         <a-descriptions-item label="表单背景">
-          <ColorField
-            size="small"
-            style="width: 12vw"
-            :color="lgnProps.fmBkgdColor"
-            @submit="onFmBkgdColSubmit"
-          />
+          <ColorField size="small" :color="lgnProps.fmBkgdColor" @submit="onFmBkgdColSubmit" />
         </a-descriptions-item>
         <a-descriptions-item label="表单圆角">
-          <a-input size="small" style="width: 8vw" v-model:value="lgnProps.radius" type="number">
+          <a-input size="small" v-model:value="lgnProps.radius" type="number">
             <template #suffix>px</template>
           </a-input>
         </a-descriptions-item>
@@ -105,7 +103,7 @@
           <a-input-group size="small">
             <a-row :gutter="8">
               <a-col :span="12">
-                <a-input size="small" style="width: 100%" v-model:value="lgnProps.title" />
+                <a-input size="small" v-model:value="lgnProps.title" />
               </a-col>
               <a-col :span="12">
                 <a-button size="small" @click="lgnProps.title = middle.title">
@@ -130,7 +128,7 @@
           />
         </a-descriptions-item>
         <a-descriptions-item label="标签宽度">
-          <a-input size="small" style="width: 8vw" v-model:value="lgnProps.lblWidth" type="number">
+          <a-input size="small" v-model:value="lgnProps.lblWidth" type="number">
             <template #suffix>/ 24</template>
           </a-input>
         </a-descriptions-item>
@@ -205,7 +203,7 @@ import LytMiddle from '../layouts/LytMiddle.vue'
 import { UploadOutlined, PercentageOutlined } from '@ant-design/icons-vue'
 import ColorField from '../components/table/ColorField.vue'
 import MidLgn from '@/types/midLgn'
-import { waitFor } from '@/utils'
+import { fixStartsWith, waitFor } from '@/utils'
 import Form from '@/types/form'
 import { mdlAPI } from '@/apis'
 import FormItem from '@/components/form/FormItem.vue'
@@ -301,6 +299,7 @@ export default defineComponent({
       lgnFields,
       middle,
 
+      fixStartsWith,
       onBkgdColSubmit,
       onFmBkgdColSubmit,
       onLoginSave,

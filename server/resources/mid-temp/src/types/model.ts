@@ -43,28 +43,35 @@ export default class Model {
     this.table = new Table()
   }
 
-  static copy(src: any, tgt?: Model): Model {
+  static copy(src: any, tgt?: Model, force = false): Model {
     tgt = tgt || new Model()
     if (typeof src === 'string') {
       tgt.key = src
       return tgt
     }
-    tgt.key = src.key || src._id || tgt.key
-    tgt.name = src.name || tgt.name
-    tgt.label = src.label || tgt.label
-    tgt.icon = src.icon || tgt.icon
-    tgt.desc = src.desc || tgt.desc
-    if (typeof src.logTime !== 'undefined') {
-      tgt.logTime = src.logTime
-    }
+    const srcId = src.key || src._id
+    tgt.key = force ? srcId : srcId || tgt.key
+    tgt.name = force ? src.name : src.name || tgt.name
+    tgt.label = force ? src.label : src.label || tgt.label
+    tgt.icon = force ? src.icon : src.icon || tgt.icon
+    tgt.desc = force ? src.desc : src.desc || tgt.desc
+    tgt.logTime = force
+      ? src.logTime
+      : typeof src.logTime !== 'undefined'
+      ? src.logTime
+      : tgt.logTime
     if (src.props) {
       tgt.props = []
       for (const prop of src.props) {
         tgt.props.push(Property.copy(prop))
       }
+    } else if (force) {
+      tgt.props = []
     }
     if (src.svcs && src.svcs.length) {
       tgt.svcs = src.svcs.map((svc: any) => Service.copy(svc))
+    } else if (force) {
+      tgt.svcs = []
     }
     if (src.form) {
       Form.copy(src.form, tgt.form)

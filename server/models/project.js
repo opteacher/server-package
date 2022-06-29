@@ -40,6 +40,7 @@ export default db.defineModel(
       lclDep: db.PropTypes.Boolean,
       prefix: db.PropTypes.String,
       login: {
+        path: db.PropTypes.String,
         bkgdColor: db.PropTypes.String,
         background: db.PropTypes.String,
         title: db.PropTypes.String,
@@ -54,6 +55,7 @@ export default db.defineModel(
         hasLabel:  db.PropTypes.Boolean
       },
       navigate: {
+        path: db.PropTypes.String,
         theme: db.PropTypes.String,
         logo: db.PropTypes.String
       }

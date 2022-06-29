@@ -38,6 +38,17 @@ export default class Column {
     this.notDisplay = options && typeof options.notDisplay !== 'undefined' ? options.notDisplay : false
   }
 
+  reset() {
+    this.title = ''
+    this.dataIndex = ''
+    this.key = ''
+    this.width = 0
+    this.align = 'left'
+    this.sorter = undefined
+    this.defaultSortOrder = ''
+    this.notDisplay = false
+  }
+
   static copy(src: any, tgt?: Column): Column {
     tgt = tgt || new Column('', '')
     tgt.key = src.key || src._id || tgt.key

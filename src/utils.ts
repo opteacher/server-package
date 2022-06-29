@@ -315,6 +315,10 @@ export async function waitFor(
   return Promise.resolve(ret)
 }
 
+export function fixStartsWith(text: string, prefix: string) {
+  return (text.substring(0, prefix.length) !== prefix ? prefix : '') + text
+}
+
 export function endsWith(text: string, suffix: string) {
   return text.toString().slice(-suffix.length) === suffix
 }

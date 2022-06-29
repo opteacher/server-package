@@ -81,8 +81,12 @@
       </a-layout-content>
       <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
         <TableProps v-if="!selected" :table="table" />
-        <ColumnProps v-else-if="selected.startsWith('head_')" :column="selColumn" />
-        <CellProps v-else-if="selected.startsWith('cell')" :cell="selCell" />
+        <ColumnProps
+          v-else-if="selected.startsWith('head_')"
+          :column="selColumn"
+          @change="onSelChange"
+        />
+        <CellProps v-else-if="selected.startsWith('cell')" :cell="selCell" @change="onSelChange" />
       </a-layout-sider>
     </a-layout>
   </LytDesign>
@@ -90,7 +94,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -104,6 +108,7 @@ import CellProps from '../components/table/CellProps.vue'
 import Cell from '@/types/cell'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
+import { dispHidCol } from './Table'
 
 export default defineComponent({
   name: 'Table',
@@ -121,19 +126,21 @@ export default defineComponent({
     const mid = route.params.mid
     const hdHeight = ref(0)
     const columns = computed(() => {
-      const ret = store.getters['model/columns'].map((column: Column) =>
-        Object.assign(
-          {
-            customHeaderCell: () => ({
-              onClick: (e: PointerEvent) => onHdCellClick(e, column.key)
-            }),
-            customCell: () => ({
-              onClick: (e: PointerEvent) => onCellClick(e, column.dataIndex)
-            })
-          },
-          skipIgnores(column, ['slots'])
+      const ret = store.getters['model/columns']
+        .map((column: Column) =>
+          Object.assign(
+            {
+              customHeaderCell: () => ({
+                onClick: (e: PointerEvent) => onHdCellClick(e, column.key)
+              }),
+              customCell: () => ({
+                onClick: (e: PointerEvent) => onCellClick(e, column.dataIndex)
+              })
+            },
+            skipIgnores(column, ['slots'])
+          )
         )
-      )
+        .filter((column: Column) => !column.notDisplay || dispHidCol.value)
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
@@ -148,16 +155,11 @@ export default defineComponent({
     const selected = ref('')
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => store.getters['model/cells'])
-    const selColumn = computed(() => {
-      const key = selected.value.substring('head_'.length)
-      return store.getters['model/columns'].find((column: any) => column.key === key)
-    })
-    const selCell = computed(() => {
-      const key = selected.value.substring('cell_'.length)
-      return Cell.copy({ key }, table.value.cells[key])
-    })
+    const selColumn = reactive(new Column('', ''))
+    const selCell = reactive(new Cell())
 
     onMounted(() => store.dispatch('model/refresh'))
+    watch(() => selected.value, onSelChange)
 
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = `head_${colKey}`
@@ -170,6 +172,21 @@ export default defineComponent({
     async function onFormSubmit(formState: any, next: () => void) {
       await api.table.record.set(formState)
       next()
+    }
+    function onSelChange() {
+      if (selected.value.startsWith('head_')) {
+        Column.copy(
+          columns.value.find(
+            (column: any) => column.key === selected.value.substring('head_'.length)
+          ),
+          selColumn
+        )
+      } else if (selected.value.startsWith('cell_')) {
+        Cell.copy(table.value.cells[selected.value.substring('cell_'.length)], selCell)
+      } else {
+        selColumn.reset()
+        selCell.reset()
+      }
     }
     return {
       store,
@@ -186,7 +203,8 @@ export default defineComponent({
       fmEmitter,
 
       onFormSubmit,
-      endsWith
+      endsWith,
+      onSelChange
     }
   }
 })

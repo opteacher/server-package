@@ -147,7 +147,9 @@ export default defineComponent({
     const table = reactive(new Table())
     const records = reactive([] as any[])
     const columns = computed(() =>
-      table.columns.concat(new Column('操作', 'opera', { width: 100 }))
+      table.columns
+        .filter((column: Column) => !column.notDisplay)
+        .concat(new Column('操作', 'opera', { width: 100 }))
     )
     const fmEmitter = new Emitter()
 

@@ -54,6 +54,12 @@
               保存
             </a-button>
           </template>
+          <a-descriptions-item label="主路由">
+            <a-input
+              v-model:value="navProps.path"
+              @change="() => (navProps.path = fixStartsWith(navProps.path, '/'))"
+            />
+          </a-descriptions-item>
           <a-descriptions-item label="主题颜色">
             <a-select
               class="w-100"
@@ -116,6 +122,7 @@ import Model from '../types/model'
 import IconField from '../components/navi/IconField.vue'
 import MidNav from '@/types/midNav'
 import { pjtAPI, mdlAPI } from '../apis'
+import { fixStartsWith } from '@/utils'
 
 export default defineComponent({
   name: 'MiddleNavigate',
@@ -183,6 +190,7 @@ export default defineComponent({
       nvItmProps,
       selModel,
 
+      fixStartsWith,
       onMuItemSelect,
       onUpldImgChange,
       onNaviSave,
