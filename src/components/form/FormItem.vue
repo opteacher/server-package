@@ -48,9 +48,18 @@
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
       />
-      <a-checkbox v-else-if="field.ftype === 'Checkbox'" v-model:checked="formState[field.refer]">
-        {{ field.placeholder }}
-      </a-checkbox>
+      <template v-else-if="field.ftype === 'Checkbox'">
+        <template v-if="field.extra.style === 'button'">
+          <a-button class="w-100" :ghost="formState[field.refer]">{{ field.placeholder }}</a-button>
+        </template>
+        <template v-else-if="field.extra.style === 'switch'">
+          <a-switch v-model:checked="formState[field.refer]" />
+          {{ field.placeholder }}
+        </template>
+        <a-checkbox v-else v-model:checked="formState[field.refer]">
+          {{ field.placeholder }}
+        </a-checkbox>
+      </template>
       <a-select
         v-else-if="field.ftype === 'Select'"
         class="w-100"
@@ -68,6 +77,7 @@
         class="w-100"
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
+        show-time
       />
     </template>
   </a-form-item>

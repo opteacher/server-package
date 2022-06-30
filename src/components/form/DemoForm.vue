@@ -32,6 +32,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Model from '@/types/model'
 import { BaseTypes } from '@/types'
 import FormItem from '@/components/form/FormItem.vue'
+import type { Dayjs } from 'dayjs'
 
 export default defineComponent({
   name: 'DemoForm',
@@ -96,7 +97,7 @@ export default defineComponent({
         case 'Number':
           return 0
         case 'DateTime':
-          return new Date()
+          return ref<Dayjs>()
         case 'Boolean':
           return false
         case 'Array':

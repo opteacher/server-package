@@ -48,6 +48,7 @@
         <template v-if="active.key">
           <InputProps v-if="active.ftype === 'Input'" :field="active" />
           <SelectProps v-else-if="active.ftype === 'Select'" :field="active" />
+          <CheckBoxProps v-else-if="active.ftype === 'Checkbox'" :field="active" />
         </template>
       </a-layout-sider>
     </a-layout>
@@ -68,6 +69,7 @@ import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
 import InputProps from '../components/form/InputProps.vue'
 import SelectProps from '../components/form/SelectProps.vue'
+import CheckBoxProps from '../components/form/CheckBoxProps.vue'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
@@ -83,6 +85,7 @@ export default defineComponent({
     FieldProps,
     InputProps,
     SelectProps,
+    CheckBoxProps,
     BuildOutlined
   },
   setup() {
