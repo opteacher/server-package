@@ -1,7 +1,10 @@
 <template>
   <a-descriptions title="多选组件参数" :column="1" bordered size="small">
     <a-descriptions-item label="多选">
-      <a-checkbox v-model:checked="edtField.extra.mult" />
+      <a-checkbox
+        v-model:checked="edtField.extra.mult"
+        @change="(e: any) => api.form.fields.saveExtra(edtField.key, { mult: e.target.checked })"
+      />
     </a-descriptions-item>
     <a-descriptions-item label="选项" v-if="edtField.extra.mult">
       <a-button class="w-100 mb-5" type="primary" ghost @click="onEdtLstShow">添加</a-button>
@@ -65,6 +68,7 @@
 import Field from '@/types/field'
 import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { OpnType } from '@/types'
+import { mdlAPI as api } from '@/apis'
 
 const sglStyles = [
   { label: '多选风格', value: 'checkbox' },
@@ -116,6 +120,7 @@ export default defineComponent({
       addMod.value = false
     }
     return {
+      api,
       addMod,
       edtField,
       editing,

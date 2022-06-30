@@ -49,16 +49,33 @@
         :placeholder="field.placeholder"
       />
       <template v-else-if="field.ftype === 'Checkbox'">
-        <template v-if="field.extra.style === 'button'">
-          <a-button class="w-100" :ghost="formState[field.refer]">{{ field.placeholder }}</a-button>
+        <template v-if="field.extra.mult">
+          <template v-for="option in field.extra.options" :key="option.value">
+            <a-checkable-tag
+              v-if="field.extra.style === 'tag'"
+              :checked="formState[field.refer].includes(option.value)"
+            >
+              {{ option.label }}
+            </a-checkable-tag>
+            <a-checkbox v-else :checked="formState[field.refer].includes(option.value)">
+              {{ option.label }}
+            </a-checkbox>
+          </template>
         </template>
-        <template v-else-if="field.extra.style === 'switch'">
-          <a-switch v-model:checked="formState[field.refer]" />
-          {{ field.placeholder }}
+        <template v-else>
+          <template v-if="field.extra.style === 'button'">
+            <a-button class="w-100" :ghost="formState[field.refer]">
+              {{ field.placeholder }}
+            </a-button>
+          </template>
+          <template v-else-if="field.extra.style === 'switch'">
+            <a-switch v-model:checked="formState[field.refer]" />
+            {{ field.placeholder }}
+          </template>
+          <a-checkbox v-else v-model:checked="formState[field.refer]">
+            {{ field.placeholder }}
+          </a-checkbox>
         </template>
-        <a-checkbox v-else v-model:checked="formState[field.refer]">
-          {{ field.placeholder }}
-        </a-checkbox>
       </template>
       <a-select
         v-else-if="field.ftype === 'Select'"
