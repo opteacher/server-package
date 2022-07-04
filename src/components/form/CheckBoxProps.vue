@@ -1,9 +1,14 @@
 <template>
   <a-descriptions title="多选组件参数" :column="1" bordered size="small">
     <a-descriptions-item label="多选">
-      <a-checkbox
-        v-model:checked="edtField.extra.mult"
-        @change="(e: any) => api.form.fields.saveExtra(edtField.key, { mult: e.target.checked })"
+      <a-checkbox v-model:checked="edtField.extra.mult" @change="onMultChange" />
+    </a-descriptions-item>
+    <a-descriptions-item label="风格">
+      <a-select
+        class="w-100"
+        :options="edtField.extra.mult ? mulStyles : sglStyles"
+        v-model:value="edtField.extra.style"
+        @change="(style: string) => api.form.fields.extra.save(edtField.key, { style })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="选项" v-if="edtField.extra.mult">
@@ -22,7 +27,7 @@
             <a-input v-model:value="editing.value" placeholder="输入值" />
           </a-col>
           <a-col class="text-right" :span="6">
-            <a-button type="link" danger @click="onEdtLstDeled">取消</a-button>
+            <a-button type="link" danger @click="onEdtLstCanceled">取消</a-button>
           </a-col>
         </a-row>
       </template>
@@ -40,7 +45,7 @@
                 title="确定删除该项吗？"
                 ok-text="确定"
                 cancel-text="取消"
-                @confirm="options.splice(index, 1)"
+                @confirm="onEdtLstDeleted(index)"
               >
                 <a-button type="link" danger size="small">删除</a-button>
               </a-popconfirm>
@@ -52,21 +57,12 @@
         </template>
       </a-list>
     </a-descriptions-item>
-    <a-descriptions-item label="风格">
-      <a-select
-        v-if="edtField.extra.mult"
-        class="w-100"
-        :options="mulStyles"
-        v-model:value="edtField.extra.style"
-      />
-      <a-select v-else class="w-100" :options="sglStyles" v-model:value="edtField.extra.style" />
-    </a-descriptions-item>
   </a-descriptions>
 </template>
 
 <script lang="ts">
 import Field from '@/types/field'
-import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import { defineComponent, onMounted, reactive, ref } from 'vue'
 import { OpnType } from '@/types'
 import { mdlAPI as api } from '@/apis'
 
@@ -100,24 +96,29 @@ export default defineComponent({
         edtField.extra.style = 'checkbox'
       }
     })
-    watch(
-      () => edtField.extra.mult,
-      () => {
-        edtField.extra.style = 'checkbox'
-      }
-    )
 
     function onEdtLstShow() {
       addMod.value = true
     }
-    function onEdtLstAdded() {
+    async function onEdtLstAdded() {
+      await api.form.fields.extra.save(edtField.key, {
+        options: options.concat(editing)
+      })
       options.push({ label: editing.label, value: editing.value })
-      onEdtLstDeled()
+      onEdtLstCanceled()
     }
-    function onEdtLstDeled() {
+    function onEdtLstCanceled() {
       editing.label = ''
       editing.value = ''
       addMod.value = false
+    }
+    async function onEdtLstDeleted(index: number) {
+      options.splice(index, 1)
+      await api.form.fields.extra.save(edtField.key, { options })
+    }
+    async function onMultChange(e: any) {
+      await api.form.fields.extra.save(edtField.key, { mult: e.target.checked, style: 'checkbox' })
+      edtField.extra.style = 'checkbox'
     }
     return {
       api,
@@ -130,7 +131,9 @@ export default defineComponent({
 
       onEdtLstShow,
       onEdtLstAdded,
-      onEdtLstDeled
+      onEdtLstCanceled,
+      onEdtLstDeleted,
+      onMultChange
     }
   }
 })

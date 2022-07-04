@@ -12,7 +12,8 @@ export default {
   add: (data: any) =>
     reqPost('project', Object.assign(data, { auth: { roles: [{ name: 'guest', rules: [{}] }] } })),
   remove: (key: any) => reqDelete('project', key, { type: 'api' }),
-  update: (data: any) => reqPut('project', data.key, data, { ignores: ['models'] }),
+  update: (data: any) =>
+    reqPut('project', data.key, data, { ignores: ['models', 'auth', 'middle', 'status'] }),
   all: (offset: number, limit: number) =>
     reqAll('project', { query: { offset, limit }, copy: Project.copy }),
   detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
@@ -108,7 +109,8 @@ export default {
     },
     publish: (key: any, data: any) =>
       reqPost(`project/${key}/middle/publish`, data, { type: 'api' }),
-    status: (key: any) => reqGet('project', `${key}/middle/status`, { type: 'api' }),
+    status: (key: any) =>
+      reqGet('project', `${key}/middle/status`, { type: 'api', messages: { notShow: true } }),
     generate: async (key: any) => {
       const resp = await makeRequest(
         axios.get(`/server-package/api/v1/project/${key}/middle/generate`, {

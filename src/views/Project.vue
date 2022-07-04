@@ -171,6 +171,16 @@ export default defineComponent({
       await store.dispatch('project/refresh')
       mdlEmitter.emit('refresh', project.value.models)
     }
+    async function onConfig(pjt: Project) {
+      await api.update(pjt)
+      await store.dispatch('project/refresh')
+      showProj.value = false
+    }
+    async function onTransfer(info: Transfer) {
+      await api.transfer(info)
+      await store.dispatch('project/refresh')
+      showTsfm.value = false
+    }
     return {
       Project,
       Transfer,
@@ -193,8 +203,8 @@ export default defineComponent({
       tsEmitter,
 
       refresh,
-      onConfig: (pjt: Project) => api.update(pjt),
-      onTransfer: (info: Transfer) => api.transfer(info)
+      onConfig,
+      onTransfer
     }
   }
 })

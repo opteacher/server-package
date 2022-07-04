@@ -15,17 +15,17 @@
         </a-list>
       </a-layout-sider>
       <a-layout-content class="main-panel" @click="active.reset()">
-        <div class="white-bkgd h-100" style="overflow-y: auto">
+        <div class="white-bkgd h-100 plr-30" style="overflow-y: auto">
           <a-empty
-            class="ptb-30"
             v-if="!fields.length"
+            class="ptb-30"
             description="无组件"
             @dragover="(e: any) => e.preventDefault()"
             @drop="onDropDownEmpty"
           />
           <a-form
             v-else
-            :style="{ width: `${form.width}%`, margin: '0 auto', position: 'relative' }"
+            :style="{ margin: '0 auto', position: 'relative' }"
             :label-col="{ span: form.labelWidth }"
             :wrapper-col="{ span: 24 - form.labelWidth }"
           >

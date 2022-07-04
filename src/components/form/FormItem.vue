@@ -53,18 +53,31 @@
           <template v-for="option in field.extra.options" :key="option.value">
             <a-checkable-tag
               v-if="field.extra.style === 'tag'"
-              :checked="formState[field.refer].includes(option.value)"
+              :checked="mulChkChecked(option)"
+              @change="(checked: boolean) => onMulChkCheck(option, checked)"
             >
               {{ option.label }}
             </a-checkable-tag>
-            <a-checkbox v-else :checked="formState[field.refer].includes(option.value)">
+            <a-checkbox
+              v-else
+              :checked="mulChkChecked(option)"
+              @change="(e: any) => onMulChkCheck(option, e.target.checked)"
+            >
               {{ option.label }}
             </a-checkbox>
           </template>
         </template>
         <template v-else>
           <template v-if="field.extra.style === 'button'">
-            <a-button class="w-100" :ghost="formState[field.refer]">
+            <a-button
+              class="w-100"
+              :ghost="formState[field.refer]"
+              @click="
+                () => {
+                  formState[field.refer] = !formState[field.refer]
+                }
+              "
+            >
               {{ field.placeholder }}
             </a-button>
           </template>
@@ -145,9 +158,35 @@ export default defineComponent({
         return opn ? opn.label || opn.value : value
       }
     }
+    function mulChkChecked(option: OpnType) {
+      if (formState[props.field.refer]) {
+        return formState[props.field.refer].includes(option.value)
+      } else {
+        return false
+      }
+    }
+    function onMulChkCheck(option: OpnType, checked: boolean) {
+      if (typeof formState[props.field.refer] === 'undefined') {
+        formState[props.field.refer] = []
+      }
+      const array = formState[props.field.refer]
+      if (checked) {
+        if (!array.includes(option.value)) {
+          array.push(option.value)
+        }
+      } else {
+        const index = array.indexOf(option.value)
+        if (index !== -1) {
+          array.splice(index, 1)
+        }
+      }
+    }
     return {
       formState,
-      fmtDrpdwnValue
+
+      fmtDrpdwnValue,
+      mulChkChecked,
+      onMulChkCheck
     }
   }
 })

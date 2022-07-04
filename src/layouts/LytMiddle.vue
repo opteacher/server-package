@@ -200,8 +200,6 @@ export default defineComponent({
     })
     const middle = computed(() => store.getters['project/middle'])
 
-    onMounted(() => store.dispatch('project/chkMidStatus'))
-
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }

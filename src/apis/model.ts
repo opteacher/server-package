@@ -109,19 +109,21 @@ const expDft = {
         }
         await store.dispatch('model/refresh')
       },
-      saveExtra: async (fkey: string, extra: any) => {
-        await reqPut(
-          'model',
-          store.getters['model/ins'].key,
-          {
-            [`form.fields[{id:${fkey}}].extra`]: extra
-          },
-          {
-            messages: { notShow: true },
-            query: { updMode: 'merge' }
-          }
-        )
-        await store.dispatch('model/refresh')
+      extra: {
+        save: async (fkey: string, extra: any) => {
+          await reqPut(
+            'model',
+            store.getters['model/ins'].key,
+            {
+              [`form.fields[{id:${fkey}}].extra`]: extra
+            },
+            {
+              messages: { notShow: true },
+              query: { updMode: 'merge' }
+            }
+          )
+          await store.dispatch('model/refresh')
+        }
       },
       insert: async (payload: {
         dragField: string

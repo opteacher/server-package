@@ -32,7 +32,7 @@ export default db.defineModel(
           rules: db.PropTypes.Array,
           refer: db.PropTypes.String, // 关联字段或字段的再处理，当然也可以为空（为单字段时，该组件与字段双向绑定）
           placeholder: db.PropTypes.String,
-          extra: db.PropTypes.Any
+          extra: db.PropTypes.Object
         }
       ]
     },

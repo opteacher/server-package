@@ -71,6 +71,9 @@ export default {
       intervalCheck({
         chkFun: async () => {
           const result = await pjtAPI.middle.status(state.project.key)
+          if (state.project.status !== 'running') {
+            return true
+          }
           if (result.status === 'published') {
             state.project.middle.url = result.midURL
             return true
