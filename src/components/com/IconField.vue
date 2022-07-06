@@ -131,6 +131,26 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
+.w-100 {
+  width: 100%;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.hover-grey:hover {
+  background-color: #ededed;
+}
+
 :deep(.ant-pagination-options) {
   display: none !important;
 }

@@ -27,7 +27,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/server-package/home',
-    redirect: '/server-package'
+    redirect: '/server-package/'
   },
   {
     path: '/server-package',
