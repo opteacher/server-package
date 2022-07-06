@@ -7,6 +7,21 @@
       "default": false
     },
     {
+      "name": "LibUtils",
+      "exports": [
+        "getErrContent",
+        "fixStartsWith",
+        "fixEndsWith",
+        "rmvStartsOf",
+        "rmvEndsOf",
+        "getProp",
+        "setProp",
+        "uploadToQiniu"
+      ],
+      "from": "../lib/backend-library/utils/index.js",
+      "default": false
+    },
+    {
       "name": "Crypto",
       "exports": ["crypto"],
       "from": "crypto",

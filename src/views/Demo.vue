@@ -135,9 +135,9 @@ export default defineComponent({
     const mid = route.params.mid
     const model = computed(() => store.getters['model/ins'] as Model)
     const columns = computed(() => {
-      const ret = store.getters['model/columns'].map((column: Column) =>
-        skipIgnores(column, ['slots'])
-      )
+      const ret = store.getters['model/columns']
+        .map((column: Column) => skipIgnores(column, ['slots']))
+        .filter((column: Column) => !column.notDisplay)
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
