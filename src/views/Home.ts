@@ -48,8 +48,14 @@ export const mapper = new Mapper({
     type: 'Checkbox'
   },
   commands: {
-    label: '前置命令',
-    type: 'Textarea'
+    label: '高级',
+    type: 'Group',
+    items: {
+      commands: {
+        label: '前置命令',
+        type: 'Textarea'
+      }
+    }
   },
   operation: {
     label: '操作项目',

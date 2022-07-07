@@ -170,7 +170,7 @@
             :label-col="{ span: lgnProps.hasLabel ? lgnProps.lblWidth : 0 }"
             :wrapper-col="{ span: lgnProps.hasLabel ? 24 - lgnProps.lblWidth : 24 }"
           >
-            <FormItem
+            <DmFormItem
               v-for="field in lgnFields"
               :key="field.key"
               :field="fixField(field)"
@@ -206,14 +206,14 @@ import MidLgn from '@/types/midLgn'
 import { fixStartsWith, waitFor } from '@/utils'
 import Form from '@/types/form'
 import { mdlAPI } from '@/apis'
-import FormItem from '@/components/form/FormItem.vue'
+import DmFormItem from '@/components/form/DmFormItem.vue'
 import Field from '@/types/field'
 import { pjtAPI } from '@/apis'
 
 export default defineComponent({
   name: 'MiddleLogin',
   components: {
-    FormItem,
+    DmFormItem,
     LytMiddle,
     ColorField,
     UploadOutlined,

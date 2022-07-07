@@ -39,7 +39,9 @@
           overflowY: 'auto'
         }"
       >
-        <slot />
+        <div class="h-100" ref="container">
+          <slot />
+        </div>
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -72,12 +74,14 @@ export default defineComponent({
   },
   setup() {
     const router = useRouter()
+    const container = ref()
 
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }
     return {
       collapsed: ref<boolean>(false),
+      container,
       onItemSelected
     }
   }

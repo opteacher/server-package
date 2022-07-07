@@ -19,7 +19,13 @@
       :style="{ display: 'none', height: '2px', 'background-color': '#1890ff' }"
     />
   </div>
-  <FormItem :id="field.key" class="p-10 m-0" :field="field" :form="{}" style="position: relative" />
+  <DmFormItem
+    :id="field.key"
+    class="p-10 m-0"
+    :field="field"
+    :form="{}"
+    style="position: relative"
+  />
   <div
     :style="{
       padding: '12px 0',
@@ -86,14 +92,14 @@ import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
-import FormItem from './FormItem.vue'
+import DmFormItem from './DmFormItem.vue'
 
 export default defineComponent({
   name: 'FieldCard',
   components: {
     CloseOutlined,
 
-    FormItem
+    DmFormItem
   },
   props: {
     index: { type: Number, required: true },

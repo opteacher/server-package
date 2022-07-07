@@ -51,6 +51,7 @@ export type CompoType =
   | 'Cascader'
   | 'ListSelect'
   | 'EditList'
+  | 'Group'
   | 'Unknown'
 
 export const compoOpns = [

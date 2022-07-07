@@ -110,14 +110,16 @@ export default {
           }))
           .filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
-      edtNdMapper.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
-      if (edtNdMapper.inputs.mapper) {
-        edtNdMapper.inputs.mapper['value'].options = getLocVars(state).map((locVar: Variable) => ({
-          label: locVar.value || locVar.name,
-          value: locVar.value || locVar.name
-        }))
+      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
+      if (edtNdMapper.advanced.items.inputs.mapper) {
+        edtNdMapper.advanced.items.inputs.mapper['value'].options = getLocVars(state).map(
+          (locVar: Variable) => ({
+            label: locVar.value || locVar.name,
+            value: locVar.value || locVar.name
+          })
+        )
       }
-      edtNdMapper.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
+      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
       edtNdEmitter.emit('viewOnly', payload.viewOnly)
     },
@@ -166,7 +168,7 @@ export default {
       const sid = router.currentRoute.value.params.sid
       await dispatch('model/refresh', undefined, { root: true })
       await dispatch('refreshDeps')
-      edtNdMapper['deps'].options = Object.values(state.deps).map((dep: Dep) =>
+      edtNdMapper.advanced.items.deps.options = Object.values(state.deps).map((dep: Dep) =>
         LstOpnType.copy({
           key: dep.key,
           title: dep.name,

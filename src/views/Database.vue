@@ -1,5 +1,5 @@
 <template>
-  <LytMain active="database">
+  <LytMain active="database" ref="layout">
     <EditableTable
       size="small"
       :api="api"
@@ -7,13 +7,14 @@
       :mapper="mapper"
       :copy="Database.copy"
       :emitter="emitter"
+      :scl-height="ctnrHeight"
       title="数据库"
     />
   </LytMain>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '@/components/com/EditableTable.vue'
 import Database from '../types/database'
@@ -29,6 +30,8 @@ export default defineComponent({
   },
   setup() {
     const emitter = new Emitter()
+    const layout = ref()
+    const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 300))
 
     return {
       Database,
@@ -36,7 +39,9 @@ export default defineComponent({
       api,
       columns,
       mapper,
-      emitter
+      emitter,
+      layout,
+      ctnrHeight
     }
   }
 })

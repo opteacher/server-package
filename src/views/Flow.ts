@@ -154,109 +154,115 @@ export const edtNdMapper = new Mapper({
       }
     }
   },
-  inputs: {
-    label: '输入',
-    type: 'Table',
-    show: false,
-    emitter: iptEmitter,
-    display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ],
-    columns: [
-      new Column('参数名', 'name'),
-      new Column('参数类型', 'vtype'),
-      new Column('传入变量', 'value'),
-      new Column('变量分量', 'prop'),
-      new Column('备注', 'remark')
-    ],
-    mapper: iptMapper,
-    dsKey: '',
-    copy: Variable.copy,
-    onSaved: async (input: Variable, next: () => void) => {
-      await api.inOutput.save({ name: 'inputs', varb: input })
-      edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-      next()
-    },
-    onDeleted: async (key: string) => {
-      await api.inOutput.remove({ name: 'inputs', key })
-      edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-    },
-    addable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })],
-    delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
-  },
-  outputs: {
-    label: '输出',
-    type: 'Table',
-    show: false,
-    display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ],
-    columns: [
-      new Column('返回名', 'name'),
-      new Column('重名为', 'value'),
-      new Column('备注', 'remark')
-    ],
-    mapper: new Mapper({
-      name: {
-        label: '返回名',
-        type: 'Input'
+  advanced: {
+    label: '开发者配置',
+    type: 'Group',
+    items: {
+      inputs: {
+        label: '输入',
+        type: 'Table',
+        show: false,
+        emitter: iptEmitter,
+        display: [
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ],
+        columns: [
+          new Column('参数名', 'name'),
+          new Column('参数类型', 'vtype'),
+          new Column('传入变量', 'value'),
+          new Column('变量分量', 'prop'),
+          new Column('备注', 'remark')
+        ],
+        mapper: iptMapper,
+        dsKey: '',
+        copy: Variable.copy,
+        onSaved: async (input: Variable, next: () => void) => {
+          await api.inOutput.save({ name: 'inputs', varb: input })
+          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+          next()
+        },
+        onDeleted: async (key: string) => {
+          await api.inOutput.remove({ name: 'inputs', key })
+          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+        },
+        addable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
-      value: {
-        label: '重命名',
-        desc: '之后该输出将被替换为该名称',
-        type: 'Input'
+      outputs: {
+        label: '输出',
+        type: 'Table',
+        show: false,
+        display: [
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ],
+        columns: [
+          new Column('返回名', 'name'),
+          new Column('重名为', 'value'),
+          new Column('备注', 'remark')
+        ],
+        mapper: new Mapper({
+          name: {
+            label: '返回名',
+            type: 'Input'
+          },
+          value: {
+            label: '重命名',
+            desc: '之后该输出将被替换为该名称',
+            type: 'Input'
+          },
+          remark: {
+            label: '备注',
+            type: 'Input'
+          }
+        }),
+        dsKey: '',
+        copy: Variable.copy,
+        onSaved: async (output: Variable, next: () => void) => {
+          output.vtype = 'Object'
+          await api.inOutput.save({ name: 'outputs', varb: output })
+          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+          next()
+        },
+        onDeleted: async (key: string) => {
+          await api.inOutput.remove({ name: 'outputs', key })
+          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+        },
+        delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
-      remark: {
-        label: '备注',
-        type: 'Input'
+      deps: {
+        label: '依赖',
+        type: 'ListSelect',
+        display: [
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ],
+        options: []
+      },
+      code: {
+        label: '代码',
+        type: 'Textarea',
+        display: [
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ],
+        maxRows: 6
+      },
+      isFun: {
+        label: '是否为函数式',
+        desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
+        type: 'Checkbox',
+        disabled: [Cond.copy({ key: 'ntype', cmp: '==', val: 'condNode' })],
+        display: [
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ]
       }
-    }),
-    dsKey: '',
-    copy: Variable.copy,
-    onSaved: async (output: Variable, next: () => void) => {
-      output.vtype = 'Object'
-      await api.inOutput.save({ name: 'outputs', varb: output })
-      edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-      next()
-    },
-    onDeleted: async (key: string) => {
-      await api.inOutput.remove({ name: 'outputs', key })
-      edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-    },
-    delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
-  },
-  deps: {
-    label: '依赖',
-    type: 'ListSelect',
-    display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ],
-    options: []
-  },
-  code: {
-    label: '代码',
-    type: 'Textarea',
-    display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ],
-    maxRows: 6
-  },
-  isFun: {
-    label: '是否为函数式',
-    desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
-    type: 'Checkbox',
-    disabled: [Cond.copy({ key: 'ntype', cmp: '==', val: 'condNode' })],
-    display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ]
+    }
   },
   previous: {
     label: '父节点',

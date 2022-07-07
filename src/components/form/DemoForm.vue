@@ -12,7 +12,7 @@
       :label-col="{ span: form.labelWidth }"
       :wrapper-col="{ span: 24 - form.labelWidth }"
     >
-      <FormItem
+      <DmFormItem
         v-for="field in fields"
         :key="field.key"
         :field="field"
@@ -31,7 +31,7 @@ import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Model from '@/types/model'
 import { BaseTypes } from '@/types'
-import FormItem from '@/components/form/FormItem.vue'
+import DmFormItem from '@/components/form/DmFormItem.vue'
 import type { Dayjs } from 'dayjs'
 
 export default defineComponent({
@@ -41,7 +41,7 @@ export default defineComponent({
     emitter: { type: Emitter, required: true }
   },
   components: {
-    FormItem
+    DmFormItem
   },
   setup(props, { emit }) {
     const store = useStore()

@@ -120,7 +120,7 @@ import { OpnType } from '@/types'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
-  name: 'FormItem',
+  name: 'DmFormItem',
   emits: ['change'],
   components: {
     InfoCircleOutlined

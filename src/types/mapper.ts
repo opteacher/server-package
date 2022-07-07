@@ -10,6 +10,7 @@ export class BaseMapper {
   desc: string
   type: CompoType
   rules: any[]
+  placeholder: string
   disabled: boolean | Cond[] | { [cmpRel: string]: Cond[] }
   loading: boolean
   display: boolean | Cond[] | { [cmpRel: string]: Cond[] }
@@ -23,6 +24,7 @@ export class BaseMapper {
     this.desc = ''
     this.type = 'Unknown'
     this.rules = []
+    this.placeholder = ''
     this.disabled = false
     this.loading = false
     this.display = true
@@ -38,6 +40,7 @@ export class BaseMapper {
     tgt.desc = src.desc || tgt.desc
     tgt.type = src.type || tgt.type
     tgt.rules = src.rules || tgt.rules
+    tgt.placeholder = src.placeholder || tgt.placeholder
     tgt.disabled =
       src.disabled && src.disabled.length
         ? src.disabled.map((el: any) => Cond.copy(el))
@@ -296,6 +299,24 @@ export class EditListMapper extends BaseMapper {
     return tgt
   }
 }
+export class GroupMapper extends BaseMapper {
+  fold: boolean
+  items: Mapper
+
+  constructor() {
+    super()
+    this.fold = false
+    this.items = {}
+  }
+
+  static copy(src: any, tgt?: GroupMapper): GroupMapper {
+    tgt = tgt || new GroupMapper()
+    BaseMapper.copy(src, tgt)
+    tgt.fold = typeof src.fold !== 'undefined' ? JSON.parse(src.fold) : tgt.fold
+    Mapper.copy(src.items, tgt.items)
+    return tgt
+  }
+}
 
 const EleTypeCopies = {
   Unknown: BaseMapper.copy,
@@ -314,11 +335,17 @@ const EleTypeCopies = {
   Upload: BaseMapper.copy,
   DateTime: BaseMapper.copy,
   ListSelect: LstSelMapper.copy,
-  EditList: EditListMapper.copy
+  EditList: EditListMapper.copy,
+  Group: GroupMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 
+export type MapperType = BaseMapper & Record<string, any>
+
+export function getCopy(mt: MapperType): MapperType {
+  return EleTypeCopies[mt.type](mt)
+}
 export default class Mapper {
-  [prop: string]: BaseMapper & Record<string, any>
+  [prop: string]: MapperType
 
   constructor(init?: any) {
     if (init) {

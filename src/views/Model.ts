@@ -81,11 +81,13 @@ export const propMapper = new Mapper({
   },
   index: {
     label: '是否为索引',
-    type: 'Checkbox'
+    type: 'Checkbox',
+    placeholder: '索引可加速查找记录，但样本空间必须够大'
   },
   unique: {
     label: '是否唯一',
-    type: 'Checkbox'
+    type: 'Checkbox',
+    placeholder: '重复的记录无法持久化'
   },
   visible: {
     label: '是否可访问',
