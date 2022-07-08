@@ -86,7 +86,7 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
-    axios.get(`${baseURL}//*return project.name*//${reqType(options)}/v1/${path}s`, {
+    axios.get(`${baseURL}//*return project.name*//${reqType(options)}/v1/${path}/s`, {
       params: options.query
     }),
     options

@@ -106,7 +106,7 @@ export async function getData(pid, mid) {
   const resp = await axios.get(
     `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
       project.name
-    }/mdl/v1/${model.name}s`
+    }/mdl/v1/${model.name}/s`
   )
   if (resp.status !== 200) {
     return { error: '访问不到目标项目，请确认项目正常运行！' }

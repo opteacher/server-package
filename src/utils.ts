@@ -83,7 +83,7 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
-    axios.get(`/server-package/${reqType(options)}/v1/${path}s`, { params: options.query }),
+    axios.get(`/server-package/${reqType(options)}/v1/${path}/s`, { params: options.query }),
     options
   )
   return result.map((item: any) => (options && options.copy ? options.copy(item) : item))
