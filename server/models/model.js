@@ -16,6 +16,11 @@ export default db.defineModel(
         index: db.PropTypes.Boolean,
         unique: db.PropTypes.Boolean,
         visible: db.PropTypes.Boolean,
+        relative: {
+          model: db.PropTypes.String,
+          belong: db.PropTypes.Boolean,
+          isArray: db.PropTypes.Boolean
+        },
         remark: db.PropTypes.String
       }
     ],

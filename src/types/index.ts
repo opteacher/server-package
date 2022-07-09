@@ -87,6 +87,7 @@ export type CmpRel = 'AND' | 'OR'
 
 export const baseTypes = [
   'Unknown',
+  'Id',
   'String',
   'Number',
   'DateTime',
@@ -100,6 +101,7 @@ export const methods = ['POST', 'PUT', 'DELETE', 'GET']
 
 export type BaseTypes =
   | 'Unknown'
+  | 'Id'
   | 'Number'
   | 'String'
   | 'Boolean'

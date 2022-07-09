@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { baseTypes } from '@/types/index'
+import { baseTypes, Cond } from '@/types/index'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
 
@@ -56,6 +56,7 @@ export const propColumns = [
   new Column('是否为索引', 'index'),
   new Column('是否唯一', 'unique'),
   new Column('是否可访问', 'visible'),
+  new Column('关联模型', 'relative'),
   new Column('备注', 'remark')
 ]
 
@@ -63,6 +64,7 @@ export const propMapper = new Mapper({
   name: {
     label: '字段名',
     type: 'Input',
+    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
   },
   label: {
@@ -73,6 +75,7 @@ export const propMapper = new Mapper({
   ptype: {
     label: '字段类型',
     type: 'Select',
+    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     options: baseTypes.map(bsTyp => ({
       label: bsTyp,
       value: bsTyp
@@ -82,16 +85,23 @@ export const propMapper = new Mapper({
   index: {
     label: '是否为索引',
     type: 'Checkbox',
+    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     placeholder: '索引可加速查找记录，但样本空间必须够大'
   },
   unique: {
     label: '是否唯一',
     type: 'Checkbox',
+    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     placeholder: '重复的记录无法持久化'
   },
   visible: {
     label: '是否可访问',
-    type: 'Checkbox'
+    type: 'Checkbox',
+    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })]
+  },
+  relative: {
+    label: '关联模型',
+    type: 'Unknown'
   },
   remark: {
     label: '备注',

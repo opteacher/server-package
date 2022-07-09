@@ -64,7 +64,55 @@
         :emitter="propEmitter"
         @save="refresh"
         @delete="refresh"
-      />
+      >
+        <template #relative="{ record }">
+          <partition-outlined
+            v-if="record.relative.isArray"
+            :rotate="record.relative.belong ? 180 : 0"
+          />
+          {{ record.relative.model }}
+        </template>
+        <template #relativeEDT="{ editing }">
+          <a-input-group>
+            <a-row :gutter="8" type="flex" justify="space-around" align="middle">
+              <a-col :span="4">
+                <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
+                  <a-select
+                    class="w-100"
+                    :disabled="mdlOpns.length === 1"
+                    :value="editing.relative.belong ? 'belong' : 'has'"
+                    @change="(val: string) => { editing.relative.belong = val === 'belong' }"
+                  >
+                    <a-select-option value="belong">属于</a-select-option>
+                    <a-select-option value="has">拥有</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :span="4" class="text-center">
+                <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
+                  <a-checkbox
+                    :disabled="mdlOpns.length === 1"
+                    v-model:checked="editing.relative.isArray"
+                  >
+                    {{ editing.relative.isArray ? '多个' : '一个' }}
+                  </a-checkbox>
+                </a-form-item>
+              </a-col>
+              <a-col :span="16">
+                <a-form-item class="mb-0" ref="relative.model" name="relative.model">
+                  <a-select
+                    class="w-100"
+                    :disabled="mdlOpns.length === 1"
+                    v-model:value="editing.relative.model"
+                    :options="mdlOpns"
+                    @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
+                  />
+                </a-form-item>
+              </a-col>
+            </a-row>
+          </a-input-group>
+        </template>
+      </EditableTable>
     </div>
     <div class="mt-24">
       <EditableTable
@@ -115,11 +163,13 @@ import {
   DatabaseOutlined,
   ExportOutlined,
   FormOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  PartitionOutlined
 } from '@ant-design/icons-vue'
 import { propColumns, propMapper, svcColumns } from './Model'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { mdlAPI, propAPI } from '../apis'
+import Model from '@/types/model'
 
 export default defineComponent({
   name: 'Model',
@@ -130,7 +180,8 @@ export default defineComponent({
     DatabaseOutlined,
     ExportOutlined,
     FormOutlined,
-    AppstoreOutlined
+    AppstoreOutlined,
+    PartitionOutlined
   },
   setup() {
     const route = useRoute()
@@ -139,6 +190,13 @@ export default defineComponent({
     const pid = route.params.pid as string
     const mid = route.params.mid as string
     const model = computed(() => store.getters['model/ins'])
+    const mdlOpns = computed(() =>
+      [{ label: '无', value: '' }].concat(
+        store.getters['project/models']
+          .filter((mdl: Model) => mdl.key !== mid)
+          .map((mdl: Model) => ({ label: mdl.label || mdl.name, value: mdl.name }))
+      )
+    )
     const pjtName = computed(() => store.getters['project/ins'].name)
     const pstatus = computed(() => store.getters['project/ins'].status)
     const showExpCls = ref(false)
@@ -153,6 +211,18 @@ export default defineComponent({
       propEmitter.emit('refresh', model.value.props)
       svcEmitter.emit('refresh', model.value.svcs)
     }
+    function onRelMdlChange(prop: Property, mname: string) {
+      if (!mname) {
+        return prop.reset()
+      }
+      const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
+      prop.name = model.name + 's'
+      prop.label = model.label || ''
+      prop.ptype = 'Id'
+      prop.index = false
+      prop.unique = false
+      prop.visible = true
+    }
     return {
       ExpCls,
       Property,
@@ -163,6 +233,7 @@ export default defineComponent({
       pid,
       mid,
       model,
+      mdlOpns,
       pjtName,
       mdlAPI,
       pstatus,
@@ -176,7 +247,8 @@ export default defineComponent({
       svcColumns,
       svcEmitter,
 
-      refresh
+      refresh,
+      onRelMdlChange
     }
   }
 })
