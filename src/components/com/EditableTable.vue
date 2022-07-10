@@ -100,7 +100,7 @@ export default defineComponent({
     size: { type: String, default: 'default' },
     pagable: { type: Boolean, default: true },
     numPerPg: { type: Number, default: 100 },
-    sclHeight: { type: Number, default: 300 },
+    sclHeight: { type: Number, default: 500 },
     filter: { type: Function, default: () => true },
     edtable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true },
