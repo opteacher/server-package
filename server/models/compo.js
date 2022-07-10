@@ -8,7 +8,7 @@ export default db.defineModel(
   },
   {
     router: {
-      methods: ['POST', 'DELETE', 'ALL', 'GET', 'PUT']
+      methods: ['POST', 'DELETE', 'GET', 'PUT']
     }
   }
 )

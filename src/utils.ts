@@ -332,8 +332,6 @@ export function genMdlPath(svc: Service): string {
     case 'PUT':
     case 'GET':
       return `/mdl/v1/${mname}/:index`
-    case 'ALL':
-      return `/mdl/v1/${mname}s`
     default:
       return ''
   }

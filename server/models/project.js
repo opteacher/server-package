@@ -63,7 +63,7 @@ export default db.defineModel(
   },
   {
     router: {
-      methods: ['POST', 'ALL', 'GET', 'PUT', 'LINK']
+      methods: ['POST', 'GET', 'PUT', 'LINK']
     }
   }
 )

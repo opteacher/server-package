@@ -11,7 +11,7 @@ export default db.defineModel(
   },
   {
     router: {
-      methods: ['POST', 'DELETE', 'PUT', 'ALL', 'GET']
+      methods: ['POST', 'DELETE', 'PUT', 'GET']
     }
   }
 )

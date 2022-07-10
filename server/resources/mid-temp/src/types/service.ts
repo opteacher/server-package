@@ -59,7 +59,7 @@ export const timeUnits = [
   }
 ]
 
-export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'ALL'
+export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT'
 
 export default class Service {
   key: string

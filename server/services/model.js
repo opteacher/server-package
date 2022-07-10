@@ -159,15 +159,6 @@ export async function create(data) {
       path: `/mdl/v1/${model.name}/:index`
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
-
-    svc = await db.save(Service, {
-      name: model.name,
-      emit: 'api',
-      isModel: true,
-      method: 'GET',
-      path: `/mdl/v1/${model.name}/s`
-    })
-    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
   }
   await genForm(model.id)
   await genTable(model.id)
