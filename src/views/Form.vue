@@ -64,9 +64,6 @@ import Form from '@/types/form'
 import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'
-import InputProps from '../components/form/InputProps.vue'
-import SelectProps from '../components/form/SelectProps.vue'
-import CheckBoxProps from '../components/form/CheckBoxProps.vue'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
@@ -81,9 +78,6 @@ export default defineComponent({
     FormProps,
     FieldProps,
     ExtraProps,
-    InputProps,
-    SelectProps,
-    CheckBoxProps,
     BuildOutlined
   },
   setup() {
