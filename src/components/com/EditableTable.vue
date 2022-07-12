@@ -56,6 +56,15 @@
     <template v-if="hasExpand()" #expandedRowRender="{ record }">
       <slot name="expandedRowRender" v-bind="{ record }" />
     </template>
+    <template #expandIcon="{ record }">
+      <a-button
+        @click.stop="onRowExpand(record)"
+        :style="{ width: '20px', height: '20px', 'font-size': '10px', padding: '0 5px' }"
+      >
+        <template v-if="expRowKeys.includes(record.key)">-</template>
+        <template v-else>+</template>
+      </a-button>
+    </template>
   </a-table>
   <FormDialog
     v-model:show="editing.show"

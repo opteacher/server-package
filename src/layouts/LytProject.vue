@@ -36,7 +36,7 @@
             <template #icon><home-outlined /></template>
           </a-button>
           <a-breadcrumb>
-            <a-breadcrumb-item><a href="/server-package">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
               <a
                 v-if="active.includes('/model/') || active.endsWith('auth')"

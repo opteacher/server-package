@@ -1,8 +1,6 @@
 <template>
   <a-button
     class="w-100"
-    type="primary"
-    ghost
     :draggable="true"
     @dragstart="(e: any) => e.dataTransfer.setData('text/plain', `compo_${compo.name}`)"
   >

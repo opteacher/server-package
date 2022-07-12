@@ -273,7 +273,7 @@ export class LstSelMapper extends BaseMapper {
   }
 }
 
-export class EditListMapper extends BaseMapper {
+export class ListMapper extends BaseMapper {
   addMod: boolean
   mode: 'select' | 'input'
   options: OpnType[]
@@ -285,8 +285,8 @@ export class EditListMapper extends BaseMapper {
     this.options = []
   }
 
-  static copy(src: any, tgt?: EditListMapper): EditListMapper {
-    tgt = tgt || new EditListMapper()
+  static copy(src: any, tgt?: ListMapper): ListMapper {
+    tgt = tgt || new ListMapper()
     BaseMapper.copy(src, tgt)
     if (src.addMod) {
       tgt.addMod = src.addMod || tgt.addMod
@@ -314,7 +314,7 @@ const EleTypeCopies = {
   Upload: BaseMapper.copy,
   DateTime: BaseMapper.copy,
   ListSelect: LstSelMapper.copy,
-  EditList: EditListMapper.copy
+  List: ListMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 
 export default class Mapper {

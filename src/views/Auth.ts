@@ -34,7 +34,7 @@ export const mapper = new Mapper({
   },
   skips: {
     label: '跳过链接',
-    type: 'EditList',
+    type: 'List',
     mode: 'select',
     options: []
   },

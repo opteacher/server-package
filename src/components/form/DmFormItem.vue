@@ -109,6 +109,9 @@
         :placeholder="field.placeholder"
         show-time
       />
+      <a-button v-else-if="field.ftype === 'Button'" class="w-100">
+        {{ field.extra.inner || field.placeholder }}
+      </a-button>
     </template>
   </a-form-item>
 </template>

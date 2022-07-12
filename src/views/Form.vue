@@ -26,8 +26,8 @@
           <a-form
             v-else
             :style="{ margin: '0 auto', position: 'relative' }"
-            :label-col="{ span: form.labelWidth }"
-            :wrapper-col="{ span: 24 - form.labelWidth }"
+            :label-col="{ span: form.labelWidth + 2 }"
+            :wrapper-col="{ span: 22 - form.labelWidth }"
           >
             <template v-for="(field, index) in fields" :key="field.key">
               <FieldCard
@@ -45,11 +45,7 @@
       <a-layout-sider width="30%" class="white-bkgd vertical-scroll pl-20">
         <FormProps v-if="!active.key" :form="form" />
         <FieldProps v-else :field="active" />
-        <template v-if="active.key">
-          <InputProps v-if="active.ftype === 'Input'" :field="active" />
-          <SelectProps v-else-if="active.ftype === 'Select'" :field="active" />
-          <CheckBoxProps v-else-if="active.ftype === 'Checkbox'" :field="active" />
-        </template>
+        <ExtraProps v-if="active.key" :field="active" :save="api.form.fields.extra.save" />
       </a-layout-sider>
     </a-layout>
   </LytDesign>
@@ -67,6 +63,7 @@ import Compo from '@/types/compo'
 import Form from '@/types/form'
 import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
+import ExtraProps from '../components/form/ExtraProps.vue'
 import InputProps from '../components/form/InputProps.vue'
 import SelectProps from '../components/form/SelectProps.vue'
 import CheckBoxProps from '../components/form/CheckBoxProps.vue'
@@ -83,6 +80,7 @@ export default defineComponent({
     FieldCard,
     FormProps,
     FieldProps,
+    ExtraProps,
     InputProps,
     SelectProps,
     CheckBoxProps,
@@ -114,6 +112,7 @@ export default defineComponent({
       Field,
 
       store,
+      api,
       pid,
       mid,
       compos,

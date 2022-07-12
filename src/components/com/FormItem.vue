@@ -305,7 +305,7 @@
           </template>
         </a-list>
       </a-form-item-rest>
-      <template v-else-if="valState.type === 'EditList'">
+      <template v-else-if="valState.type === 'List'">
         <a-button class="w-100" type="primary" ghost @click="onEdtLstShow(skey, valState)">
           添加{{ valState.label }}
         </a-button>

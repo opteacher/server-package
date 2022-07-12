@@ -5,7 +5,7 @@
         <component :is="icon" />
       </keep-alive>
     </template>
-    {{ icon }}
+    {{ icon || placeholder || '请选择图标' }}
   </a-button>
   <a-modal v-model:visible="visible" title="选择图标" width="60vw" @ok="onIconSelect">
     <a-input v-model:value="search" placeholder="筛选图标" />
@@ -64,7 +64,8 @@ export default defineComponent({
   emits: ['select'],
   props: {
     size: { type: String, default: 'default' },
-    icon: { type: String, required: true }
+    icon: { type: String, default: '' },
+    placeholder: { type: String, default: '' }
   },
   components: antdIcons,
   setup(_props, { emit }) {

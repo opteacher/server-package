@@ -27,7 +27,7 @@
         v-model:value="formState.labelWidth"
         :min="1"
         :max="23"
-        @blur="(labelWidth: any) => api.form.save({ labelWidth })"
+        @blur="(e: any) => api.form.save({ labelWidth: e.target.value })"
       >
         <template #addonAfter>/ 24</template>
       </a-input-number>

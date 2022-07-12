@@ -183,7 +183,7 @@ function baseToCompoType(type) {
     case 'DateTime':
       return 'DateTime'
     case 'Array':
-      return 'EditList'
+      return 'List'
     default:
       return 'Text'
   }

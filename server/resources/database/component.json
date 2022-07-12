@@ -1,16 +1,208 @@
 {
+  "text": "Button/Input/Number/Select/Cascader/Textarea/Checkbox/Switch/Radio/List/Color",
+  "type": "String-input/Number-Number/String-Select/Array-Cascader/String-Textarea/Boolean|Array-Checkbox/Boolean-Switch/String-Radio/Array-List/String-Color/String-Icon",
   "data": [
     {
-      "name": "Button"
+      "name": "Button",
+      "ctype": "Event",
+      "extra": [
+        {
+          "label": "文本内容",
+          "ftype": "Input",
+          "refer": "inner",
+          "placeholder": "请输入按钮中的文本内容"
+        },
+        {
+          "label": "图标",
+          "refer": "icon",
+          "ftype": "Icon"
+        }
+      ]
     },
     {
-      "name": "Icon"
+      "name": "Color",
+      "ctype": "String"
     },
     {
-      "name": "Input"
+      "name": "Input",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "前缀",
+          "ftype": "Input",
+          "refer": "prefix"
+        },
+        {
+          "label": "后缀",
+          "ftype": "Input",
+          "refer": "suffix"
+        }
+      ]
     },
     {
-      "name": "Select"
+      "name": "Number",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "前缀",
+          "ftype": "Input",
+          "refer": "prefix"
+        },
+        {
+          "label": "后缀",
+          "ftype": "Input",
+          "refer": "suffix"
+        },
+        {
+          "label": "最小值",
+          "ftype": "Number",
+          "refer": "min"
+        },
+        {
+          "label": "最大值",
+          "ftype": "Number",
+          "refer": "max"
+        }
+      ]
+    },
+    {
+      "name": "Select",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "选项",
+          "ftype": "List",
+          "refer": "options",
+          "extra": {
+            "mapper": {
+              "label": {
+                "label": "标签",
+                "type": "Input"
+              },
+              "value": {
+                "label": "值",
+                "type": "Input"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cascader",
+      "ctype": "Array"
+    },
+    {
+      "name": "Textarea",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "最小行数",
+          "ftype": "Number",
+          "refer": "autosize.minRows"
+        },
+        {
+          "label": "最大行数",
+          "ftype": "Number",
+          "refer": "autosize.maxRows"
+        }
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "ctype": "Boolean|Array",
+      "extra": [
+        {
+          "label": "多选",
+          "ftype": "Checkbox",
+          "refer": "mult"
+        },
+        {
+          "label": "风格",
+          "ftype": "Select",
+          "refer": "style",
+          "extra": {
+            "options": [
+              {
+                "label": "多选风格",
+                "value": "checkbox"
+              },
+              {
+                "label": "开关风格",
+                "value": "switch"
+              },
+              {
+                "label": "按钮风格",
+                "value": "button"
+              },
+              {
+                "label": "标签你风格",
+                "value": "tag"
+              }
+            ]
+          }
+        },
+        {
+          "label": "选项",
+          "ftype": "List",
+          "refer": "options",
+          "extra": {
+            "mapper": {
+              "label": {
+                "label": "标签",
+                "type": "Input"
+              },
+              "value": {
+                "label": "值",
+                "type": "Input"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Switch",
+      "ctype": "Boolean",
+      "extra": [
+        {
+          "label": "选中内容",
+          "ftype": "Input",
+          "refer": "checkedChildren"
+        },
+        {
+          "label": "非选中时的内容",
+          "ftype": "Input",
+          "refer": "unCheckedChildren"
+        }
+      ]
+    },
+    {
+      "name": "Radio",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "选项",
+          "ftype": "List",
+          "refer": "options",
+          "extra": {
+            "mapper": {
+              "label": {
+                "label": "标签",
+                "type": "Input"
+              },
+              "value": {
+                "label": "值",
+                "type": "Input"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "List",
+      "ctype": "Array"
     }
   ]
 }
