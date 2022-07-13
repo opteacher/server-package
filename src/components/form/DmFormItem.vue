@@ -95,6 +95,7 @@
         class="w-100"
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
+        :options="field.extra.options"
       />
       <a-input-number
         v-else-if="field.ftype === 'Number'"
@@ -109,7 +110,17 @@
         :placeholder="field.placeholder"
         show-time
       />
-      <a-button v-else-if="field.ftype === 'Button'" class="w-100">
+      <a-button
+        v-else-if="field.ftype === 'Button'"
+        block
+        :danger="field.extra.danger"
+        :type="field.extra.type"
+      >
+        <template v-if="field.extra.icon" #icon>
+          <keep-alive>
+            <component :is="field.extra.icon" />
+          </keep-alive>
+        </template>
         {{ field.extra.inner || field.placeholder }}
       </a-button>
     </template>
@@ -120,14 +131,12 @@
 import { defineComponent, reactive } from 'vue'
 import Field from '@/types/field'
 import { OpnType } from '@/types'
-import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 
 export default defineComponent({
   name: 'DmFormItem',
   emits: ['change'],
-  components: {
-    InfoCircleOutlined
-  },
+  components: antdIcons,
   props: {
     field: { type: Field, required: true },
     form: { type: Object, required: true },

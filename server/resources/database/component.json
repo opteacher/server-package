@@ -16,6 +16,24 @@
           "label": "图标",
           "refer": "icon",
           "ftype": "Icon"
+        },
+        {
+          "label": "类型",
+          "refer": "type",
+          "ftype": "Select",
+          "extra": {
+            "options": [
+              { "label": "默认", "value": "default" },
+              { "label": "主要", "value": "primary" },
+              { "label": "链接", "value": "link" },
+              { "label": "虚线框", "value": "dashed" }
+            ]
+          }
+        },
+        {
+          "label": "警告/危险",
+          "refer": "danger",
+          "ftype": "Checkbox"
         }
       ]
     },
@@ -138,7 +156,7 @@
                 "value": "button"
               },
               {
-                "label": "标签你风格",
+                "label": "标签风格",
                 "value": "tag"
               }
             ]

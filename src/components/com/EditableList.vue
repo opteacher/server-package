@@ -12,38 +12,55 @@
       <a-button class="ml-10" @click="addItem = false">取消</a-button>
     </a-form-item>
   </a-form>
-  <a-list
+  <div
     v-show="edtField.extra.options && edtField.extra.options.length"
-    class="mt-5"
-    size="small"
-    :data-source="edtField.extra.options"
+    class="mt-20 mb-10 br-4 b-1 pos-rel"
+    :class="{ 'p-5': expanded }"
   >
-    <template #renderItem="{ item, index }">
-      <a-list-item>
-        <template #actions>
-          <a-button danger type="link" @click="onItemRmv(index)">
-            <template #icon><delete-outlined /></template>
-          </a-button>
-        </template>
-        <a-list-item-meta :description="exField.extra.desc ? item[exField.extra.desc] : ''">
-          <template #title>
-            {{ exField.extra.title ? item[exField.extra.title] : item }}
+    <a-button
+      type="link"
+      class="pos-abs white-bkgd"
+      :style="{ left: '-12px', top: '-12px' }"
+      size="small"
+      @click="expanded = !expanded"
+    >
+      <template #icon>
+        <minus-outlined v-if="expanded" style="font-size: 8pt" />
+        <plus-outlined v-else style="font-size: 8pt" />
+      </template>
+    </a-button>
+    <a-list v-if="expanded" size="small" :data-source="edtField.extra.options">
+      <template #renderItem="{ item, index }">
+        <a-list-item>
+          <template #actions>
+            <a-button danger type="link" @click="onItemRmv(index)">
+              <template #icon><delete-outlined /></template>
+            </a-button>
           </template>
-        </a-list-item-meta>
-      </a-list-item>
-    </template>
-  </a-list>
+          <a-list-item-meta :description="exField.extra.desc ? item[exField.extra.desc] : ''">
+            <template #title>
+              {{ exField.extra.title ? item[exField.extra.title] : item }}
+            </template>
+          </a-list-item-meta>
+        </a-list-item>
+      </template>
+    </a-list>
+  </div>
 </template>
 
 <script lang="ts">
 import Field from '@/types/field'
 import { defineComponent, reactive, ref } from 'vue'
-import { DeleteOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'EditableList',
   emits: ['addItem', 'rmvItem'],
-  components: { DeleteOutlined },
+  components: {
+    DeleteOutlined,
+    PlusOutlined,
+    MinusOutlined
+  },
   props: {
     field: { type: Field, required: true },
     exField: { type: Field, required: true }
@@ -52,6 +69,7 @@ export default defineComponent({
     const edtField = reactive(props.field)
     const addItem = ref(false)
     const itemState = reactive({} as Record<string, string>)
+    const expanded = ref(true)
 
     function onItemAdd(item: any) {
       if (!edtField.extra.options) {
@@ -71,6 +89,7 @@ export default defineComponent({
       edtField,
       addItem,
       itemState,
+      expanded,
 
       onItemAdd,
       onItemRmv
