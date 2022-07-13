@@ -1,6 +1,6 @@
 import store from '@/store'
 import Variable from '@/types/variable'
-import { makeRequest, reqDelete, reqPost, reqPut, skipIgnores } from '@/utils'
+import { makeRequest, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
 import { notification } from 'ant-design-vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
@@ -85,7 +85,7 @@ export default {
     await makeRequest(
       axios.post(
         baseURL,
-        Object.assign(skipIgnores(edtNode, ['key', 'nexts', 'previous', 'relative']), {
+        Object.assign(pickOrIgnore(edtNode, ['key', 'nexts', 'previous', 'relative']), {
           group,
           isTemp: true
         })

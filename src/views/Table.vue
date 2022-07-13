@@ -101,7 +101,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import DemoForm from '../components/form/DemoForm.vue'
 import Column from '@/types/column'
 import Table from '@/types/table'
-import { skipIgnores, endsWith } from '@/utils'
+import { pickOrIgnore, endsWith } from '@/utils'
 import TableProps from '../components/table/TableProps.vue'
 import ColumnProps from '../components/table/ColumnProps.vue'
 import CellProps from '../components/table/CellProps.vue'
@@ -137,14 +137,14 @@ export default defineComponent({
                 onClick: (e: PointerEvent) => onCellClick(e, column.dataIndex)
               })
             },
-            skipIgnores(column, ['slots'])
+            pickOrIgnore(column, ['slots'])
           )
         )
         .filter((column: Column) => !column.notDisplay || dispHidCol.value)
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
-          skipIgnores(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
+          pickOrIgnore(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
         ) as Column[]
       } else {
         return ret as Column[]

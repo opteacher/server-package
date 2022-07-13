@@ -1,5 +1,5 @@
 import store from '@/store'
-import { reqGet, reqDelete, reqPost, reqPut, skipIgnores } from '@/utils'
+import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
 import Model from '@/types/model'
 import ExpCls from '@/types/expCls'
 import Field from '@/types/field'
@@ -55,7 +55,7 @@ const expDft = {
       await reqPut(
         'model',
         store.getters['model/ins'].key,
-        { form: skipIgnores(form, ['fields']) },
+        { form: pickOrIgnore(form, ['fields']) },
         {
           messages: { notShow: true },
           query: { updMode: 'merge' }
@@ -89,7 +89,7 @@ const expDft = {
             'model',
             mid,
             {
-              [`form.fields[{id:${field.key}}]`]: skipIgnores(field, ['key'])
+              [`form.fields[{id:${field.key}}]`]: pickOrIgnore(field, ['key'])
             },
             {
               messages: { notShow: true },
@@ -166,7 +166,7 @@ const expDft = {
       await reqPut(
         'model',
         store.getters['model/ins'].key,
-        { table: skipIgnores(table, ['columns']) },
+        { table: pickOrIgnore(table, ['columns']) },
         {
           query: { updMode: 'merge' },
           messages: { notShow: true }
@@ -182,7 +182,7 @@ const expDft = {
             'model',
             mid,
             {
-              [`table.columns[{id:${column.key}}]`]: skipIgnores(column, ['key'])
+              [`table.columns[{id:${column.key}}]`]: pickOrIgnore(column, ['key'])
             },
             { query: { updMode: 'merge' }, messages: { notShow: true } }
           )
@@ -190,7 +190,7 @@ const expDft = {
           await reqPut(
             'model',
             mid,
-            { 'table.columns': skipIgnores(column, ['key']) },
+            { 'table.columns': pickOrIgnore(column, ['key']) },
             { query: { updMode: 'append' }, messages: { notShow: true } }
           )
         }
@@ -203,7 +203,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           {
-            [`table.cells.${cell.key}`]: skipIgnores(cell, ['key'])
+            [`table.cells.${cell.key}`]: pickOrIgnore(cell, ['key'])
           },
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )

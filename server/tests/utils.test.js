@@ -1,7 +1,7 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { beforeAll, beforeEach, afterAll, expect, test } from '@jest/globals'
-import { db, skipIgnores } from '../utils/index.js'
+import { db, pickOrIgnore } from '../utils/index.js'
 
 describe('# 工具包', () => {
   test('# db', () => {
@@ -9,9 +9,9 @@ describe('# 工具包', () => {
     expect(db).not.toBeUndefined()
   })
 
-  test('# skipIgnores', () => {
+  test('# pickOrIgnore', () => {
     expect(
-      skipIgnores({ username: 'opteacher', password: 'abcd' }, ['password'])
+      pickOrIgnore({ username: 'opteacher', password: 'abcd' }, ['password'])
     ).not.toHaveProperty('password')
   })
 })

@@ -1,5 +1,5 @@
 import store from '@/store'
-import { reqPut, skipIgnores } from '@/utils'
+import { reqPut, pickOrIgnore } from '@/utils'
 
 export default {
   add: (data: any) =>
@@ -20,7 +20,7 @@ export default {
     reqPut(
       'project',
       store.getters['project/ins'].key,
-      { [`auth.roles[{_id:${data.key}}]`]: skipIgnores(data, ['key']) },
+      { [`auth.roles[{_id:${data.key}}]`]: pickOrIgnore(data, ['key']) },
       { query: { updMode: 'merge' } }
     ),
   all: (offset: number, limit: number) =>

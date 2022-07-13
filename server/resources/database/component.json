@@ -83,7 +83,9 @@
                 "label": "值",
                 "type": "Input"
               }
-            }
+            },
+            "title": "label",
+            "desc": "value"
           }
         }
       ]
@@ -156,7 +158,9 @@
                 "label": "值",
                 "type": "Input"
               }
-            }
+            },
+            "title": "label",
+            "desc": "value"
           }
         }
       ]
@@ -195,7 +199,9 @@
                 "label": "值",
                 "type": "Input"
               }
-            }
+            },
+            "title": "label",
+            "desc": "value"
           }
         }
       ]

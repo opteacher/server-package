@@ -7,8 +7,8 @@ export const cfgPath = Path.resolve('configs')
 
 export const db = new Mongo(readConfig(Path.join(cfgPath, 'db'), true).mongo)
 
-export function skipIgnores(obj, ignores) {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
+export function pickOrIgnore(obj, attrs, ignore = true) {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))
 }
 
 export async function makeRequest(method, path) {

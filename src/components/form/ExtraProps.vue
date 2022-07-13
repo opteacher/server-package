@@ -52,38 +52,13 @@
         :placeholder="exField.placeholder"
         @select="(icon: string) => save(edtField.key, { [exField.refer]: icon })"
       />
-      <template v-else-if="exField.ftype === 'List'">
-        <a-button class="w-100" @click="addItem = true">添加{{ exField.label }}</a-button>
-        <a-form
-          v-if="addItem"
-          class="mt-24"
-          :model="itemState"
-          @finish="(item: any) => edtField.extra.options.push(item)"
-        >
-          <a-form-item v-for="(value, key) in exField.extra.mapper" :key="key">
-            <a-input
-              v-model:value="itemState[key]"
-              :placeholder="value.placeholder || `请输入${value.label}`"
-            />
-          </a-form-item>
-          <a-form-item>
-            <a-button type="primary" html-type="submit">确认</a-button>
-            <a-button style="margin-left: 10px" @click="addItem = false">取消</a-button>
-          </a-form-item>
-        </a-form>
-        <a-list
-          v-show="edtField.extra.options"
-          style="margin-top: 5px"
-          size="small"
-          :data-source="edtField.extra.options"
-        >
-          <template #renderItem="{ item }">
-            <a-list-item>
-              {{ item }}
-            </a-list-item>
-          </template>
-        </a-list>
-      </template>
+      <EditableList
+        v-else-if="exField.ftype === 'List'"
+        :field="edtField"
+        :exField="exField"
+        @addItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
+        @rmvItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
+      />
     </a-descriptions-item>
   </a-descriptions>
 </template>
@@ -93,10 +68,13 @@ import Field from '@/types/field'
 import { computed, defineComponent, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import IconField from '../com/IconField.vue'
+import EditableList from '../com/EditableList.vue'
+import { pickOrIgnore } from '@/utils'
 
 export default defineComponent({
   components: {
-    IconField
+    IconField,
+    EditableList
   },
   props: {
     field: { type: Field, required: true },
@@ -109,14 +87,12 @@ export default defineComponent({
       const compo = store.getters['model/compos'].find(({ name }: any) => name === edtField.ftype)
       return compo && compo.extra ? compo.extra.map((field: any) => Field.copy(field)) : []
     })
-    const addItem = ref(false)
-    const itemState = reactive({} as Record<string, string>)
 
     return {
       edtField,
       cmpExtra,
-      addItem,
-      itemState
+
+      pickOrIgnore
     }
   }
 })

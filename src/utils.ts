@@ -138,7 +138,7 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
   return makeRequest(
     axios.post(
       `/server-package/${reqType(options)}/v1/${path}`,
-      body ? skipIgnores(body, options.ignores) : undefined,
+      body ? pickOrIgnore(body, options.ignores) : undefined,
       { params: options.query }
     ),
     options
@@ -198,7 +198,7 @@ export function reqPut(
   return makeRequest(
     axios.put(
       `/server-package/${reqType(options)}/v1/${path}/${iden}`,
-      body ? skipIgnores(body, options.ignores) : undefined,
+      body ? pickOrIgnore(body, options.ignores) : undefined,
       { params: options.query }
     ),
     options
@@ -261,8 +261,8 @@ export function getProperty(obj: any, props: string | string[]): any {
   return obj
 }
 
-export function skipIgnores(obj: { [key: string]: any }, ignores: string[]): any {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => !ignores.includes(key)))
+export function pickOrIgnore(obj: { [key: string]: any }, attrs: string[], ignore = true): any {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))
 }
 
 export async function until(cdFun: () => Promise<boolean>, lpLimit = 500) {

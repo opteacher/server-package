@@ -111,7 +111,7 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '@/types/column'
-import { skipIgnores, endsWith } from '@/utils'
+import { pickOrIgnore, endsWith } from '@/utils'
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -136,12 +136,12 @@ export default defineComponent({
     const model = computed(() => store.getters['model/ins'] as Model)
     const columns = computed(() => {
       const ret = store.getters['model/columns']
-        .map((column: Column) => skipIgnores(column, ['slots']))
+        .map((column: Column) => pickOrIgnore(column, ['slots']))
         .filter((column: Column) => !column.notDisplay)
       const table = store.getters['model/table'] as Table
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(
-          skipIgnores(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
+          pickOrIgnore(new Column('操作', 'opera', { key: 'opera', width: 100 }), ['slots'])
         ) as Column[]
       } else {
         return ret as Column[]

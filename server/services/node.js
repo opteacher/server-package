@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from '../models/node.js'
 import Service from '../models/service.js'
-import { db, skipIgnores } from '../utils/index.js'
+import { db, pickOrIgnore } from '../utils/index.js'
 
 export function tempNodes() {
   return db.select(Node, { isTemp: true }, { ext: true })
 }
 
 export function newTemp(node) {
-  return db.save(Node, skipIgnores(node, ['previous', 'nexts']))
+  return db.save(Node, pickOrIgnore(node, ['previous', 'nexts']))
 }
 
 export function tempByGrpAndTtl(group, title) {
@@ -29,10 +29,10 @@ export async function save(node, sid) {
     // 覆盖依赖
     await db.saveOne(Node, node.key, { deps })
     // 更新节点
-    return db.saveOne(Node, node.key, skipIgnores(node, ['key', 'previous', 'nexts', 'deps']))
+    return db.saveOne(Node, node.key, pickOrIgnore(node, ['key', 'previous', 'nexts', 'deps']))
   }
   //新增节点
-  node = await db.save(Node, skipIgnores(node, ['key']))
+  node = await db.save(Node, pickOrIgnore(node, ['key']))
   const nodeKey = node.id
   let tailNode = node
   // 覆盖依赖

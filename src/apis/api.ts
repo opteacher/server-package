@@ -1,5 +1,5 @@
 import store from '@/store'
-import { reqPut, skipIgnores } from '@/utils'
+import { reqPut, pickOrIgnore } from '@/utils'
 import pjtAPI from './project'
 
 export default {
@@ -19,7 +19,7 @@ export default {
     ),
   update: (data: any) =>
     reqPut('project', store.getters['project/ins'].key, {
-      [`auth.apis[{_id:${data.key}}]`]: skipIgnores(data, ['key'])
+      [`auth.apis[{_id:${data.key}}]`]: pickOrIgnore(data, ['key'])
     }),
   all: () => store.getters['project/apis'],
   detail: (_key: any) => {

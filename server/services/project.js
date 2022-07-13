@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs'
 import Path from 'path'
-import { db, skipIgnores } from '../utils/index.js'
+import { db, pickOrIgnore } from '../utils/index.js'
 import { readConfig, copyDir, rmvStartsOf } from '../lib/backend-library/utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
@@ -812,8 +812,8 @@ export async function buildMid(project) {
     const fields = project.auth.props
       .map(prop => auth.form.fields.find(field => field.refer === prop.name))
       .filter(field => field)
-      .map(field => Object.assign(skipIgnores(field, ['_id']), { key: field._id }))
-    project.middle.login = skipIgnores(project.middle.login, ['_id'])
+      .map(field => Object.assign(pickOrIgnore(field, ['_id']), { key: field._id }))
+    project.middle.login = pickOrIgnore(project.middle.login, ['_id'])
     adjustFile(lgnTmp, lgnGen, { project, fields })
   } else {
     const apiTmp = Path.join(tmpSrcPath, 'api.ts')
