@@ -1,7 +1,7 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { beforeAll, beforeEach, afterAll, expect, test, jest } from '@jest/globals'
-import { sync, stop, status, del, transfer, getAllAPIs, runAll } from '../services/project.js'
+import { sync, stopSync, status, del, transfer, getAllAPIs, runAll } from '../services/project.js'
 import { db } from '../utils/index.js'
 import Path from 'path'
 import { execSync } from 'child_process'
@@ -306,7 +306,7 @@ describe('# 项目服务', () => {
   })
 
   test('# stop', async () => {
-    let result = await stop(pid)
+    let result = await stopSync(pid)
     expect(result.thread).toEqual(0)
     result = await status(pid)
     for (let i = 0; i < 30 || result.status === 'loading'; ++i) {

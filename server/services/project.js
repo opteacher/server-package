@@ -191,22 +191,24 @@ async function recuNode(key, indent, callback, endKey) {
 }
 
 export async function sync(pid) {
-  const project = await generate(pid)
-
   console.log('更新项目的进程ID……')
   await db.save(Project, { thread: -1 }, { _index: pid })
 
-  console.log('启动项目……')
-  const thread = await run(project)
-  await adjAndRestartNginx()
-  return Promise.resolve(thread)
+  setTimeout(async () => {
+    const project = await generate(pid)
+
+    console.log('启动项目……')
+    const thread = await run(project)
+    await adjAndRestartNginx()
+  }, 10)
+  return Promise.resolve({ message: '同步中……' })
 }
 
 export async function generate(pid) {
   console.log('从数据库获取项目实例……')
   const project = await db.select(Project, { _index: pid }, { ext: true })
   if (project.thread) {
-    await stop(project)
+    await stopSync(project)
   }
   console.log('从数据库获取项目模型……')
   for (const index in project.models) {
@@ -544,7 +546,7 @@ function adjustFile(src, dest, args) {
 export async function del(pid) {
   const project = await db.select(Project, { _index: pid })
   if (project.thread) {
-    await stop(project)
+    await stopSync(project)
   }
   for (const mid of project.models) {
     const model = await db.select(Model, { _index: mid })
@@ -556,12 +558,18 @@ export async function del(pid) {
   return db.remove(Project, { _index: pid })
 }
 
+export async function stop(pid) {
+  await db.save(Project, { thread: 0 }, { _index: pid })
+  setTimeout(() => stopSync(pid), 1)
+  return { message: '停止中……' }
+}
+
 /**
  *
  * @param {*} pjt string | { _id: string; thread: number }
  * @returns
  */
-export async function stop(pjt) {
+export async function stopSync(pjt) {
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   spawnSync(
     [`docker container stop ${project.name}`, `docker container rm ${project.name}`].join(' && '),
@@ -570,11 +578,21 @@ export async function stop(pjt) {
       shell: true
     }
   )
-  return db.save(Project, { thread: '' }, { _index: project._id }, { updMode: 'delete' })
+  return db.save(Project, { thread: 0 }, { _index: project._id })
 }
 
+const statsFmt = [
+  '"{\\"name\\":\\"{{ .Name }}\\"',
+  '\\"pid\\":{{ .PIDs }}',
+  '\\"memory\\":{\\"raw\\":\\"{{ .MemUsage }}\\"',
+  '\\"percent\\":\\"{{ .MemPerc }}\\"}',
+  '\\"cpu\\":\\"{{ .CPUPerc }}\\"',
+  '\\"io\\":{\\"net\\":\\"{{ .NetIO }}\\"',
+  '\\"block\\":\\"{{ .BlockIO }}\\"}}"'
+].join(',')
+
 export async function status(pid) {
-  const project = await db.select(Project, { _index: pid })
+  const project = typeof pid === 'string' ? await db.select(Project, { _index: pid }) : pid
   const chkPms = axios.get(
     `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
       project.name
@@ -593,8 +611,14 @@ export async function status(pid) {
     } catch (e) {
       return { status: 'loading' }
     }
-    return { status: 'running' }
+    const res = spawnSync(`docker stats --no-stream --format ${statsFmt}`, { shell: true })
+    return Object.assign({ status: 'running' }, JSON.parse(res.stdout.toString()))
   }
+}
+
+export async function pjtsWithStt(params) {
+  const projects = await db.select(Project, params)
+  return projects.map(async project => Object.assign({ health: await status(project) }, project))
 }
 
 /**
@@ -893,16 +917,15 @@ export async function depMiddle(pid, depInfo) {
   }
   await transfer({
     pid,
-    files: depInfo.fileList
-      .map(file => Object.assign(file, { dest: `/public/${rmvStartsOf(file.dest, 'dist/')}` }))
+    files: depInfo.fileList.map(file =>
+      Object.assign(file, { dest: `/public/${rmvStartsOf(file.dest, 'dist/')}` })
+    )
   })
   const project = await db.select(Project, { _index: pid })
-  spawnSync(`docker exec ${project.name} mv /app/public/index.html /app/views/index.html`,
-    {
-      stdio: 'inherit',
-      shell: true
-    }
-  )
+  spawnSync(`docker exec ${project.name} mv /app/public/index.html /app/views/index.html`, {
+    stdio: 'inherit',
+    shell: true
+  })
   return { message: '部署完毕！' }
 }
 

@@ -9,7 +9,6 @@
       :emitter="emitter"
       :scl-height="ctnrHeight"
       title="项目"
-      @add="onEditStart"
     >
       <template #name="{ record: project }">
         <a :href="`/server-package/project/${project.key}`" @click.stop="">{{ project.name }}</a>
@@ -63,7 +62,7 @@
 
 <script lang="ts">
 import Project from '@/types/project'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, onMounted, ref, watch } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
@@ -100,8 +99,7 @@ export default defineComponent({
         emitter.emit('refresh')
       }
     )
-
-    async function onEditStart() {
+    onMounted(async () => {
       mapper.database.options = (await api.databases()).map((database: Database) => ({
         value: database.name,
         label: database.name,
@@ -110,7 +108,7 @@ export default defineComponent({
           label: db
         }))
       }))
-    }
+    })
     return {
       Project,
 
@@ -121,9 +119,7 @@ export default defineComponent({
       emitter,
       columns,
       layout,
-      ctnrHeight,
-
-      onEditStart
+      ctnrHeight
     }
   }
 })

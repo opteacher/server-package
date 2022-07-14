@@ -33,6 +33,9 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   if (!options.messages) {
     options.messages = {}
   }
+  if (typeof options.messages.notShow === 'undefined') {
+    options.messages.notShow = false
+  }
   options.middles.before && options.middles.before()
   if (!options.messages.notShow) {
     message.loading(options.messages.loading || '加载中……')
@@ -46,17 +49,19 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   }
   options.middles.after && options.middles.after(resp)
   const result = options.orgRes ? resp : resp.result || resp.data || resp
-  if (resp.error || result.error) {
-    if (!options.messages.notShow && options.messages.failed) {
-      message.error(options.messages.failed)
+  if (!options.messages.notShow) {
+    if (resp.error || result.error) {
+      if (options.messages.failed) {
+        message.error(options.messages.failed)
+      } else {
+        message.error(resp.error || result.error)
+      }
     } else {
-      message.error(resp.error || result.error)
-    }
-  } else {
-    if (!options.messages.notShow && options.messages.succeed) {
-      message.success(options.messages.succeed)
-    } else if (result.message) {
-      message.success(result.message)
+      if (options.messages.succeed) {
+        message.success(options.messages.succeed)
+      } else if (result.message) {
+        message.success(result.message)
+      }
     }
   }
   return Promise.resolve(result)

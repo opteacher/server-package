@@ -41,6 +41,7 @@ export default {
       intervalCheck({
         chkFun: async () => {
           state.project.status = await pjtAPI.status(state.project.key)
+          console.log(state.project.status)
           return expect === state.project.status
         },
         middle: {

@@ -26,12 +26,17 @@ export default {
       onOk: async () => {
         await reqPut('project', `${key}/sync`, undefined, {
           type: 'api',
+          middles: {
+            before: () => {
+              store.commit('project/SET_STATUS', 'loading')
+            }
+          },
           messages: {
             loading: '同步中……',
             succeed: '同步成功！'
           }
         })
-        await store.dispatch('project/refresh')
+        setTimeout(() => store.dispatch('project/refresh'), 10)
       }
     })
   },
@@ -46,9 +51,6 @@ export default {
           middles: {
             before: () => {
               store.commit('project/SET_STATUS', 'loading')
-            },
-            after: () => {
-              store.commit('project/SET_STATUS', 'stopped')
             }
           },
           messages: {
@@ -56,7 +58,7 @@ export default {
             succeed: '操作成功！'
           }
         })
-        await store.dispatch('project/refresh')
+        setTimeout(() => store.dispatch('project/refresh'), 10)
       }
     })
   },
@@ -97,7 +99,7 @@ export default {
   status: (key: any) =>
     reqGet('project', `${key}/stat`, {
       type: 'api',
-      messages: { notShow: false }
+      messages: { notShow: true }
     }).then((pjt: any) => pjt.status),
   apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
   middle: {

@@ -10,12 +10,19 @@ import {
   pubMiddle,
   chkMiddle,
   genMiddle,
-  depMiddle
+  depMiddle,
+  pjtsWithStt
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
 
 const router = new Router()
+
+router.get('/s', async ctx => {
+  ctx.body = {
+    result: await pjtsWithStt(ctx.request.query)
+  }
+})
 
 router.put('/:pid/sync', async ctx => {
   ctx.body = {
@@ -31,7 +38,7 @@ router.get('/:pid/stat', async ctx => {
 
 router.put('/:pid/stop', async ctx => {
   ctx.body = {
-    result: await stop(ctx.params.pid)
+    result: stop(ctx.params.pid)
   }
 })
 
