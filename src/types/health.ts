@@ -49,7 +49,8 @@ export default class Health {
     }
     tgt.cpu = src.cpu || tgt.cpu
     if (src.io) {
-
+      tgt.io.net = src.io.net || tgt.io.net
+      tgt.io.block =  src.io.block || tgt.io.block
     }
     return tgt
   }
