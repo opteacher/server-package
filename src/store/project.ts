@@ -40,8 +40,11 @@ export default {
       const msgTxt = expect === 'running' ? '启动' : '停止'
       intervalCheck({
         chkFun: async () => {
-          state.project.status = await pjtAPI.status(state.project.key)
-          console.log(state.project.status)
+          try {
+            state.project.status = await pjtAPI.status(state.project.key)
+          } catch(e: any) {
+            return false
+          }
           return expect === state.project.status
         },
         middle: {
