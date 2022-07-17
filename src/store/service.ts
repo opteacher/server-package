@@ -329,7 +329,7 @@ export default {
     },
     async refreshDeps({ state }: { state: SvcState }) {
       state.deps = Object.fromEntries(
-        (await reqGet('dependencys'))
+        (await reqAll('dependency'))
           .map((dep: any) => Dep.copy(dep))
           .map((dep: Dep) => [dep.key, dep])
       )

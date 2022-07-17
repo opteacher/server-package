@@ -5,7 +5,7 @@
       position: 'fixed',
       width: '15vw',
       top: '150px',
-      right: '100px',
+      right: '50px',
       'z-index': 1000,
       'background-color': 'white'
     }"

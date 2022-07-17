@@ -3,7 +3,7 @@ import { tempNodes, newTemp, tempByGrpAndTtl } from '../../../../../services/nod
 
 const router = new Router()
 
-router.get('/temps', async ctx => {
+router.get('/temp/s', async ctx => {
   ctx.body = {
     result: await tempNodes()
   }

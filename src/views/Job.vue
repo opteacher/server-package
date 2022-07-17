@@ -22,7 +22,7 @@
           v-if="!svc.isModel"
           type="primary"
           size="small"
-          @click="$router.push(`/server-package/project/${pid}/model/${mid}/flow/${svc.key}`)"
+          @click.stop="$router.push(`/server-package/project/${pid}/model/${mid}/flow/${svc.key}`)"
         >
           <template #icon><edit-outlined /></template>
           &nbsp;设计流程
