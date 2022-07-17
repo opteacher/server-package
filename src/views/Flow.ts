@@ -177,10 +177,9 @@ export const edtNdMapper = new Mapper({
         mapper: iptMapper,
         dsKey: '',
         copy: Variable.copy,
-        onSaved: async (input: Variable, next: () => void) => {
+        onSaved: async (input: Variable) => {
           await api.inOutput.save({ name: 'inputs', varb: input })
           edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-          next()
         },
         onDeleted: async (key: string) => {
           await api.inOutput.remove({ name: 'inputs', key })
@@ -220,11 +219,10 @@ export const edtNdMapper = new Mapper({
         }),
         dsKey: '',
         copy: Variable.copy,
-        onSaved: async (output: Variable, next: () => void) => {
+        onSaved: async (output: Variable) => {
           output.vtype = 'Object'
           await api.inOutput.save({ name: 'outputs', varb: output })
           edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-          next()
         },
         onDeleted: async (key: string) => {
           await api.inOutput.remove({ name: 'outputs', key })
