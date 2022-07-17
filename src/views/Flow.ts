@@ -115,6 +115,8 @@ const iptMapper = new Mapper({
   }
 })
 
+const optEmitter = new Emitter()
+
 export const edtNdEmitter = new Emitter()
 
 export const edtNdMapper = new Mapper({
@@ -180,6 +182,7 @@ export const edtNdMapper = new Mapper({
         onSaved: async (input: Variable) => {
           await api.inOutput.save({ name: 'inputs', varb: input })
           edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+          iptEmitter.emit('update:show', false)
         },
         onDeleted: async (key: string) => {
           await api.inOutput.remove({ name: 'inputs', key })
@@ -192,6 +195,7 @@ export const edtNdMapper = new Mapper({
         label: '输出',
         type: 'Table',
         show: false,
+        emitter: optEmitter,
         display: [
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
@@ -223,6 +227,7 @@ export const edtNdMapper = new Mapper({
           output.vtype = 'Object'
           await api.inOutput.save({ name: 'outputs', varb: output })
           edtNdEmitter.emit('update:data', store.getters['service/editNode'])
+          optEmitter.emit('update:show', false)
         },
         onDeleted: async (key: string) => {
           await api.inOutput.remove({ name: 'outputs', key })
