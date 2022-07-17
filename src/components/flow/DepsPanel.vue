@@ -39,7 +39,7 @@ export default defineComponent({
   name: 'DependenciesPanel',
   setup() {
     const store = useStore()
-    const deps = computed(() => store.getters['service/deps'])
+    const deps = computed(() => [])
 
     onMounted(() => {
       console.log(deps.value)

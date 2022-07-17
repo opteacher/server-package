@@ -28,7 +28,7 @@ export default class Node implements Record<string, any> {
   nexts: string[]
   relative: string
   temp: string[]
-  deps: DepType[]
+  deps: string[]
 
   constructor() {
     this.key = ''
@@ -90,7 +90,7 @@ export default class Node implements Record<string, any> {
     }
     tgt.relative = src.relative || tgt.relative
     tgt.temp = src.temp || tgt.temp
-    tgt.deps = src.deps ? src.deps.map((dep: any) => DepType.copy(dep)) : []
+    tgt.deps = src.deps ? src.deps.map((dep: any) => dep.key || dep._id || dep) : []
     return tgt
   }
 }

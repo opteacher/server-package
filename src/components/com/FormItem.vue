@@ -297,7 +297,7 @@
               </a-list-item-meta>
               <template #actions>
                 <a-checkbox
-                  :checked="formState[skey].map((itm: any) => itm.key).includes(option.key)"
+                  :checked="formState[skey].includes(option.key)"
                   @change="(e: any) => onLstSelChecked(e.target.checked, skey as string, option.key)"
                 />
               </template>
@@ -445,7 +445,7 @@ export default defineComponent({
       const selKeys = formState[propKey].map((itm: any) => itm.key)
       if (chk) {
         if (!selKeys.includes(opnKey)) {
-          formState[propKey].push({ key: opnKey })
+          formState[propKey].push(opnKey)
         }
       } else {
         formState[propKey].splice(selKeys.indexOf(opnKey), 1)

@@ -354,10 +354,6 @@ export default {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
     tempVsb: (state: SvcState): boolean => state.tempVsb,
-    deps:
-      (state: SvcState) =>
-      (key: string): Dep[] =>
-        state.nodes[key].deps,
     tempGrps: () => (edtNdMapper['temp'].options as OpnType[]).map(reactive)
   }
 }
