@@ -10,6 +10,7 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=dev node ./app.js",
+    "start:prod": "cross-env NODE_ENV=prod BASE_URL=127.0.0.1 node ./app.js",
     "test": "cross-env NODE_ENV=dev jest --runInBand"
   },
   "author": "",

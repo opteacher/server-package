@@ -594,9 +594,9 @@ const statsFmt = [
 export async function status(pid) {
   const project = typeof pid === 'string' ? await db.select(Project, { _index: pid }) : pid
   const chkPms = axios.get(
-    `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
-      project.name
-    }/mdl/v1`
+    `http://${
+      process.env.BASE_URL || (process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1')
+    }:${project.port}/${project.name}/mdl/v1`
   )
   if (!project.thread) {
     try {
@@ -611,7 +611,7 @@ export async function status(pid) {
     } catch (e) {
       return { status: 'loading' }
     }
-    const res = spawnSync(`docker stats --no-stream --format ${statsFmt}`, { shell: true })
+    const res = spawnSync(`docker stats --no-stream --format ${statsFmt} ${project.name}`, { shell: true })
     return Object.assign({ status: 'running' }, JSON.parse(res.stdout.toString()))
   }
 }
