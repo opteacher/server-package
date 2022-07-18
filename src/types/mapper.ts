@@ -181,6 +181,7 @@ export class TableMapper extends BaseMapper {
   columns: Column[]
   emitter: Emitter
   copy: (one: any) => any
+  onEdit: (record: any) => void
   onSaved: (record: any, extra?: any) => void
   onDeleted: (key: any, extra?: any) => void
   addable: boolean | Cond[] | { [cmpRel: string]: Cond[] }
@@ -194,6 +195,7 @@ export class TableMapper extends BaseMapper {
     this.columns = []
     this.emitter = new Emitter()
     this.copy = () => undefined
+    this.onEdit = () => undefined
     this.onSaved = () => undefined
     this.onDeleted = () => undefined
     this.addable = true
@@ -209,6 +211,7 @@ export class TableMapper extends BaseMapper {
     tgt.columns = src.columns || tgt.columns
     tgt.emitter = src.emitter || tgt.emitter
     tgt.copy = src.copy || tgt.copy
+    tgt.onEdit = src.onEdit || tgt.onEdit
     tgt.onSaved = src.onSaved || tgt.onSaved
     tgt.onDeleted = src.onDeleted || tgt.onDeleted
     tgt.addable = src.addable || tgt.addable

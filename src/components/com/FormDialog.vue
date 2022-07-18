@@ -26,13 +26,15 @@
       <template v-for="(value, key) in formMapper" :key="key">
         <template v-if="value.type === 'Group'">
           <div v-if="value.fold" class="b-1 pt-30 plr-10 mtb-30 pos-rel br-4">
-            <a-typography-text
-              type="secondary"
-              class="pos-abs plr-5 white-bkgd"
+            <a-button
+              type="link"
+              size="small"
+              class="pos-abs white-bkgd"
               :style="{ left: '5px', top: '-11px' }"
+              @click="value.fold = !value.fold"
             >
               {{ value.label }}
-            </a-typography-text>
+            </a-button>
             <a-button
               type="link"
               size="small"
@@ -68,13 +70,15 @@
             </FormItem>
           </div>
           <div v-else class="bt-1 mtb-30 pos-rel">
-            <a-typography-text
-              type="secondary"
-              class="pos-abs plr-5 white-bkgd"
+            <a-button
+              type="link"
+              size="small"
+              class="pos-abs white-bkgd"
               :style="{ left: '5px', top: '-11px' }"
+              @click="value.fold = !value.fold"
             >
               {{ value.label }}
-            </a-typography-text>
+            </a-button>
             <a-button
               type="link"
               size="small"

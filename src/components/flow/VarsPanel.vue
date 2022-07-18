@@ -30,7 +30,7 @@ export default defineComponent({
   name: 'VariablesPanel',
   setup() {
     const store = useStore()
-    const locVars = computed(() => store.getters['service/locVars'])
+    const locVars = computed(() => [])
 
     return {
       locVars

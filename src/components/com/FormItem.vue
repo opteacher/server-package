@@ -149,6 +149,7 @@
               () => {
                 valState.emitter.emit('viewOnly', false)
                 valState.show = true
+                valState.onEdit(formState)
               }
             "
           >
@@ -173,6 +174,7 @@
                       valState.emitter.emit('viewOnly', !valState.edtable)
                       valState.show = true
                       valState.emitter.emit('update:data', record)
+                      valState.onEdit(formState)
                     }
                   })
                 "

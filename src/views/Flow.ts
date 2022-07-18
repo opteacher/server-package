@@ -13,6 +13,28 @@ import Node, { NodeType, NodeTypeMapper } from '@/types/node'
 import Column from '@/types/column'
 import { ndAPI as api } from '../apis'
 
+function scanLocVars(ndKey: string): Variable[] {
+  const nodes = store.getters['service/nodes']
+  if (!(ndKey in nodes)) {
+    return []
+  }
+  const node = nodes[ndKey]
+  const ret = [] as Variable[]
+  if (node.previous) {
+    ret.push(...scanLocVars(node.previous))
+  }
+  return ret.concat(node.outputs)
+}
+
+export function getLocVars(node?: Node, incSelf = false): Variable[] {
+  if (!node) {
+    node = store.getters['service/node'] as Node
+  }
+  return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })]
+    .concat(incSelf ? node.outputs : [])
+    .concat(node.previous ? scanLocVars(node.previous) : [])
+}
+
 const iptEmitter = new Emitter()
 
 const iptMapper = new Mapper({
@@ -52,10 +74,10 @@ const iptMapper = new Mapper({
           iptMapper['value'].suffix = ']'
           input.value = ''
           break
+        case 'Unknown':
         case 'Object':
           iptMapper['value'].type = 'Select'
-          store.commit('service/UPD_EDT_LOCVARS')
-          iptMapper['value'].options = store.getters['service/locVars'].map((locVar: Variable) => ({
+          iptMapper['value'].options = getLocVars().map((locVar: Variable) => ({
             label: locVar.value || locVar.name,
             value: locVar.value || locVar.name
           }))
@@ -71,12 +93,16 @@ const iptMapper = new Mapper({
     type: 'Select',
     options: [],
     onChange: (input: Variable, to: string) => {
-      if (input.vtype !== 'Object') {
+      if (input.vtype !== 'Object' && input.vtype !== 'Unknown') {
         return
       }
-      const locVars = store.getters['service/locVars']
-      const selVar = locVars.find((v: any) => v.value === to || v.name === to)
-      input.vtype = selVar.vtype
+      const edtNode = store.getters['service/editNode']
+      const pvsNode = store.getters['service/node'](edtNode.previous)
+      const selVar = getLocVars(pvsNode, pvsNode.nexts.length).find(
+        (v: any) => v.value === to || v.name === to
+      )
+      Variable.copy(selVar || {}, input)
+      input.key = ''
     }
   },
   prop: {
@@ -179,6 +205,16 @@ export const edtNdMapper = new Mapper({
         mapper: iptMapper,
         dsKey: '',
         copy: Variable.copy,
+        onEdit: (node: any) => {
+          const pvsNode = store.getters['service/node'](node.previous)
+          iptMapper['value'].options = getLocVars(pvsNode, pvsNode.nexts.length).map(
+            (locVar: Variable) => ({
+              label: locVar.value || locVar.name,
+              value: locVar.value || locVar.name
+            })
+          )
+          iptEmitter.emit('update:mapper', iptMapper)
+        },
         onSaved: async (input: Variable) => {
           await api.inOutput.save({ name: 'inputs', varb: input })
           edtNdEmitter.emit('update:data', store.getters['service/editNode'])

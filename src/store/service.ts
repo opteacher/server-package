@@ -22,6 +22,7 @@ import router from '@/router'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import NodeInPnl from '@/types/ndInPnl'
+import store from '.'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -30,29 +31,10 @@ type SvcState = {
   nodes: NodesInPnl
   width: number
   node: Node
-  locVars: Variable[]
   nodeVsb: boolean
   joinVsb: boolean
   tempVsb: boolean
   deps: { [name: string]: Dep }
-}
-
-function scanLocVars(state: SvcState, ndKey: string): Variable[] {
-  if (!(ndKey in state.nodes)) {
-    return []
-  }
-  const node = state.nodes[ndKey]
-  const ret = [] as Variable[]
-  if (node.previous) {
-    ret.push(...scanLocVars(state, node.previous))
-  }
-  return ret.concat(node.outputs)
-}
-
-function getLocVars(state: SvcState): Variable[] {
-  return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })].concat(
-    state.node.previous ? scanLocVars(state, state.node.previous) : []
-  )
 }
 
 export default {
@@ -64,7 +46,6 @@ export default {
       nodes: {} as NodesInPnl,
       width: 0,
       node: new Node(),
-      locVars: [] as Variable[],
       nodeVsb: false,
       joinVsb: false,
       tempVsb: false,
@@ -111,14 +92,6 @@ export default {
           .filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
       edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
-      if (edtNdMapper.advanced.items.inputs.mapper) {
-        edtNdMapper.advanced.items.inputs.mapper['value'].options = getLocVars(state).map(
-          (locVar: Variable) => ({
-            label: locVar.value || locVar.name,
-            value: locVar.value || locVar.name
-          })
-        )
-      }
       edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
       state.nodeVsb = true
       edtNdEmitter.emit('viewOnly', payload.viewOnly)
@@ -135,29 +108,17 @@ export default {
     SET_TEMP_VSB(state: SvcState, payload?: boolean) {
       state.tempVsb = typeof payload !== 'undefined' ? payload : false
     },
-    UPD_EDT_LOCVARS(state: SvcState) {
-      state.locVars = getLocVars(state)
-    },
-    UPDATE_LOCVARS(state: SvcState, payload?: Node) {
-      if (!payload) {
-        state.locVars = []
-      } else {
-        state.locVars = getLocVars(state)
-      }
-    },
     RESET_STATE(state: SvcState) {
       state.svc.reset()
       state.width = 0
       state.nodes = {}
       state.node.reset()
-      state.locVars = []
       state.deps = {}
     },
     RESET_NODES(state: SvcState) {
       state.width = 0
       state.nodes = {}
       state.node.reset()
-      state.locVars = []
     }
   },
   actions: {
@@ -348,7 +309,6 @@ export default {
         state.nodes[key],
     editNode: (state: SvcState): Node => state.node,
     nodeVsb: (state: SvcState): boolean => state.nodeVsb,
-    locVars: (state: SvcState) => state.locVars,
     joinVsb: (state: SvcState): boolean => state.joinVsb,
     tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)

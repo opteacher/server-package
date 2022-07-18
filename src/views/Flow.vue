@@ -12,8 +12,6 @@
             :nd-key="node.key"
             @click:card="() => store.commit('service/SET_NODE', { node })"
             @click:addBtn="onAddBtnClicked"
-            @mouseenter="store.commit('service/UPDATE_LOCVARS', node)"
-            @mouseleave="store.commit('service/UPDATE_LOCVARS')"
           />
         </template>
       </div>
