@@ -22,7 +22,6 @@ import router from '@/router'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import NodeInPnl from '@/types/ndInPnl'
-import store from '.'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {

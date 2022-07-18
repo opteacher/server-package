@@ -9,6 +9,7 @@
       :copy="Service.copy"
       :emitter="emitter"
       @add="onAddClicked"
+      @before-save="onBefSave"
       @save="refresh"
       @delete="refresh"
       @refresh="filterJob"
@@ -42,7 +43,7 @@
                   size="small"
                   type="primary"
                   :disabled="pstatus !== 'running'"
-                  @click="api.restartJob(svc.key)"
+                  @click.stop="api.job.restart(svc.key)"
                 >
                   启动
                 </a-button>
@@ -53,7 +54,7 @@
                 size="small"
                 danger
                 :disabled="pstatus !== 'running'"
-                @click="api.stopJob(svc.key)"
+                @click.stop="api.job.stop(svc.key)"
               >
                 停止
               </a-button>
@@ -70,10 +71,9 @@ import { computed, defineComponent, onMounted } from 'vue'
 import LytService from '@/layouts/LytService.vue'
 import { useRoute } from 'vue-router'
 import EditableTable from '../components/com/EditableTable.vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Service from '../types/service'
 import { svcAPI as api } from '../apis'
-import { columns, mapper } from './Job'
+import { columns, emitter, mapper } from './Job'
 import { useStore } from 'vuex'
 import { InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
 
@@ -90,7 +90,7 @@ export default defineComponent({
     const route = useRoute()
     const pid = route.params.pid
     const mid = route.params.mid
-    const emitter = new Emitter()
+    const mname = computed(() => store.getters['model/ins'].name)
     const pstatus = computed(() => store.getters['project/ins'].status)
 
     onMounted(refresh)
@@ -102,7 +102,10 @@ export default defineComponent({
       callback(svcs.filter((svc: any) => svc.emit === 'timeout' || svc.emit === 'interval'))
     }
     function onAddClicked() {
-      emitter.emit('update:data', { name: store.getters['model/ins'].name, emit: 'timeout' })
+      emitter.emit('update:data', { name: mname.value, emit: 'timeout' })
+    }
+    function onBefSave(svc: Service) {
+      svc.path = `/job/v1/${mname.value}/${svc.interface}`
     }
     return {
       Service,
@@ -117,7 +120,8 @@ export default defineComponent({
 
       refresh,
       filterJob,
-      onAddClicked
+      onAddClicked,
+      onBefSave
     }
   }
 })

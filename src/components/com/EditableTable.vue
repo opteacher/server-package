@@ -94,7 +94,7 @@ import Mapper from '@/types/mapper'
 
 export default defineComponent({
   name: 'edtableTable',
-  emits: ['add', 'edit', 'save', 'delete', 'refresh'],
+  emits: ['add', 'edit', 'before-save', 'save', 'delete', 'refresh'],
   components: {
     FormDialog
   },
@@ -162,6 +162,7 @@ export default defineComponent({
       editing.show = true
     }
     async function onRecordSave(record: any, reset: () => void) {
+      emit('before-save', record)
       if (editing.key === '') {
         await props.api.add(record)
       } else {

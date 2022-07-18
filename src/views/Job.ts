@@ -2,10 +2,14 @@ import { OpnType } from '@/types'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
 import { emitTypeOpns, timeUnits } from '@/types/service'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+
+export const emitter = new Emitter()
 
 export const columns = [
   new Column('文件名', 'name'),
   new Column('方法', 'interface'),
+  new Column('路径', 'path'),
   new Column('激发类型', 'emit'),
   new Column('任务参数', 'condition'),
   new Column('流程', 'flow'),
@@ -22,6 +26,9 @@ export const mapper = new Mapper({
     label: '方法',
     desc: '指定函数',
     type: 'Input'
+  },
+  path: {
+    display: false
   },
   emit: {
     label: '激发类型',

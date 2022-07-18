@@ -7,6 +7,6 @@ const router = new Router()
 
 /*return svc.emit === 'timeout' ? `router.post('/', async ctx => {\n  ctx.body = {\n    result: parseInt(setTimeout(async () => await ${svc.interface}(ctx), parseInt(ctx.request.query.timestamp)))\n  }\n})\n\nrouter.delete('/:tmot', async ctx => {\n  ctx.body = {\n    result: clearTimeout(ctx.params.tmot)\n  }\n})` : ''*/
 
-/*return svc.emit === 'interval' ? `router.post('/', async ctx => {\n  ctx.body = {\n    result: parseInt(setInterval(async () => await ${svc.interface}(ctx), parseInt(ctx.request.query.timestamp)))\n  }\n})\n\nrouter.delete('/:tmot', async ctx => {\n  ctx.body = {\n    result: clearInterval(ctx.params.tmot)\n  }\n})` : ''*/
+/*return svc.emit === 'interval' ? `router.post('/', async ctx => {\n  setTimeout(async () => await ${svc.interface}(ctx), 100)\n  ctx.body = {\n    result: parseInt(setInterval(async () => await ${svc.interface}(ctx), parseInt(ctx.request.query.timestamp)))\n  }\n})\n\nrouter.delete('/:tmot', async ctx => {\n  ctx.body = {\n    result: clearInterval(ctx.params.tmot)\n  }\n})` : ''*/
 
 export default router

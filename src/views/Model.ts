@@ -110,6 +110,7 @@ export const propMapper = new Mapper({
 })
 
 export const svcColumns = [
+  new Column('路由', 'path'),
   new Column('激活方式', 'emit'),
   new Column('访问方式', 'method'),
   new Column('路由/激发条件', 'pathCond'),

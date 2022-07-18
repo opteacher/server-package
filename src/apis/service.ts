@@ -1,7 +1,7 @@
 import store from '@/store'
 import Service from '@/types/service'
-import { reqDelete, reqGet, reqPost, reqPut, makeRequest } from '@/utils'
-import axios from 'axios'
+import { reqDelete, reqGet, reqPost, reqPut, intervalCheck } from '@/utils'
+import { emitter } from '../views/Job'
 
 export default {
   add: async (data: any) => {
@@ -19,31 +19,51 @@ export default {
     if (data.cdValue) {
       data.condition = `${data.cdValue}${data.cdUnit}`
     }
-    return reqPut('service', data.key, data)
+    return reqPut('service', data.key, data, { ignores: ['flow'] })
   },
   all: async () => {
     await store.dispatch('model/refresh')
     return store.getters['model/ins'].svcs
   },
   detail: (key: any) => reqGet('model', key),
-  restartJob: async (key: any) => {
-    await makeRequest(
-      axios.post(
-        `/server-package/api/v1/service/${key}/job/restart`,
-        {},
-        {
-          params: { pid: store.getters['project/ins'].key }
-        }
-      )
-    )
-    await store.dispatch('service/refresh')
-  },
-  stopJob: async (key: any) => {
-    await makeRequest(
-      axios.delete(`/server-package/api/v1/service/${key}/job/stop`, {
-        params: { pid: store.getters['project/ins'].key }
+  job: {
+    restart: async (key: any) => {
+      await reqPost(`service/${key}/job/restart`, undefined, {
+        type: 'api',
+        query: { pid: store.getters['project/ins'].key }
       })
-    )
-    await store.dispatch('service/refresh')
+      intervalCheck({
+        chkFun: async () => {
+          try {
+            const svc = Service.copy(await reqGet('service', key, { messages: { notShow: true } }))
+            return svc.jobId !== 0
+          } catch (e: any) {
+            return false
+          }
+        },
+        middle: {
+          succeed: () => emitter.emit('refresh')
+        }
+      })
+    },
+    stop: async (key: any) => {
+      await reqDelete('service', `${key}/job/stop`, {
+        type: 'api',
+        query: { pid: store.getters['project/ins'].key }
+      })
+      intervalCheck({
+        chkFun: async () => {
+          try {
+            const svc = Service.copy(await reqGet('service', key, { messages: { notShow: true } }))
+            return svc.jobId === 0
+          } catch (e: any) {
+            return false
+          }
+        },
+        middle: {
+          succeed: () => emitter.emit('refresh')
+        }
+      })
+    }
   }
 }
