@@ -101,8 +101,9 @@ const iptMapper = new Mapper({
       const selVar = getLocVars(pvsNode, pvsNode.nexts.length).find(
         (v: any) => v.value === to || v.name === to
       )
-      Variable.copy(selVar || {}, input)
-      input.key = ''
+      if (selVar) {
+        input.name = selVar.name
+      }
     }
   },
   prop: {
