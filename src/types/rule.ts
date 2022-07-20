@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-export const authValues = ['s', '*', '*/*']
+export const authValues = ['/', 's', '*', '*/*']
 export default class Rule {
   key: string
   method: string

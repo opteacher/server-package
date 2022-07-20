@@ -99,6 +99,11 @@ export async function verifyDeep(ctx) {
     }
     if (ctx.path.startsWith(path)) {
       switch (rule.value) {
+        case '/':
+          if (ctx.path === path) {
+            return {}
+          }
+          break
         case '*/*':
           return {}
         case '*':
@@ -110,6 +115,7 @@ export async function verifyDeep(ctx) {
           ) {
             return {}
           }
+          break
       }
     }
   }
