@@ -102,7 +102,7 @@ const iptMapper = new Mapper({
         (v: any) => v.value === to || v.name === to
       )
       if (selVar) {
-        input.name = selVar.name
+        input.name = selVar.value || selVar.name
       }
     }
   },
