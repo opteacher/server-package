@@ -13,6 +13,7 @@ export default class Table {
   columns: Column[]
   cells: Record<string, Cell>
   operable: string[]
+  refresh: string[]
 
   constructor() {
     this.key = ''
@@ -25,6 +26,7 @@ export default class Table {
     this.columns = []
     this.cells = {}
     this.operable = []
+    this.refresh = []
   }
 
   reset() {
@@ -38,6 +40,7 @@ export default class Table {
     this.columns = []
     this.cells = {}
     this.operable = []
+    this.refresh = []
   }
 
   static copy(src: any, tgt?: Table): Table {
@@ -54,6 +57,7 @@ export default class Table {
       Object.entries(src.cells || {}).map(([key, cell]: [string, any]) => [key, Cell.copy(cell)])
     )
     tgt.operable = src.operable || tgt.operable
+    tgt.refresh = src.refresh || tgt.refresh
     return tgt
   }
 }

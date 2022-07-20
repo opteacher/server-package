@@ -18,7 +18,7 @@ const expDft = {
     await reqDelete(`project/${store.getters['project/ins'].key}`, `models/${key}`)
     return reqDelete('model', key, { type: 'api' })
   },
-  update: (data: any) => reqPut('model', data.key, data),
+  update: (data: any) => reqPut('model', data.key, data, { ignores: ['svcs'] }),
   all: async () => {
     await store.dispatch('project/refresh')
     return store.getters['project/ins'].models
@@ -203,7 +203,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           {
-            [`table.cells.${cell.key}`]: pickOrIgnore(cell, ['key'])
+            'table.cells': pickOrIgnore(cell, ['key'])
           },
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )

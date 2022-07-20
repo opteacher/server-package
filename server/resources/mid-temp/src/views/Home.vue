@@ -22,6 +22,12 @@
         </a-button>
       </a-col>
     </a-row>
+    <RefreshBox
+      v-if="table.refresh.length"
+      class="mb-10"
+      :tblRfsh="table.refresh"
+      @click="refresh"
+    />
     <a-table
       :columns="columns"
       :data-source="records"
@@ -126,6 +132,7 @@ import { endsWith } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
+import RefreshBox from '../components/RefreshBox.vue'
 /*return models.map(model => `import ${model.name} from '../types/${model.name}'`).join('\n')*/
 
 const models: any[] =
@@ -138,7 +145,8 @@ export default defineComponent({
   name: 'Home',
   components: {
     IndexLayout,
-    FormDialog
+    FormDialog,
+    RefreshBox
   },
   setup() {
     const actMdl = ref('')
@@ -193,6 +201,7 @@ export default defineComponent({
       columns,
       copies,
 
+      refresh,
       endsWith,
       onRecordSave,
       onRecordDel,

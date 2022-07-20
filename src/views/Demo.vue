@@ -1,16 +1,13 @@
 <template>
   <LytDesign :active="`project/${pid}/model/${mid}/demo`">
     <div class="w-100 text-right">
-      <a-space>
-        <a-switch
-          v-model:checked="useRealData"
-          checked-children="真实"
-          un-checked-children="模板"
-          @change="onRefresh"
-        />
-        &nbsp;数据
-        <a-button v-if="useRealData" @click="onRefresh">刷新</a-button>
-      </a-space>
+      <a-switch
+        v-model:checked="useRealData"
+        checked-children="真实"
+        un-checked-children="模板"
+        @change="onRefresh"
+      />
+      &nbsp;数据
     </div>
     <a-divider />
     <a-row class="mb-10" type="flex">
@@ -30,6 +27,12 @@
         </a-button>
       </a-col>
     </a-row>
+    <RefreshBox
+      v-if="table.refresh.length"
+      class="mb-10"
+      :tblRfsh="table.refresh"
+      @click="onRefresh"
+    />
     <a-table
       :columns="columns"
       :data-source="records"
@@ -120,12 +123,15 @@ import Model from '@/types/model'
 import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
+import RefreshBox from '../components/table/RefreshBox.vue'
 
 export default defineComponent({
   name: 'Demo',
   components: {
     DemoForm,
-    LytDesign
+    LytDesign,
+
+    RefreshBox
   },
   setup() {
     const store = useStore()

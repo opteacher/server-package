@@ -69,7 +69,11 @@
             "
             @submit="onTransfer"
           />
-          <a-button v-if="project.thread" danger @click="api.stop(pid)">
+          <a-button
+            v-if="project.thread || project.status === 'loading'"
+            danger
+            @click="api.stop(pid)"
+          >
             <template #icon><PoweroffOutlined /></template>
             &nbsp;停止
           </a-button>

@@ -6,6 +6,7 @@ import Mapper from '@/types/mapper'
 
 export const columns = [
   new Column('模型名', 'name'),
+  new Column('标签', 'label'),
   new Column('描述', 'desc'),
   new Column('记录时间', 'logTime')
 ]
@@ -15,6 +16,10 @@ export const mapper = new Mapper({
     label: '模型名',
     type: 'Input',
     rules: [{ required: true, message: '请输入模型名！', trigger: 'blur' }]
+  },
+  label: {
+    label: '标签',
+    type: 'Input'
   },
   desc: {
     label: '描述',
@@ -113,6 +118,5 @@ export const svcColumns = [
   new Column('路由', 'path'),
   new Column('激活方式', 'emit'),
   new Column('访问方式', 'method'),
-  new Column('路由/激发条件', 'pathCond'),
-  new Column('详细', 'detail')
+  new Column('路由/激发条件', 'pathCond')
 ]

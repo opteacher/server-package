@@ -14,6 +14,7 @@
               <a-button class="float-right" type="primary">添加</a-button>
             </a-col>
           </a-row>
+          <RefreshBox v-if="table.refresh.length" class="mb-10" :tblRfsh="table.refresh" />
           <a-table
             class="demo-table"
             :columns="columns"
@@ -86,7 +87,12 @@
           :column="selColumn"
           @change="onSelChange"
         />
-        <CellProps v-else-if="selected.startsWith('cell')" :cell="selCell" @change="onSelChange" />
+        <CellProps
+          v-else-if="selected.startsWith('cell')"
+          :pname="selCname"
+          :cell="selCell"
+          @change="onSelChange"
+        />
       </a-layout-sider>
     </a-layout>
   </LytDesign>
@@ -109,6 +115,7 @@ import Cell from '@/types/cell'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { dispHidCol } from './Table'
+import RefreshBox from '../components/table/RefreshBox.vue'
 
 export default defineComponent({
   name: 'Table',
@@ -117,7 +124,9 @@ export default defineComponent({
     DemoForm,
     TableProps,
     ColumnProps,
-    CellProps
+    CellProps,
+
+    RefreshBox
   },
   setup() {
     const store = useStore()
@@ -156,6 +165,7 @@ export default defineComponent({
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => store.getters['model/cells'])
     const selColumn = reactive(new Column('', ''))
+    const selCname = ref('')
     const selCell = reactive(new Cell())
 
     onMounted(() => store.dispatch('model/refresh'))
@@ -182,7 +192,8 @@ export default defineComponent({
           selColumn
         )
       } else if (selected.value.startsWith('cell_')) {
-        Cell.copy(table.value.cells[selected.value.substring('cell_'.length)], selCell)
+        selCname.value = selected.value.substring('cell_'.length)
+        Cell.copy(table.value.cells[selCname.value], selCell)
       } else {
         selColumn.reset()
         selCell.reset()
@@ -200,6 +211,7 @@ export default defineComponent({
       selected,
       selColumn,
       selCell,
+      selCname,
       fmEmitter,
 
       onFormSubmit,

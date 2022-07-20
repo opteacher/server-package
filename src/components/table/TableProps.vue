@@ -22,6 +22,7 @@
     <a-descriptions-item label="操作风格">
       <a-select
         class="w-100"
+        :disabled="!formState.operable.length"
         :options="[
           { label: '按钮', value: 'button' },
           { label: '链接', value: 'link' }
@@ -61,6 +62,16 @@
         :value="formState.operable"
         :options="['可增加', '可编辑', '可删除']"
         @change="(operable: any) => api.table.save({ operable })"
+      />
+    </a-descriptions-item>
+    <a-descriptions-item label="数据刷新">
+      <a-checkbox-group
+        :value="formState.refresh"
+        :options="[
+          { label: '手动', value: 'manual' },
+          { label: '自动', value: 'auto' }
+        ]"
+        @change="(refresh: any) => api.table.save({ refresh })"
       />
     </a-descriptions-item>
   </a-descriptions>

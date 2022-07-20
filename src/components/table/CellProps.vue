@@ -1,25 +1,18 @@
 <template>
   <a-descriptions class="mb-50" title="项" :column="1" bordered size="small">
     <a-descriptions-item label="颜色">
-      <ColorField
-        :color="cell.color"
-        @submit="
-          ({ color, next }) => {
-            onPropChange({ key: cell.key, color }).then(next)
-          }
-        "
-      />
+      <ColorField :color="cell.color" @submit="onColorSubmit" />
     </a-descriptions-item>
     <a-descriptions-item label="前缀">
       <a-input
-        :value="cell.prefix"
-        @change="(e: any) => onPropChange({ key: cell.key, prefix: e.target.value })"
+        v-model:value="edtCell.prefix"
+        @blur="(e: any) => api.table.cells.save({ [pname]: Object.assign(edtCell, { prefix: e.target.value }) })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="后缀">
       <a-input
-        :value="cell.suffix"
-        @change="(e: any) => onPropChange({ key: cell.key, suffix: e.target.value })"
+        v-model:value="edtCell.suffix"
+        @blur="(e: any) => api.table.cells.save({ [pname]: Object.assign(edtCell, { suffix: e.target.value }) })"
       />
     </a-descriptions-item>
     <!-- <a-descriptions-item label="格式化时间">
@@ -56,7 +49,7 @@
 
 <script lang="ts">
 import Cell from '@/types/cell'
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 import ColorField from '@/components/table/ColorField.vue'
 import { mdlAPI as api } from '@/apis'
 
@@ -67,15 +60,21 @@ export default defineComponent({
     ColorField
   },
   props: {
+    pname: { type: String, required: true },
     cell: { type: Cell, required: true }
   },
-  setup(_props, { emit }) {
-    async function onPropChange(prop: any) {
-      await api.table.columns.save(prop)
-      emit('change')
+  setup(props) {
+    const edtCell = reactive(props.cell)
+
+    async function onColorSubmit({ color, next }: { color: string; next: () => void }) {
+      await api.table.cells.save({ [props.pname]: Object.assign(edtCell, { color }) })
+      next()
     }
     return {
-      onPropChange
+      api,
+      edtCell,
+
+      onColorSubmit
     }
   }
 })

@@ -57,7 +57,7 @@ export default class Project {
     tgt.port = src.port || tgt.port
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
-    tgt.dropDbs = src.dropDbs || tgt.dropDbs
+    tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)

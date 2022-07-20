@@ -47,6 +47,7 @@ export default db.defineModel(
       operaStyle: db.PropTypes.String,
       size: db.PropTypes.String,
       hasPages: db.PropTypes.Boolean,
+      refresh: db.PropTypes.Array, // [manual, auto]
       demoData: db.PropTypes.Any,
       columns: [
         {

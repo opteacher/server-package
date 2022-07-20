@@ -5,6 +5,7 @@
         <p style="font-size: 15pt; font-weight: bold; margin-bottom: 0">
           <appstore-outlined />
           &nbsp;{{ model.name }}
+          <span v-if="model.label">&nbsp;({{ model.label }})</span>
         </p>
       </a-col>
       <a-col :span="12" style="text-align: right">
@@ -140,8 +141,18 @@
             {{ `每${svc.condition}` }}
           </template>
         </template>
-        <template #detail>
-          <a-button size="small">测试</a-button>
+        <template #path="{ record: svc }">
+          <a
+            @click.stop="
+              $router.push(
+                `/server-package/project/${pid}/model/${mid}/${
+                  svc.emit === 'api' ? 'apis' : 'jobs'
+                }`
+              )
+            "
+          >
+            {{ svc.path }}
+          </a>
         </template>
       </EditableTable>
     </div>

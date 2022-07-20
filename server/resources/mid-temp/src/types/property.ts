@@ -11,6 +11,11 @@ export default class Property {
   index: boolean
   unique: boolean
   visible: boolean
+  relative: {
+    model: string
+    belong: boolean
+    isArray: boolean
+  }
   remark: string
 
   constructor() {
@@ -21,6 +26,11 @@ export default class Property {
     this.index = false
     this.unique = false
     this.visible = true
+    this.relative = {
+      model: '',
+      belong: false,
+      isArray: false
+    }
     this.remark = ''
   }
 
@@ -32,6 +42,9 @@ export default class Property {
     this.index = false
     this.unique = false
     this.visible = true
+    this.relative.model = ''
+    this.relative.belong = false
+    this.relative.isArray = false
     this.remark = ''
   }
 
@@ -47,6 +60,17 @@ export default class Property {
     tgt.ptype = src.ptype || tgt.ptype
     tgt.index = src.index || tgt.index
     tgt.unique = src.unique || tgt.unique
+    if (src.relative) {
+      tgt.relative.model = src.relative.model || tgt.relative.model
+      tgt.relative.belong =
+        typeof src.relative.belong !== 'undefined'
+          ? JSON.parse(src.relative.belong)
+          : tgt.relative.belong
+      tgt.relative.isArray =
+        typeof src.relative.isArray !== 'undefined'
+          ? JSON.parse(src.relative.isArray)
+          : tgt.relative.isArray
+    }
     tgt.visible = src.visible || tgt.visible
     tgt.remark = src.remark || tgt.remark
     return tgt

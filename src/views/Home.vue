@@ -46,7 +46,7 @@
           &nbsp;同步
         </a-button>
         <a-button
-          v-if="project.thread"
+          v-if="project.thread || project.status === 'loading'"
           class="ml-5"
           size="small"
           danger
