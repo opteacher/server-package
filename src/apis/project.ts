@@ -100,7 +100,7 @@ export default {
     reqGet('project', `${key}/stat`, {
       type: 'api',
       messages: { notShow: true }
-    }).then((pjt: any) => pjt.status),
+    }),
   apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
   middle: {
     login: {

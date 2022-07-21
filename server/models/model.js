@@ -62,7 +62,15 @@ export default db.defineModel(
           notDisplay: db.PropTypes.Boolean
         }
       ],
-      cells: db.PropTypes.Object, // [colDataIdx]: { color: string, prefix: string, suffix: string }
+      cells: [
+        {
+          refer: db.PropTypes.String,
+          cdCell: db.PropTypes.Object, // [condition]: { color, prefix, suffix }
+          color: db.PropTypes.String,
+          prefix: db.PropTypes.String,
+          suffix: db.PropTypes.String
+        }
+      ],
       operable: db.PropTypes.Array // 可增加, 可编辑, 可删除
     }
   },

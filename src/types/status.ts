@@ -1,5 +1,5 @@
-export default class Health {
-  status: 'loading' | 'running' | 'stopped'
+export default class Status {
+  stat: 'loading' | 'running' | 'stopped'
   name: string
   pid: number
   memory: {
@@ -13,7 +13,7 @@ export default class Health {
   }
 
   constructor() {
-    this.status = 'stopped'
+    this.stat = 'stopped'
     this.name = ''
     this.pid = 0
     this.memory = {
@@ -28,7 +28,7 @@ export default class Health {
   }
 
   reset() {
-    this.status = 'stopped'
+    this.stat = 'stopped'
     this.name = ''
     this.pid = 0
     this.memory.raw = ''
@@ -38,9 +38,9 @@ export default class Health {
     this.io.block = ''
   }
 
-  static copy(src: any, tgt?: Health): Health {
-    tgt = tgt || new Health()
-    tgt.status = src.status || tgt.status
+  static copy(src: any, tgt?: Status): Status {
+    tgt = tgt || new Status()
+    tgt.stat = src.stat || tgt.stat
     tgt.name = src.name || tgt.name
     tgt.pid = src.pid || tgt.pid
     if (src.memory) {
@@ -50,7 +50,7 @@ export default class Health {
     tgt.cpu = src.cpu || tgt.cpu
     if (src.io) {
       tgt.io.net = src.io.net || tgt.io.net
-      tgt.io.block =  src.io.block || tgt.io.block
+      tgt.io.block = src.io.block || tgt.io.block
     }
     return tgt
   }

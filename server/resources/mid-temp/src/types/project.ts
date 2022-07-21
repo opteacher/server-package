@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import Auth from './auth'
+import Status from './status'
 import Middle from './middle'
 import Model from './model'
 
@@ -17,7 +18,7 @@ export default class Project {
   models: Model[]
   auth: Auth
   middle: Middle
-  status: 'loading' | 'running' | 'stopped'
+  status: Status
 
   constructor() {
     this.key = ''
@@ -31,7 +32,7 @@ export default class Project {
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
-    this.status = 'stopped'
+    this.status = new Status()
   }
 
   reset() {
@@ -46,7 +47,7 @@ export default class Project {
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
-    this.status = 'stopped'
+    this.status = new Status()
   }
 
   static copy(src: any, tgt?: Project): Project {
@@ -67,7 +68,7 @@ export default class Project {
     }
     tgt.auth = src.auth ? Auth.copy(src.auth) : tgt.auth
     tgt.middle = src.middle ? Middle.copy(src.middle) : tgt.middle
-    tgt.status = src.status || tgt.status
+    tgt.status = src.status ? Status.copy(src.status) : tgt.status
     return tgt
   }
 }

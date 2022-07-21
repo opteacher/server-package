@@ -2,6 +2,35 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Cell from './cell'
 import Column from './column'
+
+export class Cells extends Cell {
+  refer: string
+  cdCell: Record<string, Cell>
+
+  constructor() {
+    super()
+    this.refer = ''
+    this.cdCell = {}
+  }
+
+  reset() {
+    super.reset()
+    this.refer = ''
+    this.cdCell = {}
+  }
+
+  static copy(src: any, tgt?: Cells): Cells {
+    tgt = tgt || new Cells()
+    Cell.copy(src, tgt)
+    tgt.refer = src.refer || tgt.refer
+    tgt.cdCell = src.cdCell
+      ? Object.fromEntries(
+          Object.entries(src.cdCell).map(([cond, data]: [string, any]) => [cond, Cell.copy(data)])
+        )
+      : tgt.cdCell
+    return tgt
+  }
+}
 export default class Table {
   key: string
   title: string
@@ -11,7 +40,7 @@ export default class Table {
   hasPages: boolean
   demoData: any
   columns: Column[]
-  cells: Record<string, Cell>
+  cells: Cells[]
   operable: string[]
   refresh: string[]
 
@@ -24,7 +53,7 @@ export default class Table {
     this.hasPages = true
     this.demoData = null
     this.columns = []
-    this.cells = {}
+    this.cells = []
     this.operable = []
     this.refresh = []
   }
@@ -38,7 +67,7 @@ export default class Table {
     this.hasPages = true
     this.demoData = null
     this.columns = []
-    this.cells = {}
+    this.cells = []
     this.operable = []
     this.refresh = []
   }
@@ -53,9 +82,12 @@ export default class Table {
     tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : tgt.hasPages
     tgt.demoData = src.demoData
     tgt.columns = src.columns ? src.columns.map((col: any) => Column.copy(col)) : []
-    tgt.cells = Object.fromEntries(
-      Object.entries(src.cells || {}).map(([key, cell]: [string, any]) => [key, Cell.copy(cell)])
-    )
+    tgt.cells = (src.cells || []).map((cell: { refer: string; cdCell: Record<string, Cell> }) => ({
+      refer: cell.refer,
+      cdCell: Object.fromEntries(
+        Object.entries(cell.cdCell).map(([cond, data]: [string, Cell]) => [cond, Cell.copy(data)])
+      )
+    }))
     tgt.operable = src.operable || tgt.operable
     tgt.refresh = src.refresh || tgt.refresh
     return tgt

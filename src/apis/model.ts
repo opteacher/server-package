@@ -203,7 +203,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           {
-            'table.cells': pickOrIgnore(cell, ['key'])
+            [`table.cells[{refer:${cell.refer}}]`]: pickOrIgnore(cell, ['refer'])
           },
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )

@@ -88,23 +88,11 @@
             </a-popconfirm>
           </template>
         </template>
-        <span
+        <CellCard
           v-else
-          :style="{
-            color: cells[column.dataIndex].color
-          }"
-        >
-          {{
-            cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
-              ? cells[column.dataIndex].prefix
-              : ''
-          }}{{ text
-          }}{{
-            cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
-              ? cells[column.dataIndex].suffix
-              : ''
-          }}
-        </span>
+          :cell="cells.find((cell: any) => cell.refer === column.dataIndex)"
+          :text="text"
+        />
       </template>
     </a-table>
     <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
@@ -124,14 +112,15 @@ import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
+import CellCard from '../components/table/CellCard.vue'
 
 export default defineComponent({
   name: 'Demo',
   components: {
     DemoForm,
     LytDesign,
-
-    RefreshBox
+    RefreshBox,
+    CellCard
   },
   setup() {
     const store = useStore()

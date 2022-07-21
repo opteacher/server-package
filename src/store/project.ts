@@ -8,6 +8,7 @@ import { pjtAPI } from '../apis'
 import Auth from '@/types/auth'
 import API from '@/types/api'
 import Middle from '@/types/middle'
+import Status from '@/types/status'
 import { intervalCheck } from '@/utils'
 
 type PjtState = { project: Project; apis: API[] }
@@ -20,7 +21,7 @@ export default {
   } as PjtState,
   mutations: {
     SET_STATUS(state: PjtState, payload: 'loading' | 'running' | 'stopped') {
-      state.project.status = payload
+      state.project.status.stat = payload
     },
     SET_MID_URL(state: PjtState, payload: string) {
       state.project.middle.url = payload
@@ -41,11 +42,11 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            state.project.status = await pjtAPI.status(state.project.key)
+            state.project.status = Status.copy(await pjtAPI.status(state.project.key))
           } catch(e: any) {
             return false
           }
-          return expect === state.project.status
+          return expect === state.project.status.stat
         },
         middle: {
           waiting: (countdown: number) => {
@@ -53,12 +54,12 @@ export default {
           },
           failed: () => {
             console.log(`已超过15分钟，项目${msgTxt}失败！`)
-            state.project.status = expect === 'running' ? 'stopped' : 'running'
+            state.project.status.stat = expect === 'running' ? 'stopped' : 'running'
           },
           succeed: () => {
             console.log(
               `项目${state.project.name}已成功${
-                state.project.status === 'running' ? '启动' : '停止'
+                state.project.status.stat === 'running' ? '启动' : '停止'
               }！`
             )
           }
@@ -75,7 +76,7 @@ export default {
       intervalCheck({
         chkFun: async () => {
           const result = await pjtAPI.middle.status(state.project.key)
-          if (state.project.status !== 'running') {
+          if (state.project.status.stat !== 'running') {
             return true
           }
           if (result.status === 'published') {

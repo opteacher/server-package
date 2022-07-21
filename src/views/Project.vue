@@ -7,12 +7,14 @@
             <project-outlined />
             &nbsp;{{ project.name }}
           </p>
-          <a-tag v-if="project.status === 'running'" color="#52c41a">{{ project.status }}</a-tag>
-          <a-tag v-else-if="project.status === 'stopped'" color="#f5222d">
-            {{ project.status }}
+          <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
+            {{ project.status.stat }}
           </a-tag>
-          <a-tag v-else-if="project.status === 'loading'" color="#faad14">
-            {{ project.status }}
+          <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
+            {{ project.status.stat }}
+          </a-tag>
+          <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
+            {{ project.status.stat }}
           </a-tag>
         </a-space>
       </a-col>
@@ -37,8 +39,8 @@
           />
           <a-button
             type="primary"
-            :disabled="project.status === 'loading'"
-            :loading="project.status === 'loading'"
+            :disabled="project.status.stat === 'loading'"
+            :loading="project.status.stat === 'loading'"
             @click="api.sync(pid)"
           >
             <template #icon><SyncOutlined /></template>
@@ -48,8 +50,8 @@
             <template #title>传输本地文件到项目实例中</template>
             <a-button
               v-if="project.thread"
-              :disabled="project.status === 'loading'"
-              :loading="project.status === 'loading'"
+              :disabled="project.status.stat === 'loading'"
+              :loading="project.status.stat === 'loading'"
               @click="showTsfm = true"
             >
               <template #icon><UploadOutlined /></template>
@@ -70,7 +72,7 @@
             @submit="onTransfer"
           />
           <a-button
-            v-if="project.thread || project.status === 'loading'"
+            v-if="project.thread || project.status.stat === 'loading'"
             danger
             @click="api.stop(pid)"
           >

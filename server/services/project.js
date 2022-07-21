@@ -602,17 +602,17 @@ export async function status(pid) {
     try {
       await chkPms
     } catch (e) {
-      return { status: 'stopped' }
+      return { stat: 'stopped' }
     }
-    return { status: 'loading' }
+    return { stat: 'loading' }
   } else {
     try {
       await chkPms
     } catch (e) {
-      return { status: 'loading' }
+      return { stat: 'loading' }
     }
     const res = spawnSync(`docker stats --no-stream --format ${statsFmt} ${project.name}`, { shell: true })
-    return Object.assign({ status: 'running' }, JSON.parse(res.stdout.toString()))
+    return Object.assign({ stat: 'running' }, JSON.parse(res.stdout.toString()))
   }
 }
 

@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import DepType from './dep'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Variable from './variable'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
 export type LoopType = 'for-of' | 'for-in'
 

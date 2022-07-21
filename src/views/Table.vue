@@ -44,26 +44,12 @@
                   <a v-if="table.operable.includes('可删除')" style="color: #ff4d4f">删除</a>
                 </template>
               </template>
-              <span
+              <CellCard
                 v-else
-                :style="{
-                  color:
-                    selected === `cell_${column.dataIndex}`
-                      ? '#1890ff'
-                      : cells[column.dataIndex].color
-                }"
-              >
-                {{
-                  cells[column.dataIndex].prefix && !text.startsWith(cells[column.dataIndex].prefix)
-                    ? cells[column.dataIndex].prefix
-                    : ''
-                }}{{ text
-                }}{{
-                  cells[column.dataIndex].suffix && !endsWith(text, cells[column.dataIndex].suffix)
-                    ? cells[column.dataIndex].suffix
-                    : ''
-                }}
-              </span>
+                :cell="cells.find((cell: any) => cell.refer === column.dataIndex)"
+                :text="text"
+                :selected="selected === `cell_${column.dataIndex}`"
+              />
             </template>
             <template #emptyText>
               <a-empty>
@@ -90,6 +76,7 @@
         <CellProps
           v-else-if="selected.startsWith('cell')"
           :pname="selCname"
+          :props="mdlProps"
           :cell="selCell"
           @change="onSelChange"
         />
@@ -106,16 +93,16 @@ import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import DemoForm from '../components/form/DemoForm.vue'
 import Column from '@/types/column'
-import Table from '@/types/table'
+import Table, { Cells } from '@/types/table'
 import { pickOrIgnore, endsWith } from '@/utils'
 import TableProps from '../components/table/TableProps.vue'
 import ColumnProps from '../components/table/ColumnProps.vue'
 import CellProps from '../components/table/CellProps.vue'
-import Cell from '@/types/cell'
 import { mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { dispHidCol } from './Table'
 import RefreshBox from '../components/table/RefreshBox.vue'
+import CellCard from '../components/table/CellCard.vue'
 
 export default defineComponent({
   name: 'Table',
@@ -125,7 +112,7 @@ export default defineComponent({
     TableProps,
     ColumnProps,
     CellProps,
-
+    CellCard,
     RefreshBox
   },
   setup() {
@@ -134,6 +121,9 @@ export default defineComponent({
     const pid = route.params.pid
     const mid = route.params.mid
     const hdHeight = ref(0)
+    const mdlProps = computed(() =>
+      store.getters['model/ins'].props.map((prop: any) => ({ label: prop.label, value: prop.name }))
+    )
     const columns = computed(() => {
       const ret = store.getters['model/columns']
         .map((column: Column) =>
@@ -166,7 +156,7 @@ export default defineComponent({
     const cells = computed(() => store.getters['model/cells'])
     const selColumn = reactive(new Column('', ''))
     const selCname = ref('')
-    const selCell = reactive(new Cell())
+    const selCell = reactive(new Cells())
 
     onMounted(() => store.dispatch('model/refresh'))
     watch(() => selected.value, onSelChange)
@@ -193,7 +183,10 @@ export default defineComponent({
         )
       } else if (selected.value.startsWith('cell_')) {
         selCname.value = selected.value.substring('cell_'.length)
-        Cell.copy(table.value.cells[selCname.value], selCell)
+        Cells.copy(
+          table.value.cells.find((cell: any) => cell.refer === selCname.value) || {},
+          selCell
+        )
       } else {
         selColumn.reset()
         selCell.reset()
@@ -205,6 +198,7 @@ export default defineComponent({
       mid,
       table,
       hdHeight,
+      mdlProps,
       columns,
       cells,
       records,

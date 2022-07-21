@@ -102,10 +102,6 @@ export default {
       (key: any): Column | undefined =>
         state.model.table.columns.find((column: Column) => column.key === key),
     cells: (state: ModelState) => state.model.table.cells,
-    cell:
-      (state: ModelState) =>
-      (key: any): Cell =>
-        state.model.table.cells[key],
     dragOn: (state: ModelState): string => state.dragOn,
     divider: (state: ModelState): string => state.divider
   }

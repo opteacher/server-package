@@ -87,7 +87,8 @@ export async function exportClass(mid, options) {
       writeData += `\n  static copy(src, tgt, force = false) {\n`
     }
     writeData += `    tgt = tgt || new ${options.name}()\n`
-    writeData += '    tgt.key = force ? (src.key || src.id || src._id) : (src.key || src.id || src._id || tgt.key)\n'
+    writeData +=
+      '    tgt.key = force ? (src.key || src.id || src._id) : (src.key || src.id || src._id || tgt.key)\n'
     for (const prop of model.props) {
       writeData += `    tgt.${prop.name} = force ? src.${prop.name} : (src.${prop.name} || tgt.${prop.name})\n`
     }
@@ -204,11 +205,13 @@ function initColumn(prop) {
   }
 }
 
-function initCell() {
+function initCell(prop) {
   return {
     color: '#000000',
     prefix: '',
-    suffix: ''
+    suffix: '',
+    cdCell: {},
+    refer: prop.name
   }
 }
 
@@ -233,9 +236,7 @@ export async function genTable(mid) {
       size: 'default',
       hasPages: true,
       columns: model.props.map(prop => initColumn(prop)),
-      cells: model.props.length
-        ? Object.fromEntries(model.props.map(prop => [prop.name, initCell()]))
-        : {}
+      cells: model.props.map(prop => initCell(prop))
     }
   })
 }
@@ -285,12 +286,11 @@ export async function saveProp(data, mid, pid) {
       },
       { updMode: 'append' }
     )
-    return db.saveOne(
-      Model,
-      mid,
-      { 'table.cells': { [data.name]: initCell() } },
-      { updMode: 'merge' }
-    )
+    if (model.table.cells.find(cell => cell.refer === data.name)) {
+      return db.saveOne(Model, mid, { [`table.cells[refer:${data.name}]`]: initCell(data) })
+    } else {
+      return db.saveOne(Model, mid, { 'table.cells': initCell(data) }, { updMode: 'append' })
+    }
   } else {
     return db.saveOne(Model, mid, { [`props[{_id:${pid}}]`]: data })
   }

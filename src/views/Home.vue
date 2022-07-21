@@ -25,7 +25,7 @@
           <a-badge status="error" />
           <span style="color: #f5222d">停止</span>
         </template>
-        <template v-else-if="project.status === 'loading'">
+        <template v-else-if="project.status.stat === 'loading'">
           <loading-outlined />
           <span style="color: #faad14">加载中</span>
         </template>
@@ -38,15 +38,15 @@
         <a-button
           type="primary"
           size="small"
-          :disabled="project.status === 'loading'"
-          :loading="project.status === 'loading'"
+          :disabled="project.status.stat === 'loading'"
+          :loading="project.status.stat === 'loading'"
           @click.stop="api.sync(project.key)"
         >
           <template #icon><SyncOutlined /></template>
           &nbsp;同步
         </a-button>
         <a-button
-          v-if="project.thread || project.status === 'loading'"
+          v-if="project.thread || project.status.stat === 'loading'"
           class="ml-5"
           size="small"
           danger
