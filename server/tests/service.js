@@ -108,7 +108,7 @@ describe('# 任务服务', () => {
 
     await sync(pid)
     let result = await status(pid)
-    for (let i = 0; i < 30 || result.status === 'loading'; ++i) {
+    for (let i = 0; i < 30 || result.status.stat === 'loading'; ++i) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       result = await status(pid)
     }

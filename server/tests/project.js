@@ -281,11 +281,11 @@ describe('# 项目服务', () => {
 
   test('# status', async () => {
     let result = await status(pid)
-    for (let i = 0; i < 30 || result.status === 'loading'; ++i) {
+    for (let i = 0; i < 30 || result.status.stat === 'loading'; ++i) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       result = await status(pid)
     }
-    expect(result.status).toEqual('running')
+    expect(result.status.stat).toEqual('running')
   })
 
   test('# transfer', async () => {
@@ -309,22 +309,22 @@ describe('# 项目服务', () => {
     let result = await stopSync(pid)
     expect(result.thread).toEqual(0)
     result = await status(pid)
-    for (let i = 0; i < 30 || result.status === 'loading'; ++i) {
+    for (let i = 0; i < 30 || result.status.stat === 'loading'; ++i) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       result = await status(pid)
     }
-    expect(result.status).toEqual('stopped')
+    expect(result.status.stat).toEqual('stopped')
   })
 
   test('# runAll', async () => {
     await db.saveOne(Project, pid, { thread: -1 })
     await runAll()
     let result = await status(pid)
-    for (let i = 0; i < 30 || result.status === 'loading'; ++i) {
+    for (let i = 0; i < 30 || result.status.stat === 'loading'; ++i) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       result = await status(pid)
     }
-    expect(result.status).toEqual('running')
+    expect(result.status.stat).toEqual('running')
   })
 
   test('# del', async () => {

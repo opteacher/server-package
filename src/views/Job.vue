@@ -91,7 +91,7 @@ export default defineComponent({
     const pid = route.params.pid
     const mid = route.params.mid
     const mname = computed(() => store.getters['model/ins'].name)
-    const pstatus = computed(() => store.getters['project/ins'].status)
+    const pstatus = computed(() => store.getters['project/ins'].status.stat)
 
     onMounted(refresh)
 

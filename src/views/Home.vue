@@ -94,7 +94,7 @@ export default defineComponent({
     const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 300))
 
     watch(
-      () => store.getters['project/ins'].status,
+      () => store.getters['project/ins'].status.stat,
       () => {
         emitter.emit('refresh')
       }

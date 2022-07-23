@@ -204,7 +204,7 @@ export default defineComponent({
       )
     )
     const pjtName = computed(() => store.getters['project/ins'].name)
-    const pstatus = computed(() => store.getters['project/ins'].status)
+    const pstatus = computed(() => store.getters['project/ins'].status.stat)
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
     const propEmitter = new Emitter()
