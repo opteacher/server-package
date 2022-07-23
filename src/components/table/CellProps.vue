@@ -3,10 +3,10 @@
     <a-descriptions-item label="条件">
       <a-select
         class="w-100"
-        v-model:value="selCond"
-        :options="condOpns"
+        v-model:value="edtCells.selCond"
+        :options="cdOptions"
         placeholder="默认属性"
-        @change="onCondChange"
+        allowClear
       >
         <template #dropdownRender="{ menuNode: menu }">
           <v-nodes :vnodes="menu" />
@@ -19,14 +19,9 @@
             title="条件"
             width="30vw"
             :copy="condStatic.copy"
-            :show="condStatic.visible"
+            v-model:show="condStatic.visible"
             :mapper="condStatic.mapper"
             :emitter="condStatic.emitter"
-            @update:show="
-              show => {
-                condStatic.visible = show
-              }
-            "
             @submit="onCondSubmit"
           />
         </template>
@@ -38,13 +33,13 @@
     <a-descriptions-item label="前缀">
       <a-input
         v-model:value="edtCell.prefix"
-        @blur="(e: any) => api.table.cells.save({ refer: edtCell.refer, prefix: e.target.value })"
+        @blur="(e: any) => onPropSave('prefix', e.target.value)"
       />
     </a-descriptions-item>
     <a-descriptions-item label="后缀">
       <a-input
         v-model:value="edtCell.suffix"
-        @blur="(e: any) => api.table.cells.save({ refer: edtCell.refer, suffix: e.target.value })"
+        @blur="(e: any) => onPropSave('suffix', e.target.value)"
       />
     </a-descriptions-item>
   </a-descriptions>
@@ -52,7 +47,7 @@
 
 <script lang="ts">
 import Cell from '@/types/cell'
-import { defineComponent, reactive, ref } from 'vue'
+import { computed, defineComponent, reactive, watch } from 'vue'
 import ColorField from '@/components/table/ColorField.vue'
 import { mdlAPI as api } from '@/apis'
 import FormDialog from '@/components/com/FormDialog.vue'
@@ -60,10 +55,11 @@ import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Cells } from '@/types/table'
 import { PlusOutlined } from '@ant-design/icons-vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
-  name: 'TableProps',
-  emits: ['change'],
+  name: 'CellProps',
+  emits: ['update:cond'],
   components: {
     ColorField,
     FormDialog,
@@ -76,13 +72,13 @@ export default defineComponent({
   props: {
     props: { type: Array, required: true },
     pname: { type: String, required: true },
-    cell: { type: Cells, required: true }
+    cells: { type: Cells, required: true }
   },
-  setup(props) {
-    const edtCell = reactive(props.cell)
-    const selCond = ref('')
-    const condOpns = reactive(
-      Object.keys(props.cell.cdCell).map((cond: string) => ({ label: cond, value: cond }))
+  setup(props, { emit }) {
+    const store = useStore()
+    const edtCells = reactive(props.cells)
+    const edtCell = reactive(
+      Cell.copy(props.cells.selCond ? props.cells.cdCell[props.cells.selCond] : props.cells)
     )
     const condStatic = reactive({
       mapper: new Mapper({
@@ -121,41 +117,64 @@ export default defineComponent({
         return tgt
       }
     })
+    const cdOptions = computed(() =>
+      Object.keys(edtCells.cdCell).map((cond: string) => ({
+        label: buildCdLbl(cond.split('_')),
+        value: cond
+      }))
+    )
 
+    watch(() => edtCells.selCond, onCondChange)
+
+    function buildCdLbl(conds: string[]): string {
+      return [
+        condStatic.mapper.prop.options.find((prop: any) => prop.value === conds[0]).label,
+        condStatic.mapper.cmp.options.find((cmp: any) => cmp.value === conds[1]).label,
+        conds[2] || '空'
+      ].join(' ')
+    }
     async function onColorSubmit({ color, next }: { color: string; next: () => void }) {
-      await api.table.cells.save({ refer: edtCell.refer, color })
+      await onPropSave('color', color)
       next()
     }
-    function onCondChange(cond: string) {
-      Cell.copy(props.cell.cdCell[cond], edtCell, true)
+    function onCondChange(cond: any) {
+      if (edtCells.cdCell[cond]) {
+        Cell.copy(edtCells.cdCell[cond], edtCell, true)
+      } else {
+        Cell.copy(edtCells, edtCell, true)
+      }
+      emit('update:cond', cond || '')
     }
-    function onCondSubmit(cond: any) {
+    async function onCondSubmit(cond: any) {
       const value = `${cond.prop}_${cond.cmp}_${cond.value}`
-      condOpns.push({
-        label: [
-          condStatic.mapper.prop.options.find((prop: any) => prop.value === cond.prop).label,
-          condStatic.mapper.cmp.options.find((cmp: any) => cmp.value === cond.cmp).label,
-          cond.value || '空'
-        ].join(' '),
-        value
-      })
-      edtCell.cdCell[value] = Cell.copy({})
+      await api.table.cells.cond.save(edtCells.refer, { [value]: Cell.copy({}) })
+      edtCells.cdCell[value] = Cell.copy({})
       condStatic.visible = false
-      selCond.value = value
       onCondChange(value)
+    }
+    async function onPropSave(key: string, val: any) {
+      if (edtCells.selCond) {
+        await api.table.cells.cond.save(edtCells.refer, {
+          [edtCells.selCond]: Object.assign(edtCell, { [key]: val })
+        })
+      } else {
+        await api.table.cells.save({ refer: edtCells.refer, [key]: val })
+      }
+      return store.dispatch('model/refresh')
     }
     return {
       Cell,
 
       api,
+      edtCells,
       edtCell,
-      selCond,
-      condOpns,
       condStatic,
+      cdOptions,
 
       onColorSubmit,
+      onCondSubmit,
       onCondChange,
-      onCondSubmit
+      onPropSave
     }
   }
 })

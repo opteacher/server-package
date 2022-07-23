@@ -2,7 +2,7 @@ import store from '@/store'
 import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
 import Model from '@/types/model'
 import ExpCls from '@/types/expCls'
-import Field from '@/types/field'
+import Cell from '@/types/cell'
 
 const expDft = {
   add: async (data: any) => {
@@ -160,6 +160,15 @@ const expDft = {
           { messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
+      },
+      clr: async () => {
+        await reqPut(
+          'model',
+          store.getters['model/ins'].key,
+          { 'table.demoData': null },
+          { query: { updMode: 'delete' }, messages: { notShow: true } }
+        )
+        await store.dispatch('model/refresh')
       }
     },
     save: async (table: any) => {
@@ -208,6 +217,21 @@ const expDft = {
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
+      },
+      cond: {
+        save: async (refer: string, cdCell: { [cond: string]: Cell }) => {
+          await reqPut(
+            'model',
+            store.getters['model/ins'].key,
+            {
+              [`table.cells[{refer:${refer}}].cdCell`]: Object.fromEntries(
+                Object.entries(cdCell).map(([cond, cell]) => [cond, pickOrIgnore(cell, ['cdCell'])])
+              )
+            },
+            { query: { updMode: 'merge' }, messages: { notShow: true } }
+          )
+          await store.dispatch('model/refresh')
+        }
       }
     }
   }

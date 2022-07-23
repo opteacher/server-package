@@ -5,28 +5,34 @@ import Column from './column'
 
 export class Cells extends Cell {
   refer: string
+  selCond: string
   cdCell: Record<string, Cell>
 
   constructor() {
     super()
     this.refer = ''
+    this.selCond = ''
     this.cdCell = {}
   }
 
   reset() {
     super.reset()
     this.refer = ''
+    this.selCond = ''
     this.cdCell = {}
   }
 
-  static copy(src: any, tgt?: Cells): Cells {
+  static copy(src: any, tgt?: Cells, force = false): Cells {
     tgt = tgt || new Cells()
-    Cell.copy(src, tgt)
-    tgt.refer = src.refer || tgt.refer
+    Cell.copy(src, tgt, force)
+    tgt.refer = force ? src.refer : src.refer || tgt.refer
+    tgt.selCond = force ? src.selCond : src.selCond || tgt.selCond
     tgt.cdCell = src.cdCell
       ? Object.fromEntries(
           Object.entries(src.cdCell).map(([cond, data]: [string, any]) => [cond, Cell.copy(data)])
         )
+      : force
+      ? {}
       : tgt.cdCell
     return tgt
   }
@@ -82,12 +88,7 @@ export default class Table {
     tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : tgt.hasPages
     tgt.demoData = src.demoData
     tgt.columns = src.columns ? src.columns.map((col: any) => Column.copy(col)) : []
-    tgt.cells = (src.cells || []).map((cell: { refer: string; cdCell: Record<string, Cell> }) => ({
-      refer: cell.refer,
-      cdCell: Object.fromEntries(
-        Object.entries(cell.cdCell).map(([cond, data]: [string, Cell]) => [cond, Cell.copy(data)])
-      )
-    }))
+    tgt.cells = (src.cells || []).map((cell: any) => Cells.copy(cell))
     tgt.operable = src.operable || tgt.operable
     tgt.refresh = src.refresh || tgt.refresh
     return tgt

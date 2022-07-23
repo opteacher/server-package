@@ -33,15 +33,10 @@
           </a-button>
           <FormDialog
             title="导出类"
-            :show="showExpCls"
+            v-model:show="showExpCls"
             :object="expCls"
             :copy="ExpCls.copy"
             :mapper="expMapper"
-            @update:show="
-              show => {
-                showExpCls = show
-              }
-            "
             @submit="formData => mdlAPI.export(formData)"
           />
           <a-button

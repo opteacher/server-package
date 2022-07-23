@@ -40,6 +40,12 @@ export default {
     },
     SET_DIVIDER(state: ModelState, payload: string) {
       state.divider = payload
+    },
+    SET_CELL_COND(state: ModelState, payload: { refer: string; cond: string }) {
+      const cell = state.model.table.cells.find((cell: any) => cell.refer === payload.refer)
+      if (cell) {
+        cell.selCond = payload.cond
+      }
     }
   },
   actions: {

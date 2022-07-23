@@ -97,25 +97,7 @@
             </a-popconfirm>
           </template>
         </template>
-        <span
-          v-else
-          :style="{
-            color: table.cells[column.dataIndex].color
-          }"
-        >
-          {{
-            table.cells[column.dataIndex].prefix &&
-            !text.startsWith(table.cells[column.dataIndex].prefix)
-              ? table.cells[column.dataIndex].prefix
-              : ''
-          }}{{ text
-          }}{{
-            table.cells[column.dataIndex].suffix &&
-            !endsWith(text, table.cells[column.dataIndex].suffix)
-              ? table.cells[column.dataIndex].suffix
-              : ''
-          }}
-        </span>
+        <CellCard v-else :cell="getCell(column.dataIndex, record)" :text="text.toString()" />
       </template>
     </a-table>
     <FormDialog :emitter="fmEmitter" :form="form" @submit="onRecordSave" />
@@ -127,12 +109,14 @@ import { computed, defineComponent, reactive, ref } from 'vue'
 import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
-import Table from '../types/table'
+import Table, { Cells } from '../types/table'
 import { endsWith } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
 import RefreshBox from '../components/RefreshBox.vue'
+import CellCard from '../components/CellCard.vue'
+import Cell from '../types/cell'
 /*return models.map(model => `import ${model.name} from '../types/${model.name}'`).join('\n')*/
 
 const models: any[] =
@@ -146,7 +130,8 @@ export default defineComponent({
   components: {
     IndexLayout,
     FormDialog,
-    RefreshBox
+    RefreshBox,
+    CellCard
   },
   setup() {
     const actMdl = ref('')
@@ -191,6 +176,51 @@ export default defineComponent({
       actMdl.value = mname
       await refresh()
     }
+    function getCell(refProp: string, record: any): Cell {
+      let ret = table.cells.find((cell: any) => cell.refer === refProp) as Cells
+      if (ret.cdCell) {
+        for (const [cond, cell] of Object.entries(ret.cdCell)) {
+          const conds = cond.split('_')
+          const prop = conds[0]
+          const cmp = conds[1]
+          const tgtVal = conds[2]
+          const srcVal = record[prop]
+          switch (cmp) {
+            case '=':
+              if (srcVal == tgtVal) {
+                return cell
+              }
+              break
+            case '!=':
+              if (srcVal != tgtVal) {
+                return cell
+              }
+              break
+            case '>':
+              if (srcVal > tgtVal) {
+                return cell
+              }
+              break
+            case '>=':
+              if (srcVal >= tgtVal) {
+                return cell
+              }
+              break
+            case '<':
+              if (srcVal < tgtVal) {
+                return cell
+              }
+              break
+            case '<=':
+              if (srcVal <= tgtVal) {
+                return cell
+              }
+              break
+          }
+        }
+      }
+      return ret
+    }
     return {
       actMdl,
       actCopy,
@@ -205,7 +235,8 @@ export default defineComponent({
       endsWith,
       onRecordSave,
       onRecordDel,
-      onMuItmChange
+      onMuItmChange,
+      getCell
     }
   }
 })

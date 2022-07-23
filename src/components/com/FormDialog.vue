@@ -55,12 +55,11 @@
             >
               <template #FormDialog>
                 <FormDialog
-                  :show="v.show"
+                  v-model:show="v.show"
                   :mapper="v.mapper"
                   :copy="v.copy"
                   :emitter="v.emitter"
                   :object="v.editing"
-                  @update:show="v.show = false"
                   @submit="(form: any) => v.onSaved(form, formState[k])"
                 />
               </template>
@@ -100,12 +99,11 @@
         >
           <template #FormDialog>
             <FormDialog
-              :show="value.show"
+              v-model:show="value.show"
               :mapper="value.mapper"
               :copy="value.copy"
               :emitter="value.emitter"
               :object="value.editing"
-              @update:show="value.show = false"
               @submit="(form: any) => value.onSaved(form, formState[key])"
             />
           </template>

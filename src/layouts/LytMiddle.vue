@@ -72,10 +72,9 @@
               <FormDialog
                 title="配置中台"
                 :copy="Middle.copy"
-                :show="showPub"
+                v-model:show="showPub"
                 :mapper="pubMapper"
                 :emitter="pubEmitter"
-                @update:show="onPubDlgShow"
                 @submit="onPublish"
               >
                 <template #footer="pubInfo">

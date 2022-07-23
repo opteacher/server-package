@@ -27,14 +27,9 @@
           <FormDialog
             title="配置项目"
             :copy="Project.copy"
-            :show="showProj"
+            v-model:show="showProj"
             :mapper="projMapper"
             :object="project"
-            @update:show="
-              show => {
-                showProj = show
-              }
-            "
             @submit="onConfig"
           />
           <a-button
@@ -61,14 +56,9 @@
           <FormDialog
             title="投放文件"
             :copy="Transfer.copy"
-            :show="showTsfm"
+            v-model:show="showTsfm"
             :mapper="tsMapper"
             :emitter="tsEmitter"
-            @update:show="
-              show => {
-                showTsfm = show
-              }
-            "
             @submit="onTransfer"
           />
           <a-button

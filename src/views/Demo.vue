@@ -88,11 +88,7 @@
             </a-popconfirm>
           </template>
         </template>
-        <CellCard
-          v-else
-          :cell="cells.find((cell: any) => cell.refer === column.dataIndex)"
-          :text="text"
-        />
+        <CellCard v-else :cell="getCell(column.dataIndex, record)" :text="text.toString()" />
       </template>
     </a-table>
     <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
@@ -106,13 +102,14 @@ import { pickOrIgnore, endsWith } from '@/utils'
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import Table from '@/types/table'
+import Table, { Cells } from '@/types/table'
 import Model from '@/types/model'
 import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
+import Cell from '@/types/cell'
 
 export default defineComponent({
   name: 'Demo',
@@ -164,6 +161,51 @@ export default defineComponent({
       fmEmitter.emit('viewOnly', true)
       fmEmitter.emit('update:show', { show: true, record })
     }
+    function getCell(refProp: string, record: any): Cell {
+      let ret = cells.value.find((cell: any) => cell.refer === refProp) as Cells
+      if (ret.cdCell) {
+        for (const [cond, cell] of Object.entries(ret.cdCell)) {
+          const conds = cond.split('_')
+          const prop = conds[0]
+          const cmp = conds[1]
+          const tgtVal = conds[2]
+          const srcVal = record[prop]
+          switch (cmp) {
+            case '=':
+              if (srcVal == tgtVal) {
+                return cell
+              }
+              break
+            case '!=':
+              if (srcVal != tgtVal) {
+                return cell
+              }
+              break
+            case '>':
+              if (srcVal > tgtVal) {
+                return cell
+              }
+              break
+            case '>=':
+              if (srcVal >= tgtVal) {
+                return cell
+              }
+              break
+            case '<':
+              if (srcVal < tgtVal) {
+                return cell
+              }
+              break
+            case '<=':
+              if (srcVal <= tgtVal) {
+                return cell
+              }
+              break
+          }
+        }
+      }
+      return ret
+    }
     return {
       pid,
       mid,
@@ -180,7 +222,8 @@ export default defineComponent({
       endsWith,
       onRecordSave,
       onRecordDel,
-      onRecordClick
+      onRecordClick,
+      getCell
     }
   }
 })

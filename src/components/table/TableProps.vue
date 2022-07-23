@@ -74,12 +74,16 @@
         @change="(refresh: any) => api.table.save({ refresh })"
       />
     </a-descriptions-item>
+    <a-descriptions-item label="演示数据">
+      <a-button danger block type="primary" @click="onClrDemoClock">清空</a-button>
+    </a-descriptions-item>
   </a-descriptions>
 </template>
 
 <script lang="ts">
 import Table from '@/types/table'
 import { dispHidCol } from '@/views/Table'
+import { Modal } from 'ant-design-vue'
 import { defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
@@ -93,10 +97,17 @@ export default defineComponent({
     const store = useStore()
     const formState = reactive(props.table)
     return {
+      Modal,
+
       store,
       api,
       formState,
-      dispHidCol
+      dispHidCol,
+      onClrDemoClock: () =>
+        Modal.confirm({
+          title: '确定清空演示记录？',
+          onOk: api.table.record.clr
+        })
     }
   }
 })

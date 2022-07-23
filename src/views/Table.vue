@@ -46,8 +46,8 @@
               </template>
               <CellCard
                 v-else
-                :cell="cells.find((cell: any) => cell.refer === column.dataIndex)"
-                :text="text"
+                :cell="getCell(column.dataIndex)"
+                :text="text.toString()"
                 :selected="selected === `cell_${column.dataIndex}`"
               />
             </template>
@@ -77,8 +77,8 @@
           v-else-if="selected.startsWith('cell')"
           :pname="selCname"
           :props="mdlProps"
-          :cell="selCell"
-          @change="onSelChange"
+          :cells="selCell"
+          @update:cond="onCondUpdate"
         />
       </a-layout-sider>
     </a-layout>
@@ -103,6 +103,7 @@ import { useRoute } from 'vue-router'
 import { dispHidCol } from './Table'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
+import Cell from '@/types/cell'
 
 export default defineComponent({
   name: 'Table',
@@ -184,13 +185,26 @@ export default defineComponent({
       } else if (selected.value.startsWith('cell_')) {
         selCname.value = selected.value.substring('cell_'.length)
         Cells.copy(
-          table.value.cells.find((cell: any) => cell.refer === selCname.value) || {},
-          selCell
+          table.value.cells.find((cell: any) => cell.refer === selCname.value) || Cells.copy({}),
+          selCell,
+          true
         )
       } else {
         selColumn.reset()
+        const selCond = selCell.selCond
         selCell.reset()
+        selCell.selCond = selCond
       }
+    }
+    function getCell(refProp: string): Cell {
+      let ret = cells.value.find((cell: any) => cell.refer === refProp)
+      if (ret.selCond) {
+        ret = ret.cdCell[ret.selCond]
+      }
+      return ret
+    }
+    function onCondUpdate(cond: string) {
+      store.commit('model/SET_CELL_COND', { refer: selCname.value, cond })
     }
     return {
       store,
@@ -210,7 +224,9 @@ export default defineComponent({
 
       onFormSubmit,
       endsWith,
-      onSelChange
+      onSelChange,
+      getCell,
+      onCondUpdate
     }
   }
 })
