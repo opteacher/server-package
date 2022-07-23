@@ -4,24 +4,26 @@
       color: selected ? '#1890ff' : cell.color
     }"
   >
-    {{ cell.prefix && !text.startsWith(cell.prefix) ? cell.prefix : '' }}{{ text
-    }}{{ cell.suffix && !endsWith(text, cell.suffix) ? cell.suffix : '' }}
+    {{ cell.prefix && !strTxt.startsWith(cell.prefix) ? cell.prefix : '' }}{{ strTxt
+    }}{{ cell.suffix && !endsWith(strTxt, cell.suffix) ? cell.suffix : '' }}
   </span>
 </template>
 
 <script lang="ts">
 import { endsWith } from '@/utils'
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'CellCard',
   props: {
     cell: { type: Object, required: true },
-    text: { type: String, required: true },
+    text: { type: Object, required: true },
     selected: { type: Boolean, default: false }
   },
-  setup() {
+  setup(props) {
+    const strTxt = computed(() => (props.text ? props.text.toString() : ''))
     return {
+      strTxt,
       endsWith
     }
   }
