@@ -47,7 +47,7 @@
               <CellCard
                 v-else
                 :cell="getCell(column.dataIndex)"
-                :text="text.toString()"
+                :text="(text || '').toString()"
                 :selected="selected === `cell_${column.dataIndex}`"
               />
             </template>

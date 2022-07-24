@@ -88,7 +88,11 @@
             </a-popconfirm>
           </template>
         </template>
-        <CellCard v-else :cell="getCell(column.dataIndex, record)" :text="text.toString()" />
+        <CellCard
+          v-else
+          :cell="getCell(column.dataIndex, record)"
+          :text="(text || '').toString()"
+        />
       </template>
     </a-table>
     <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
