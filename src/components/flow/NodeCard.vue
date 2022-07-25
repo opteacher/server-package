@@ -83,9 +83,6 @@
       <a-col flex="auto">
         <a-card :bordered="false">
           <template v-if="node.desc">{{ node.desc }}</template>
-          <template v-else-if="node.code">
-            <pre class="mb-0">{{ node.code }}</pre>
-          </template>
           <template v-else>输入节点描述</template>
         </a-card>
       </a-col>
