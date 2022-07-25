@@ -295,7 +295,6 @@ export const edtNdMapper = new Mapper({
         label: '是否为函数式',
         desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
-        disabled: [Cond.copy({ key: 'ntype', cmp: '==', val: 'condNode' })],
         display: [
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
