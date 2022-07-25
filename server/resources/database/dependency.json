@@ -22,6 +22,12 @@
       "default": false
     },
     {
+      "name": "Axios",
+      "exports": ["axios"],
+      "from": "axios",
+      "default": true
+    },
+    {
       "name": "Crypto",
       "exports": ["crypto"],
       "from": "crypto",
