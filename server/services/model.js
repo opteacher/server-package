@@ -126,7 +126,7 @@ export async function create(data) {
   })
   if (data.pid) {
     const project = await db.select(Project, { _index: data.pid })
-    await db.saveOne(Dep, model.id, { belong: `${project.name}/${model.name}` })
+    await db.saveOne(Dep, model.id, { belong: project.name })
     let svc = await db.save(Service, {
       name: model.name,
       emit: 'api',

@@ -133,10 +133,8 @@ export default {
       }
       const sid = router.currentRoute.value.params.sid
       await dispatch('model/refresh', undefined, { root: true })
-      const pjtName = rootGetters['project/ins'].name
-      const mdlName = rootGetters['model/ins'].name
       edtNdMapper.advanced.items.deps.options = (await depAPI.all(0, Number.MAX_VALUE))
-        .concat(await depAPI.all(0, Number.MAX_VALUE, `${pjtName}/${mdlName}`))
+        .concat(await depAPI.all(0, Number.MAX_VALUE, rootGetters['project/ins'].name))
         .map((dep: Dep) =>
           LstOpnType.copy({
             key: dep.key,
