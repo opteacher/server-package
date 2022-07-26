@@ -7,7 +7,8 @@ export default db.defineModel(
     exports: db.PropTypes.Array,
     from: db.PropTypes.String, // import * from '出现在这里'
     default: db.PropTypes.Boolean, // [true]: import exports[0] from ''; [false]: import { ..exports } from ''
-    version: db.PropTypes.String // 如果定义了版本，则该依赖会出现在package.json中，包名为from
+    version: db.PropTypes.String, // 如果定义了版本，则该依赖会出现在package.json中，包名为from
+    belong: db.PropTypes.String // 项目名/模型名
   },
   {
     router: {

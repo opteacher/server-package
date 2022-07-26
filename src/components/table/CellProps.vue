@@ -33,15 +33,43 @@
     <a-descriptions-item label="前缀">
       <a-input
         v-model:value="edtCell.prefix"
-        @blur="(e: any) => onPropSave('prefix', e.target.value)"
+        @blur="(e: any) => onPropSave({ prefix: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="后缀">
       <a-input
         v-model:value="edtCell.suffix"
-        @blur="(e: any) => onPropSave('suffix', e.target.value)"
+        @blur="(e: any) => onPropSave({ suffix: e.target.value })"
       />
     </a-descriptions-item>
+    <a-descriptions-item label="类型">
+      <a-select
+        class="w-100"
+        :options="ctOptions"
+        v-model:value="edtCell.ctype"
+        @change="onCellTypeChange"
+      />
+    </a-descriptions-item>
+    <template v-if="edtCell.ctype === 'Number' && isNumFmtAva(edtCell.format)">
+      <a-descriptions-item label="小数点后保留位数">
+        <a-input-number
+          class="w-100"
+          :min="-1"
+          v-model:value="edtCell.format.fix"
+          @change="(fix: number) => onFormatSave({ fix })"
+        />
+      </a-descriptions-item>
+    </template>
+    <template v-else-if="edtCell.ctype === 'DateTime' && isDateFmtAva(edtCell.format)">
+      <a-descriptions-item label="时间格式">
+        <a-select
+          class="w-100"
+          :options="fmtStatic.DateTime.options"
+          v-model:value="edtCell.format.pattern"
+          @change="(pattern: string) => onFormatSave({ pattern })"
+        />
+      </a-descriptions-item>
+    </template>
   </a-descriptions>
 </template>
 
@@ -55,7 +83,6 @@ import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Cells } from '@/types/table'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'CellProps',
@@ -75,7 +102,6 @@ export default defineComponent({
     cells: { type: Cells, required: true }
   },
   setup(props, { emit }) {
-    const store = useStore()
     const edtCells = reactive(props.cells)
     const edtCell = reactive(
       Cell.copy(props.cells.selCond ? props.cells.cdCell[props.cells.selCond] : props.cells)
@@ -123,8 +149,27 @@ export default defineComponent({
         value: cond
       }))
     )
+    const ctOptions = [
+      { label: '字符串', value: 'String' },
+      { label: '数字', value: 'Number' },
+      { label: '日期', value: 'DateTime' }
+    ]
+    const fmtStatic = {
+      DateTime: {
+        options: [{ label: '年/月/日 时:分:秒', value: 'YYYY/MM/DD HH:mm:ss' }]
+      }
+    }
 
     watch(() => edtCells.selCond, onCondChange)
+    watch(
+      () => props.cells.refer,
+      () => {
+        Cell.copy(
+          props.cells.selCond ? props.cells.cdCell[props.cells.selCond] : props.cells,
+          edtCell
+        )
+      }
+    )
 
     function buildCdLbl(conds: string[]): string {
       return [
@@ -134,7 +179,7 @@ export default defineComponent({
       ].join(' ')
     }
     async function onColorSubmit({ color, next }: { color: string; next: () => void }) {
-      await onPropSave('color', color)
+      await onPropSave({ color })
       next()
     }
     function onCondChange(cond: any) {
@@ -152,15 +197,37 @@ export default defineComponent({
       condStatic.visible = false
       onCondChange(value)
     }
-    async function onPropSave(key: string, val: any) {
+    function onPropSave(prop: any) {
       if (edtCells.selCond) {
-        await api.table.cells.cond.save(edtCells.refer, {
-          [edtCells.selCond]: Object.assign(edtCell, { [key]: val })
+        return api.table.cells.cond.save(edtCells.refer, {
+          [edtCells.selCond]: Object.assign(edtCell, prop)
         })
       } else {
-        await api.table.cells.save({ refer: edtCells.refer, [key]: val })
+        return api.table.cells.save(Object.assign({ refer: edtCells.refer }, prop))
       }
-      return store.dispatch('model/refresh')
+    }
+    function onCellTypeChange(ctype: string) {
+      switch (ctype) {
+        case 'String':
+          edtCell.format = {}
+          break
+        case 'Number':
+          edtCell.format = { fix: -1 }
+          break
+        case 'DateTime':
+          edtCell.format = { pattern: 'YYYY/MM/DD HH:mm:ss' }
+          break
+      }
+      return onPropSave({ ctype, format: edtCell.format })
+    }
+    function onFormatSave(format: any) {
+      return api.table.cells.saveFmt(edtCells.refer, format)
+    }
+    function isNumFmtAva(format: any) {
+      return format && typeof format.fix !== 'undefined'
+    }
+    function isDateFmtAva(format: any) {
+      return format && typeof format.pattern !== 'undefined'
     }
     return {
       Cell,
@@ -170,11 +237,17 @@ export default defineComponent({
       edtCell,
       condStatic,
       cdOptions,
+      ctOptions,
+      fmtStatic,
 
       onColorSubmit,
       onCondSubmit,
       onCondChange,
-      onPropSave
+      onPropSave,
+      onCellTypeChange,
+      onFormatSave,
+      isNumFmtAva,
+      isDateFmtAva
     }
   }
 })

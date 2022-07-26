@@ -25,4 +25,20 @@ axios.interceptors.request.use(
   }
 )
 
+axios.defaults.paramsSerializer = function (params: any): string {
+  const ret = []
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === 'undefined') {
+      ret.push(key + '=')
+    } else if (value === null) {
+      ret.push(key + '=null')
+    } else if (Array.isArray(value)) {
+      ret.push(...value.map((val: any) => `${key}=${val}`))
+    } else {
+      ret.push(`${key}=${encodeURIComponent(value as string | number | boolean)}`)
+    }
+  }
+  return ret.join('&')
+}
+
 createApp(App).use(store).use(router).use(Antd).mount('#app')

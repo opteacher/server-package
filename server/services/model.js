@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { db, genDefault } from '../utils/index.js'
+import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import Dep from '../models/dep.js'
@@ -116,7 +116,7 @@ export async function getData(pid, mid) {
 }
 
 export async function create(data) {
-  const model = await db.save(Model, data)
+  const model = await db.save(Model, pickOrIgnore(data, ['project']))
   await db.save(Dep, {
     _id: model.id,
     name: model.name,
@@ -125,6 +125,8 @@ export async function create(data) {
     default: true
   })
   if (data.pid) {
+    const project = await db.select(Project, { _index: data.pid })
+    await db.saveOne(Dep, model.id, { belong: `${project.name}/${model.name}` })
     let svc = await db.save(Service, {
       name: model.name,
       emit: 'api',

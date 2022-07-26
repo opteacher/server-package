@@ -37,8 +37,9 @@
       :columns="columns"
       :data-source="records"
       :size="table.size"
+      :scroll="{ y: 300 }"
       :rowClassName="() => 'white-bkgd'"
-      :pagination="table.hasPages"
+      :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
       bordered
       :custom-row="
         (record: any) => ({

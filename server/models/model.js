@@ -47,6 +47,7 @@ export default db.defineModel(
       operaStyle: db.PropTypes.String,
       size: db.PropTypes.String,
       hasPages: db.PropTypes.Boolean,
+      maxPerPgs: db.PropTypes.Number,
       refresh: db.PropTypes.Array, // [manual, auto]
       demoData: db.PropTypes.Any,
       columns: [
@@ -68,7 +69,9 @@ export default db.defineModel(
           cdCell: db.PropTypes.Object, // [condition]: { color, prefix, suffix }
           color: db.PropTypes.String,
           prefix: db.PropTypes.String,
-          suffix: db.PropTypes.String
+          suffix: db.PropTypes.String,
+          ctype: db.PropTypes.String,
+          format: db.PropTypes.Object
         }
       ],
       operable: db.PropTypes.Array // 可增加, 可编辑, 可删除

@@ -25,12 +25,12 @@ export default class Form {
     this.fields = []
   }
 
-  static copy(src: any, tgt?: Form): Form {
+  static copy(src: any, tgt?: Form, force = false): Form {
     tgt = tgt || new Form()
     tgt.key = src.key || src._id || tgt.key
-    tgt.title = src.title || tgt.title
-    tgt.width = src.width || tgt.width
-    tgt.labelWidth = src.labelWidth || tgt.labelWidth
+    tgt.title = force ? src.title : src.title || tgt.title
+    tgt.width = force ? src.width : src.width || tgt.width
+    tgt.labelWidth = force ? src.labelWidth : src.labelWidth || tgt.labelWidth
     tgt.fields = src.fields ? src.fields.map((field: any) => Field.copy(field)) : []
     return tgt
   }

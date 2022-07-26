@@ -52,7 +52,13 @@
             </a-checkbox>
           </a-col>
           <a-col :span="18">
-            <a-input-number :disabled="!formState.hasPages" class="w-100" />
+            <a-input-number
+              :disabled="!formState.hasPages"
+              class="w-100"
+              placeholder="输入单页可显示的最大记录数"
+              v-model:value="formState.maxPerPgs"
+              @change="(maxPerPgs: any) => api.table.save({ maxPerPgs })"
+            />
           </a-col>
         </a-row>
       </a-input-group>

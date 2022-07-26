@@ -44,6 +44,7 @@ export default class Table {
   operaStyle: 'button' | 'link'
   size: 'small' | 'default' | 'middle'
   hasPages: boolean
+  maxPerPgs: number
   demoData: any
   columns: Column[]
   cells: Cells[]
@@ -57,6 +58,7 @@ export default class Table {
     this.operaStyle = 'button'
     this.size = 'default'
     this.hasPages = true
+    this.maxPerPgs = 10
     this.demoData = null
     this.columns = []
     this.cells = []
@@ -71,6 +73,7 @@ export default class Table {
     this.operaStyle = 'button'
     this.size = 'default'
     this.hasPages = true
+    this.maxPerPgs = 10
     this.demoData = null
     this.columns = []
     this.cells = []
@@ -78,19 +81,20 @@ export default class Table {
     this.refresh = []
   }
 
-  static copy(src: any, tgt?: Table): Table {
+  static copy(src: any, tgt?: Table, force = false): Table {
     tgt = tgt || new Table()
     tgt.key = src.key || src._id || tgt.key
-    tgt.title = src.title || tgt.title
-    tgt.desc = src.desc || tgt.desc
-    tgt.operaStyle = src.operaStyle || tgt.operaStyle
-    tgt.size = src.size || tgt.size
-    tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : tgt.hasPages
+    tgt.title = force ? src.title : src.title || tgt.title
+    tgt.desc = force ? src.desc : src.desc || tgt.desc
+    tgt.operaStyle = force ? src.operaStyle : src.operaStyle || tgt.operaStyle
+    tgt.size = force ? src.size : src.size || tgt.size
+    tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : force ? false : tgt.hasPages
+    tgt.maxPerPgs = force ? src.maxPerPgs : src.maxPerPgs || tgt.maxPerPgs
     tgt.demoData = src.demoData
     tgt.columns = src.columns ? src.columns.map((col: any) => Column.copy(col)) : []
     tgt.cells = (src.cells || []).map((cell: any) => Cells.copy(cell))
-    tgt.operable = src.operable || tgt.operable
-    tgt.refresh = src.refresh || tgt.refresh
+    tgt.operable = force ? src.operable : src.operable || tgt.operable
+    tgt.refresh = force ? src.refresh : src.refresh || tgt.refresh
     return tgt
   }
 }

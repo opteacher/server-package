@@ -21,7 +21,7 @@
             :data-source="records"
             :size="table.size"
             :rowClassName="() => 'white-bkgd'"
-            :pagination="table.hasPages"
+            :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
             bordered
           >
             <template #headerCell="{ title, column }">
@@ -185,7 +185,7 @@ export default defineComponent({
       } else if (selected.value.startsWith('cell_')) {
         selCname.value = selected.value.substring('cell_'.length)
         Cells.copy(
-          table.value.cells.find((cell: any) => cell.refer === selCname.value) || Cells.copy({}),
+          table.value.cells.find((cell: any) => cell.refer === selCname.value) || new Cells(),
           selCell,
           true
         )

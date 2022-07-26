@@ -44,6 +44,7 @@ export default class Table {
   operaStyle: 'button' | 'link'
   size: 'small' | 'default' | 'middle'
   hasPages: boolean
+  maxPerPgs: number
   demoData: any
   columns: Column[]
   cells: Cells[]
@@ -57,6 +58,7 @@ export default class Table {
     this.operaStyle = 'button'
     this.size = 'default'
     this.hasPages = true
+    this.maxPerPgs = 10
     this.demoData = null
     this.columns = []
     this.cells = []
@@ -71,6 +73,7 @@ export default class Table {
     this.operaStyle = 'button'
     this.size = 'default'
     this.hasPages = true
+    this.maxPerPgs = 10
     this.demoData = null
     this.columns = []
     this.cells = []
@@ -86,14 +89,10 @@ export default class Table {
     tgt.operaStyle = force ? src.operaStyle : (src.operaStyle || tgt.operaStyle)
     tgt.size = force ? src.size : (src.size || tgt.size)
     tgt.hasPages = typeof src.hasPages !== 'undefined' ? src.hasPages : (force ? false : tgt.hasPages)
+    tgt.maxPerPgs = force ? src.maxPerPgs : src.maxPerPgs || tgt.maxPerPgs
     tgt.demoData = src.demoData
     tgt.columns = src.columns ? src.columns.map((col: any) => Column.copy(col)) : []
-    tgt.cells = (src.cells || []).map((cell: { refer: string; cdCell: Record<string, Cell> }) => ({
-      refer: cell.refer,
-      cdCell: Object.fromEntries(
-        Object.entries(cell.cdCell).map(([cond, data]: [string, Cell]) => [cond, Cell.copy(data)])
-      )
-    }))
+    tgt.cells = (src.cells || []).map((cell: any) => Cells.copy(cell))
     tgt.operable = force ? src.operable : (src.operable || tgt.operable)
     tgt.refresh = force ? src.refresh : (src.refresh || tgt.refresh)
     return tgt

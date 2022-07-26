@@ -22,6 +22,7 @@ import router from '@/router'
 import { reactive } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import NodeInPnl from '@/types/ndInPnl'
+import { depAPI } from '@/apis'
 
 type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -33,7 +34,6 @@ type SvcState = {
   nodeVsb: boolean
   joinVsb: boolean
   tempVsb: boolean
-  deps: { [name: string]: Dep }
 }
 
 export default {
@@ -47,8 +47,7 @@ export default {
       node: new Node(),
       nodeVsb: false,
       joinVsb: false,
-      tempVsb: false,
-      deps: {}
+      tempVsb: false
     } as SvcState),
   mutations: {
     SET_WIDTH(state: SvcState, width: number) {
@@ -112,7 +111,6 @@ export default {
       state.width = 0
       state.nodes = {}
       state.node.reset()
-      state.deps = {}
     },
     RESET_NODES(state: SvcState) {
       state.width = 0
@@ -121,24 +119,35 @@ export default {
     }
   },
   actions: {
-    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
+    async refresh({
+      state,
+      dispatch,
+      rootGetters
+    }: {
+      state: SvcState
+      dispatch: Dispatch
+      rootGetters: any
+    }) {
       if (!router.currentRoute.value.params.sid) {
         return
       }
       const sid = router.currentRoute.value.params.sid
       await dispatch('model/refresh', undefined, { root: true })
-      await dispatch('refreshDeps')
-      edtNdMapper.advanced.items.deps.options = Object.values(state.deps).map((dep: Dep) =>
-        LstOpnType.copy({
-          key: dep.key,
-          title: dep.name,
-          subTitle: [
-            'import ',
-            dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
-            ` from '${dep.from}'`
-          ].join('')
-        })
-      )
+      const pjtName = rootGetters['project/ins'].name
+      const mdlName = rootGetters['model/ins'].name
+      edtNdMapper.advanced.items.deps.options = (await depAPI.all(0, Number.MAX_VALUE))
+        .concat(await depAPI.all(0, Number.MAX_VALUE, `${pjtName}/${mdlName}`))
+        .map((dep: Dep) =>
+          LstOpnType.copy({
+            key: dep.key,
+            title: dep.name,
+            subTitle: [
+              'import ',
+              dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
+              ` from '${dep.from}'`
+            ].join('')
+          })
+        )
       await dispatch('refreshTemps')
       Service.copy(await reqGet('service', sid), state.svc)
       if (state.svc.flow) {
@@ -286,13 +295,6 @@ export default {
             }))
           : []
       }))
-    },
-    async refreshDeps({ state }: { state: SvcState }) {
-      state.deps = Object.fromEntries(
-        (await reqAll('dependency'))
-          .map((dep: any) => Dep.copy(dep))
-          .map((dep: Dep) => [dep.key, dep])
-      )
     }
   },
   getters: {
