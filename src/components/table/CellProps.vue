@@ -221,7 +221,7 @@ export default defineComponent({
       return onPropSave({ ctype, format: edtCell.format })
     }
     function onFormatSave(format: any) {
-      return api.table.cells.saveFmt(edtCells.refer, format)
+      return api.table.cells.saveFmt(edtCells.refer, format, edtCells.selCond)
     }
     function isNumFmtAva(format: any) {
       return format && typeof format.fix !== 'undefined'

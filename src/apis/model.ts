@@ -218,12 +218,12 @@ const expDft = {
         )
         await store.dispatch('model/refresh')
       },
-      saveFmt: async (refer: string, format: any) => {
+      saveFmt: async (refer: string, format: any, cond?: string) => {
         await reqPut(
           'model',
           store.getters['model/ins'].key,
           {
-            [`table.cells[{refer:${refer}}].format`]: format
+            [`table.cells[{refer:${refer}}].format${cond ? '.' + cond : ''}`]: format
           },
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )
