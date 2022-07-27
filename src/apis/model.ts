@@ -223,7 +223,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           {
-            [`table.cells[{refer:${refer}}].format${cond ? '.' + cond : ''}`]: format
+            [`table.cells[{refer:${refer}}]${cond ? '.cdCell.' + cond : ''}.format`]: format
           },
           { query: { updMode: 'merge' }, messages: { notShow: true } }
         )
