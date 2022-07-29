@@ -19,6 +19,9 @@ const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'app-temp')
 
 function formatToStr(value, vtype) {
+  if (typeof value === 'undefined') {
+    return
+  }
   switch (vtype) {
     case 'String':
       return `\'${value}\'`
