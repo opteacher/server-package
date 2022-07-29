@@ -161,7 +161,7 @@ import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import FormDialog from '../components/com/FormDialog.vue'
-import { expMapper } from './Model'
+import { expMapper, propEmitter } from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
 import Service from '@/types/service'
@@ -207,7 +207,6 @@ export default defineComponent({
     const pstatus = computed(() => store.getters['project/ins'].status.stat)
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
-    const propEmitter = new Emitter()
     const svcEmitter = new Emitter()
 
     onMounted(refresh)

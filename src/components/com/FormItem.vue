@@ -63,6 +63,7 @@
       <a-input-number
         v-else-if="valState.type === 'Number'"
         class="w-100"
+        type="number"
         v-model:value="formState[skey]"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(valState.disabled) || !editable"
@@ -312,7 +313,7 @@
           添加{{ valState.label }}
         </a-button>
         <a-list
-          v-show="formState[skey].length"
+          v-show="formState[skey] && formState[skey].length"
           style="margin-top: 5px"
           size="small"
           :data-source="formState[skey]"
@@ -355,7 +356,7 @@
 <script lang="ts">
 import { Cond, OpnType } from '@/types'
 import Column from '@/types/column'
-import { defineComponent, reactive, ref } from 'vue'
+import { defineComponent, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,
   UploadOutlined,
@@ -366,6 +367,7 @@ import {
   EditOutlined,
   AppstoreOutlined
 } from '@ant-design/icons-vue'
+import { getCopy } from '@/types/mapper'
 
 export default defineComponent({
   name: 'FormItem',
@@ -390,6 +392,13 @@ export default defineComponent({
     const formState = reactive(props.form)
     const valState = reactive(props.value)
     const uploadDir = ref(false)
+
+    watch(
+      () => props.value,
+      () => {
+        getCopy(props.value, valState)
+      }
+    )
 
     function validConds(value: boolean | Cond[] | { [cmpRel: string]: Cond[] }): boolean {
       if (typeof value === 'boolean') {

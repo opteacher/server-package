@@ -169,7 +169,6 @@ export default defineComponent({
         await props.api.update(record)
       }
       emit('save', record, refresh)
-      editing.show = false
       reset()
       await refresh()
     }

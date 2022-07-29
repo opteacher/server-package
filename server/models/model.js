@@ -21,7 +21,8 @@ export default db.defineModel(
           belong: db.PropTypes.Boolean,
           isArray: db.PropTypes.Boolean
         },
-        remark: db.PropTypes.String
+        remark: db.PropTypes.String,
+        default: db.PropTypes.Any
       }
     ],
     svcs: [{ type: db.PropTypes.Id, ref: 'service' }],

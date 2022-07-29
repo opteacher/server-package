@@ -3,6 +3,8 @@
 import { baseTypes, Cond } from '@/types/index'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
+import Property from '@/types/property'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export const columns = [
   new Column('模型名', 'name'),
@@ -54,13 +56,15 @@ export const expMapper = new Mapper({
   }
 })
 
+export const propEmitter = new Emitter()
+
 export const propColumns = [
   new Column('字段名', 'name'),
   new Column('标签', 'label'),
   new Column('字段类型', 'ptype'),
   new Column('是否为索引', 'index'),
   new Column('是否唯一', 'unique'),
-  new Column('是否可访问', 'visible'),
+  new Column('默认值', 'default'),
   new Column('关联模型', 'relative'),
   new Column('备注', 'remark')
 ]
@@ -85,7 +89,36 @@ export const propMapper = new Mapper({
       label: bsTyp,
       value: bsTyp
     })),
-    rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }]
+    rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
+    onChange: (_prop: Property, toType: string) => {
+      switch (toType) {
+        case 'Object':
+          propMapper['default'].type = 'Textarea'
+          break
+        case 'Array':
+          propMapper['default'].type = 'List'
+          break
+        case 'Boolean':
+          propMapper['default'].type = 'Select'
+          propMapper['default'].options = [
+            { label: 'TRUE', value: 'true' },
+            { label: 'FALSE', value: 'false' }
+          ]
+          break
+        case 'DateTime':
+          propMapper['default'].type = 'DateTime'
+          break
+        case 'Number':
+          propMapper['default'].type = 'Number'
+          break
+        case 'String':
+        default:
+          propMapper['default'].type = 'Input'
+          break
+      }
+      propEmitter.emit('update:mapper', propMapper)
+      propEmitter.emit('update:data', { default: toType === 'Array' ? [] : null })
+    }
   },
   index: {
     label: '是否为索引',
@@ -99,10 +132,9 @@ export const propMapper = new Mapper({
     disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     placeholder: '重复的记录无法持久化'
   },
-  visible: {
-    label: '是否可访问',
-    type: 'Checkbox',
-    disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })]
+  default: {
+    label: '默认值',
+    type: 'Input'
   },
   relative: {
     label: '关联模型',

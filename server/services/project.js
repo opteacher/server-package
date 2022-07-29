@@ -18,6 +18,27 @@ import sendfile from 'koa-sendfile'
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'app-temp')
 
+function formatToStr(value, vtype) {
+  switch (vtype) {
+    case 'String':
+      return `\'${value}\'`
+    case 'DateTime':
+      return value.toString().toLowerCase() === 'now'
+        ? 'Date.now'
+        : `new Date(${typeof value === 'string' ? "'" + value + "'" : value})`
+    case 'Array':
+      return `[${value.map(val => "'" + val + "'").join(', ')}]`
+    case 'Object':
+      return JSON.stringify(value)
+    case 'Boolean':
+      return value ? 'true' : 'false'
+    case 'Any':
+    case 'Number':
+    default:
+      return value.toString()
+  }
+}
+
 /**
  *
  * @param {*} node {
@@ -286,6 +307,10 @@ export async function generate(pid) {
   for (const model of project.models) {
     const svcs = model.svcs.filter(svc => !svc.isModel)
     model.svcs = model.svcs.filter(svc => svc.isModel)
+
+    model.props = model.props.map(prop =>
+      Object.assign(prop, { default: formatToStr(prop.default, prop.ptype) })
+    )
 
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
@@ -611,7 +636,9 @@ export async function status(pid) {
     } catch (e) {
       return { stat: 'loading' }
     }
-    const res = spawnSync(`docker stats --no-stream --format ${statsFmt} ${project.name}`, { shell: true })
+    const res = spawnSync(`docker stats --no-stream --format ${statsFmt} ${project.name}`, {
+      shell: true
+    })
     return Object.assign({ stat: 'running' }, JSON.parse(res.stdout.toString()))
   }
 }
