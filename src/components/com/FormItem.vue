@@ -309,7 +309,13 @@
         </a-list>
       </a-form-item-rest>
       <template v-else-if="valState.type === 'List'">
-        <a-button class="w-100" type="primary" ghost @click="onEdtLstShow(skey, valState)">
+        <a-button
+          v-if="!valState.addMod"
+          class="w-100"
+          type="primary"
+          ghost
+          @click="onEdtLstShow(skey, valState)"
+        >
           添加{{ valState.label }}
         </a-button>
         <a-list

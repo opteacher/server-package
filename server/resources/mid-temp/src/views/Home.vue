@@ -1,5 +1,5 @@
 <template>
-  <IndexLayout @change="onMuItmChange">
+  <IndexLayout ref="layout" @change="onMuItmChange">
     <a-row class="mb-10" type="flex">
       <a-col flex="auto">
         <a-space>
@@ -29,10 +29,12 @@
       @click="refresh"
     />
     <a-table
+      :scl-height="ctnrHeight"
       :columns="columns"
       :data-source="records"
       :size="table.size"
       :rowClassName="() => 'white-bkgd'"
+      :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
       bordered
       :custom-row="
@@ -103,6 +105,18 @@
           :text="(text || '').toString()"
         />
       </template>
+      <template v-if="table.expandURL" #expandedRowRender="{ record }">
+        <iframe class="w-100 h-100" :src="genExpURL(record)" />
+      </template>
+      <template #expandIcon="{ record }">
+        <a-button
+          @click.stop="onRowExpand(record)"
+          :style="{ width: '20px', height: '20px', 'font-size': '10px', padding: '0 5px' }"
+        >
+          <template v-if="expRowKeys.includes(record.key)">-</template>
+          <template v-else>+</template>
+        </a-button>
+      </template>
     </a-table>
     <FormDialog :emitter="fmEmitter" :form="form" @submit="onRecordSave" />
   </IndexLayout>
@@ -114,7 +128,7 @@ import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
 import Table, { Cells } from '../types/table'
-import { endsWith } from '../utils'
+import { endsWith, getProperty } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
@@ -138,6 +152,8 @@ export default defineComponent({
     CellCard
   },
   setup() {
+    const layout = ref()
+    const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 500))
     const actMdl = ref('')
     const actCopy = computed(() => copies[actMdl.value])
     const form = reactive(new Form())
@@ -149,6 +165,7 @@ export default defineComponent({
         .concat(new Column('操作', 'opera', { width: 100 }))
     )
     const fmEmitter = new Emitter()
+    const expRowKeys = reactive([] as string[])
 
     async function refresh() {
       if (!actMdl.value) {
@@ -225,7 +242,29 @@ export default defineComponent({
       }
       return ret
     }
+    function onRowExpand(record: { key: string }) {
+      if (expRowKeys.includes(record.key)) {
+        expRowKeys.splice(expRowKeys.indexOf(record.key), 1)
+      } else {
+        expRowKeys.push(record.key)
+      }
+    }
+    function genExpURL(record: any): string {
+      const pattern = /\^.+?(?=\$)/g
+      let expURL = table.expandURL
+      for (
+        let result = pattern.exec(table.expandURL);
+        result;
+        result = pattern.exec(table.expandURL)
+      ) {
+        expURL = expURL.replace(result[0] + '$', getProperty(record, result[0].substring(1)))
+      }
+      console.log(genExpURL)
+      return expURL
+    }
     return {
+      layout,
+      ctnrHeight,
       actMdl,
       actCopy,
       form,
@@ -234,13 +273,16 @@ export default defineComponent({
       fmEmitter,
       columns,
       copies,
+      expRowKeys,
 
       refresh,
       endsWith,
       onRecordSave,
       onRecordDel,
       onMuItmChange,
-      getCell
+      getCell,
+      onRowExpand,
+      genExpURL
     }
   }
 })

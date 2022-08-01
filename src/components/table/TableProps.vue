@@ -80,6 +80,24 @@
         @change="(refresh: any) => api.table.save({ refresh })"
       />
     </a-descriptions-item>
+    <a-descriptions-item>
+      <template #label>
+        折叠内容
+        <span>
+          <a-tooltip>
+            <template #title>
+              填写折叠内容的页面URL。支持在URL中引用记录的字段，以^开头$结尾，支持多层引用
+            </template>
+            <info-circle-outlined />
+          </a-tooltip>
+        </span>
+      </template>
+      <a-input
+        v-model:value="formState.expandURL"
+        prefix="http|s://"
+        @blur="(e: any) => api.table.save({ expandURL: e.target.value })"
+      />
+    </a-descriptions-item>
     <a-descriptions-item label="演示数据">
       <a-button danger block type="primary" @click="onClrDemoClock">清空</a-button>
     </a-descriptions-item>
@@ -93,9 +111,13 @@ import { Modal } from 'ant-design-vue'
 import { defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
+import { InfoCircleOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'TableProps',
+  components: {
+    InfoCircleOutlined
+  },
   props: {
     table: { type: Table, required: true }
   },

@@ -51,6 +51,8 @@ export default db.defineModel(
       maxPerPgs: db.PropTypes.Number,
       refresh: db.PropTypes.Array, // [manual, auto]
       demoData: db.PropTypes.Any,
+      operable: db.PropTypes.Array, // 可增加, 可编辑, 可删除
+      expandURL: db.PropTypes.String, // 可扩展内容的页面URL
       columns: [
         {
           title: db.PropTypes.String,
@@ -74,8 +76,7 @@ export default db.defineModel(
           ctype: db.PropTypes.String,
           format: db.PropTypes.Object
         }
-      ],
-      operable: db.PropTypes.Array // 可增加, 可编辑, 可删除
+      ]
     }
   },
   {

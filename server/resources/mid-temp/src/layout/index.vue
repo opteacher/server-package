@@ -57,7 +57,7 @@
           overflowY: 'auto'
         }"
       >
-        <slot />
+        <div class="h-100" ref="container"><slot /></div>
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -78,6 +78,7 @@ export default defineComponent({
   components: antdIcons,
   setup(_props, { emit }) {
     const router = useRouter()
+    const container = ref()
     const active = ref(
       '' /*return project.models.length ? `\'${project.models[0].name}\'` : '\'\''*/
     )
@@ -125,6 +126,7 @@ export default defineComponent({
     }
     return {
       active,
+      container,
       navigate,
       collapsed: ref<boolean>(false),
       models,

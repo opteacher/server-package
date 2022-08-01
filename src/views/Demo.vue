@@ -39,6 +39,7 @@
       :size="table.size"
       :scroll="{ y: 300 }"
       :rowClassName="() => 'white-bkgd'"
+      :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
       bordered
       :custom-row="
@@ -95,6 +96,18 @@
           :text="(text || '').toString()"
         />
       </template>
+      <template v-if="table.expandURL" #expandedRowRender="{ record }">
+        <iframe class="w-100 h-100" :src="genExpURL(record)" />
+      </template>
+      <template #expandIcon="{ record }">
+        <a-button
+          @click.stop="onRowExpand(record)"
+          :style="{ width: '20px', height: '20px', 'font-size': '10px', padding: '0 5px' }"
+        >
+          <template v-if="expRowKeys.includes(record.key)">-</template>
+          <template v-else>+</template>
+        </a-button>
+      </template>
     </a-table>
     <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
   </LytDesign>
@@ -103,8 +116,8 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '@/types/column'
-import { pickOrIgnore, endsWith } from '@/utils'
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { pickOrIgnore, endsWith, getProperty } from '@/utils'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Table, { Cells } from '@/types/table'
@@ -149,6 +162,7 @@ export default defineComponent({
     const records = computed(() => store.getters['model/records'](useRealData.value))
     const useRealData = ref(false)
     const fmEmitter = new Emitter()
+    const expRowKeys = reactive([] as string[])
 
     onMounted(onRefresh)
 
@@ -211,6 +225,26 @@ export default defineComponent({
       }
       return ret
     }
+    function onRowExpand(record: { key: string }) {
+      if (expRowKeys.includes(record.key)) {
+        expRowKeys.splice(expRowKeys.indexOf(record.key), 1)
+      } else {
+        expRowKeys.push(record.key)
+      }
+    }
+    function genExpURL(record: any): string {
+      const pattern = /\^.+?(?=\$)/g
+      let expURL = table.value.expandURL
+      for (
+        let result = pattern.exec(table.value.expandURL);
+        result;
+        result = pattern.exec(table.value.expandURL)
+      ) {
+        expURL = expURL.replace(result[0] + '$', getProperty(record, result[0].substring(1)))
+      }
+      console.log(expURL)
+      return expURL
+    }
     return {
       pid,
       mid,
@@ -222,13 +256,16 @@ export default defineComponent({
       records,
       useRealData,
       fmEmitter,
+      expRowKeys,
 
       onRefresh,
       endsWith,
       onRecordSave,
       onRecordDel,
       onRecordClick,
-      getCell
+      getCell,
+      onRowExpand,
+      genExpURL
     }
   }
 })

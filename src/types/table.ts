@@ -50,6 +50,7 @@ export default class Table {
   cells: Cells[]
   operable: string[]
   refresh: string[]
+  expandURL: string
 
   constructor() {
     this.key = ''
@@ -64,6 +65,7 @@ export default class Table {
     this.cells = []
     this.operable = []
     this.refresh = []
+    this.expandURL = ''
   }
 
   reset() {
@@ -79,6 +81,7 @@ export default class Table {
     this.cells = []
     this.operable = []
     this.refresh = []
+    this.expandURL = ''
   }
 
   static copy(src: any, tgt?: Table, force = false): Table {
@@ -95,6 +98,7 @@ export default class Table {
     tgt.cells = (src.cells || []).map((cell: any) => Cells.copy(cell))
     tgt.operable = force ? src.operable : src.operable || tgt.operable
     tgt.refresh = force ? src.refresh : src.refresh || tgt.refresh
+    tgt.expandURL = force ? src.expandURL : src.expandURL || tgt.expandURL
     return tgt
   }
 }
