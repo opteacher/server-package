@@ -164,9 +164,7 @@ export default defineComponent({
     const table = reactive(new Table())
     const records = reactive([] as any[])
     const columns = computed(() => {
-      const ret = table.columns
-        .filter((column: Column) => !column.notDisplay)
-        .concat(new Column('操作', 'opera', { width: 100 }))
+      const ret = table.columns.filter((column: Column) => !column.notDisplay)
       if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
         return ret.concat(new Column('操作', 'opera', { key: 'opera', width: 100 })) as Column[]
       } else {
