@@ -51,6 +51,7 @@ export default class Table {
   operable: string[]
   refresh: string[]
   expandURL: string
+  expHeight: number
 
   constructor() {
     this.key = ''
@@ -66,6 +67,7 @@ export default class Table {
     this.operable = []
     this.refresh = []
     this.expandURL = ''
+    this.expHeight = -1
   }
 
   reset() {
@@ -82,6 +84,7 @@ export default class Table {
     this.operable = []
     this.refresh = []
     this.expandURL = ''
+    this.expHeight = -1
   }
 
   static copy(src: any, tgt?: Table, force = false): Table {
@@ -99,6 +102,7 @@ export default class Table {
     tgt.operable = force ? src.operable : src.operable || tgt.operable
     tgt.refresh = force ? src.refresh : src.refresh || tgt.refresh
     tgt.expandURL = force ? src.expandURL : src.expandURL || tgt.expandURL
+    tgt.expHeight = force ? src.expHeight : src.expHeight || tgt.expHeight
     return tgt
   }
 }

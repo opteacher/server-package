@@ -106,7 +106,11 @@
         />
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
-        <iframe class="w-100 h-100" :src="genExpURL(record)" />
+        <iframe
+          class="w-100"
+          :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
+          :src="genExpURL(record)"
+        />
       </template>
       <template #expandIcon="{ record }">
         <a-button
@@ -128,7 +132,7 @@ import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
 import Table, { Cells } from '../types/table'
-import { endsWith, getProperty } from '../utils'
+import { endsWith, getProperty, pickOrIgnore } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
@@ -159,11 +163,16 @@ export default defineComponent({
     const form = reactive(new Form())
     const table = reactive(new Table())
     const records = reactive([] as any[])
-    const columns = computed(() =>
-      table.columns
+    const columns = computed(() => {
+      const ret = table.columns
         .filter((column: Column) => !column.notDisplay)
         .concat(new Column('操作', 'opera', { width: 100 }))
-    )
+      if (table.operable.includes('可编辑') || table.operable.includes('可删除')) {
+        return ret.concat(new Column('操作', 'opera', { key: 'opera', width: 100 })) as Column[]
+      } else {
+        return ret as Column[]
+      }
+    })
     const fmEmitter = new Emitter()
     const expRowKeys = reactive([] as string[])
 

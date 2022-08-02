@@ -94,9 +94,19 @@
       </template>
       <a-input
         v-model:value="formState.expandURL"
-        prefix="http|s://"
         @blur="(e: any) => api.table.save({ expandURL: e.target.value })"
       />
+    </a-descriptions-item>
+    <a-descriptions-item label="折叠界面高度">
+      <a-input-number
+        class="w-100"
+        type="number"
+        :precision="0"
+        v-model:value="formState.expHeight"
+        @blur="(e: any) => api.table.save({ expHeight: e.target.value })"
+      >
+        <template #addonAfter>px</template>
+      </a-input-number>
     </a-descriptions-item>
     <a-descriptions-item label="演示数据">
       <a-button danger block type="primary" @click="onClrDemoClock">清空</a-button>

@@ -97,7 +97,11 @@
         />
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
-        <iframe class="w-100 h-100" :src="genExpURL(record)" />
+        <iframe
+          class="w-100"
+          :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
+          :src="genExpURL(record)"
+        />
       </template>
       <template #expandIcon="{ record }">
         <a-button
@@ -242,7 +246,6 @@ export default defineComponent({
       ) {
         expURL = expURL.replace(result[0] + '$', getProperty(record, result[0].substring(1)))
       }
-      console.log(expURL)
       return expURL
     }
     return {

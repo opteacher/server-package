@@ -51,6 +51,7 @@
                 :selected="selected === `cell_${column.dataIndex}`"
               />
             </template>
+            <template v-if="table.expandURL" #expandedRowRender />
             <template #emptyText>
               <a-empty>
                 <template #description>未查询到数据</template>
