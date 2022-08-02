@@ -94,13 +94,14 @@
           v-else
           :cell="getCell(column.dataIndex, record)"
           :text="(text || '').toString()"
+          :record="record"
         />
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
         <iframe
           class="w-100"
           :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
-          :src="genExpURL(record)"
+          :src="fmtStrByObj(/\s@.+?(?=\s)/g, record, table.expandURL)"
         />
       </template>
       <template #expandIcon="{ record }">
@@ -120,7 +121,7 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Column from '@/types/column'
-import { pickOrIgnore, endsWith, getProperty } from '@/utils'
+import { pickOrIgnore, endsWith, fmtStrByObj } from '@/utils'
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -236,18 +237,6 @@ export default defineComponent({
         expRowKeys.push(record.key)
       }
     }
-    function genExpURL(record: any): string {
-      const pattern = /\^.+?(?=\$)/g
-      let expURL = table.value.expandURL
-      for (
-        let result = pattern.exec(table.value.expandURL);
-        result;
-        result = pattern.exec(table.value.expandURL)
-      ) {
-        expURL = expURL.replace(result[0] + '$', getProperty(record, result[0].substring(1)))
-      }
-      return expURL
-    }
     return {
       pid,
       mid,
@@ -268,7 +257,7 @@ export default defineComponent({
       onRecordClick,
       getCell,
       onRowExpand,
-      genExpURL
+      fmtStrByObj
     }
   }
 })

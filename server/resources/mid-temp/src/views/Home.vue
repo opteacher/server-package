@@ -29,10 +29,10 @@
       @click="refresh"
     />
     <a-table
-      :scl-height="ctnrHeight"
       :columns="columns"
       :data-source="records"
       :size="table.size"
+      :scroll="{ y: ctnrHeight }"
       :rowClassName="() => 'white-bkgd'"
       :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
@@ -103,13 +103,14 @@
           v-else
           :cell="getCell(column.dataIndex, record)"
           :text="(text || '').toString()"
+          :record="record"
         />
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
         <iframe
           class="w-100"
           :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
-          :src="genExpURL(record)"
+          :src="fmtStrByObj(/\s@.+?(?=\s)/g, record, table.expandURL)"
         />
       </template>
       <template #expandIcon="{ record }">
@@ -132,7 +133,7 @@ import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
 import Table, { Cells } from '../types/table'
-import { endsWith, getProperty, pickOrIgnore } from '../utils'
+import { endsWith, fmtStrByObj } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
@@ -256,19 +257,6 @@ export default defineComponent({
         expRowKeys.push(record.key)
       }
     }
-    function genExpURL(record: any): string {
-      const pattern = /\^.+?(?=\$)/g
-      let expURL = table.expandURL
-      for (
-        let result = pattern.exec(table.expandURL);
-        result;
-        result = pattern.exec(table.expandURL)
-      ) {
-        expURL = expURL.replace(result[0] + '$', getProperty(record, result[0].substring(1)))
-      }
-      console.log(genExpURL)
-      return expURL
-    }
     return {
       layout,
       ctnrHeight,
@@ -289,7 +277,7 @@ export default defineComponent({
       onMuItmChange,
       getCell,
       onRowExpand,
-      genExpURL
+      fmtStrByObj
     }
   }
 })

@@ -326,3 +326,11 @@ export async function waitFor(
 export function endsWith(text: string, suffix: string) {
   return text.toString().slice(-suffix.length) === suffix
 }
+
+export function fmtStrByObj(pattern: RegExp, obj: any, str: string) {
+  let ret = str
+  for (let result = pattern.exec(str); result; result = pattern.exec(str)) {
+    ret = ret.replace(result[0] + ' ', getProperty(obj, result[0].substring(2)))
+  }
+  return ret
+}

@@ -267,7 +267,9 @@ export function getProperty(obj: any, props: string | string[]): any {
 }
 
 export function pickOrIgnore(obj: { [key: string]: any }, attrs: string[], ignore = true): any {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => (ignore ? !attrs.includes(key) : attrs.includes(key)))
+  )
 }
 
 export async function until(cdFun: () => Promise<boolean>, lpLimit = 500) {
@@ -401,4 +403,12 @@ export function intervalCheck(options: {
   }
   const h = setInterval(() => func(options), options.interval || 1000)
   setTimeout(() => func(options), 200)
+}
+
+export function fmtStrByObj(pattern: RegExp, obj: any, str: string) {
+  let ret = str
+  for (let result = pattern.exec(str); result; result = pattern.exec(str)) {
+    ret = ret.replace(result[0] + ' ', getProperty(obj, result[0].substring(2)))
+  }
+  return ret
 }

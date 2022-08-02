@@ -70,6 +70,20 @@
         />
       </a-descriptions-item>
     </template>
+    <template v-else-if="edtCell.ctype === 'Link' && isLinkFmtAva(edtCell.format)">
+      <a-descriptions-item label="链接">
+        <a-mentions
+          rows="3"
+          class="w-100"
+          v-model:value="edtCell.format.href"
+          @blur="(e: any) => onFormatSave({ href: e.target.value })"
+        >
+          <a-mentions-option v-for="prop in ppOptions" :key="prop.value" :value="prop.value">
+            {{ prop.label }}
+          </a-mentions-option>
+        </a-mentions>
+      </a-descriptions-item>
+    </template>
   </a-descriptions>
 </template>
 
@@ -83,6 +97,7 @@ import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Cells } from '@/types/table'
 import { PlusOutlined } from '@ant-design/icons-vue'
+import { OpnType } from '@/types'
 
 export default defineComponent({
   name: 'CellProps',
@@ -152,13 +167,15 @@ export default defineComponent({
     const ctOptions = [
       { label: '字符串', value: 'String' },
       { label: '数字', value: 'Number' },
-      { label: '日期', value: 'DateTime' }
+      { label: '日期', value: 'DateTime' },
+      { label: '链接', value: 'Link' }
     ]
     const fmtStatic = {
       DateTime: {
         options: [{ label: '年/月/日 时:分:秒', value: 'YYYY/MM/DD HH:mm:ss' }]
       }
     }
+    const ppOptions = computed(() => props.props as OpnType[])
 
     watch(() => edtCells.selCond, onCondChange)
     watch(
@@ -217,6 +234,9 @@ export default defineComponent({
         case 'DateTime':
           edtCell.format = { pattern: 'YYYY/MM/DD HH:mm:ss' }
           break
+        case 'Link':
+          edtCell.format = { href: '' }
+          break
       }
       return onPropSave({ ctype, format: edtCell.format })
     }
@@ -229,6 +249,9 @@ export default defineComponent({
     function isDateFmtAva(format: any) {
       return format && typeof format.pattern !== 'undefined'
     }
+    function isLinkFmtAva(format: any) {
+      return format && typeof format.href !== 'undefined'
+    }
     return {
       Cell,
 
@@ -239,6 +262,7 @@ export default defineComponent({
       cdOptions,
       ctOptions,
       fmtStatic,
+      ppOptions,
 
       onColorSubmit,
       onCondSubmit,
@@ -247,7 +271,8 @@ export default defineComponent({
       onCellTypeChange,
       onFormatSave,
       isNumFmtAva,
-      isDateFmtAva
+      isDateFmtAva,
+      isLinkFmtAva
     }
   }
 })

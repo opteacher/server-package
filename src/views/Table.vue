@@ -29,7 +29,7 @@
                 {{ title }}
               </span>
             </template>
-            <template #bodyCell="{ text, column }">
+            <template #bodyCell="{ text, column, record }">
               <template v-if="column.dataIndex === 'opera'">
                 <template v-if="table.operaStyle === 'button'">
                   <a-button v-if="table.operable.includes('可编辑')" size="small" class="mb-5">
@@ -49,6 +49,7 @@
                 :cell="getCell(column.dataIndex)"
                 :text="(text || '').toString()"
                 :selected="selected === `cell_${column.dataIndex}`"
+                :record="record"
               />
             </template>
             <template v-if="table.expandURL" #expandedRowRender />

@@ -92,10 +92,15 @@
           </a-tooltip>
         </span>
       </template>
-      <a-input
+      <a-mentions
+        rows="3"
         v-model:value="formState.expandURL"
         @blur="(e: any) => api.table.save({ expandURL: e.target.value })"
-      />
+      >
+        <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
+          {{ prop.label }}
+        </a-mentions-option>
+      </a-mentions>
     </a-descriptions-item>
     <a-descriptions-item label="折叠界面高度">
       <a-input-number
@@ -118,10 +123,11 @@
 import Table from '@/types/table'
 import { dispHidCol } from '@/views/Table'
 import { Modal } from 'ant-design-vue'
-import { defineComponent, reactive } from 'vue'
+import { computed, defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import Property from '@/types/property'
 
 export default defineComponent({
   name: 'TableProps',
@@ -134,11 +140,13 @@ export default defineComponent({
   setup(props) {
     const store = useStore()
     const formState = reactive(props.table)
+    const mdlProps = computed(() => store.getters['model/ins'].props as Property[])
     return {
       Modal,
 
       store,
       api,
+      mdlProps,
       formState,
       dispHidCol,
       onClrDemoClock: () =>

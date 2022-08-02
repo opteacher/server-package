@@ -1,16 +1,17 @@
 <template>
+  <a v-if="cell.ctype === 'Link'" :href="fmtHref">{{ fmtTxt }}</a>
   <span
+    v-else
     :style="{
       color: selected ? '#1890ff' : cell.color
     }"
   >
-    {{ cell.prefix && !text.startsWith(cell.prefix) ? cell.prefix : '' }}{{ fmtTxt
-    }}{{ cell.suffix && !endsWith(text, cell.suffix) ? cell.suffix : '' }}
+    {{ fmtTxt }}
   </span>
 </template>
 
 <script lang="ts">
-import { endsWith } from '@/utils'
+import { endsWith, fmtStrByObj } from '@/utils'
 import { computed, defineComponent } from 'vue'
 import dayjs from 'dayjs'
 
@@ -19,7 +20,8 @@ export default defineComponent({
   props: {
     cell: { type: Object, required: true },
     text: { type: String, required: true },
-    selected: { type: Boolean, default: false }
+    selected: { type: Boolean, default: false },
+    record: { type: Object, default: null }
   },
   setup(props) {
     const fmtTxt = computed(() => {
@@ -35,10 +37,18 @@ export default defineComponent({
             ret = dayjs(props.text).format(props.cell.format.pattern)
           }
       }
-      return ret
+      return [
+        props.cell.prefix && !props.text.startsWith(props.cell.prefix) ? props.cell.prefix : '',
+        ret,
+        props.cell.suffix && !endsWith(props.text, props.cell.suffix) ? props.cell.suffix : ''
+      ].join('')
     })
+    const fmtHref = computed(() =>
+      fmtStrByObj(/\s@.+?(?=\s)/g, props.record, props.cell.format.href)
+    )
     return {
       fmtTxt,
+      fmtHref,
       endsWith
     }
   }
