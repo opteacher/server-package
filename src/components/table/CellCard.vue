@@ -44,7 +44,7 @@ export default defineComponent({
       ].join('')
     })
     const fmtHref = computed(() =>
-      fmtStrByObj(/\s@.+?(?=\s)/g, props.record, props.cell.format.href)
+      fmtStrByObj(/\s?@.+?(?=\s)/g, props.record, props.cell.format.href)
     )
     return {
       fmtTxt,

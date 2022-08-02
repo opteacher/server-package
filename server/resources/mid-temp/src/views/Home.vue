@@ -110,7 +110,7 @@
         <iframe
           class="w-100"
           :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
-          :src="fmtStrByObj(/\s@.+?(?=\s)/g, record, table.expandURL)"
+          :src="fmtStrByObj(/\s?@.+?(?=\s)/g, record, table.expandURL)"
         />
       </template>
       <template #expandIcon="{ record }">

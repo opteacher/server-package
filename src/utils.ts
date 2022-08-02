@@ -408,7 +408,7 @@ export function intervalCheck(options: {
 export function fmtStrByObj(pattern: RegExp, obj: any, str: string) {
   let ret = str
   for (let result = pattern.exec(str); result; result = pattern.exec(str)) {
-    ret = ret.replace(result[0] + ' ', getProperty(obj, result[0].substring(2)))
+    ret = ret.replace(result[0] + ' ', getProperty(obj, result[0].substring(result[0].startsWith('@') ? 1 : 2)))
   }
   return ret
 }
