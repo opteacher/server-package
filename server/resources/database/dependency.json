@@ -34,6 +34,12 @@
       "default": true
     },
     {
+      "name": "ChildProcess",
+      "exports": ["exec", "execFile", "fork", "spawn", "execSync", "execFileSync", "spawnSync"],
+      "from": "child_process",
+      "default": false
+    },
+    {
       "name": "UUID",
       "exports": ["v4"],
       "from": "uuid",

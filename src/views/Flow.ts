@@ -283,7 +283,7 @@ export const edtNdMapper = new Mapper({
       },
       code: {
         label: '代码',
-        type: 'Textarea',
+        type: 'CodeEditor',
         display: [
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),

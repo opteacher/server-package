@@ -321,6 +321,22 @@ export class GroupMapper extends BaseMapper {
   }
 }
 
+export class CdEdtMapper extends BaseMapper {
+  lang: 'javascript' | 'json'
+
+  constructor() {
+    super()
+    this.lang = 'javascript'
+  }
+
+  static copy(src: any, tgt?: CdEdtMapper): CdEdtMapper {
+    tgt = tgt || new CdEdtMapper()
+    BaseMapper.copy(src, tgt)
+    tgt.lang = src.lang || tgt.lang
+    return tgt
+  }
+}
+
 const EleTypeCopies = {
   Unknown: BaseMapper.copy,
   Input: InputMapper.copy,
@@ -338,6 +354,7 @@ const EleTypeCopies = {
   Upload: BaseMapper.copy,
   DateTime: BaseMapper.copy,
   ListSelect: LstSelMapper.copy,
+  CodeEditor: CdEdtMapper.copy,
   List: ListMapper.copy,
   Group: GroupMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }

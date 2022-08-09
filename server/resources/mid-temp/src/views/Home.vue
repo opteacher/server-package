@@ -128,7 +128,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
@@ -158,7 +158,7 @@ export default defineComponent({
   },
   setup() {
     const layout = ref()
-    const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 500))
+    const ctnrHeight = ref('500px')
     const actMdl = ref('')
     const actCopy = computed(() => copies[actMdl.value])
     const form = reactive(new Form())
@@ -175,6 +175,17 @@ export default defineComponent({
     const fmEmitter = new Emitter()
     const expRowKeys = reactive([] as string[])
 
+    onMounted(resize)
+    window.onresize = resize
+
+    function resize() {
+      const tHeader = document.getElementsByClassName('ant-table-thead')[0]
+      //表格内容距离顶部的距离
+      const tHeaderBottom = tHeader ? tHeader.getBoundingClientRect().bottom : 0
+      //窗体高度-表格内容顶部的高度-表格内容底部的高度
+      // let height = document.body.clientHeight - tHeaderBottom - extraHeight
+      ctnrHeight.value = `calc(100vh - ${tHeaderBottom + 48 + 64}px)`
+    }
     async function refresh() {
       if (!actMdl.value) {
         return

@@ -1,5 +1,5 @@
 <template>
-  <a v-if="cell.ctype === 'Link'" :href="fmtHref">{{ fmtTxt }}</a>
+  <a v-if="cell.ctype === 'Link'" @click.stop="$router.push(fmtHref)">{{ fmtTxt }}</a>
   <span
     v-else
     :style="{

@@ -50,6 +50,7 @@ export type CompoType =
   | 'Upload'
   | 'Cascader'
   | 'ListSelect'
+  | 'CodeEditor'
   | 'List'
   | 'Group'
   | 'Unknown'
@@ -72,6 +73,7 @@ export const compoOpns = [
   { label: '上传', value: 'Upload' },
   { label: '层级选择框', value: 'Cascader' },
   { label: '列表选择框', value: 'ListSelect' },
+  { label: '代码编辑框', value: 'CodeEditor' },
   { label: '可编辑列表', value: 'List' },
   { label: '未知', value: 'Unknown' }
 ]

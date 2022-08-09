@@ -19,7 +19,7 @@
       >
         {{ formState[skey] }}
       </template>
-      <template v-else-if="valState.type === 'Textarea'">
+      <template v-else-if="valState.type === 'Textarea' || valState.type === 'CodeEditor'">
         <pre>{{ formState[skey] }}</pre>
       </template>
       <template v-else-if="valState.type === 'Select' || valState.type === 'Cascader'">
@@ -352,6 +352,11 @@
           </template>
         </a-list>
       </template>
+      <VueAceEditor
+        v-else-if="valState.type === 'CodeEditor'"
+        v-model:value="formState[skey]"
+        :disabled="validConds(valState.disabled) || !editable"
+      />
       <template v-else>
         {{ formState[skey] }}
       </template>
@@ -374,6 +379,7 @@ import {
   AppstoreOutlined
 } from '@ant-design/icons-vue'
 import { getCopy } from '@/types/mapper'
+import VueAceEditor from './VueAceEditor.vue'
 
 export default defineComponent({
   name: 'FormItem',
@@ -385,7 +391,9 @@ export default defineComponent({
     CloseCircleOutlined,
     SelectOutlined,
     EditOutlined,
-    AppstoreOutlined
+    AppstoreOutlined,
+
+    VueAceEditor
   },
   props: {
     form: { type: Object, required: true },

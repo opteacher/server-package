@@ -24,7 +24,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import NodeInPnl from '@/types/ndInPnl'
 import { depAPI } from '@/apis'
 
-type NodesInPnl = { [key: string]: NodeInPnl }
+export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
   svc: Service
   emitter: Emitter

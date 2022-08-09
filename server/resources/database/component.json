@@ -227,6 +227,27 @@
     {
       "name": "List",
       "ctype": "Array"
+    },
+    {
+      "name": "CodeEditor",
+      "ctype": "String",
+      "extra": [
+        {
+          "label": "语言",
+          "ftype": "Select",
+          "options": [
+            {
+              "label": "JavaScript",
+              "value": "javascript"
+            },
+            {
+              "label": "JSON",
+              "value": "json"
+            }
+          ],
+          "refer": "lang"
+        }
+      ]
     }
   ]
 }

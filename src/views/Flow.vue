@@ -70,6 +70,7 @@ import VarsPanel from '../components/flow/VarsPanel.vue'
 import TmpNdPanel from '../components/flow/TmpNdPanel.vue'
 import { useRoute } from 'vue-router'
 import { ndAPI as api } from '../apis'
+import { NodesInPnl } from '@/store/service'
 
 export default defineComponent({
   name: 'Flow',
@@ -101,7 +102,7 @@ export default defineComponent({
         return '在根节点后新增节点'
       }
     })
-    const nodes = computed(() => store.getters['service/nodes'])
+    const nodes = computed(() => store.getters['service/nodes'] as NodesInPnl)
     const rszObs = new ResizeObserver(async () => {
       store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
       await store.dispatch('service/refresh')
