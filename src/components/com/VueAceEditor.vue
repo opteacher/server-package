@@ -35,6 +35,12 @@ export default defineComponent({
       () => editing.value,
       () => emit('update:value', editing.value)
     )
+    watch(
+      () => props.value,
+      () => {
+        editing.value = props.value
+      }
+    )
 
     return {
       editing
