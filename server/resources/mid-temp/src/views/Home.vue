@@ -184,7 +184,7 @@ export default defineComponent({
       const tHeaderBottom = tHeader ? tHeader.getBoundingClientRect().bottom : 0
       //窗体高度-表格内容顶部的高度-表格内容底部的高度
       // let height = document.body.clientHeight - tHeaderBottom - extraHeight
-      ctnrHeight.value = `calc(100vh - ${tHeaderBottom + 48 + 64}px)`
+      ctnrHeight.value = `calc(100vh - ${tHeaderBottom + 48 + 56}px)`
     }
     async function refresh() {
       if (!actMdl.value) {

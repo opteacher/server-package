@@ -52,6 +52,7 @@
       <a-select
         v-else-if="field.ftype === 'Select'"
         class="w-100"
+        :options="field.extra.options"
         v-model:value="form[field.refer]"
         :placeholder="field.extra.placeholder || ''"
       />
