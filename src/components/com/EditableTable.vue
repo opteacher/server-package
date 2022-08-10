@@ -18,7 +18,7 @@
     :pagination="false"
     v-model:expandedRowKeys="expRowKeys"
     bordered
-    :scroll="{ y: sclHeight }"
+    :scroll="sclHeight ? { y: sclHeight } : undefined"
     :custom-row="
       (record: any) => ({
         onClick: () => onRowClick(record)
@@ -109,7 +109,7 @@ export default defineComponent({
     size: { type: String, default: 'default' },
     pagable: { type: Boolean, default: true },
     numPerPg: { type: Number, default: 100 },
-    sclHeight: { type: Number, default: 500 },
+    sclHeight: { type: Number, default: 0 },
     filter: { type: Function, default: () => true },
     edtable: { type: Boolean, default: true },
     addable: { type: Boolean, default: true },
