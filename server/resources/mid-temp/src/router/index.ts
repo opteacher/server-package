@@ -32,7 +32,7 @@ router.beforeEach(async (to, _from, next) => {
           '/api/v1/',
           '' /*return auth ? `\'${auth.name}\'` : ''*/,
           '/verify'
-        ].join(''), {
+        ].join(''), undefined, {
           headers: { authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
         })
       )

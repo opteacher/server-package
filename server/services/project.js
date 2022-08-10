@@ -387,9 +387,10 @@ export async function genAuth(project, tmpPath, genPath) {
       .filter(api => api.name !== 'auth')
       .map(api => {
         if (api.path.includes(':')) {
-          api.path = new RegExp(api.path.replace(/:([^\/]*)/g, '([^/]*)'))
+          api.path = new RegExp(`/${project.name}${api.path.replace(/:([^\/]*)/g, '([^/]*)')}`)
+        } else {
+          api.path = `/${project.name}${api.path}`
         }
-        api.path = `/${project.name}${api.path}`
         api.method = api.method.toUpperCase()
         return api
       }),

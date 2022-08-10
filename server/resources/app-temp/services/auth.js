@@ -128,7 +128,7 @@ const skips = [
 ]
 
 const apis = [
-  /*return apis.map(api => `{ method: \'${api.method}\', path: ${typeof api.path !== 'string' ? api.path : '\'' + api.path + '\''} }`).join(',\n  ')*/
+  /*return apis.map(api => `{ method: \'${api.method}\', path: ${typeof api.path !== 'string' ? api.path : 'new RegExp(\'' + api.path + '\')'} }`).join(',\n  ')*/
 ]
 
 export async function chkReqAva(ctx) {
