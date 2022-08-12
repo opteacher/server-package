@@ -361,8 +361,8 @@ const EleTypeCopies = {
 
 export type MapperType = BaseMapper & Record<string, any>
 
-export function getCopy(mt: MapperType): MapperType {
-  return EleTypeCopies[mt.type](mt)
+export function getCopy(mt: any, tgt?: any): MapperType {
+  return EleTypeCopies[mt.type](mt, tgt)
 }
 export default class Mapper {
   [prop: string]: MapperType

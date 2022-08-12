@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { v4 as uuidv4 } from 'uuid'
-
 export default class Cell {
   color: string
   prefix: string

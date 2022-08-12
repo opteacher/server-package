@@ -132,7 +132,8 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'POST',
-      path: `/mdl/v1/${model.name}`
+      path: `/mdl/v1/${model.name}`,
+      needRet: true
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -141,7 +142,8 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'DELETE',
-      path: `/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`,
+      needRet: true
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -150,7 +152,8 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'PUT',
-      path: `/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`,
+      needRet: true
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
 
@@ -159,7 +162,8 @@ export async function create(data) {
       emit: 'api',
       isModel: true,
       method: 'GET',
-      path: `/mdl/v1/${model.name}/:index`
+      path: `/mdl/v1/${model.name}/:index`,
+      needRet: true
     })
     await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
   }

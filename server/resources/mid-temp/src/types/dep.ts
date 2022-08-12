@@ -6,6 +6,7 @@ export default class Dep {
   exports: string[]
   from: string
   default: boolean
+  version: string
 
   constructor() {
     this.key = ''
@@ -13,6 +14,7 @@ export default class Dep {
     this.exports = []
     this.from = ''
     this.default = true
+    this.version = ''
   }
 
   static copy(src: any, tgt?: Dep): Dep {
@@ -22,6 +24,7 @@ export default class Dep {
     tgt.exports = src.exports || tgt.exports
     tgt.from = src.from || tgt.from
     tgt.default = typeof src.default !== 'undefined' ? src.default : tgt.default
+    tgt.version = src.version || tgt.version
     return tgt
   }
 }

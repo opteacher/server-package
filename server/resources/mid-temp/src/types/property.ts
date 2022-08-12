@@ -17,6 +17,7 @@ export default class Property {
     isArray: boolean
   }
   remark: string
+  default: any
 
   constructor() {
     this.key = ''
@@ -32,6 +33,7 @@ export default class Property {
       isArray: false
     }
     this.remark = ''
+    this.default = undefined
   }
 
   reset() {
@@ -46,6 +48,7 @@ export default class Property {
     this.relative.belong = false
     this.relative.isArray = false
     this.remark = ''
+    this.default = undefined
   }
 
   static copy(src: any, tgt?: Property): Property {
@@ -73,6 +76,7 @@ export default class Property {
     }
     tgt.visible = src.visible || tgt.visible
     tgt.remark = src.remark || tgt.remark
+    tgt.default = typeof src.default !== 'undefined' ? src.default : tgt.default
     return tgt
   }
 }

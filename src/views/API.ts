@@ -11,7 +11,8 @@ export const columns = [
   new Column('路径', 'path'),
   new Column('文件名', 'name'),
   new Column('方法', 'interface'),
-  new Column('流程', 'flow')
+  new Column('流程', 'flow'),
+  new Column('是否返回', 'needRet')
 ]
 
 export const mapper = new Mapper({
@@ -63,5 +64,10 @@ export const mapper = new Mapper({
         svc.path = `/${path}`
       }
     }
+  },
+  needRet: {
+    label: '是否返回',
+    desc: '是否返回一个result，选择否则可以自定义返回体ctx.body = X',
+    type: 'Checkbox'
   }
 })
