@@ -30,6 +30,6 @@ export const mapper = new Mapper({
   },
   version: {
     label: '版本',
-    type: 'Number'
+    type: 'Input'
   }
 })

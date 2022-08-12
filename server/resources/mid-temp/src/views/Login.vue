@@ -76,9 +76,8 @@ export default defineComponent({
     )
 
     onMounted(async () => {
-      const token = localStorage.getItem('token')
-      if (token) {
-        const result = await api.verifyDeep(token)
+      if (localStorage.getItem('token')) {
+        const result = await api.verifyDeep()
         console.log(result)
         if (!result.error) {
           router.replace('//*return project.name*//home')

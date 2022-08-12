@@ -119,8 +119,8 @@ export async function create(data) {
   const model = await db.save(Model, pickOrIgnore(data, ['project']))
   await db.save(Dep, {
     _id: model.id,
-    name: model.name,
-    exports: [model.name],
+    name: _.capitalize(model.name),
+    exports: [_.capitalize(model.name)],
     from: `../models/${model.name}.js`,
     default: true
   })

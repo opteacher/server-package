@@ -37,7 +37,7 @@
             :object="expCls"
             :copy="ExpCls.copy"
             :mapper="expMapper"
-            @submit="formData => mdlAPI.export(formData)"
+            @submit="(formData: any) => mdlAPI.export(formData)"
           />
           <a-button
             type="primary"

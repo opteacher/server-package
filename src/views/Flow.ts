@@ -75,6 +75,9 @@ const iptMapper = new Mapper({
           input.value = ''
           break
         case 'Unknown':
+          iptMapper['value'].type = 'Input'
+          input.value = ''
+          break
         case 'Object':
           iptMapper['value'].type = 'Select'
           iptMapper['value'].options = getLocVars().map((locVar: Variable) => ({

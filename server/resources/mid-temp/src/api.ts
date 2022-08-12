@@ -1,5 +1,4 @@
-import axios from 'axios'
-import { makeRequest, reqAll, reqDelete, reqPost, reqPut } from './utils'
+import { reqAll, reqDelete, reqPost, reqPut } from './utils'
 
 export default {
   add: (mname: string, data: any) => reqPost(mname, data),
@@ -12,16 +11,6 @@ export default {
       ignores: ['remember'],
       messages: { succeed: '' }
     }),
-  verify: (token: string) =>
-    makeRequest(
-      axios.post('' /*return `'/${project.name}/api/v1/${auth.name}/verify'`*/, undefined, {
-        headers: { Authorization: 'Bearer ' + token }
-      })
-    ),
-  verifyDeep: (token: string) =>
-    makeRequest(
-      axios.post('' /*return `'/${project.name}/api/v1/${auth.name}/verify/deep'`*/, undefined, {
-        headers: { Authorization: 'Bearer ' + token }
-      })
-    )
+  verify: () => reqPost('' /*return `${auth.name}/verify`*/, undefined, { type: 'api'}),
+  verifyDeep: () => reqPost('' /*return `'${auth.name}/verify/deep'`*/, undefined, { type: 'api'})
 }
