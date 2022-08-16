@@ -14,7 +14,7 @@ async function getSecret() {
   try {
     return (await readConfig(Path.resolve('configs', 'server'))).secret
   } catch (e) {
-    let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
+    const result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
     if (result.error) {
       return result
     }

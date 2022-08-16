@@ -159,7 +159,7 @@ export async function genSign(pid, props) {
     desc: '查询满足列的记录',
     ntype: 'normal',
     code: [
-      'result = await db.select(model, {',
+      'const result = await db.select(model, {',
       props
         .map(
           prop =>
