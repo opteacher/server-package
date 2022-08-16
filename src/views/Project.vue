@@ -76,7 +76,7 @@
       <info-circle-outlined />
       &nbsp;{{ project.desc }}
     </p>
-    <a-descriptions size="small" :column="5">
+    <a-descriptions size="small" :column="4">
       <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
       <a-descriptions-item label="数据库">
         {{ project.database[0] }}/{{ project.database[1] }}
@@ -87,8 +87,12 @@
       <a-descriptions-item label="独立部署（不依赖server-package）">
         {{ project.independ ? '是' : '否' }}
       </a-descriptions-item>
-      <a-descriptions-item v-if="project.commands" label="前置命令">
-        {{ project.commands }}
+      <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
+        <a-typography-paragraph
+          style="white-space: pre-line"
+          :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+          :content="project.commands"
+        />
       </a-descriptions-item>
     </a-descriptions>
     <div class="mt-24">
