@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken'
+import Path from 'path'
 import { db, makeRequest } from '../utils/index.js'
+import { readConfig } from '../lib/backend-library/utils/index.js'
 /*return deps.map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
 const svrPkgURL = `http://${
@@ -7,6 +9,18 @@ const svrPkgURL = `http://${
   ? process.env.BASE_URL
   : (process.env.NODE_ENV === 'test' ? 'host.docker.internal' : 'server-package')
 }:4000/server-package`
+
+async function getSecret() {
+  try {
+    return (await readConfig(Path.resolve('configs', 'server'))).secret
+  } catch (e) {
+    let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
+    if (result.error) {
+      return result
+    }
+    return result.secret
+  }
+}
 
 export async function sign(ctx) {
   /*return `try {\n${nodes.join('\n\n')}\n  } catch (e) {\n    return { error: e.message || JSON.stringify(e) }\n  }\n`*/
@@ -28,11 +42,7 @@ export async function verify(ctx) {
     let payload = null
     switch (tokens[0].toLowerCase()) {
       case 'bearer': {
-        const result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
-        if (result.error) {
-          return result
-        }
-        payload = jwt.verify(tokens[1], result.secret)
+        payload = jwt.verify(tokens[1], await getSecret())
       }
       break
       default:
@@ -49,7 +59,7 @@ export async function verify(ctx) {
 
 export async function verifyDeep(ctx) {
   // 获取项目绑定的用户模型
-  const project = await makeRequest('GET', `${svrPkgURL}/mdl/v1/project//*return project.id*/`)
+  const project = {} /*return JSON.stringify(project)*/
   if (!project.auth || !project.auth.model) {
     return { error: '未配置权限系统' }
   }
@@ -72,11 +82,16 @@ export async function verifyDeep(ctx) {
   }
   console.log(rname)
   if (!rname) {
+    /*return `if (${project.independ}) { return { error: '未找到指定角色！' } }\n`*/
     // 如果角色为空，检查是否是server-package的超级管理员
-    if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
-      return {}
-    } else {
-      return { error: '未找到指定角色！' }
+    try {
+      if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
+        return {}
+      } else {
+        return { error: '未找到指定角色！' }
+      }
+    } catch(e) {
+      return { error: '访问server-package失败！' + e.message || JSON.stringify(e) }
     }
   }
   // 遍历角色授权的规则，查找其中是否满足当前请求包含的申请

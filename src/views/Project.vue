@@ -76,22 +76,21 @@
       <info-circle-outlined />
       &nbsp;{{ project.desc }}
     </p>
-    <a-row>
-      <a-col :span="12">
-        <a-descriptions size="small">
-          <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
-          <a-descriptions-item label="数据库">
-            {{ project.database[0] }}/{{ project.database[1] }}
-          </a-descriptions-item>
-          <a-descriptions-item label="启动时清空数据库">
-            {{ project.dropDbs ? '是' : '否' }}
-          </a-descriptions-item>
-          <a-descriptions-item v-if="project.commands" label="前置命令">
-            {{ project.commands }}
-          </a-descriptions-item>
-        </a-descriptions>
-      </a-col>
-    </a-row>
+    <a-descriptions size="small" :column="5">
+      <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
+      <a-descriptions-item label="数据库">
+        {{ project.database[0] }}/{{ project.database[1] }}
+      </a-descriptions-item>
+      <a-descriptions-item label="启动时清空数据库">
+        {{ project.dropDbs ? '是' : '否' }}
+      </a-descriptions-item>
+      <a-descriptions-item label="独立部署（不依赖server-package）">
+        {{ project.independ ? '是' : '否' }}
+      </a-descriptions-item>
+      <a-descriptions-item v-if="project.commands" label="前置命令">
+        {{ project.commands }}
+      </a-descriptions-item>
+    </a-descriptions>
     <div class="mt-24">
       <EditableTable
         title="模型"

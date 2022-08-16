@@ -222,7 +222,7 @@ export async function sync(pid) {
     const project = await generate(pid)
 
     console.log('启动项目……')
-    const thread = await run(project)
+    await run(project)
     await adjAndRestartNginx()
   }, 10)
   return Promise.resolve({ message: '同步中……' })
@@ -259,6 +259,12 @@ export async function generate(pid) {
   const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
   console.log(`调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
   adjustFile(mdlCfgTmp, mdlCfgGen, { project })
+  if (project.independ) {
+    const svrCfgTmp = Path.join(tmpPath, 'configs', 'server.toml')
+    const svrCfgGen = Path.join(genPath, 'configs', 'server.toml')
+    console.log(`调整服务配置文件：${svrCfgTmp} -> ${svrCfgGen}`)
+    adjustFile(svrCfgTmp, svrCfgGen, { secret: svrCfg.secret })
+  }
 
   const appTmp = Path.join(tmpPath, 'app.js')
   const appGen = Path.join(genPath, 'app.js')
@@ -380,6 +386,7 @@ export async function genAuth(project, tmpPath, genPath) {
   console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
   const apis = await getAllAPIs(project.id)
   const args = {
+    secret: svrCfg.secret,
     project,
     mdlName: 'test',
     skips: project.auth.skips || [],
@@ -400,7 +407,7 @@ export async function genAuth(project, tmpPath, genPath) {
   const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const authSvc = authMdl.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const mdlDep = await db.select(Dep, { _index: project.auth.model })
-  args.mdlName = authMdl.name
+  args.mdlName = mdlDep.exports[0]
   deps[mdlDep.id] = mdlDep.toObject()
   if (authSvc && authSvc.flow) {
     args.nodes = await recuNode(authSvc.flow, 4, node => {

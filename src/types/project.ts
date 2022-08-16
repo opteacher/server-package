@@ -15,6 +15,7 @@ export default class Project {
   database: string[]
   dropDbs: boolean
   commands: string
+  independ: boolean
   models: Model[]
   auth: Auth
   middle: Middle
@@ -29,6 +30,7 @@ export default class Project {
     this.database = []
     this.dropDbs = false
     this.commands = ''
+    this.independ = false
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -44,6 +46,7 @@ export default class Project {
     this.database = []
     this.dropDbs = false
     this.commands = ''
+    this.independ = false
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -60,6 +63,7 @@ export default class Project {
     tgt.database = src.database || tgt.database
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
+    tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {

@@ -16,7 +16,8 @@
         "rmvEndsOf",
         "getProp",
         "setProp",
-        "uploadToQiniu"
+        "uploadToQiniu",
+        "readConfig"
       ],
       "from": "../lib/backend-library/utils/index.js",
       "default": false

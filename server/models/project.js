@@ -10,6 +10,7 @@ export default db.defineModel(
     database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     commands: db.PropTypes.String,
+    independ: db.PropTypes.Boolean, // 为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
     auth: {
       model: db.PropTypes.String,

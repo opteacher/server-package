@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import _ from 'lodash'
 import { db } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
@@ -147,11 +148,7 @@ export async function genSign(pid, props) {
       title: '获取密钥',
       desc: '获取密钥',
       ntype: 'normal',
-      code: [
-        "let result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)",
-        'if (result.error) {\n  return result\n}',
-        'const secret = result.secret'
-      ].join('\n'),
+      code: 'const secret = await getSecret()',
       outputs: [{ name: 'secret' }],
       isFun: false
     },
@@ -175,16 +172,16 @@ export async function genSign(pid, props) {
       'const record = result[0]'
     ].join('\n'),
     previous: getSecret.id,
-    inputs: [{ name: 'model', value: model.name }],
+    inputs: [{ name: 'model', value: _.capitalize(model.name) }],
     outputs: [{ name: 'record' }],
-    deps: await Promise.all(
-      [model.name, 'Crypto'].map(name =>
-        db.select(Dep, { name }).then(dep => (dep.length ? dep[0].id : null))
-      )
-    ),
+    deps: (
+      await Promise.all([
+        db.select(Dep, { name: 'Crypto' }).then(deps => (deps.length ? deps[0].id : null)),
+        db.select(Dep, { index: model.id }).then(dep => (dep ? dep.id : null))
+      ])
+    ).filter(dep => dep),
     isFun: false
   })
-  const depUuid = (await db.select(Dep, { name: 'UUID' }))[0]
   await saveNode({
     title: '包装荷载并签名',
     desc: '包装荷载并签名',
@@ -205,6 +202,10 @@ export async function genSign(pid, props) {
     ].join('\n'),
     previous: qryRecord.id,
     isFun: false,
-    deps: [depUuid.id]
+    deps: (
+      await Promise.all([
+        db.select(Dep, { name: 'UUID' }).then(deps => (deps.length ? deps[0].id : null))
+      ])
+    ).filter(dep => dep)
   })
 }
