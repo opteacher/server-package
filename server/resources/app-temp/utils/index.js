@@ -6,7 +6,7 @@ import { getDbByName } from '../lib/backend-library/databases/index.js'
 export const cfgPath = Path.resolve('configs')
 
 export const db = await getDbByName(
-  process.env['models.type'] || readConfig(Path.join(cfgPath, 'models')).type,
+  process.env['models_type'] || readConfig(Path.join(cfgPath, 'models')).type,
   Path.join(cfgPath, 'db')
 )
 

@@ -16,6 +16,7 @@ export default class Project {
   dropDbs: boolean
   commands: string
   independ: boolean
+  envVars: { name: string, value: string }[]
   models: Model[]
   auth: Auth
   middle: Middle
@@ -31,6 +32,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.independ = false
+    this.envVars = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -47,6 +49,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.independ = false
+    this.envVars = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -64,6 +67,9 @@ export default class Project {
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
     tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
+    tgt.envVars = src.envVars
+      ? src.envVars.map((evar: any) => ({ key: evar.key || evar._id || undefined, name: evar.name, value: evar.value }))
+      : tgt.envVars
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {

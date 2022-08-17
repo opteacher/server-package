@@ -214,9 +214,9 @@ export class TableMapper extends BaseMapper {
     tgt.onEdit = src.onEdit || tgt.onEdit
     tgt.onSaved = src.onSaved || tgt.onSaved
     tgt.onDeleted = src.onDeleted || tgt.onDeleted
-    tgt.addable = src.addable || tgt.addable
-    tgt.edtable = src.edtable || tgt.edtable
-    tgt.delable = src.delable || tgt.delable
+    tgt.addable = typeof src.addable != 'undefined' ? src.addable : tgt.addable
+    tgt.edtable = typeof src.edtable != 'undefined' ? src.edtable : tgt.edtable
+    tgt.delable = typeof src.delable != 'undefined' ? src.delable : tgt.delable
     return tgt
   }
 }

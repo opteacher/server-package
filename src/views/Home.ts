@@ -9,6 +9,7 @@ import Mapper from '@/types/mapper'
 import { Cond } from '@/types'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Column from '@/types/column'
+import { pjtAPI as api } from '@/apis'
 
 export const emitter = new Emitter()
 
@@ -21,6 +22,8 @@ export const columns = [
   new Column('状态', 'status', { width: 80 }),
   new Column('操作项目', 'operation', { width: 200 })
 ]
+
+const evarsEmitter = new Emitter()
 
 export const mapper = new Mapper({
   name: {
@@ -60,6 +63,38 @@ export const mapper = new Mapper({
         label: '独立部署',
         type: 'Checkbox',
         desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存'
+      },
+      envVars: {
+        label: '环境变量',
+        type: 'Table',
+        mapper: new Mapper({
+          name: {
+            label: '变量名',
+            type: 'Input'
+          },
+          value: {
+            label: '变量值',
+            type: 'Input'
+          }
+        }),
+        columns: [new Column('变量名', 'name'), new Column('变量值', 'value')],
+        emitter: evarsEmitter,
+        copy: (src: any, tgt?: { key: string, name: string, value: string }) => {
+          tgt = tgt || { key: '', name: '', value: '' }
+          tgt.key = src.key || src._id || tgt.key
+          tgt.name = src.name || tgt.name
+          tgt.value = src.value || tgt.value
+          return tgt
+        },
+        onSaved: (evar: { key: string, name: string, value: string }, extra?: any) => {
+          extra.push({ name: evar.name, value: evar.value })
+          evarsEmitter.emit('update:show', false)
+        },
+        onDeleted: (key: any, extra?: any) => {
+          extra.splice(extra.findIndex((evar: any) => evar.key === key), 1)
+          evarsEmitter.emit('update:show', false)
+        },
+        edtable: false
       }
     }
   },

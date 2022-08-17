@@ -5,10 +5,9 @@ import { readConfig } from '../../../../../lib/backend-library/utils/index.js'
 const router = new Router()
 
 router.get('/secret', async ctx => {
-  const config = await readConfig(resolve('configs', 'server'))
   ctx.body = {
     result: {
-      secret: process.env['server.secret'] || config.secret
+      secret: (await readConfig(resolve('configs', 'server'))).secret
     }
   }
 })

@@ -11,6 +11,10 @@ export default db.defineModel(
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     commands: db.PropTypes.String,
     independ: db.PropTypes.Boolean, // 为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存
+    envVars: [{
+      name: db.PropTypes.String,
+      value: db.PropTypes.String
+    }],
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
     auth: {
       model: db.PropTypes.String,
@@ -53,7 +57,7 @@ export default db.defineModel(
         fmBkgdColor: db.PropTypes.String,
         registerable: db.PropTypes.Boolean,
         logAccount: db.PropTypes.Boolean,
-        hasLabel:  db.PropTypes.Boolean
+        hasLabel: db.PropTypes.Boolean
       },
       navigate: {
         path: db.PropTypes.String,
