@@ -7,6 +7,7 @@ package-lock.json
 coverage
 server/tmp
 .docker
+server/configs/nginx.conf
 
 
 # local env files

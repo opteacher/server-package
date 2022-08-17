@@ -8,7 +8,7 @@ router.get('/secret', async ctx => {
   const config = await readConfig(resolve('configs', 'server'))
   ctx.body = {
     result: {
-      secret: config.secret
+      secret: process.env['server.secret'] || config.secret
     }
   }
 })
