@@ -168,7 +168,9 @@ export async function genSign(pid, props) {
             }ctx.request.body.${prop.name}${prop.alg !== 'none' ? ").digest('hex')" : ''}`
         )
         .join(',\n'),
-      "})\nif(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
+      '})',
+      "if(typeof result === 'string') {\n  return { error: result }\n}",
+      "if(!result.length) {\n  return { error: '签名失败！提交表单错误' }\n}",
       'const record = result[0]'
     ].join('\n'),
     previous: getSecret.id,
