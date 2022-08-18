@@ -12,7 +12,7 @@ const svrPkgURL = `http://${
 
 async function getSecret() {
   try {
-    return process.env['server_secret'] || (await readConfig(Path.resolve('configs', 'server'))).secret
+    return process.env['server_secret'] || readConfig(Path.resolve('configs', 'server')).secret
   } catch (e) {
     const result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
     if (result.error) {
