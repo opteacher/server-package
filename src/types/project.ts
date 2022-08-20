@@ -17,6 +17,7 @@ export default class Project {
   commands: string
   independ: boolean
   envVars: { name: string, value: string }[]
+  expPorts: number[]
   models: Model[]
   auth: Auth
   middle: Middle
@@ -33,6 +34,7 @@ export default class Project {
     this.commands = ''
     this.independ = false
     this.envVars = []
+    this.expPorts = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -50,6 +52,7 @@ export default class Project {
     this.commands = ''
     this.independ = false
     this.envVars = []
+    this.expPorts = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -70,6 +73,7 @@ export default class Project {
     tgt.envVars = src.envVars
       ? src.envVars.map((evar: any) => ({ key: evar.key || evar._id || undefined, name: evar.name, value: evar.value }))
       : tgt.envVars
+    tgt.expPorts = src.expPorts || tgt.expPorts
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {

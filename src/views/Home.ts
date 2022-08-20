@@ -95,6 +95,10 @@ export const mapper = new Mapper({
           evarsEmitter.emit('update:show', false)
         },
         edtable: false
+      },
+      expPorts: {
+        label: '暴露端口',
+        type: 'List'
       }
     }
   },

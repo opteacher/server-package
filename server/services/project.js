@@ -454,6 +454,7 @@ export async function run(pjt) {
         [
           '--network server-package_default',
           `-p 127.0.0.1:${project.port}:${project.port}`,
+          ...project.expPorts.map(port => `-p 127.0.0.1:${port}:${port}`),
           `--name ${project.name} ${project.name}`
         ].join(' ')
     ].join(' && '),

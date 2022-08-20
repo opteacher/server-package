@@ -15,6 +15,7 @@ export default db.defineModel(
       name: db.PropTypes.String,
       value: db.PropTypes.String
     }],
+    expPorts: db.PropTypes.Array,
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
     auth: {
       model: db.PropTypes.String,
