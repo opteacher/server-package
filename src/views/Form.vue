@@ -35,8 +35,8 @@
                 :field="field.key === active.key ? active : field"
                 :active="active.key"
                 :onDropDown="onFieldDropDown"
-                @update:active="act => Field.copy(act, active, true)"
-                @drag="act => Field.copy(act, active, true)"
+                @update:active="(act: any) => Field.copy(act, active, true)"
+                @drag="(act: any) => Field.copy(act, active, true)"
               />
             </template>
           </a-form>

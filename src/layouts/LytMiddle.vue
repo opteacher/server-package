@@ -11,6 +11,10 @@
           <hdd-outlined />
           <span>导航栏</span>
         </a-menu-item>
+        <a-menu-item :key="`project/${pid}/mid/dashboard`">
+          <dashboard-outlined />
+          <span>首页</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -52,6 +56,7 @@
             </a-breadcrumb-item>
             <a-breadcrumb-item v-if="active.endsWith('login')">登录页</a-breadcrumb-item>
             <a-breadcrumb-item v-else-if="active.endsWith('navigate')">导航栏</a-breadcrumb-item>
+            <a-breadcrumb-item v-else-if="active.endsWith('dashboard')">首页</a-breadcrumb-item>
           </a-breadcrumb>
         </a-space>
         <a-layout-content
@@ -63,7 +68,7 @@
             overflowY: 'auto'
           }"
         >
-          <a-row class="mb-16">
+          <a-row id="midOperBox" class="mb-16">
             <a-col :span="12">
               <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
                 <template #icon><cloud-upload-outlined /></template>
@@ -135,7 +140,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import {
@@ -146,7 +151,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   EyeOutlined,
-  BuildOutlined
+  BuildOutlined,
+  DashboardOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -165,6 +171,7 @@ export default defineComponent({
     MenuFoldOutlined,
     EyeOutlined,
     BuildOutlined,
+    DashboardOutlined,
 
     FormDialog
   },

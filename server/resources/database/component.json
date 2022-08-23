@@ -3,6 +3,41 @@
   "type": "String-input/Number-Number/String-Select/Array-Cascader/String-Textarea/Boolean|Array-Checkbox/Boolean-Switch/String-Radio/Array-List/String-Color/String-Icon",
   "data": [
     {
+      "name": "Row",
+      "ctype": "Unknown"
+    },
+    {
+      "name": "Col",
+      "ctype": "Unknown",
+      "extra": [
+        {
+          "label": "占用列",
+          "ftype": "Input",
+          "refer": "span",
+          "extra": {
+            "suffix": "/24"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "ctype": "Unknown",
+      "extra": [
+        {
+          "label": "内部排序方向",
+          "ftype": "Select",
+          "refer": "orientation",
+          "extra": {
+            "options": [
+              { "label": "纵向", "value": "vertical" },
+              { "label": "横向", "value": "horizontal" }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Button",
       "ctype": "Event",
       "extra": [

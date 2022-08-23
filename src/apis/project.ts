@@ -104,10 +104,20 @@ export default {
   apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
   middle: {
     login: {
-      save: (key: any, data: any) => reqPut('project', key, { 'middle.login': data })
+      save: async (key: any, data: any, next?: () => Promise<any>) => {
+        await reqPut('project', key, { 'middle.login': data })
+        if (next) {
+          await next()
+        }
+      }
     },
     navigate: {
-      save: (key: any, data: any) => reqPut('project', key, { 'middle.navigate': data })
+      save: async (key: any, data: any, next?: () => Promise<any>) => {
+        await reqPut('project', key, { 'middle.navigate': data })
+        if (next) {
+          await next()
+        }
+      }
     },
     publish: (key: any, data: any) =>
       reqPost(`project/${key}/middle/publish`, data, { type: 'api' }),

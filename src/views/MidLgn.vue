@@ -26,16 +26,12 @@
     </div>
     <div id="pnlMain">
       <a-descriptions title="登录页面参数" :column="4" :labelStyle="{ 'margin-left': '10px' }">
-        <template #extra>
-          <a-button :type="!lgnProps.equals(midLgn) ? 'primary' : 'default'" @click="onLoginSave">
-            保存
-          </a-button>
-        </template>
         <a-descriptions-item label="登录路由">
           <a-input
             size="small"
             v-model:value="lgnProps.path"
             @change="() => (lgnProps.path = fixStartsWith(lgnProps.path, '/'))"
+            @blur="(e: any) => pjtAPI.middle.login.save(pid, { path: e.target.value }, refresh)"
           />
         </a-descriptions-item>
         <a-descriptions-item label="背景颜色">
@@ -67,6 +63,7 @@
               { label: '左对齐', value: 'left' }
             ]"
             v-model:value="lgnProps.align"
+            @change="(align: string) => pjtAPI.middle.login.save(pid, { align }, refresh)"
           />
         </a-descriptions-item>
         <a-descriptions-item label="表单边距">
@@ -75,12 +72,17 @@
             size="small"
             type="number"
             v-model:value="lgnProps.padding"
+            @blur="(e: any) => pjtAPI.middle.login.save(pid, { padding: e.target.value }, refresh)"
           >
             <template #suffix>px</template>
           </a-input>
         </a-descriptions-item>
         <a-descriptions-item label="表单宽度">
-          <a-input size="small" v-model:value="lgnProps.width">
+          <a-input
+            size="small"
+            v-model:value="lgnProps.width"
+            @blur="(e: any) => pjtAPI.middle.login.save(pid, { width: e.target.value }, refresh)"
+          >
             <template #suffix><percentage-outlined /></template>
           </a-input>
         </a-descriptions-item>
@@ -88,7 +90,12 @@
           <ColorField size="small" :color="lgnProps.fmBkgdColor" @submit="onFmBkgdColSubmit" />
         </a-descriptions-item>
         <a-descriptions-item label="表单圆角">
-          <a-input size="small" v-model:value="lgnProps.radius" type="number">
+          <a-input
+            size="small"
+            v-model:value="lgnProps.radius"
+            type="number"
+            @blur="(e: any) => pjtAPI.middle.login.save(pid, { radius: e.target.value }, refresh)"
+          >
             <template #suffix>px</template>
           </a-input>
         </a-descriptions-item>
@@ -103,7 +110,11 @@
           <a-input-group size="small">
             <a-row :gutter="8">
               <a-col :span="12">
-                <a-input size="small" v-model:value="lgnProps.title" />
+                <a-input
+                  size="small"
+                  v-model:value="lgnProps.title"
+                  @blur="(e: any) => pjtAPI.middle.login.save(pid, { title: e.target.value }, refresh)"
+                />
               </a-col>
               <a-col :span="12">
                 <a-button size="small" @click="lgnProps.title = middle.title">
@@ -118,6 +129,7 @@
             v-model:checked="lgnProps.logAccount"
             checked-children="记录"
             un-checked-children="不记录"
+            @change="(logAccount: boolean) => pjtAPI.middle.login.save(pid, { logAccount }, refresh)"
           />
         </a-descriptions-item>
         <a-descriptions-item label="有无标签">
@@ -125,10 +137,16 @@
             v-model:checked="lgnProps.hasLabel"
             checked-children="有"
             un-checked-children="无"
+            @change="(hasLabel: boolean) => pjtAPI.middle.login.save(pid, { hasLabel }, refresh)"
           />
         </a-descriptions-item>
         <a-descriptions-item label="标签宽度">
-          <a-input size="small" v-model:value="lgnProps.lblWidth" type="number">
+          <a-input
+            size="small"
+            v-model:value="lgnProps.lblWidth"
+            type="number"
+            @blur="(e: any) => pjtAPI.middle.login.save(pid, { lblWidth: e.target.value }, refresh)"
+          >
             <template #suffix>/ 24</template>
           </a-input>
         </a-descriptions-item>
@@ -262,17 +280,13 @@ export default defineComponent({
       rect[3] = el.clientHeight
       return el
     }
-    function onBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
-      lgnProps.bkgdColor = color
+    async function onBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
+      await pjtAPI.middle.login.save(pid, { bkgdColor: color }, refresh)
       next()
     }
-    function onFmBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
-      lgnProps.fmBkgdColor = color
+    async function onFmBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
+      await pjtAPI.middle.login.save(pid, { fmBkgdColor: color }, refresh)
       next()
-    }
-    async function onLoginSave() {
-      await pjtAPI.middle.login.save(pid, lgnProps)
-      await refresh()
     }
     function fixField(field: Field): Field {
       if (!lgnProps.hasLabel) {
@@ -282,9 +296,10 @@ export default defineComponent({
       }
       return field
     }
-    function onUploadBkgdImg(e: any) {
+    async function onUploadBkgdImg(e: any) {
       if (e.file && e.file.status === 'done') {
         lgnProps.background = e.file.response.result
+        await pjtAPI.middle.login.save(pid, { background: e.file.response.result }, refresh)
       }
     }
     return {
@@ -298,11 +313,12 @@ export default defineComponent({
       hasAuth,
       lgnFields,
       middle,
+      pjtAPI,
 
+      refresh,
       fixStartsWith,
       onBkgdColSubmit,
       onFmBkgdColSubmit,
-      onLoginSave,
       fixField,
       onUploadBkgdImg
     }

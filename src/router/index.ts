@@ -12,6 +12,7 @@ import Flow from '../views/Flow.vue'
 import Auth from '../views/Auth.vue'
 import MidLgn from '../views/MidLgn.vue'
 import MidNav from '../views/MidNav.vue'
+import MidDsb from '../views/MidDsb.vue'
 import Form from '../views/Form.vue'
 import Table from '../views/Table.vue'
 import Demo from '../views/Demo.vue'
@@ -104,6 +105,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/mid/navigate',
     name: 'MiddleNavigate',
     component: MidNav,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/project/:pid/mid/dashboard',
+    name: 'MiddleDashboard',
+    component: MidDsb,
     meta: { reqLogin: true }
   },
   {

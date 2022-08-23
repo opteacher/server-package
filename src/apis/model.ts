@@ -18,7 +18,12 @@ const expDft = {
     await reqDelete(`project/${store.getters['project/ins'].key}`, `models/${key}`)
     return reqDelete('model', key, { type: 'api' })
   },
-  update: (data: any) => reqPut('model', data.key, data, { ignores: ['svcs'] }),
+  update: async (data: any, next?: () => Promise<any>) => {
+    await reqPut('model', data.key, data, { ignores: ['svcs'] })
+    if (next) {
+      await next()
+    }
+  },
   all: async () => {
     await store.dispatch('project/refresh')
     return store.getters['project/ins'].models

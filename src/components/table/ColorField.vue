@@ -22,7 +22,7 @@
         title="选择颜色"
         @ok="onSubmit"
       >
-        <ColorSelect :color="color" @update:color="color => (formState.color = color)" />
+        <ColorSelect :color="color" @update:color="(color: string) => (formState.color = color)" />
       </a-modal>
     </template>
   </a-input>

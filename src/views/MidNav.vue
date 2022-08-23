@@ -31,33 +31,17 @@
             :theme="navProps.theme"
             @select="onMuItemSelect"
           >
-            <a-menu-item
-              v-for="mdl of models"
-              :key="mdl.key"
-              @click.stop="(e: any) => e.preventDefault()"
-            >
-              {{ void (model = selMuKey === mdl.key ? nvItmProps : mdl) }}
-              <template #icon>
-                <keep-alive v-if="model.icon">
-                  <component :is="model.icon" />
-                </keep-alive>
-              </template>
-              <span>{{ model.label || model.name }}</span>
-            </a-menu-item>
+            <ModelMenu v-for="mdl of models" :key="mdl.key" :mkey="mdl.key" :model="mdl" />
           </a-menu>
         </div>
       </a-col>
       <a-col :span="8">
         <a-descriptions class="mb-20" title="菜单参数" :column="1" size="small" bordered>
-          <template #extra>
-            <a-button :type="!navProps.equals(midNav) ? 'primary' : 'default'" @click="onNaviSave">
-              保存
-            </a-button>
-          </template>
           <a-descriptions-item label="主路由">
             <a-input
               v-model:value="navProps.path"
               @change="() => (navProps.path = fixStartsWith(navProps.path, '/'))"
+              @blur="(e: any) => pjtAPI.middle.navigate.save(pid, { path: e.target.value }, refresh)"
             />
           </a-descriptions-item>
           <a-descriptions-item label="主题颜色">
@@ -68,6 +52,7 @@
                 { label: '浅色', value: 'light' }
               ]"
               v-model:value="navProps.theme"
+              @change="(theme: string) => pjtAPI.middle.navigate.save(pid, { theme }, refresh)"
             />
           </a-descriptions-item>
         </a-descriptions>
@@ -89,22 +74,17 @@
           </a-descriptions-item>
         </a-descriptions>
         <a-descriptions v-else-if="selMuKey" title="菜单项参数" :column="1" size="small" bordered>
-          <template #extra>
-            <a-button
-              :type="!mdlEqual(selModel, nvItmProps) ? 'primary' : 'default'"
-              @click="onNvItmSave"
-            >
-              保存
-            </a-button>
-          </template>
           <a-descriptions-item label="菜单图标">
             <IconField
               :icon="nvItmProps.icon"
-              @select="(icon: string) => { nvItmProps.icon = icon }"
+              @select="(icon: string) => mdlAPI.update(Object.assign(nvItmProps, { icon }), refresh)"
             />
           </a-descriptions-item>
           <a-descriptions-item label="标签名">
-            <a-input v-model:value="nvItmProps.label" />
+            <a-input
+              v-model:value="nvItmProps.label"
+              @blur="(e: any) => mdlAPI.update(Object.assign(nvItmProps, { label: e.target.value }), refresh)"
+            />
           </a-descriptions-item>
         </a-descriptions>
       </a-col>
@@ -117,22 +97,24 @@ import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import LytMiddle from '../layouts/LytMiddle.vue'
-import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 import Model from '../types/model'
 import IconField from '../components/com/IconField.vue'
 import MidNav from '@/types/midNav'
 import { pjtAPI, mdlAPI } from '../apis'
 import { fixStartsWith } from '@/utils'
+import ModelMenu from '../components/mid/ModelMenu.vue'
+import { PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'MiddleNavigate',
-  components: Object.assign(
-    {
-      LytMiddle,
-      IconField
-    },
-    antdIcons
-  ),
+  components: {
+    LytMiddle,
+    IconField,
+    ModelMenu,
+
+    PictureOutlined,
+    UploadOutlined
+  },
   setup() {
     const store = useStore()
     const route = useRoute()
@@ -162,14 +144,6 @@ export default defineComponent({
     function onUpldImgChange() {
       console.log()
     }
-    async function onNaviSave() {
-      await pjtAPI.middle.navigate.save(pid, navProps)
-      await refresh()
-    }
-    async function onNvItmSave() {
-      await mdlAPI.update({ key: selMuKey.value, icon: nvItmProps.icon, label: nvItmProps.label })
-      await refresh()
-    }
     function mdlEqual(
       mdl1: { icon: string; label: string },
       mdl2: { icon: string; label: string }
@@ -179,10 +153,13 @@ export default defineComponent({
     function onUploadLogoImg(e: any) {
       if (e.file && e.file.status === 'done') {
         navProps.logo = e.file.response.result
+        pjtAPI.middle.navigate.save(pid, { logo: e.file.response.result }, refresh)
       }
     }
     return {
       pid,
+      pjtAPI,
+      mdlAPI,
       models,
       selMuKey,
       midNav,
@@ -190,11 +167,10 @@ export default defineComponent({
       nvItmProps,
       selModel,
 
+      refresh,
       fixStartsWith,
       onMuItemSelect,
       onUpldImgChange,
-      onNaviSave,
-      onNvItmSave,
       mdlEqual,
       onUploadLogoImg
     }
