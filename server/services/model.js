@@ -52,7 +52,7 @@ export async function exportClass(mid, options) {
     return ret
   }
   if (!options.name) {
-    options.name = _.capitalize(model.name)
+    options.name = _.upperFirst(model.name)
   }
   let writeData = `export default class ${options.name} {\n`
   if (options.expType === 'typescript') {
@@ -119,8 +119,8 @@ export async function create(data) {
   const model = await db.save(Model, pickOrIgnore(data, ['project']))
   await db.save(Dep, {
     _id: model.id,
-    name: _.capitalize(model.name),
-    exports: [_.capitalize(model.name)],
+    name: _.upperFirst(model.name),
+    exports: [_.upperFirst(model.name)],
     from: `../models/${model.name}.js`,
     default: true
   })

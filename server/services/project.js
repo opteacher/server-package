@@ -326,14 +326,18 @@ export async function generate(pid) {
     adjustFile(mdlData, mdlGen, { model })
 
     const services = {}
+    const svcRts = {}
     for (const svc of svcs) {
       let pamIdx = svc.path.indexOf('/:')
       pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
       const pathPfx = svc.path.substring(0, pamIdx)
       const rotGen = Path.join(rotPath, pathPfx)
       fs.mkdirSync(rotGen, { recursive: true })
-      console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
-      adjustFile(rotData, `${rotGen}/index.js`, { svc, pamIdx })
+      if (rotGen in svcRts) {
+        svcRts[rotGen].push({ svc, pamIdx })
+      } else {
+        svcRts[rotGen] = [{ svc, pamIdx }]
+      }
 
       if (svc.name === 'auth') {
         console.log('跳过授权服务')
@@ -361,6 +365,11 @@ export async function generate(pid) {
       } else {
         services[svc.name].push(svcExt)
       }
+    }
+
+    for (const [rotGen, svcs] of Object.entries(svcRts)) {
+      console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
+      adjustFile(rotData, `${rotGen}/index.js`, { svcs })
     }
 
     for (const [aname, svcs] of Object.entries(services)) {

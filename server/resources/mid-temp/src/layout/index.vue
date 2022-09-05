@@ -111,6 +111,7 @@ export default defineComponent({
         message.error('没有访问权限！', undefined, () => {
           router.replace('//*return project.name*//login')
         })
+        localStorage.removeItem('token')
         return
       }
       emit('change', active.value)
