@@ -314,7 +314,8 @@ export async function delProp(mid, pid) {
     {
       [`props[{_id:${pid}}]`]: null,
       [`form.fields[{refer:${prop.name}}]`]: null,
-      [`table.columns[{dataIndex:${prop.name}}]`]: null
+      [`table.columns[{dataIndex:${prop.name}}]`]: null,
+      [`table.cells[{refer:${prop.name}}]`]: null
     },
     { updMode: 'delete' }
   )
