@@ -91,6 +91,7 @@ export const baseTypes = [
   'Unknown',
   'Id',
   'String',
+  'LongStr',
   'Number',
   'DateTime',
   'Boolean',
@@ -106,6 +107,7 @@ export type BaseTypes =
   | 'Id'
   | 'Number'
   | 'String'
+  | 'LongStr'
   | 'Boolean'
   | 'DateTime'
   | 'Array'

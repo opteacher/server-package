@@ -7,19 +7,33 @@
           <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
         </a-space>
       </a-col>
-      <a-col v-if="table.operable.includes('可增加')" style="text-align: right" flex="100px">
-        <a-button
-          class="float-right"
-          type="primary"
-          @click="
-            fmEmitter.emit('update:show', {
-              show: true,
-              cpyRcd: (tgt: any) => actCopy(actCopy({}), tgt, true)
-            })
-          "
-        >
-          添加
-        </a-button>
+      <a-col v-if="table.operable.includes('可增加')" style="text-align: right" flex="200px">
+        <a-space>
+          <SelColBox v-if="table.colDspable" v-model:columns="columns" />
+          <a-space v-if="table.operable.includes('可增加')">
+            <BchExpBox
+              v-if="table.imExport.includes('export')"
+              :columns="columns"
+              :copyFun="bchEptCopy"
+            />
+            <BchImpBox
+              v-if="table.imExport.includes('import')"
+              :columns="columns"
+              :copyFun="bchIptCopy"
+            />
+            <a-button
+              type="primary"
+              @click="
+                fmEmitter.emit('update:show', {
+                  show: true,
+                  cpyRcd: (tgt: any) => actCopy(actCopy({}), tgt, true)
+                })
+              "
+            >
+              添加
+            </a-button>
+          </a-space>
+        </a-space>
       </a-col>
     </a-row>
     <RefreshBox
@@ -133,13 +147,18 @@ import IndexLayout from '../layout/index.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Form from '../types/form'
 import Table, { Cells } from '../types/table'
-import { endsWith, fmtStrByObj } from '../utils'
+import { baseCopy, endsWith, fmtStrByObj } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
 import Column from '../types/column'
 import RefreshBox from '../components/RefreshBox.vue'
+import SelColBox from '../components/SelColBox.vue'
 import CellCard from '../components/CellCard.vue'
 import Cell from '../types/cell'
+import BchExpBox from '../components/BchExpBox.vue'
+import BchImpBox from '../components/BchImpBox.vue'
+import BchIpt from '../types/bchImport'
+import BchEpt from '../types/bchExport'
 /*return models.map(model => `import ${model.name} from '../types/${model.name}'`).join('\n')*/
 
 const models: any[] =
@@ -148,19 +167,30 @@ const models: any[] =
 const copies: Record<string, (src: any, tgt?: any, force?: boolean) => any> =
   {} /*return '{ ' + models.map(model => `'${model.name}': ${model.name}.copy`).join(', ') + ' }'*/
 
+const bchIptCopies: Record<string, (src: any, tgt?: any, force?: boolean) => any> =
+  {} /*return '{ ' + models.map(model => `'${model.name}': baseCopy(BchIpt, ${model.name}, () => '')`).join(', ') + ' }'*/
+
+const bchEptCopies: Record<string, (src: any, tgt?: any, force?: boolean) => any> =
+  {} /*return '{ ' + models.map(model => `'${model.name}': baseCopy(BchEpt, ${model.name}, () => ({ column: '', compare: '=' }))`).join(', ') + ' }'*/
+
 export default defineComponent({
   name: 'Home',
   components: {
     IndexLayout,
     FormDialog,
     RefreshBox,
-    CellCard
+    CellCard,
+    SelColBox,
+    BchExpBox,
+    BchImpBox
   },
   setup() {
     const layout = ref()
     const ctnrHeight = ref('500px')
     const actMdl = ref('')
     const actCopy = computed(() => copies[actMdl.value])
+    const bchIptCopy = computed(() => bchIptCopies[actMdl.value])
+    const bchEptCopy = computed(() => bchEptCopies[actMdl.value])
     const form = reactive(new Form())
     const table = reactive(new Table())
     const records = reactive([] as any[])
@@ -174,6 +204,7 @@ export default defineComponent({
     })
     const fmEmitter = new Emitter()
     const expRowKeys = reactive([] as string[])
+    const loading = ref(false)
 
     onMounted(resize)
     window.onresize = resize
@@ -187,6 +218,7 @@ export default defineComponent({
       ctnrHeight.value = `calc(100vh - ${tHeaderBottom + 48 + 56}px)`
     }
     async function refresh() {
+      loading.value = true
       if (!actMdl.value) {
         return
       }
@@ -198,8 +230,10 @@ export default defineComponent({
         records.length,
         ...(await api.all(actMdl.value)).map((record: any) => actCopy.value(record))
       )
+      loading.value = false
     }
     async function onRecordSave(record: any, next: () => void) {
+      loading.value = true
       if (record.key) {
         await api.update(actMdl.value, record.key, record)
       } else {
@@ -209,6 +243,7 @@ export default defineComponent({
       next()
     }
     async function onRecordDel(record: any) {
+      loading.value = true
       await api.remove(actMdl.value, record.key)
       await refresh()
     }
@@ -280,6 +315,8 @@ export default defineComponent({
       columns,
       copies,
       expRowKeys,
+      bchIptCopy,
+      bchEptCopy,
 
       refresh,
       endsWith,

@@ -1,7 +1,7 @@
 import store from '@/store'
 import Service from '@/types/service'
 import { reqDelete, reqGet, reqPost, reqPut, intervalCheck } from '@/utils'
-import { emitter } from '../views/Job'
+import { svcEmitter } from '../views/Model'
 
 export default {
   add: async (data: any) => {
@@ -13,7 +13,7 @@ export default {
   remove: async (key: any) => {
     const mid = store.getters['model/ins'].key
     await reqDelete(`model/${mid}`, `svcs/${key}`)
-    return reqDelete('service', key)
+    return reqDelete('service', key, { type: 'api' })
   },
   update: (data: any) => {
     if (data.cdValue) {
@@ -42,7 +42,7 @@ export default {
           }
         },
         middle: {
-          succeed: () => emitter.emit('refresh')
+          succeed: () => svcEmitter.emit('refresh')
         }
       })
     },
@@ -61,7 +61,7 @@ export default {
           }
         },
         middle: {
-          succeed: () => emitter.emit('refresh')
+          succeed: () => svcEmitter.emit('refresh')
         }
       })
     }

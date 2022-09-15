@@ -9,6 +9,10 @@ export default class Column {
   sorter: ((a: any, b: any) => number) | undefined
   defaultSortOrder: string
   notDisplay: boolean
+  resizable: boolean
+  fixed?: 'left' | 'right'
+  customCell: (record: any, rowIndex: number, column: Column) => any
+  customHeaderCell: (column: Column) => any
 
   constructor(
     title: string,
@@ -22,6 +26,10 @@ export default class Column {
       searchable?: boolean
       filterable?: boolean
       notDisplay?: boolean
+      resizable?: boolean
+      fixed?: 'left' | 'right'
+      customCell?: (record: any, rowIndex: number, column: Column) => any
+      customHeaderCell?: (column: Column) => any
     }
   ) {
     this.title = title
@@ -35,7 +43,13 @@ export default class Column {
       options && options.sortable ? (a: any, b: any) => a[dataIdx] - b[dataIdx] : undefined
     this.defaultSortOrder =
       options && typeof options.defaultSort !== 'undefined' ? options.defaultSort : ''
-    this.notDisplay = options && typeof options.notDisplay !== 'undefined' ? options.notDisplay : false
+    this.notDisplay =
+      options && typeof options.notDisplay !== 'undefined' ? options.notDisplay : false
+    this.resizable = options && typeof options.resizable !== 'undefined' ? options.resizable : false
+    this.fixed = options && options.fixed ? options.fixed : undefined
+    this.customCell = options && options.customCell ? options.customCell : () => {}
+    this.customHeaderCell =
+      options && options.customHeaderCell ? options.customHeaderCell : () => {}
   }
 
   reset() {
@@ -47,6 +61,10 @@ export default class Column {
     this.sorter = undefined
     this.defaultSortOrder = ''
     this.notDisplay = false
+    this.resizable = false
+    this.fixed = undefined
+    this.customCell = () => {}
+    this.customHeaderCell = () => {}
   }
 
   static copy(src: any, tgt?: Column): Column {
@@ -69,6 +87,10 @@ export default class Column {
         ? src.defaultSort
         : ''
     tgt.notDisplay = typeof src.notDisplay !== 'undefined' ? src.notDisplay : tgt.notDisplay
+    tgt.resizable = typeof src.resizable !== 'undefined' ? src.resizable : tgt.resizable
+    tgt.fixed = src.fixed || tgt.fixed
+    tgt.customCell = src.customCell || tgt.customCell
+    tgt.customHeaderCell = src.customHeaderCell || tgt.customHeaderCell
     return tgt
   }
 }

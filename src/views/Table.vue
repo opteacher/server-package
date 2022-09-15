@@ -10,8 +10,23 @@
                 <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
               </a-space>
             </a-col>
-            <a-col v-if="table.operable.includes('可增加')" flex="100px">
-              <a-button class="float-right" type="primary">添加</a-button>
+            <a-col class="text-right" flex="200px">
+              <a-space>
+                <SelColBox v-if="table.colDspable" v-model:columns="columns" />
+                <a-space v-if="table.operable.includes('可增加')">
+                  <BchExpBox
+                    v-if="table.imExport.includes('export')"
+                    :columns="columns"
+                    :copyFun="() => undefined"
+                  />
+                  <BchImpBox
+                    v-if="table.imExport.includes('import')"
+                    :columns="columns"
+                    :copyFun="() => undefined"
+                  />
+                  <a-button type="primary">添加</a-button>
+                </a-space>
+              </a-space>
             </a-col>
           </a-row>
           <RefreshBox v-if="table.refresh.length" class="mb-10" :tblRfsh="table.refresh" />
@@ -106,6 +121,9 @@ import { dispHidCol } from './Table'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
+import SelColBox from '../components/table/SelColBox.vue'
+import BchExpBox from '../components/table/BchExpBox.vue'
+import BchImpBox from '../components/table/BchImpBox.vue'
 
 export default defineComponent({
   name: 'Table',
@@ -116,7 +134,10 @@ export default defineComponent({
     ColumnProps,
     CellProps,
     CellCard,
-    RefreshBox
+    RefreshBox,
+    SelColBox,
+    BchExpBox,
+    BchImpBox
   },
   setup() {
     const store = useStore()

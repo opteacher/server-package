@@ -16,7 +16,7 @@ export default class Project {
   dropDbs: boolean
   commands: string
   independ: boolean
-  envVars: { name: string, value: string }[]
+  envVars: { name: string; value: string }[]
   expPorts: number[]
   models: Model[]
   auth: Auth
@@ -71,7 +71,11 @@ export default class Project {
     tgt.commands = src.commands || tgt.commands
     tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
     tgt.envVars = src.envVars
-      ? src.envVars.map((evar: any) => ({ key: evar.key || evar._id || undefined, name: evar.name, value: evar.value }))
+      ? src.envVars.map((evar: any) => ({
+          key: evar.key || evar._id || undefined,
+          name: evar.name,
+          value: evar.value
+        }))
       : tgt.envVars
     tgt.expPorts = src.expPorts || tgt.expPorts
     if (src.models) {

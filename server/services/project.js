@@ -24,6 +24,7 @@ function formatToStr(value, vtype) {
   }
   switch (vtype) {
     case 'String':
+    case 'LongStr':
       return `\'${value}\'`
     case 'DateTime':
       return value.toString().toLowerCase() === 'now'
@@ -141,13 +142,14 @@ function fmtInput(variable) {
   const value = variable.value || variable.name
   switch (variable.vtype) {
     case 'String':
+    case 'LongStr':
       return `'${value}'`
     case 'Array':
       return `[${value}]`
     case 'Object':
       return `${value}${
         variable.index
-          ? variable.idxType === 'String'
+          ? variable.idxType === 'String' || variable.idxType === 'LongStr'
             ? "['" + variable.index + "']"
             : '[' + variable.index + ']'
           : ''
@@ -174,7 +176,7 @@ async function recuNode(key, indent, callback, endKey) {
       const ret = [genAnnotation(node, indents)]
       for (let i = 0; i < node.nexts.length; ++i) {
         const nxtNode = await db.select(Node, { _index: node.nexts[i].id })
-        ret.push(indents + `${i !== 0 ? '} else ' : ''}if (${fmtCode(nxtNode)}) {`)
+        ret.push(indents + `${i !== 0 ? '} else ' : ''}${nxtNode.code ? 'if (' + fmtCode(nxtNode) + ')' : ''} {`)
         if (nxtNode.nexts.length) {
           ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, callback, node.relative)))
         }

@@ -115,39 +115,73 @@
         title="服务"
         size="small"
         :api="{ all: () => [] }"
+        :mapper="svcMapper"
         :columns="svcColumns"
         :copy="Service.copy"
         :emitter="svcEmitter"
-        :edtable="false"
-        :delable="false"
-        @add="$router.push(`/server-package/project/${pid}/model/${mid}/apis`)"
+        @add="onAddSvcClicked"
+        @before-save="onBefSave"
+        @save="refresh"
+        @delete="refresh"
       >
         <template #emit="{ record: svc }">
-          <template v-if="svc.emit === 'api'">接口</template>
+          <template v-if="svc.emit === 'api'">网络接口</template>
           <template v-else-if="svc.emit === 'timeout'">延时任务</template>
           <template v-else-if="svc.emit === 'interval'">定时任务</template>
         </template>
-        <template #pathCond="{ record: svc }">
-          <template v-if="svc.emit === 'api'">/{{ pjtName }}{{ svc.path }}</template>
-          <template v-else-if="svc.emit === 'timeout'">
+        <template #conds="{ record: svc }">
+          <template v-if="svc.emit === 'timeout'">
             {{ `${svc.condition}后` }}
           </template>
           <template v-else-if="svc.emit === 'interval'">
             {{ `每${svc.condition}` }}
           </template>
         </template>
-        <template #path="{ record: svc }">
-          <a
+        <template #flow="{ record: svc }">
+          <a-button
+            v-if="!svc.isModel"
+            type="primary"
+            size="small"
             @click.stop="
-              $router.push(
-                `/server-package/project/${pid}/model/${mid}/${
-                  svc.emit === 'api' ? 'apis' : 'jobs'
-                }`
-              )
+              $router.push(`/server-package/project/${pid}/model/${mid}/flow/${svc.key}`)
             "
           >
-            {{ svc.path }}
-          </a>
+            <template #icon><edit-outlined /></template>
+            &nbsp;设计流程
+          </a-button>
+          <template v-else>
+            <InfoCircleOutlined />
+            模型路由流程固定
+          </template>
+        </template>
+        <template #ctrl="{ record: svc }">
+          <template v-if="svc.emit === 'timeout' || svc.emit === 'interval'">
+            <ul class="unstyled-list">
+              <li class="mb-3">
+                <a-tooltip>
+                  <template #title>需先启动项目后才能启动任务！</template>
+                  <a-button
+                    size="small"
+                    type="primary"
+                    :disabled="pstatus !== 'running'"
+                    @click.stop="() => svcAPI.job.restart(svc.key)"
+                  >
+                    启动
+                  </a-button>
+                </a-tooltip>
+              </li>
+              <li v-if="svc.jobId">
+                <a-button
+                  size="small"
+                  danger
+                  :disabled="pstatus !== 'running'"
+                  @click.stop="() => svcAPI.job.stop(svc.key)"
+                >
+                  停止
+                </a-button>
+              </li>
+            </ul>
+          </template>
         </template>
       </EditableTable>
     </div>
@@ -161,7 +195,7 @@ import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import FormDialog from '../components/com/FormDialog.vue'
-import { expMapper, propEmitter } from './Model'
+import { expMapper, propEmitter, svcEmitter, svcMapper } from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
 import Service from '@/types/service'
@@ -170,11 +204,12 @@ import {
   ExportOutlined,
   FormOutlined,
   AppstoreOutlined,
-  PartitionOutlined
+  PartitionOutlined,
+  EditOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons-vue'
 import { propColumns, propMapper, svcColumns } from './Model'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { mdlAPI, propAPI } from '../apis'
+import { mdlAPI, propAPI, svcAPI } from '../apis'
 import Model from '@/types/model'
 
 export default defineComponent({
@@ -187,7 +222,9 @@ export default defineComponent({
     ExportOutlined,
     FormOutlined,
     AppstoreOutlined,
-    PartitionOutlined
+    PartitionOutlined,
+    EditOutlined,
+    InfoCircleOutlined
   },
   setup() {
     const route = useRoute()
@@ -196,6 +233,7 @@ export default defineComponent({
     const pid = route.params.pid as string
     const mid = route.params.mid as string
     const model = computed(() => store.getters['model/ins'])
+    const mname = computed(() => store.getters['model/ins'].name)
     const mdlOpns = computed(() =>
       [{ label: '无', value: '' }].concat(
         store.getters['project/models']
@@ -207,7 +245,6 @@ export default defineComponent({
     const pstatus = computed(() => store.getters['project/ins'].status.stat)
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
-    const svcEmitter = new Emitter()
 
     onMounted(refresh)
 
@@ -227,6 +264,14 @@ export default defineComponent({
       prop.index = false
       prop.unique = false
       prop.visible = true
+    }
+    function onAddSvcClicked() {
+      svcEmitter.emit('update:data', { name: mname.value, emit: 'timeout' })
+    }
+    function onBefSave(svc: Service) {
+      if (svc.emit === 'timeout' || svc.emit === 'interval') {
+        svc.path = `/job/v1/${mname.value}/${svc.interface}`
+      }
     }
     return {
       ExpCls,
@@ -249,11 +294,15 @@ export default defineComponent({
       propColumns,
       propMapper,
       propEmitter,
+      svcAPI,
       svcColumns,
       svcEmitter,
+      svcMapper,
 
       refresh,
-      onRelMdlChange
+      onRelMdlChange,
+      onAddSvcClicked,
+      onBefSave
     }
   }
 })

@@ -1,8 +1,14 @@
 import Router from 'koa-router'
-import { restart, stop } from '../../../../../services/service.js'
+import { restart, stop, del } from '../../../../../services/service.js'
 import { save as saveNode, del as delNode } from '../../../../../services/node.js'
 
 const router = new Router()
+
+router.delete('/:sid', async ctx => {
+  ctx.body = {
+    result: await del(ctx.params.sid)
+  }
+})
 
 router.post('/:sid/job/restart', async ctx => {
   if (!ctx.request.query.pid) {

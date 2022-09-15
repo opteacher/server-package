@@ -149,6 +149,8 @@ const optEmitter = new Emitter()
 
 export const edtNdEmitter = new Emitter()
 
+const depEmitter = new Emitter()
+
 export const edtNdMapper = new Mapper({
   temp: {
     label: '模板',
@@ -277,12 +279,30 @@ export const edtNdMapper = new Mapper({
       },
       deps: {
         label: '依赖',
-        type: 'ListSelect',
+        type: 'TagList',
         display: [
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
-        options: []
+        lblProp: 'name',
+        mapper: new Mapper({
+          deps: {
+            label: '依赖',
+            type: 'ListSelect',
+            height: 500,
+            options: []
+          }
+        }),
+        emitter: depEmitter,
+        copy: (src: any, tgt?: any) => {
+          tgt = tgt || {}
+          tgt.deps = src || tgt.deps
+          return tgt
+        },
+        onSaved: async (record: any) => {
+          await api.deps.save(record.deps)
+          depEmitter.emit('update:show', false)
+        }
       },
       code: {
         label: '代码',

@@ -30,6 +30,7 @@ export function genDefault(type, dftVal) {
     case 'Any':
       return dftVal || 'null'
     case 'String':
+    case 'LongStr':
       return `'${dftVal || ''}'`
     case 'Number':
       return dftVal || '0'

@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Node, { NodeTypeMapper } from '@/types/node'
 import Service from '@/types/service'
-import Variable from '@/types/variable'
 import Dep from '@/types/dep'
 import { OpnType } from '@/types'
 import { LstOpnType } from '@/types/mapper'
@@ -133,19 +132,23 @@ export default {
       }
       const sid = router.currentRoute.value.params.sid
       await dispatch('model/refresh', undefined, { root: true })
-      edtNdMapper.advanced.items.deps.options = (await depAPI.all(0, Number.MAX_VALUE))
-        .concat(await depAPI.all(0, Number.MAX_VALUE, rootGetters['project/ins'].name))
-        .map((dep: Dep) =>
-          LstOpnType.copy({
-            key: dep.key,
-            title: dep.name,
-            subTitle: [
-              'import ',
-              dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
-              ` from '${dep.from}'`
-            ].join('')
-          })
-        )
+      const deps = (await depAPI.all(0, Number.MAX_VALUE)).concat(
+        await depAPI.all(0, Number.MAX_VALUE, rootGetters['project/ins'].name)
+      )
+      edtNdMapper.advanced.items.deps.lvMapper = Object.fromEntries(
+        deps.map((dep: Dep) => [dep.key, dep.name])
+      )
+      edtNdMapper.advanced.items.deps.mapper.deps.options = deps.map((dep: Dep) =>
+        LstOpnType.copy({
+          key: dep.key,
+          title: dep.name,
+          subTitle: [
+            'import ',
+            dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
+            ` from '${dep.from}'`
+          ].join('')
+        })
+      )
       await dispatch('refreshTemps')
       Service.copy(await reqGet('service', sid), state.svc)
       if (state.svc.flow) {

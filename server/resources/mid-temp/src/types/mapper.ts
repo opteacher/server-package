@@ -214,9 +214,9 @@ export class TableMapper extends BaseMapper {
     tgt.onEdit = src.onEdit || tgt.onEdit
     tgt.onSaved = src.onSaved || tgt.onSaved
     tgt.onDeleted = src.onDeleted || tgt.onDeleted
-    tgt.addable = src.addable || tgt.addable
-    tgt.edtable = src.edtable || tgt.edtable
-    tgt.delable = src.delable || tgt.delable
+    tgt.addable = typeof src.addable != 'undefined' ? src.addable : tgt.addable
+    tgt.edtable = typeof src.edtable != 'undefined' ? src.edtable : tgt.edtable
+    tgt.delable = typeof src.delable != 'undefined' ? src.delable : tgt.delable
     return tgt
   }
 }
@@ -264,41 +264,36 @@ export class LstOpnType {
 }
 
 export class LstSelMapper extends BaseMapper {
+  height: number
   options: LstOpnType[]
 
   constructor() {
     super()
+    this.height = 200
     this.options = []
   }
 
   static copy(src: any, tgt?: LstSelMapper): LstSelMapper {
     tgt = tgt || new LstSelMapper()
     BaseMapper.copy(src, tgt)
+    tgt.height = src.height || tgt.height
     tgt.options = src.options ? src.options.map((opn: any) => LstOpnType.copy(opn)) : tgt.options
     return tgt
   }
 }
 
-export class ListMapper extends BaseMapper {
-  addMod: boolean
-  mode: 'select' | 'input'
-  options: OpnType[]
+export class ListMapper extends TableMapper {
+  lvMapper: Record<string, string>
 
   constructor() {
     super()
-    this.addMod = false
-    this.mode = 'input'
-    this.options = []
+    this.lvMapper = {}
   }
 
   static copy(src: any, tgt?: ListMapper): ListMapper {
     tgt = tgt || new ListMapper()
-    BaseMapper.copy(src, tgt)
-    if (src.addMod) {
-      tgt.addMod = src.addMod || tgt.addMod
-    }
-    tgt.mode = src.mode || tgt.mode
-    tgt.options = src.options || tgt.options
+    TableMapper.copy(src, tgt)
+    tgt.lvMapper = src.lvMapper || tgt.lvMapper
     return tgt
   }
 }
@@ -337,6 +332,28 @@ export class CdEdtMapper extends BaseMapper {
   }
 }
 
+export class UploadMapper extends BaseMapper {
+  path: string
+  headers: Record<string, any>
+  onBeforeUpload: (file: any, fileList: any[]) => boolean | Promise<any>
+
+  constructor() {
+    super()
+    this.path = ''
+    this.headers = {}
+    this.onBeforeUpload = () => true
+  }
+
+  static copy(src: any, tgt?: UploadMapper): UploadMapper {
+    tgt = tgt || new UploadMapper()
+    BaseMapper.copy(src, tgt)
+    tgt.path = src.path || tgt.path
+    tgt.headers = src.headers || tgt.headers
+    tgt.onBeforeUpload = src.onBeforeUpload || tgt.onBeforeUpload
+    return tgt
+  }
+}
+
 const EleTypeCopies = {
   Unknown: BaseMapper.copy,
   Input: InputMapper.copy,
@@ -351,8 +368,9 @@ const EleTypeCopies = {
   Text: BaseMapper.copy,
   Delable: TableMapper.copy,
   SelOrIpt: SelOrIptMapper.copy,
-  Upload: BaseMapper.copy,
+  Upload: UploadMapper.copy,
   DateTime: BaseMapper.copy,
+  TagList: ListMapper.copy,
   ListSelect: LstSelMapper.copy,
   CodeEditor: CdEdtMapper.copy,
   List: ListMapper.copy,

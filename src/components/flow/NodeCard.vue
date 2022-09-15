@@ -57,7 +57,8 @@
             :style="{
               position: 'absolute',
               'z-index': 100,
-              right: 0
+              right: 0,
+              'text-align': 'right'
             }"
           >
             <a-tag

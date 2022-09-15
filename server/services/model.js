@@ -12,6 +12,7 @@ import { del as delSvc } from './service.js'
 const typeMapper = {
   Any: 'any',
   String: 'string',
+  LongStr: 'string',
   Number: 'number',
   Boolean: 'boolean',
   DateTime: 'Date',
@@ -183,6 +184,8 @@ function baseToCompoType(type) {
   switch (type) {
     case 'String':
       return 'Input'
+    case 'LongStr':
+      return 'Textarea'
     case 'Number':
       return 'Number'
     case 'Boolean':

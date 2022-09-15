@@ -1,5 +1,6 @@
 import { message } from 'ant-design-vue'
 import axios from 'axios'
+import Batch from './types/batch'
 
 export interface RequestOptions {
   type?: string
@@ -333,4 +334,48 @@ export function fmtStrByObj(pattern: RegExp, obj: any, str: string) {
     ret = ret.replace(result[0] + ' ', getProperty(obj, result[0].substring(result[0].startsWith('@') ? 1 : 2)))
   }
   return ret
+}
+
+export function upperFirst(text: string): string {
+  if (!text.length) {
+    return ''
+  }
+  const char = text.charCodeAt(0)
+  if (char >= 97 && char <= 122) {
+    return String.fromCharCode(char - 32) + text.substring(1)
+  }
+  return text
+}
+
+export function lowerFirst(text: string): string {
+  if (!text.length) {
+    return ''
+  }
+  const char = text.charCodeAt(0)
+  if (char >= 65 && char <= 90) {
+    return String.fromCharCode(char + 32) + text.substring(1)
+  }
+  return text
+}
+
+export function baseCopy<B extends Batch, D extends Record<string, unknown>>(
+  b: { new (): B; copy: (src: any, tgt: any) => any },
+  d: new () => D,
+  genDft: () => any
+) {
+  return (src: any, tgt?: any, force = false) => {
+    const devKeys = Object.keys(new d())
+    tgt =
+      tgt ||
+      Object.assign(
+        new b(),
+        Object.fromEntries(devKeys.map((key: string) => [`col${upperFirst(key)}`, genDft()]))
+      )
+    b.copy(src, tgt)
+    for (const key of devKeys) {
+      const colKey = `col${upperFirst(key)}`
+      tgt[colKey] = force ? src[colKey] : src[colKey] || tgt[colKey]
+    }
+    return tgt
+  }
 }

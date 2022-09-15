@@ -18,6 +18,12 @@ export default {
     await reqDelete(`service/${sid}/node`, key, { type: 'api' })
     await store.dispatch('service/refresh')
   },
+  deps: {
+    save: (deps: string[]) => {
+      const edtNode = store.getters['service/editNode']
+      return reqPut('node', edtNode.key, { deps })
+    }
+  },
   inOutput: {
     save: async (payload: { name: 'inputs' | 'outputs'; varb: any }) => {
       const edtNode = store.getters['service/editNode']

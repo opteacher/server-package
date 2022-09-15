@@ -93,6 +93,7 @@ export default defineComponent({
     function toDefault(type: BaseTypes) {
       switch (type) {
         case 'String':
+        case 'LongStr':
           return ''
         case 'Number':
           return 0

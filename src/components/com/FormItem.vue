@@ -1,5 +1,5 @@
 <template>
-  <a-form-item v-show="validConds(valState.display)" :ref="skey" :name="skey">
+  <a-form-item v-show="validConds(formState, valState.display)" :ref="skey" :name="skey">
     <template #label>
       {{ valState.label }}&nbsp;
       <a-tooltip v-if="valState.desc">
@@ -54,7 +54,7 @@
         v-if="valState.type === 'Input'"
         v-model:value="formState[skey]"
         :type="valState.iptType || 'text'"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         :addon-before="valState.prefix"
         :addon-after="valState.suffix"
         :placeholder="valState.placeholder || '请输入'"
@@ -66,7 +66,7 @@
         type="number"
         v-model:value="formState[skey]"
         :placeholder="valState.placeholder || '请输入'"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         @change="(val: any) => valState.onChange(formState, val)"
       />
       <a-select
@@ -75,7 +75,7 @@
         :options="valState.options"
         v-model:value="formState[skey]"
         :placeholder="valState.placeholder || '请选择'"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         @dropdownVisibleChange="valState.onDropdown"
         @change="(val: any) => valState.onChange(formState, val)"
       >
@@ -88,7 +88,7 @@
         <a-checkbox
           :name="skey"
           v-model:checked="formState[skey]"
-          :disabled="validConds(valState.disabled) || !editable"
+          :disabled="validConds(formState, valState.disabled) || !editable"
           @change="(val: any) => valState.onChange(formState, val)"
         >
           {{
@@ -107,7 +107,7 @@
         v-model:value="formState[skey]"
         :rows="valState.maxRows"
         :placeholder="valState.placeholder || '请输入'"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         @change="(val: any) => valState.onChange(formState, val)"
       />
       <a-cascader
@@ -116,14 +116,14 @@
         :placeholder="valState.placeholder || '请选择'"
         v-model:value="formState[skey]"
         change-on-select
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         @change="(e: any) => valState.onChange(formState, e)"
       />
       <a-tooltip v-else-if="valState.type === 'Button'">
         <template #title>{{ valState.placeholder || '请点击' }}</template>
         <a-button
           class="w-100"
-          :disabled="validConds(valState.disabled) || !editable"
+          :disabled="validConds(formState, valState.disabled) || !editable"
           :danger="valState.danger"
           :type="valState.primary ? 'primary' : 'default'"
           ghost
@@ -138,13 +138,13 @@
         class="w-100"
         show-time
         :placeholder="valState.placeholder || '请选择'"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
         v-model:value="formState[skey]"
       />
       <template v-else-if="valState.type === 'Table'">
         <a-space>
           <a-button
-            v-if="validConds(valState.addable)"
+            v-if="validConds(formState, valState.addable)"
             type="primary"
             @click="
               () => {
@@ -180,7 +180,7 @@
                   })
                 "
         >
-          <template v-if="validConds(valState.delable)" #bodyCell="{ column, record }">
+          <template v-if="validConds(formState, valState.delable)" #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'opera'">
               <a-popconfirm
                 title="确定删除该字段"
@@ -192,48 +192,13 @@
           </template>
         </a-table>
       </template>
-      <template v-else-if="valState.type === 'Upload'">
-        <a-dropdown class="w-100" :disabled="validConds(valState.disabled) || !editable">
-          <a-button>
-            <template #icon><UploadOutlined /></template>
-            选择上传的文件或文件夹
-          </a-button>
-          <template #overlay>
-            <a-upload
-              name="file"
-              :multiple="false"
-              :directory="uploadDir"
-              :showUploadList="false"
-              v-model:file-list="formState[skey]"
-              action="/server-package/api/v1/temp/file"
-              @change="(info: any) => valState.onChange(formState, info)"
-            >
-              <a-menu @click="onUploadClicked">
-                <a-menu-item key="file">
-                  <FileAddOutlined />
-                  &nbsp;上传文件
-                </a-menu-item>
-                <a-menu-item key="folder">
-                  <FolderAddOutlined />
-                  &nbsp;上传文件夹
-                </a-menu-item>
-              </a-menu>
-            </a-upload>
-          </template>
-        </a-dropdown>
-        <a-list
-          v-show="formState[skey].length"
-          style="margin-top: 5px"
-          size="small"
-          :data-source="formState[skey]"
-        >
-          <template #renderItem="{ item: file }">
-            <a-list-item>
-              {{ file.originFileObj.webkitRelativePath || file.name }}
-            </a-list-item>
-          </template>
-        </a-list>
-      </template>
+      <UploadFile
+        v-else-if="valState.type === 'Upload'"
+        :field="valState"
+        :form="formState"
+        path="/server-package/api/v1/temp/file"
+        v-model:value="formState[skey]"
+      />
       <a-space v-else-if="valState.type === 'Delable'">
         {{ formState[skey] || '-' }}
         <CloseCircleOutlined @click="valState.onDeleted(formState.key)" />
@@ -246,14 +211,14 @@
             :options="valState.options"
             v-model:value="formState[skey]"
             :placeholder="valState.placeholder || '请选择'"
-            :disabled="validConds(valState.disabled) || !editable"
+            :disabled="validConds(formState, valState.disabled) || !editable"
           />
           <a-input
             v-else
             style="width: 98%"
             :placeholder="valState.placeholder || '请输入'"
             v-model:value="formState[skey]"
-            :disabled="validConds(valState.disabled) || !editable"
+            :disabled="validConds(formState, valState.disabled) || !editable"
           />
         </a-col>
         <a-col flex="32px">
@@ -263,7 +228,7 @@
                 valState.mode = valState.mode === 'select' ? 'input' : 'select'
               }
             "
-            :disabled="validConds(valState.disabled) || !editable"
+            :disabled="validConds(formState, valState.disabled) || !editable"
           >
             <template #icon>
               <SelectOutlined v-if="valState.mode === 'select'" />
@@ -279,7 +244,7 @@
           size="small"
           bordered
           :style="{
-            'max-height': '200px',
+            'max-height': `${valState.height}px`,
             'overflow-y': 'auto'
           }"
         >
@@ -355,8 +320,17 @@
       <VueAceEditor
         v-else-if="valState.type === 'CodeEditor'"
         v-model:value="formState[skey]"
-        :disabled="validConds(valState.disabled) || !editable"
+        :disabled="validConds(formState, valState.disabled) || !editable"
       />
+      <TagList
+        v-else-if="valState.type === 'TagList'"
+        :field="valState"
+        v-model:value="formState[skey]"
+      >
+        <template #FormDialog>
+          <slot name="FormDialog" />
+        </template>
+      </TagList>
       <template v-else>
         {{ formState[skey] }}
       </template>
@@ -370,9 +344,6 @@ import Column from '@/types/column'
 import { defineComponent, reactive, ref, watch } from 'vue'
 import {
   InfoCircleOutlined,
-  UploadOutlined,
-  FileAddOutlined,
-  FolderAddOutlined,
   CloseCircleOutlined,
   SelectOutlined,
   EditOutlined,
@@ -380,20 +351,22 @@ import {
 } from '@ant-design/icons-vue'
 import { getCopy } from '@/types/mapper'
 import VueAceEditor from './VueAceEditor.vue'
+import UploadFile from './UploadFile.vue'
+import TagList from './TagList.vue'
+import { validConds } from './utils'
 
 export default defineComponent({
   name: 'FormItem',
   components: {
     InfoCircleOutlined,
-    UploadOutlined,
-    FileAddOutlined,
-    FolderAddOutlined,
     CloseCircleOutlined,
     SelectOutlined,
     EditOutlined,
     AppstoreOutlined,
 
-    VueAceEditor
+    UploadFile,
+    VueAceEditor,
+    TagList
   },
   props: {
     form: { type: Object, required: true },
@@ -405,7 +378,6 @@ export default defineComponent({
   setup(props) {
     const formState = reactive(props.form)
     const valState = reactive(props.value)
-    const uploadDir = ref(false)
 
     watch(
       () => props.value,
@@ -414,33 +386,6 @@ export default defineComponent({
       }
     )
 
-    function validConds(value: boolean | Cond[] | { [cmpRel: string]: Cond[] }): boolean {
-      if (typeof value === 'boolean') {
-        return value as boolean
-      } else if (value && value.length) {
-        return (value as Cond[])
-          .map((cond: Cond) => cond.isValid(formState))
-          .reduce((a: boolean, b: boolean) => a && b)
-      } else {
-        let ret = 'OR' in value ? true : false
-        for (const [cmpRel, conds] of Object.entries(value)) {
-          ret =
-            ret &&
-            (conds as Cond[])
-              .map((cond: Cond) => cond.isValid(formState))
-              .reduce((a: boolean, b: boolean) => {
-                switch (cmpRel) {
-                  case 'OR':
-                    return a || b
-                  case 'AND':
-                  default:
-                    return a && b
-                }
-              })
-        }
-        return ret
-      }
-    }
     function fmtDrpdwnValue(options: OpnType[], value: any | any[]) {
       if (value instanceof Array) {
         const vals = []
@@ -492,27 +437,18 @@ export default defineComponent({
       formState[key].unshift('')
       value.addMod = true
     }
-    function onUploadClicked(item: { key: string }) {
-      if (item.key === 'folder') {
-        uploadDir.value = true
-      } else {
-        uploadDir.value = false
-      }
-    }
     return {
       Column,
 
       formState,
       valState,
-      uploadDir,
 
       validConds,
       fmtDrpdwnValue,
       onLstSelChecked,
       onEdtLstAdded,
       onEdtLstDeled,
-      onEdtLstShow,
-      onUploadClicked
+      onEdtLstShow
     }
   }
 })

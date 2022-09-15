@@ -6,8 +6,6 @@ import Component from '../views/Compo.vue'
 import Dependency from '../views/Dep.vue'
 import Project from '../views/Project.vue'
 import Model from '../views/Model.vue'
-import API from '../views/API.vue'
-import Job from '../views/Job.vue'
 import Flow from '../views/Flow.vue'
 import Auth from '../views/Auth.vue'
 import MidLgn from '../views/MidLgn.vue'
@@ -69,18 +67,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/model/:mid',
     name: 'Model',
     component: Model,
-    meta: { reqLogin: true }
-  },
-  {
-    path: '/server-package/project/:pid/model/:mid/apis',
-    name: 'API',
-    component: API,
-    meta: { reqLogin: true }
-  },
-  {
-    path: '/server-package/project/:pid/model/:mid/jobs',
-    name: 'Job',
-    component: Job,
     meta: { reqLogin: true }
   },
   {

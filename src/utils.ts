@@ -415,3 +415,25 @@ export function fmtStrByObj(pattern: RegExp, obj: any, str: string) {
   }
   return ret
 }
+
+export function upperFirst(text: string): string {
+  if (!text.length) {
+    return ''
+  }
+  const char = text.charCodeAt(0)
+  if (char >= 97 && char <= 122) {
+    return String.fromCharCode(char - 32) + text.substring(1)
+  }
+  return text
+}
+
+export function lowerFirst(text: string): string {
+  if (!text.length) {
+    return ''
+  }
+  const char = text.charCodeAt(0)
+  if (char >= 65 && char <= 90) {
+    return String.fromCharCode(char + 32) + text.substring(1)
+  }
+  return text
+}

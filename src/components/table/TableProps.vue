@@ -80,6 +80,24 @@
         @change="(refresh: any) => api.table.save({ refresh })"
       />
     </a-descriptions-item>
+    <a-descriptions-item label="显示列">
+      <a-switch
+        v-model:checked="formState.colDspable"
+        @change="(colDspable: boolean) => api.table.save({ colDspable })"
+      />
+      &nbsp;{{ formState.colDspable ? '显示' : '不显示' }}
+    </a-descriptions-item>
+    <a-descriptions-item label="导入导出">
+      <a-checkbox-group
+        :disabled="!formState.operable.includes('可增加')"
+        :value="formState.imExport"
+        :options="[
+          { label: '导入', value: 'import' },
+          { label: '导出', value: 'export' }
+        ]"
+        @change="(imExport: any) => api.table.save({ imExport })"
+      />
+    </a-descriptions-item>
     <a-descriptions-item>
       <template #label>
         折叠内容

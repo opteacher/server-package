@@ -52,6 +52,8 @@ export default class Table {
   refresh: string[]
   expandURL: string
   expHeight: number
+  colDspable: boolean
+  imExport: string[]
 
   constructor() {
     this.key = ''
@@ -68,6 +70,8 @@ export default class Table {
     this.refresh = []
     this.expandURL = ''
     this.expHeight = -1
+    this.colDspable = false
+    this.imExport = []
   }
 
   reset() {
@@ -85,6 +89,8 @@ export default class Table {
     this.refresh = []
     this.expandURL = ''
     this.expHeight = -1
+    this.colDspable = false
+    this.imExport = []
   }
 
   static copy(src: any, tgt?: Table, force = false): Table {
@@ -103,6 +109,12 @@ export default class Table {
     tgt.refresh = force ? src.refresh : src.refresh || tgt.refresh
     tgt.expandURL = force ? src.expandURL : src.expandURL || tgt.expandURL
     tgt.expHeight = force ? src.expHeight : src.expHeight || tgt.expHeight
+    tgt.colDspable = force
+      ? src.colDspable
+      : typeof src.colDspable !== 'undefined'
+      ? src.colDspable
+      : tgt.colDspable
+    tgt.imExport = force ? src.imExport || [] : src.imExport || tgt.imExport
     return tgt
   }
 }

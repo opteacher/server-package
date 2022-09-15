@@ -54,6 +54,8 @@ export default db.defineModel(
       operable: db.PropTypes.Array, // 可增加, 可编辑, 可删除
       expandURL: db.PropTypes.String, // 可扩展内容的页面URL
       expHeight: db.PropTypes.Number, // 可扩展内容的高度
+      colDspable: db.PropTypes.Boolean, // 列是否可显示
+      imExport: db.PropTypes.Array, // [import, export]
       columns: [
         {
           title: db.PropTypes.String,

@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { baseTypes, Cond } from '@/types/index'
+import { baseTypes, Cond, methods } from '@/types/index'
 import Column from '@/types/column'
 import Mapper from '@/types/mapper'
 import Property from '@/types/property'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import Service, { emitTypeOpns, timeUnits } from '@/types/service'
+import store from '@/store'
+import { genMdlPath } from '@/utils'
 
 export const columns = [
   new Column('模型名', 'name'),
@@ -92,8 +95,12 @@ export const propMapper = new Mapper({
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
     onChange: (_prop: Property, toType: string) => {
       switch (toType) {
-        case 'Object':
+        case 'LongStr':
           propMapper['default'].type = 'Textarea'
+          break
+        case 'Object':
+          propMapper['default'].type = 'CodeEditor'
+          propMapper['default'].lang = 'json'
           break
         case 'Array':
           propMapper['default'].type = 'List'
@@ -146,9 +153,89 @@ export const propMapper = new Mapper({
   }
 })
 
+export const svcEmitter = new Emitter()
+
+export const svcMapper = new Mapper({
+  emit: {
+    label: '激发类型',
+    type: 'Select',
+    options: emitTypeOpns
+  },
+  name: {
+    label: '文件名',
+    desc: '所在文件，可以直接选择为模型名',
+    type: 'SelOrIpt',
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
+  },
+  interface: {
+    label: '方法',
+    desc: '指定函数',
+    type: 'Input',
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
+  },
+  isModel: {
+    label: '是否为模型路由',
+    type: 'Checkbox',
+    onChange: (svc: Service, to: boolean) => {
+      if (to) {
+        svc.name = store.getters['model/ins'].name
+        svc.interface = ''
+        svc.path = genMdlPath(svc)
+      }
+    },
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+  },
+  method: {
+    label: '访问方式',
+    type: 'Select',
+    options: methods.map(mthd => ({
+      label: mthd,
+      value: mthd
+    })),
+    onChange: (svc: Service) => {
+      if (svc.isModel) {
+        svc.path = genMdlPath(svc)
+      }
+    },
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+  },
+  path: {
+    label: '路由',
+    type: 'Input',
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
+    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
+    onChange: (svc: Service, path: string) => {
+      if (!path.startsWith('/')) {
+        svc.path = `/${path}`
+      }
+    }
+  },
+  needRet: {
+    label: '是否返回',
+    desc: '是否返回一个result，选择否则可以自定义返回体ctx.body = X',
+    type: 'Checkbox',
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+  },
+  cdValue: {
+    label: '触发值',
+    desc: '指定时间间隔或时刻',
+    type: 'Input',
+    display: [Cond.copy({ key: 'emit', cmp: '!=', val: 'api' })]
+  },
+  cdUnit: {
+    label: '触发值',
+    desc: '指定时间间隔或时刻',
+    type: 'Select',
+    options: timeUnits,
+    display: [Cond.copy({ key: 'emit', cmp: '!=', val: 'api' })]
+  }
+})
+
 export const svcColumns = [
-  new Column('路由', 'path'),
   new Column('激活方式', 'emit'),
   new Column('访问方式', 'method'),
-  new Column('路由/激发条件', 'pathCond')
+  new Column('路由', 'path'),
+  new Column('激发条件', 'conds'),
+  new Column('流程', 'flow'),
+  new Column('控制', 'ctrl')
 ]
