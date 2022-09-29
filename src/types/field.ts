@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import Compo from "./compo"
+import { pickOrIgnore } from '@/utils'
+import Compo from './compo'
+import { getCopy, MapperType } from './mapper'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const mgnBtm = 24
@@ -56,5 +58,11 @@ export default class Field {
     tgt.ftype = src.name
     tgt.extra = src.extra
     return tgt
+  }
+
+  toMapper(): MapperType {
+    const ret = pickOrIgnore(this, ['label', 'desc', 'rules', 'placeholder'], false)
+    ret.type = this.ftype
+    return getCopy(Object.assign(ret, this.extra))
   }
 }

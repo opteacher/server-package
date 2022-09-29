@@ -21,7 +21,7 @@
         <a-button
           class="float-right"
           type="primary"
-          @click="fmEmitter.emit('update:show', { show: true })"
+          @click="formDialog.emitter.emit('update:show', { show: true })"
         >
           添加
         </a-button>
@@ -55,7 +55,7 @@
               v-if="table.operable.includes('可编辑')"
               size="small"
               class="mb-5"
-              @click="fmEmitter.emit('update:show', { show: true, record })"
+              @click.stop="formDialog.emitter.emit('update:show', { show: true, record })"
             >
               编辑
             </a-button>
@@ -75,7 +75,7 @@
             <a
               v-if="table.operable.includes('可编辑')"
               class="mr-5"
-              @click="fmEmitter.emit('update:show', { show: true, record })"
+              @click.stop="formDialog.emitter.emit('update:show', { show: true, record })"
             >
               编辑
             </a>
@@ -86,7 +86,7 @@
               cancel-text="取消"
               @confirm="onRecordDel(record)"
             >
-              <a style="color: #ff4d4f">删除</a>
+              <a style="color: #ff4d4f" @click.stop="(e: any) => e.preventDefault()">删除</a>
             </a-popconfirm>
           </template>
         </template>
@@ -114,7 +114,14 @@
         </a-button>
       </template>
     </a-table>
-    <DemoForm :emitter="fmEmitter" @submit="onRecordSave" />
+    <FormDialog
+      :title="form.title"
+      :copy="copyRecord"
+      :width="`${form.width}vw`"
+      v-model:show="formDialog.visible"
+      :emitter="formDialog.emitter"
+      :mapper="formDialog.mapper"
+    />
   </LytDesign>
 </template>
 
@@ -127,17 +134,21 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Table, { Cells } from '@/types/table'
 import Model from '@/types/model'
-import DemoForm from '../components/form/DemoForm.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
+import FormDialog from '@/components/com/FormDialog.vue'
+import Form from '@/types/form'
+import Field from '@/types/field'
+import { BaseTypes } from '@/types'
+import dayjs, { Dayjs } from 'dayjs'
 
 export default defineComponent({
   name: 'Demo',
   components: {
-    DemoForm,
+    FormDialog,
     LytDesign,
     RefreshBox,
     CellCard
@@ -162,17 +173,26 @@ export default defineComponent({
         return ret as Column[]
       }
     })
+    const form = computed(() => store.getters['model/form'] as Form)
+    const fields = computed(() => store.getters['model/fields'] as Field[])
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => store.getters['model/cells'])
     const records = computed(() => store.getters['model/records'](useRealData.value))
     const useRealData = ref(false)
-    const fmEmitter = new Emitter()
+    const formDialog = reactive({
+      visible: false,
+      emitter: new Emitter(),
+      mapper: {}
+    })
     const expRowKeys = reactive([] as string[])
 
     onMounted(onRefresh)
 
-    function onRefresh() {
-      store.dispatch('model/refresh', { reqDataset: useRealData.value })
+    async function onRefresh() {
+      await store.dispatch('model/refresh', { reqDataset: useRealData.value })
+      formDialog.mapper = Object.fromEntries(
+        fields.value.map(field => [field.refer, field.toMapper()])
+      )
     }
     function onRecordSave(record: any, next: () => void) {
       console.log(record)
@@ -182,8 +202,8 @@ export default defineComponent({
       console.log(record)
     }
     function onRecordClick(record: any) {
-      fmEmitter.emit('viewOnly', true)
-      fmEmitter.emit('update:show', { show: true, record })
+      formDialog.emitter.emit('viewOnly', true)
+      formDialog.emitter.emit('update:show', { show: true, record })
     }
     function getCell(refProp: string, record: any): Cell {
       let ret = cells.value.find((cell: any) => cell.refer === refProp) as Cells
@@ -237,17 +257,68 @@ export default defineComponent({
         expRowKeys.push(record.key)
       }
     }
+    function copyRecord(src: any, tgt?: any, force = false) {
+      const props = model.value.props
+      tgt = tgt || Object.fromEntries(props.map(prop => [prop.name, toDefault(prop.ptype)]))
+      tgt.key = force ? src.key || src._id || src.id : src.key || src._id || src.id || tgt.key
+      for (const prop of props) {
+        switch (prop.ptype) {
+          case 'Boolean':
+            tgt[prop.name] = force
+              ? src[prop.name]
+              : typeof src[prop.name] !== 'undefined'
+              ? src[prop.name]
+              : tgt[prop.name]
+            break
+          case 'DateTime':
+            tgt[prop.name] = src[prop.name]
+              ? dayjs(src[prop.name])
+              : force
+              ? dayjs()
+              : tgt[prop.name]
+            break
+          case 'Array':
+            tgt[prop.name] =
+              src[prop.name] && src[prop.name].length ? src[prop.name] : force ? [] : tgt[prop.name]
+            break
+          default:
+            tgt[prop.name] = force ? src[prop.name] : src[prop.name] || tgt[prop.name]
+        }
+      }
+      return tgt
+    }
+    function toDefault(type: BaseTypes) {
+      switch (type) {
+        case 'String':
+        case 'LongStr':
+          return ''
+        case 'Number':
+          return 0
+        case 'DateTime':
+          return ref<Dayjs>()
+        case 'Boolean':
+          return false
+        case 'Array':
+          return []
+        case 'Object':
+          return {}
+        case 'Any':
+        case 'Unknown':
+          return undefined
+      }
+    }
     return {
       pid,
       mid,
       router,
       model,
       columns,
+      form,
       table,
       cells,
       records,
       useRealData,
-      fmEmitter,
+      formDialog,
       expRowKeys,
 
       onRefresh,
@@ -257,7 +328,8 @@ export default defineComponent({
       onRecordClick,
       getCell,
       onRowExpand,
-      fmtStrByObj
+      fmtStrByObj,
+      copyRecord
     }
   }
 })

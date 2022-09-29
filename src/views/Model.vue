@@ -133,12 +133,8 @@
           <template v-if="svc.emit === 'api'">
             {{ svc.path }}
           </template>
-          <template v-else-if="svc.emit === 'timeout'">
-            {{ svc.condition }}后
-          </template>
-          <template v-else-if="svc.emit === 'interval'">
-            每{{ svc.condition }}
-          </template>
+          <template v-else-if="svc.emit === 'timeout'">{{ svc.condition }}后</template>
+          <template v-else-if="svc.emit === 'interval'">每{{ svc.condition }}</template>
         </template>
         <template #flow="{ record: svc }">
           <a-button
