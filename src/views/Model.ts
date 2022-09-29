@@ -69,7 +69,7 @@ export const propColumns = [
   new Column('是否唯一', 'unique'),
   new Column('默认值', 'default'),
   new Column('关联模型', 'relative'),
-  new Column('备注', 'remark')
+  new Column('备注', 'remark', { width: 300 })
 ]
 
 export const propMapper = new Mapper({
@@ -103,7 +103,7 @@ export const propMapper = new Mapper({
           propMapper['default'].lang = 'json'
           break
         case 'Array':
-          propMapper['default'].type = 'List'
+          propMapper['default'].type = 'EditList'
           break
         case 'Boolean':
           propMapper['default'].type = 'Select'
@@ -233,9 +233,7 @@ export const svcMapper = new Mapper({
 
 export const svcColumns = [
   new Column('激活方式', 'emit'),
-  new Column('访问方式', 'method'),
-  new Column('路由', 'path'),
-  new Column('激发条件', 'conds'),
-  new Column('流程', 'flow'),
-  new Column('控制', 'ctrl')
+  new Column('路由/激发条件', 'pathCond'),
+  new Column('访问方式/控制', 'methodCtrl'),
+  new Column('流程', 'flow')
 ]

@@ -1,6 +1,7 @@
 import store from '@/store'
 import Variable from '@/types/variable'
 import { makeRequest, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
+import { joinVisible } from '@/views/Flow'
 import { notification } from 'ant-design-vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
@@ -97,7 +98,7 @@ export default {
         })
       )
     )
-    store.commit('service/SET_JOIN_VSB', false)
+    joinVisible.value = false
     await store.dispatch('service/refreshTemps')
     await store.dispatch('service/refreshNode')
   }

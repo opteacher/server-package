@@ -173,7 +173,8 @@ import {
   ArrowHeight,
   ArrowHlfHgt,
   CardWidth,
-  CardHlfWid
+  CardHlfWid,
+  ndCdEmitter
 } from '@/views/Flow'
 import { useStore } from 'vuex'
 import NodeInPnl from '@/types/ndInPnl'
@@ -250,7 +251,7 @@ export default defineComponent({
     })
 
     onMounted(refresh)
-    store.getters['service/emitter'].on('refresh', refresh)
+    ndCdEmitter.on('refresh', refresh)
 
     async function refresh() {
       if (!props.ndKey || !(props.ndKey in store.getters['service/nodes'])) {

@@ -273,7 +273,7 @@
           </template>
         </a-list>
       </a-form-item-rest>
-      <template v-else-if="valState.type === 'List'">
+      <template v-else-if="valState.type === 'EditList'">
         <a-button
           v-if="!valState.addMod"
           class="w-100"

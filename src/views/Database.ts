@@ -15,7 +15,7 @@ export const mapper = new Mapper({
   },
   dbs: {
     label: '数据库',
-    type: 'List'
+    type: 'EditList'
   },
   host: {
     label: '主机地址',

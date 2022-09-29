@@ -16,7 +16,7 @@ export const mapper = new Mapper({
   },
   exports: {
     label: '导出',
-    type: 'List'
+    type: 'EditList'
   },
   from: {
     label: '导入',

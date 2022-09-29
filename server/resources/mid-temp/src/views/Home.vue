@@ -50,6 +50,7 @@
       :rowClassName="() => 'white-bkgd'"
       :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
+      :loading="loading"
       bordered
       :custom-row="
         (record: any) => ({
@@ -61,6 +62,39 @@
         })
       "
     >
+      <template #customFilterIcon="{ column, filtered }">
+        <search-outlined
+          v-if="column.searchable"
+          :style="{ color: filtered ? '#108ee9' : undefined }"
+        />
+        <filter-filled v-else :style="{ color: filtered ? '#108ee9' : undefined }" />
+      </template>
+      <template
+        #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+      >
+        <div v-if="column.searchable" style="padding: 8px">
+          <a-input
+            ref="searchInput"
+            :placeholder="`搜索${column.title}`"
+            :value="selectedKeys[0]"
+            style="width: 188px; margin-bottom: 8px; display: block"
+            @change="(e: any) => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+            @pressEnter="onDoSearch(selectedKeys, confirm, column.dataIndex)"
+          />
+          <a-button
+            type="primary"
+            size="small"
+            style="width: 90px; margin-right: 8px"
+            @click="onDoSearch(selectedKeys, confirm, column.dataIndex)"
+          >
+            <template #icon><SearchOutlined /></template>
+            搜索
+          </a-button>
+          <a-button size="small" style="width: 90px" @click="onSchReset(clearFilters)">
+            重置
+          </a-button>
+        </div>
+      </template>
       <template #bodyCell="{ text, column, record }">
         <template v-if="column.dataIndex === 'opera'">
           <template v-if="table.operaStyle === 'button'">
@@ -115,9 +149,14 @@
         </template>
         <CellCard
           v-else
-          :cell="getCell(column.dataIndex, record)"
-          :text="(text || '').toString()"
+          :cell="((table.cells.find((cell: any) => cell.refer === column.dataIndex) || new Cells()) as Cells)"
+          :text="
+            column.dict && (text || '').toString() in column.dict
+              ? column.dict[(text || '').toString()]
+              : (text || '').toString()
+          "
           :record="record"
+          :search="searchState"
         />
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
@@ -205,6 +244,11 @@ export default defineComponent({
     const fmEmitter = new Emitter()
     const expRowKeys = reactive([] as string[])
     const loading = ref(false)
+    const searchState = reactive({
+      text: '',
+      column: ''
+    })
+    const searchInput = ref()
 
     onMounted(resize)
     window.onresize = resize
@@ -251,51 +295,6 @@ export default defineComponent({
       actMdl.value = mname
       await refresh()
     }
-    function getCell(refProp: string, record: any): Cell {
-      let ret = table.cells.find((cell: any) => cell.refer === refProp) as Cells
-      if (ret.cdCell) {
-        for (const [cond, cell] of Object.entries(ret.cdCell)) {
-          const conds = cond.split('_')
-          const prop = conds[0]
-          const cmp = conds[1]
-          const tgtVal = conds[2]
-          const srcVal = record[prop]
-          switch (cmp) {
-            case '=':
-              if (srcVal == tgtVal) {
-                return cell
-              }
-              break
-            case '!=':
-              if (srcVal != tgtVal) {
-                return cell
-              }
-              break
-            case '>':
-              if (srcVal > tgtVal) {
-                return cell
-              }
-              break
-            case '>=':
-              if (srcVal >= tgtVal) {
-                return cell
-              }
-              break
-            case '<':
-              if (srcVal < tgtVal) {
-                return cell
-              }
-              break
-            case '<=':
-              if (srcVal <= tgtVal) {
-                return cell
-              }
-              break
-          }
-        }
-      }
-      return ret
-    }
     function onRowExpand(record: { key: string }) {
       if (expRowKeys.includes(record.key)) {
         expRowKeys.splice(expRowKeys.indexOf(record.key), 1)
@@ -303,7 +302,19 @@ export default defineComponent({
         expRowKeys.push(record.key)
       }
     }
+    function onDoSearch(selectedKeys: string[], confirm: () => void, dataIndex: string) {
+      confirm()
+      searchState.text = selectedKeys[0]
+      searchState.column = dataIndex
+    }
+
+    function onSchReset(clearFilters: (param: any) => void) {
+      clearFilters({ confirm: true })
+      searchState.text = ''
+    }
     return {
+      Cells,
+
       layout,
       ctnrHeight,
       actMdl,
@@ -315,17 +326,21 @@ export default defineComponent({
       columns,
       copies,
       expRowKeys,
+      loading,
       bchIptCopy,
       bchEptCopy,
+      searchState,
+      searchInput,
 
       refresh,
       endsWith,
       onRecordSave,
       onRecordDel,
       onMuItmChange,
-      getCell,
       onRowExpand,
-      fmtStrByObj
+      fmtStrByObj,
+      onDoSearch,
+      onSchReset
     }
   }
 })

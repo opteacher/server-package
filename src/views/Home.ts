@@ -100,7 +100,7 @@ export const mapper = new Mapper({
       },
       expPorts: {
         label: '暴露端口',
-        type: 'List'
+        type: 'EditList'
       }
     }
   },

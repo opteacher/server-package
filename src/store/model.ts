@@ -13,13 +13,11 @@ import { mdlAPI } from '../apis'
 import Form from '@/types/form'
 import Field from '@/types/field'
 import Table from '@/types/table'
-import Cell from '@/types/cell'
 
 type ModelState = {
   emitter: Emitter
   model: Model
   dataset: any[]
-  compos: Compo[]
   dragOn: string
   divider: string
 }
@@ -30,7 +28,6 @@ export default {
     emitter: new Emitter(),
     model: new Model(),
     dataset: [] as any[],
-    compos: [] as Compo[],
     dragOn: '',
     divider: ''
   },
@@ -55,7 +52,6 @@ export default {
     ) {
       await dispatch('project/refresh', undefined, { root: true })
       const mid = router.currentRoute.value.params.mid
-      state.compos = (await reqAll('component')).map((compo: any) => Compo.copy(compo))
       Model.copy(await mdlAPI.detail(mid), state.model)
       state.dragOn = ''
       state.divider = ''
@@ -100,7 +96,6 @@ export default {
       (useReal: boolean): any[] =>
         useReal ? state.dataset : (state.model.table.demoData ? [state.model.table.demoData] : []),
     dataset: (state: ModelState): any[] => state.dataset,
-    compos: (state: ModelState): Compo[] => state.compos,
     table: (state: ModelState): Table => state.model.table,
     columns: (state: ModelState): Column[] => state.model.table.columns,
     column:

@@ -165,8 +165,14 @@ export default defineComponent({
         emit('update:show', show)
         formState.reset && formState.reset()
       })
-      props.emitter.on('update:data', (data: any) => {
-        props.copy(data, formState)
+      props.emitter.on('update:data', (data?: any) => {
+        if (data) {
+          props.copy(data, formState, true)
+        } else if (formState.reset) {
+          formState.reset()
+        } else {
+          props.copy({}, formState, true)
+        }
       })
       props.emitter.on('update:mapper', (mapper: any) => {
         Mapper.copy(mapper, formMapper)

@@ -59,6 +59,17 @@ export const timeUnits = [
   }
 ]
 
+export const tmUntMapper = {
+  ms: '毫秒',
+  s: '秒',
+  m: '分钟',
+  h: '小时',
+  D: '天',
+  W: '周',
+  M: '月',
+  Y: '年'
+} as Record<string, string>
+
 export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT'
 
 export default class Service {

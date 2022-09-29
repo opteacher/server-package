@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions v-if="cmpExtra.length" title="组件附加参数" :column="1" bordered size="small">
+  <a-descriptions title="组件附加参数" :column="1" bordered size="small">
     <a-descriptions-item v-for="exField in cmpExtra" :key="exField.key" :label="exField.label">
       <a-input
         v-if="exField.ftype === 'Input'"
@@ -53,23 +53,25 @@
         @select="(icon: string) => save(edtField.key, { [exField.refer]: icon })"
       />
       <EditableList
-        v-else-if="exField.ftype === 'List'"
+        v-else-if="exField.ftype === 'EditList'"
         :field="edtField"
         :exField="exField"
         @addItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
         @rmvItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
       />
     </a-descriptions-item>
+    <slot />
   </a-descriptions>
 </template>
 
 <script lang="ts">
 import Field from '@/types/field'
-import { computed, defineComponent, reactive, ref } from 'vue'
-import { useStore } from 'vuex'
+import { computed, defineComponent, onMounted, reactive, watch } from 'vue'
 import IconField from '../com/IconField.vue'
 import EditableList from '../com/EditableList.vue'
 import { pickOrIgnore } from '@/utils'
+import { cmpAPI } from '@/apis'
+import Compo from '@/types/compo'
 
 export default defineComponent({
   components: {
@@ -78,16 +80,31 @@ export default defineComponent({
   },
   props: {
     field: { type: Field, required: true },
-    save: { type: Function, required: true }
+    save: { type: Function, required: true },
+    compo: { type: Compo, default: new Compo() }
   },
   setup(props) {
-    const store = useStore()
     const edtField = reactive(props.field)
-    const cmpExtra = computed(() => {
-      const compo = store.getters['model/compos'].find(({ name }: any) => name === edtField.ftype)
-      return compo && compo.extra ? compo.extra.map((field: any) => Field.copy(field)) : []
-    })
+    const cmpState = reactive(props.compo)
+    const cmpExtra = computed(() =>
+      cmpState.key ? cmpState.extra.map((field: any) => Field.copy(field)) : []
+    )
 
+    watch(() => props.field.key, refresh)
+    onMounted(refresh)
+
+    async function refresh() {
+      let compo = props.compo
+      if (!props.compo.key) {
+        const result = await cmpAPI.all({ name: props.field.ftype })
+        if (!result.length) {
+          cmpState.reset()
+          return
+        }
+        compo = result[0]
+      }
+      Compo.copy(compo, cmpState)
+    }
     return {
       edtField,
       cmpExtra,

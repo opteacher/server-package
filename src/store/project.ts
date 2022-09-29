@@ -32,7 +32,7 @@ export default {
       if (!router.currentRoute.value.params.pid) {
         return
       }
-      const pid = router.currentRoute.value.params.pid
+      const pid = router.currentRoute.value.params.pid as string
       Project.copy(await pjtAPI.detail(pid), state.project)
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))

@@ -1,18 +1,30 @@
 <template>
   <LytMiddle :active="`project/${pid}/mid/dashboard`">
     <a-row type="flex" :gutter="16" :style="{ height: mainHeight }">
-      <a-col v-show="cmpExpand" flex="200px">
-        <div class="ant-descriptions-title mb-20">组件库</div>
-        <a-list :data-source="compos" :style="{ height: '60vh', 'overflow-y': 'auto' }">
-          <template #renderItem="{ item }">
+      <a-col v-show="tlbxExpand.left" flex="2" class="b-1 mb-24">
+        <a-row type="flex" class="mtb-10">
+          <a-col flex="auto">
+            <div class="ant-descriptions-title">组件库</div>
+          </a-col>
+          <a-col flex="100px" class="text-right">
+            <a-switch
+              v-model:checked="dspAllCmps"
+              checked-children="所有"
+              un-checked-children="展示类"
+              @change="onDspCmpSwitch"
+            />
+          </a-col>
+        </a-row>
+        <a-list :data-source="dspCmps" :style="{ height: '60vh', 'overflow-y': 'auto' }">
+          <template #renderItem="{ item: compo }">
             <a-list-item class="b-0 pt-0">
               <a-card
                 class="w-100 hover-pbd"
                 size="small"
                 :draggable="true"
-                @dragstart="(e: any) => e.dataTransfer.setData('text/plain', item.name)"
+                @dragstart="(e: DragEvent) => onCmpDragStart(e, compo.name)"
               >
-                {{ item.name }}
+                {{ cmpLblMap[compo.name] || compo.name }}
               </a-card>
             </a-list-item>
           </template>
@@ -25,11 +37,12 @@
             padding: '5px',
             'z-index': 500,
             'border-top-left-radius': 0,
-            'border-bottom-left-radius': 0
+            'border-bottom-left-radius': 0,
+            'border-left': '1px solid white'
           }"
-          @click="cmpExpand = !cmpExpand"
+          @click="() => onToolboxExpand('left')"
         >
-          <template v-if="cmpExpand">
+          <template v-if="tlbxExpand.right">
             收
             <br />
             起
@@ -45,120 +58,228 @@
           </template>
         </a-button>
       </a-col>
-      <a-col flex="auto">
-        <div
-          class="h-100"
-          :style="{
-            'background-color': dsbProps.bkgdColor,
-            padding: [
-              dsbProps.padding[0] === -1 ? 'auto' : `${dsbProps.padding[0]}px`,
-              dsbProps.padding[1] === -1 ? 'auto' : `${dsbProps.padding[1]}px`
-            ].join(' ')
-          }"
-          @dragover="(e: any) => e.preventDefault()"
-          @drop="onDropDownEmpty"
-        >
-          <a-empty v-if="!dsbProps.children.length">
-            <template #description>从左侧的组件库中拖拽至此</template>
-          </a-empty>
-          <template v-else v-for="compo of dsbProps.children" :key="compo.key">
-            <a-row v-if="compo.ctype === 'Row'"></a-row>
-          </template>
+      <a-col flex="5" ref="dsbCtnr" @click="cmpProps.reset()">
+        <div class="w-100 mb-24" :style="{ height: mainHeight }">
+          <div
+            class="h-100"
+            :style="{
+              overflow: 'auto',
+              border: '1px solid #e0e2e5',
+              'border-radius': '2px',
+              position: 'relative',
+              'background-color': dsbProps.bkgdColor,
+              padding: [
+                dsbProps.padding[0] === -1 ? 'auto' : `${dsbProps.padding[0]}px`,
+                dsbProps.padding[1] === -1 ? 'auto' : `${dsbProps.padding[1]}px`
+              ].join(' ')
+            }"
+            @dragover="(e: any) => e.preventDefault()"
+            @drop="onDropOnEmpty"
+          >
+            <a-empty v-if="!dsbProps.children.length">
+              <template #description>从左侧的组件库中拖拽至此</template>
+            </a-empty>
+            <template v-else>
+              <CompoCard
+                v-for="cmpIns of dsbProps.children"
+                :key="cmpIns.key"
+                :pid="pid"
+                :compos="compos"
+                :actCmp="cmpProps"
+                :cmpIns="cmpIns"
+                @refresh="refresh"
+              />
+            </template>
+          </div>
         </div>
       </a-col>
-      <a-col flex="300px">
-        <a-descriptions v-if="!cmpProps.key" title="主配置" :column="1" size="small" bordered>
-          <a-descriptions-item label="背景颜色">
-            <ColorField :color="dsbProps.bkgdColor" @submit="onBkgdColSubmit" />
+      <a-col flex="0" class="p-0">
+        <a-button
+          :style="{
+            height: '80px',
+            padding: '5px',
+            'z-index': 500,
+            'border-top-right-radius': 0,
+            'border-bottom-right-radius': 0,
+            'border-right': '1px solid white'
+          }"
+          @click="() => onToolboxExpand('right')"
+        >
+          <template v-if="tlbxExpand.right">
+            收
+            <br />
+            起
+            <br />
+            <caret-right-outlined />
+          </template>
+          <template v-else>
+            展
+            <br />
+            开
+            <br />
+            <caret-left-outlined />
+          </template>
+        </a-button>
+      </a-col>
+      <a-col v-show="tlbxExpand.right" flex="3" class="b-1 mb-24">
+        <DsbProps v-if="!cmpProps.key" v-model:value="dsbProps" />
+        <ExtraProps
+          v-else
+          :field="exProps"
+          :compo="cmpMap[cmpProps.ctype]"
+          :save="pjtAPI.middle.dashboard.compo.save"
+        >
+          <a-descriptions-item label="操作">
+            <a-button class="w-100" danger @click="onRmvCmpClick">
+              <template #icon><delete-outlined /></template>
+              删除
+            </a-button>
           </a-descriptions-item>
-          <a-descriptions-item label="内边距">
-            <a-input-group>
-              <a-row :gutter="8">
-                <a-col :span="12">
-                  <a-input-number
-                    class="w-100"
-                    v-model:value="dsbProps.padding[0]"
-                    :min="-1"
-                    placeholder="上下边距"
-                  />
-                </a-col>
-                <a-col :span="12">
-                  <a-input-number
-                    class="w-100"
-                    v-model:value="dsbProps.padding[1]"
-                    :min="-1"
-                    placeholder="左右边距"
-                  />
-                </a-col>
-              </a-row>
-            </a-input-group>
-          </a-descriptions-item>
-        </a-descriptions>
+        </ExtraProps>
       </a-col>
     </a-row>
   </LytMiddle>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import LytMiddle from '../layouts/LytMiddle.vue'
-import ColorField from '../components/table/ColorField.vue'
-import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons-vue'
-import { cmpAPI } from '@/apis'
+import {
+  CaretLeftOutlined,
+  CaretRightOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined
+} from '@ant-design/icons-vue'
+import { cmpAPI, pjtAPI } from '@/apis'
 import CmpIns from '@/types/cmpIns'
+import MidDsb from '@/types/midDsb'
+import { useStore } from 'vuex'
+import { Modal } from 'ant-design-vue'
+import Compo from '@/types/compo'
+import { cmpLblMap } from '@/types'
+import CompoCard from '../components/mid/CompoCard.vue'
+import DsbProps from '../components/mid/DsbProps.vue'
+import ExtraProps from '../components/form/ExtraProps.vue'
+import Field from '@/types/field'
 
 export default defineComponent({
   name: 'MiddleDashboard',
   components: {
     LytMiddle,
-    ColorField,
+    CompoCard,
+    DsbProps,
+    ExtraProps,
 
+    DeleteOutlined,
     CaretLeftOutlined,
     CaretRightOutlined
   },
   setup() {
+    const store = useStore()
     const route = useRoute()
-    const pid = route.params.pid
+    const dsbCtnr = ref()
+    const pid = route.params.pid as string
     const mainHeight = ref('100%')
-    const dsbProps = reactive({
-      bkgdColor: '#FFFFFF',
-      padding: [16, 16] as [number, number],
-      children: [] as any[]
+    const dsbProps = reactive(new MidDsb())
+    const compos = reactive([] as Compo[])
+    const cmpMap = ref({} as Record<string, Compo>)
+    const dspCmps = reactive([] as Compo[])
+    const tlbxExpand = reactive({
+      left: false,
+      right: true
     })
-    const compos = reactive([] as any[])
-    const cmpExpand = ref(false)
     const cmpProps = reactive(new CmpIns())
+    const exProps = computed(() =>
+      Field.copy({ key: cmpProps.key, ftype: cmpProps.ctype, extra: cmpProps.extra })
+    )
+    const dspAllCmps = ref(false)
 
-    onMounted(async () => {
+    onMounted(refresh)
+
+    function resize() {
       const midOperBox = document.getElementById('midOperBox')
       const opBoxBtm = midOperBox ? midOperBox.getBoundingClientRect().bottom : 0
       mainHeight.value = `calc(100vh - ${opBoxBtm + 16 + 40}px)`
-
-      compos.splice(0, compos.length, ...(await cmpAPI.all(0, 100)))
-    })
-
-    function onBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
-      dsbProps.bkgdColor = color
-      next()
     }
-    function onDropDownEmpty(e: DragEvent) {
+    async function refresh() {
+      compos.splice(0, compos.length, ...(await cmpAPI.all()).map((cmp: any) => Compo.copy(cmp)))
+      cmpMap.value = Object.fromEntries(compos.map(cmp => [cmp.name, cmp]))
+      onDspCmpSwitch(dspAllCmps.value)
+
+      await store.dispatch('project/refresh')
+
+      MidDsb.copy(store.getters['project/ins'].middle.dashboard, dsbProps, true)
+      resize()
+    }
+    async function onDropOnEmpty(e: DragEvent) {
       if (!e.dataTransfer) {
         return
       }
       const dragCompo = e.dataTransfer.getData('text/plain') as string
-      dsbProps.children.push(new CmpIns(compos.find((cmp: any) => cmp.name === dragCompo)))
+      const cmpIns = new CmpIns(cmpMap.value[dragCompo])
+      await pjtAPI.middle.dashboard.compo.add(pid, cmpIns, refresh)
+    }
+    function onRmvCmpClick() {
+      Modal.confirm({
+        title: '是否移除组件',
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: '确定',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk: async () => {
+          await pjtAPI.middle.dashboard.compo.remove(pid, cmpProps.key, async () => {
+            cmpProps.reset()
+            await refresh()
+          })
+        }
+      })
+    }
+    function onDspCmpSwitch(display: boolean) {
+      dspCmps.splice(
+        0,
+        dspCmps.length,
+        ...compos.filter((cmp: Compo) =>
+          !display ? cmp.category === 'display' || cmp.category === 'container' : true
+        )
+      )
+    }
+    function onCmpDragStart(e: DragEvent, cmpName: string) {
+      cmpProps.reset()
+      if (!e.dataTransfer) {
+        return
+      }
+      e.dataTransfer.setData('text/plain', cmpName)
+    }
+    function onToolboxExpand(pos: 'left' | 'right') {
+      tlbxExpand[pos] = !tlbxExpand[pos]
+      resize()
     }
     return {
+      CmpIns,
+      Field,
+
       pid,
+      pjtAPI,
+      dsbCtnr,
+      cmpLblMap,
       dsbProps,
       mainHeight,
       compos,
-      cmpExpand,
+      cmpMap,
+      dspCmps,
+      tlbxExpand,
       cmpProps,
+      exProps,
+      dspAllCmps,
 
-      onBkgdColSubmit,
-      onDropDownEmpty
+      resize,
+      refresh,
+      onDropOnEmpty,
+      onRmvCmpClick,
+      onDspCmpSwitch,
+      onCmpDragStart,
+      onToolboxExpand
     }
   }
 })

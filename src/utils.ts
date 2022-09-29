@@ -289,7 +289,7 @@ export async function waitFor(
     loop?: number
     getBy?: 'id' | 'name'
   } = {}
-) {
+): Promise<HTMLElement | null> {
   if (!options.reqFun) {
     options.reqFun = () => true
   }
@@ -304,12 +304,12 @@ export async function waitFor(
     if (options.getBy === 'id') {
       ret = document.getElementById(iden)
     } else if (options.getBy === 'name') {
-      ret = document.getElementsByName(iden)
-      if (!ret || !ret.length) {
+      const eles = document.getElementsByName(iden)
+      if (!eles || !eles.length) {
         await new Promise(res => setTimeout(res, 200))
         continue
       } else {
-        ret = ret[0]
+        ret = eles[0]
       }
     }
     if (ret) {

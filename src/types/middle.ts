@@ -1,3 +1,4 @@
+import MidDsb from './midDsb'
 import MidLgn from './midLgn'
 import MidNav from './midNav'
 
@@ -10,6 +11,7 @@ export default class Middle {
   url: string
   login: MidLgn
   navigate: MidNav
+  dashboard: MidDsb
 
   constructor() {
     this.key = ''
@@ -20,6 +22,7 @@ export default class Middle {
     this.url = ''
     this.login = new MidLgn()
     this.navigate = new MidNav()
+    this.dashboard = new MidDsb()
   }
 
   reset() {
@@ -31,6 +34,7 @@ export default class Middle {
     this.url = ''
     this.login = new MidLgn()
     this.navigate = new MidNav()
+    this.dashboard = new MidDsb()
   }
 
   static copy(src: any, tgt?: Middle): Middle {
@@ -42,6 +46,7 @@ export default class Middle {
     tgt.url = src.url || tgt.url
     tgt.login = src.login ? MidLgn.copy(src.login) : tgt.login
     tgt.navigate = src.navigate ? MidNav.copy(src.navigate) : tgt.navigate
+    tgt.dashboard = src.dashboard ? MidDsb.copy(src.dashboard) : tgt.dashboard
     return tgt
   }
 }

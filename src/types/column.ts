@@ -11,6 +11,10 @@ export default class Column {
   notDisplay: boolean
   resizable: boolean
   fixed?: 'left' | 'right'
+  searchable: boolean
+  customFilterDropdown: boolean
+  dict: Record<string, string>
+  onFilter?: (value: string, record: any) => boolean
   customCell: (record: any, rowIndex: number, column: Column) => any
   customHeaderCell: (column: Column) => any
 
@@ -28,6 +32,8 @@ export default class Column {
       notDisplay?: boolean
       resizable?: boolean
       fixed?: 'left' | 'right'
+      dict?: Record<string, string>
+      filter?: (value: string, record: any) => boolean
       customCell?: (record: any, rowIndex: number, column: Column) => any
       customHeaderCell?: (column: Column) => any
     }
@@ -47,6 +53,10 @@ export default class Column {
       options && typeof options.notDisplay !== 'undefined' ? options.notDisplay : false
     this.resizable = options && typeof options.resizable !== 'undefined' ? options.resizable : false
     this.fixed = options && options.fixed ? options.fixed : undefined
+    this.searchable = (options && options.searchable) as boolean
+    this.customFilterDropdown = this.searchable
+    this.dict = options && options.dict ? options.dict : {}
+    this.onFilter = options && options.filter ? options.filter : undefined
     this.customCell = options && options.customCell ? options.customCell : () => console.log()
     this.customHeaderCell =
       options && options.customHeaderCell ? options.customHeaderCell : () => console.log()
@@ -63,6 +73,10 @@ export default class Column {
     this.notDisplay = false
     this.resizable = false
     this.fixed = undefined
+    this.searchable = false
+    this.customFilterDropdown = false
+    this.dict = {}
+    this.onFilter = undefined
     this.customCell = () => console.log()
     this.customHeaderCell = () => console.log()
   }
@@ -89,6 +103,10 @@ export default class Column {
     tgt.notDisplay = typeof src.notDisplay !== 'undefined' ? src.notDisplay : tgt.notDisplay
     tgt.resizable = typeof src.resizable !== 'undefined' ? src.resizable : tgt.resizable
     tgt.fixed = src.fixed || tgt.fixed
+    tgt.searchable = typeof src.searchable !== 'undefined' ? src.searchable : tgt.searchable
+    tgt.customFilterDropdown = src.customFilterDropdown || src.searchable || tgt.customFilterDropdown
+    tgt.dict = src.dict || tgt.dict
+    tgt.onFilter = src.filter || src.onFilter || tgt.onFilter
     tgt.customCell = src.customCell || tgt.customCell
     tgt.customHeaderCell = src.customHeaderCell || tgt.customHeaderCell
     return tgt

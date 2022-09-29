@@ -240,7 +240,7 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const route = useRoute()
-    const pid = route.params.pid
+    const pid = route.params.pid as string
     const midLgn = computed(() => store.getters['project/ins'].middle.login)
     const lgnProps = reactive(new MidLgn())
     const mnRszObs = new ResizeObserver(() => onObsPnlResize('pnlMain', mnMask))

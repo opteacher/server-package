@@ -51,8 +51,13 @@ export type CompoType =
   | 'Cascader'
   | 'ListSelect'
   | 'CodeEditor'
-  | 'List'
+  | 'EditList'
   | 'Group'
+  | 'Carousel'
+  | 'Row'
+  | 'Col'
+  | 'Card'
+  | 'Image'
   | 'Unknown'
 
 export const compoOpns = [
@@ -74,9 +79,42 @@ export const compoOpns = [
   { label: '层级选择框', value: 'Cascader' },
   { label: '列表选择框', value: 'ListSelect' },
   { label: '代码编辑框', value: 'CodeEditor' },
-  { label: '可编辑列表', value: 'List' },
+  { label: '可编辑列表', value: 'EditList' },
+  { label: '滚动展示框', value: 'Carousel' },
+  { label: '横向容器', value: 'Row' },
+  { label: '纵向容器', value: 'Col' },
+  { label: '卡片', value: 'Card' },
+  { label: '图片', value: 'Image' },
   { label: '未知', value: 'Unknown' }
 ]
+
+export const cmpLblMap = {
+  Text: '文本框',
+  Block: '块',
+  Input: '输入框',
+  Password: '密码框',
+  Number: '数字框',
+  Button: '按钮',
+  Select: '选择框',
+  DateTime: '日期选择',
+  Checkbox: '多选框',
+  Switch: '单选框',
+  Table: '可编辑表',
+  Textarea: '多行输入框',
+  Delable: '可删除',
+  SelOrIpt: '可选可输入',
+  Upload: '上传',
+  Cascader: '层级选择框',
+  ListSelect: '列表选择框',
+  CodeEditor: '代码编辑框',
+  EditList: '可编辑列表',
+  Carousel: '滚动展示框',
+  Row: '横向容器',
+  Col: '纵向容器',
+  Card: '卡片',
+  Image: '图片',
+  Unknown: '未知'
+} as Record<string, string>
 
 export type OpnType = {
   label: string

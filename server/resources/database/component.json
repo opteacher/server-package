@@ -1,45 +1,27 @@
 {
-  "text": "Button/Input/Number/Select/Cascader/Textarea/Checkbox/Switch/Radio/List/Color",
-  "type": "String-input/Number-Number/String-Select/Array-Cascader/String-Textarea/Boolean|Array-Checkbox/Boolean-Switch/String-Radio/Array-List/String-Color/String-Icon",
   "data": [
     {
-      "name": "Row",
-      "ctype": "Unknown"
+      "name": "Color",
+      "ctype": "String",
+      "category": "field",
+      "extra": []
     },
     {
-      "name": "Col",
-      "ctype": "Unknown",
-      "extra": [
-        {
-          "label": "占用列",
-          "ftype": "Input",
-          "refer": "span",
-          "extra": {
-            "suffix": "/24"
-          }
-        }
-      ]
+      "name": "Cascader",
+      "ctype": "Array",
+      "category": "field",
+      "extra": []
     },
     {
-      "name": "Card",
-      "ctype": "Unknown",
-      "extra": [
-        {
-          "label": "内部排序方向",
-          "ftype": "Select",
-          "refer": "orientation",
-          "extra": {
-            "options": [
-              { "label": "纵向", "value": "vertical" },
-              { "label": "横向", "value": "horizontal" }
-            ]
-          }
-        }
-      ]
+      "name": "EditList",
+      "ctype": "Array",
+      "category": "field",
+      "extra": []
     },
     {
       "name": "Button",
       "ctype": "Event",
+      "category": "field",
       "extra": [
         {
           "label": "文本内容",
@@ -49,36 +31,45 @@
         },
         {
           "label": "图标",
-          "refer": "icon",
-          "ftype": "Icon"
+          "ftype": "Icon",
+          "refer": "icon"
         },
         {
           "label": "类型",
-          "refer": "type",
           "ftype": "Select",
+          "refer": "type",
           "extra": {
             "options": [
-              { "label": "默认", "value": "default" },
-              { "label": "主要", "value": "primary" },
-              { "label": "链接", "value": "link" },
-              { "label": "虚线框", "value": "dashed" }
+              {
+                "label": "默认",
+                "value": "default"
+              },
+              {
+                "label": "主要",
+                "value": "primary"
+              },
+              {
+                "label": "链接",
+                "value": "link"
+              },
+              {
+                "label": "虚线框",
+                "value": "dashed"
+              }
             ]
           }
         },
         {
           "label": "警告/危险",
-          "refer": "danger",
-          "ftype": "Checkbox"
+          "ftype": "Checkbox",
+          "refer": "danger"
         }
       ]
     },
     {
-      "name": "Color",
-      "ctype": "String"
-    },
-    {
       "name": "Input",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "前缀",
@@ -95,6 +86,7 @@
     {
       "name": "Number",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "前缀",
@@ -121,10 +113,11 @@
     {
       "name": "Select",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "选项",
-          "ftype": "List",
+          "ftype": "EditList",
           "refer": "options",
           "extra": {
             "mapper": {
@@ -144,12 +137,9 @@
       ]
     },
     {
-      "name": "Cascader",
-      "ctype": "Array"
-    },
-    {
       "name": "Textarea",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "最小行数",
@@ -166,6 +156,7 @@
     {
       "name": "Checkbox",
       "ctype": "Boolean|Array",
+      "category": "field",
       "extra": [
         {
           "label": "多选",
@@ -199,7 +190,7 @@
         },
         {
           "label": "选项",
-          "ftype": "List",
+          "ftype": "EditList",
           "refer": "options",
           "extra": {
             "mapper": {
@@ -221,6 +212,7 @@
     {
       "name": "Switch",
       "ctype": "Boolean",
+      "category": "field",
       "extra": [
         {
           "label": "选中内容",
@@ -237,10 +229,11 @@
     {
       "name": "Radio",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "选项",
-          "ftype": "List",
+          "ftype": "EditList",
           "refer": "options",
           "extra": {
             "mapper": {
@@ -260,29 +253,55 @@
       ]
     },
     {
-      "name": "List",
-      "ctype": "Array"
-    },
-    {
       "name": "CodeEditor",
       "ctype": "String",
+      "category": "field",
       "extra": [
         {
           "label": "语言",
           "ftype": "Select",
-          "options": [
-            {
-              "label": "JavaScript",
-              "value": "javascript"
-            },
-            {
-              "label": "JSON",
-              "value": "json"
-            }
-          ],
           "refer": "lang"
         }
       ]
+    },
+    {
+      "name": "Carousel",
+      "ctype": "Unknown",
+      "category": "display"
+    },
+    {
+      "name": "Row",
+      "ctype": "Unknown",
+      "category": "container",
+      "extra": [
+        {
+          "label": "间隔",
+          "ftype": "Number",
+          "refer": "gutter"
+        }
+      ]
+    },
+    {
+      "name": "Col",
+      "ctype": "Unknown",
+      "category": "container",
+      "extra": [
+        {
+          "label": "占位",
+          "ftype": "Number",
+          "refer": "span"
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "ctype": "Unknown",
+      "category": "display"
+    },
+    {
+      "name": "Image",
+      "ctype": "Unknown",
+      "category": "display"
     }
   ]
 }

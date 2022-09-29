@@ -77,7 +77,6 @@ export default defineComponent({
       } else {
         edtField.extra.options.push(item)
       }
-      console.log(edtField.extra)
       addItem.value = false
       emit('addItem', item)
     }

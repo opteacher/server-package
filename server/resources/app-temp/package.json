@@ -13,7 +13,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		/*return pkgDeps.map(dep => `"${dep.from}": "^${dep.version}",`).join('\n		')*/
+		/*return pkgDeps.map(dep => `"${dep.from}": "${dep.version}",`).join('\n		')*/
 		"axios": "^0.25.0",
 		"jsonwebtoken": "^8.5.1",
 		"koa": "^2.13.1",

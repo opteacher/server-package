@@ -1,13 +1,14 @@
 {
   "data": [
     {
-      "name": "DbModule",
-      "exports": ["db"],
+      "name": "LibUtils",
+      "exports": ["db", "pickOrIgnore"],
       "from": "../utils/index.js",
-      "default": false
+      "default": false,
+      "version": ""
     },
     {
-      "name": "LibUtils",
+      "name": "BkdLibUtils",
       "exports": [
         "getErrContent",
         "fixStartsWith",
@@ -16,11 +17,11 @@
         "rmvEndsOf",
         "getProp",
         "setProp",
-        "uploadToQiniu",
-        "readConfig"
+        "uploadToQiniu"
       ],
       "from": "../lib/backend-library/utils/index.js",
-      "default": false
+      "default": false,
+      "version": ""
     },
     {
       "name": "Axios",
@@ -33,12 +34,6 @@
       "exports": ["crypto"],
       "from": "crypto",
       "default": true
-    },
-    {
-      "name": "ChildProcess",
-      "exports": ["exec", "execFile", "fork", "spawn", "execSync", "execFileSync", "spawnSync"],
-      "from": "child_process",
-      "default": false
     },
     {
       "name": "UUID",
@@ -66,6 +61,208 @@
       "exports": ["Path"],
       "from": "path",
       "default": true
+    },
+    {
+      "name": "Company",
+      "exports": ["company"],
+      "from": "../models/company.js",
+      "default": true,
+      "belong": "population-statistics"
+    },
+    {
+      "name": "Person",
+      "exports": ["person"],
+      "from": "../models/person.js",
+      "default": true,
+      "belong": "population-statistics"
+    },
+    {
+      "name": "Record",
+      "exports": ["record"],
+      "from": "../models/record.js",
+      "default": true,
+      "belong": "population-statistics"
+    },
+    {
+      "name": "Report",
+      "exports": ["report"],
+      "from": "../models/report.js",
+      "default": true,
+      "belong": "population-statistics"
+    },
+    {
+      "name": "Admin",
+      "exports": ["admin"],
+      "from": "../models/admin.js",
+      "default": true,
+      "belong": "population-statistics"
+    },
+    {
+      "name": "Context",
+      "exports": ["context"],
+      "from": "../models/context.js",
+      "default": true,
+      "belong": "stock-crawler"
+    },
+    {
+      "name": "Stock",
+      "exports": ["stock"],
+      "from": "../models/stock.js",
+      "default": true,
+      "belong": "stock-crawler"
+    },
+    {
+      "name": "User",
+      "exports": ["user"],
+      "from": "../models/user.js",
+      "default": true,
+      "belong": "stock-crawler"
+    },
+    {
+      "name": "page",
+      "exports": ["page"],
+      "from": "../models/page.js",
+      "default": true,
+      "belong": "gl-page-design"
+    },
+    {
+      "name": "component",
+      "exports": ["component"],
+      "from": "../models/component.js",
+      "default": true,
+      "belong": "gl-page-design"
+    },
+    {
+      "name": "project",
+      "exports": ["project"],
+      "from": "../models/project.js",
+      "default": true,
+      "belong": "gl-page-design"
+    },
+    {
+      "name": "ChildProcess",
+      "exports": ["exec", "execFile", "fork", "spawn", "execSync", "execFileSync", "spawnSync"],
+      "from": "child_process",
+      "default": false
+    },
+    {
+      "name": "admin",
+      "exports": ["admin"],
+      "from": "../models/admin.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "excel",
+      "exports": ["excel"],
+      "from": "../models/excel.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "FileSystem",
+      "exports": [
+        "createReadStream",
+        "renameSync",
+        "createWriteStream",
+        "mkdirSync",
+        "writeFileSync",
+        "rmSync"
+      ],
+      "from": "fs",
+      "default": false,
+      "version": ""
+    },
+    {
+      "name": "ExcelJs",
+      "exports": ["ExcelJS"],
+      "from": "exceljs",
+      "default": true,
+      "version": "4.2.1"
+    },
+    {
+      "name": "excel",
+      "exports": ["excel"],
+      "from": "../models/excel.js",
+      "default": true,
+      "belong": "excel-batch"
+    },
+    {
+      "name": "SendFile",
+      "exports": ["sendfile"],
+      "from": "koa-sendfile",
+      "default": true,
+      "version": "3.0.0"
+    },
+    {
+      "name": "WebSocket",
+      "exports": ["WebSocketServer"],
+      "from": "ws",
+      "default": false,
+      "version": "8.8.1"
+    },
+    {
+      "name": "Userinfo",
+      "exports": ["Userinfo"],
+      "from": "../models/userinfo.js",
+      "default": true,
+      "belong": "dow-wxminiapp"
+    },
+    {
+      "name": "Scanjob",
+      "exports": ["Scanjob"],
+      "from": "../models/scanJob.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "DevCamera",
+      "exports": ["DevCamera"],
+      "from": "../models/devCamera.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "Lodash",
+      "exports": ["_"],
+      "from": "lodash",
+      "default": true,
+      "version": "4.17.21"
+    },
+    {
+      "name": "DevServer",
+      "exports": ["DevServer"],
+      "from": "../models/devServer.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "Device",
+      "exports": ["Device"],
+      "from": "../models/device.js",
+      "default": true,
+      "belong": "police-assets"
+    },
+    {
+      "name": "OS",
+      "exports": ["os"],
+      "from": "os",
+      "default": true,
+      "version": ""
+    },
+    {
+      "name": "DayJS",
+      "exports": ["dayjs"],
+      "from": "dayjs",
+      "default": true,
+      "version": "1.11.4"
+    },
+    {
+      "name": "DevComputer",
+      "exports": ["DevComputer"],
+      "from": "../models/devComputer.js",
+      "default": true,
+      "belong": "police-assets"
     }
   ]
 }

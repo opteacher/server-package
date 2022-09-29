@@ -15,7 +15,7 @@ export default class NodeInPnl extends Node {
 
   static copy(src: any, tgt?: NodeInPnl): NodeInPnl {
     tgt = tgt || new NodeInPnl()
-    Node.copy(src, tgt)
+    Node.copy(src, tgt, true)
     if (src.posLT && src.posLT.length === 2) {
       tgt.posLT[0] = src.posLT[0]
       tgt.posLT[1] = src.posLT[1]

@@ -147,6 +147,8 @@ const iptMapper = new Mapper({
 
 const optEmitter = new Emitter()
 
+export const edtNdVisible = ref(false)
+
 export const edtNdEmitter = new Emitter()
 
 const depEmitter = new Emitter()
@@ -343,7 +345,7 @@ export const edtNdMapper = new Mapper({
     primary: true,
     inner: '加入库',
     onClick: () => {
-      store.commit('service/SET_JOIN_VSB', true)
+      joinVisible.value = true
     }
   },
   group: {
@@ -373,7 +375,7 @@ export const edtNdMapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          store.commit('service/SET_NODE_INVSB')
+          edtNdVisible.value = false
           await api.remove(node.key)
           store.commit('service/RESET_NODE')
         }
@@ -381,6 +383,8 @@ export const edtNdMapper = new Mapper({
     }
   }
 })
+
+export const joinVisible = ref(false)
 
 export const joinMapper = new Mapper({
   group: {
@@ -400,3 +404,5 @@ export const AddBtnWH = 32
 export const AddBtnHlfWH = AddBtnWH >> 1
 export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
+
+export const ndCdEmitter = new Emitter()

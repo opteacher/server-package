@@ -6,6 +6,7 @@ export default class Cell {
   suffix: string
   ctype: string
   format: any
+  refer: string
 
   constructor() {
     this.color = '#000000'
@@ -13,6 +14,7 @@ export default class Cell {
     this.suffix = ''
     this.ctype = ''
     this.format = null
+    this.refer = ''
   }
 
   reset() {
@@ -21,6 +23,7 @@ export default class Cell {
     this.suffix = ''
     this.ctype = ''
     this.format = null
+    this.refer = ''
   }
 
   static copy(src: any, tgt?: Cell, force = false): Cell {
@@ -30,6 +33,7 @@ export default class Cell {
     tgt.suffix = force ? src.suffix : src.suffix || tgt.suffix
     tgt.ctype = force ? src.ctype : src.ctype || tgt.ctype
     tgt.format = force ? src.format : src.format || tgt.format
+    tgt.refer = force ? src.refer : src.refer || tgt.refer
     return tgt
   }
 }

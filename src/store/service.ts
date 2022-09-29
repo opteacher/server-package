@@ -14,25 +14,22 @@ import {
   CardHlfWid,
   CardHlfGutter,
   CardWidth,
-  ArrowHeight
+  ArrowHeight,
+  edtNdVisible,
+  ndCdEmitter
 } from '@/views/Flow'
 import { Dispatch } from 'vuex'
 import router from '@/router'
 import { reactive } from 'vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
 import NodeInPnl from '@/types/ndInPnl'
 import { depAPI } from '@/apis'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
   svc: Service
-  emitter: Emitter
   nodes: NodesInPnl
   width: number
   node: Node
-  nodeVsb: boolean
-  joinVsb: boolean
-  tempVsb: boolean
 }
 
 export default {
@@ -40,13 +37,9 @@ export default {
   state: () =>
     ({
       svc: new Service(),
-      emitter: new Emitter(),
       nodes: {} as NodesInPnl,
       width: 0,
-      node: new Node(),
-      nodeVsb: false,
-      joinVsb: false,
-      tempVsb: false
+      node: new Node()
     } as SvcState),
   mutations: {
     SET_WIDTH(state: SvcState, width: number) {
@@ -59,7 +52,7 @@ export default {
         payload.node = new Node()
       }
       state.node.reset()
-      Node.copy(payload.node, state.node)
+      Node.copy(payload.node, state.node, true)
       if (state.node.previous && state.nodes[state.node.previous].ntype === 'condition') {
         // 添加修改条件节点
         state.node.ntype = 'condNode'
@@ -90,20 +83,11 @@ export default {
       }
       edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
       edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
-      state.nodeVsb = true
+      edtNdVisible.value = true
       edtNdEmitter.emit('viewOnly', payload.viewOnly)
-    },
-    SET_NODE_INVSB(state: SvcState) {
-      state.nodeVsb = false
     },
     RESET_NODE(state: SvcState) {
       state.node.reset()
-    },
-    SET_JOIN_VSB(state: SvcState, payload?: boolean) {
-      state.joinVsb = typeof payload !== 'undefined' ? payload : false
-    },
-    SET_TEMP_VSB(state: SvcState, payload?: boolean) {
-      state.tempVsb = typeof payload !== 'undefined' ? payload : false
     },
     RESET_STATE(state: SvcState) {
       state.svc.reset()
@@ -158,7 +142,7 @@ export default {
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
-        state.emitter.emit('refresh')
+        ndCdEmitter.emit('refresh')
       }
     },
     async fixWidth({ state, dispatch }: { state: SvcState; dispatch: Dispatch }) {
@@ -300,7 +284,6 @@ export default {
   },
   getters: {
     ins: (state: SvcState): Service => state.svc,
-    emitter: (state: SvcState): Emitter => state.emitter,
     nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes).filter(([, node]) => !node.isTemp))
     },
@@ -310,12 +293,9 @@ export default {
       (key: string): NodeInPnl =>
         state.nodes[key],
     editNode: (state: SvcState): Node => state.node,
-    nodeVsb: (state: SvcState): boolean => state.nodeVsb,
-    joinVsb: (state: SvcState): boolean => state.joinVsb,
     tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
-    tempVsb: (state: SvcState): boolean => state.tempVsb,
     tempGrps: () => (edtNdMapper['temp'].options as OpnType[]).map(reactive)
   }
 }

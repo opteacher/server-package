@@ -282,7 +282,7 @@ export class LstSelMapper extends BaseMapper {
   }
 }
 
-export class ListMapper extends TableMapper {
+export class EdtLstMapper extends TableMapper {
   lvMapper: Record<string, string>
 
   constructor() {
@@ -290,8 +290,8 @@ export class ListMapper extends TableMapper {
     this.lvMapper = {}
   }
 
-  static copy(src: any, tgt?: ListMapper): ListMapper {
-    tgt = tgt || new ListMapper()
+  static copy(src: any, tgt?: EdtLstMapper): EdtLstMapper {
+    tgt = tgt || new EdtLstMapper()
     TableMapper.copy(src, tgt)
     tgt.lvMapper = src.lvMapper || tgt.lvMapper
     return tgt
@@ -370,10 +370,10 @@ const EleTypeCopies = {
   SelOrIpt: SelOrIptMapper.copy,
   Upload: UploadMapper.copy,
   DateTime: BaseMapper.copy,
-  TagList: ListMapper.copy,
+  TagList: EdtLstMapper.copy,
   ListSelect: LstSelMapper.copy,
   CodeEditor: CdEdtMapper.copy,
-  List: ListMapper.copy,
+  EditList: EdtLstMapper.copy,
   Group: GroupMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 

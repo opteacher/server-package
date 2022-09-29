@@ -65,31 +65,43 @@ export default class Node implements Record<string, any> {
     this.deps = []
   }
 
-  static copy(src: any, tgt?: Node): Node {
+  static copy(src: any, tgt?: Node, force = false): Node {
     tgt = tgt || new Node()
-    tgt.key = src.key || src._id || tgt.key
-    tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : tgt.isTemp
-    tgt.group = src.group || tgt.group
-    tgt.title = src.title || tgt.title
-    tgt.desc = src.desc || tgt.desc
-    tgt.ntype = src.ntype || tgt.ntype
+    tgt.key = force ? src.key || src._id : src.key || src._id || tgt.key
+    tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : force ? false : tgt.isTemp
+    tgt.group = force ? src.group : src.group || tgt.group
+    tgt.title = force ? src.title : src.title || tgt.title
+    tgt.desc = force ? src.desc : src.desc || tgt.desc
+    tgt.ntype = force ? src.ntype : src.ntype || tgt.ntype
     if (src.inputs instanceof Array) {
       tgt.inputs = src.inputs.map((ipt: any) => Variable.copy(ipt))
+    } else if (force) {
+      tgt.inputs = []
     }
     if (src.outputs instanceof Array) {
       tgt.outputs = src.outputs.map((opt: any) => Variable.copy(opt))
+    } else if (force) {
+      tgt.outputs = []
     }
-    tgt.code = src.code || tgt.code
-    tgt.isFun = typeof src.isFun !== 'undefined' ? src.isFun : tgt.isFun
+    tgt.code = force ? src.code : src.code || tgt.code
+    tgt.isFun = typeof src.isFun !== 'undefined' ? src.isFun : force ? true : tgt.isFun
     tgt.previous = src.previous
       ? src.previous.key || src.previous._id || src.previous
+      : force
+      ? null
       : tgt.previous
     if (src.nexts instanceof Array) {
       tgt.nexts = src.nexts.map((nxt: any) => nxt.key || nxt._id || nxt)
+    } else if (force) {
+      tgt.nexts = []
     }
-    tgt.relative = src.relative || tgt.relative
-    tgt.temp = src.temp || tgt.temp
-    tgt.deps = src.deps ? src.deps.map((dep: any) => dep.key || dep._id || dep) : []
+    tgt.relative = force ? src.relative : src.relative || tgt.relative
+    tgt.temp = src.temp || (force ? [] : tgt.temp)
+    if (src.deps instanceof Array) {
+      tgt.deps = src.deps.map((dep: any) => dep.key || dep._id || dep)
+    } else if (force) {
+      tgt.deps = []
+    }
     return tgt
   }
 }

@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+import Compo from "./compo"
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const mgnBtm = 24
 
@@ -45,6 +48,13 @@ export default class Field {
     tgt.refer = force ? src.refer : src.refer || tgt.refer
     tgt.placeholder = force ? src.placeholder : src.placeholder || tgt.placeholder
     tgt.extra = force ? src.extra : src.extra || tgt.extra
+    return tgt
+  }
+
+  static cpyFmCmp(src: Compo, tgt?: Field): Field {
+    tgt = tgt || new Field()
+    tgt.ftype = src.name
+    tgt.extra = src.extra
     return tgt
   }
 }

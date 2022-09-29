@@ -39,14 +39,14 @@
       <div class="flow-panel" ref="panelRef">
         <VarsPanel />
         <TmpNdPanel />
-        <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="onAddBtnClicked" />
+        <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="() => onEdtNodeClick()" />
         <template v-else>
           <NodeCard
             v-for="node in Object.values(nodes)"
             :key="node.key"
             :nd-key="node.key"
-            @click:card="() => store.commit('service/SET_NODE', { node })"
-            @click:addBtn="onAddBtnClicked"
+            @click:card="() => onEdtNodeClick(node)"
+            @click:addBtn="(pvsKey: string) => onEdtNodeClick({ previous: pvsKey })"
           />
         </template>
       </div>
@@ -56,18 +56,17 @@
       width="70vw"
       :column="[2, 22]"
       :copy="Node.copy"
-      :show="store.getters['service/nodeVsb']"
+      :object="editNode"
+      v-model:show="edtNdVisible"
       :mapper="edtNdMapper"
-      :object="store.getters['service/editNode']"
       :emitter="edtNdEmitter"
-      @update:show="() => store.commit('service/SET_NODE_INVSB')"
       @submit="onNodeSaved"
       @initialize="store.dispatch('service/refreshTemps')"
     />
     <FormDialog
       title="选择组"
       width="35vw"
-      :show="store.getters['service/joinVsb']"
+      v-model:show="joinVisible"
       :mapper="joinMapper"
       :copy="
         (src: any, tgt: any) => {
@@ -77,7 +76,6 @@
         }
       "
       @submit="onGroupSelect"
-      @update:show="() => store.commit('service/SET_JOIN_VSB', false)"
       @initialize="onDialogInit"
     />
   </div>
@@ -88,7 +86,7 @@ import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
 import NodeCard from '../components/flow/NodeCard.vue'
 import Node from '../types/node'
 import FormDialog from '../components/com/FormDialog.vue'
-import { edtNdEmitter, edtNdMapper, joinMapper } from './Flow'
+import { edtNdEmitter, edtNdMapper, edtNdVisible, joinMapper, joinVisible } from './Flow'
 import { useStore } from 'vuex'
 import VarsPanel from '../components/flow/VarsPanel.vue'
 import TmpNdPanel from '../components/flow/TmpNdPanel.vue'
@@ -114,19 +112,19 @@ export default defineComponent({
     const mid = route.params.mid
     const sid = route.params.sid
     const panelRef = ref()
-    const node = computed(() => store.getters['service/editNode'])
+    const editNode = computed(() => store.getters['service/editNode'])
     const pname = computed(() => store.getters['project/ins'].name)
     const mname = computed(() => store.getters['model/ins'].name)
     const service = computed(() => store.getters['service/ins'])
     const editTitle = computed(() => {
-      if (node.value.key) {
-        if (node.value.isTemp) {
-          return `编辑模板节点#${node.value.key}`
+      if (editNode.value.key) {
+        if (editNode.value.isTemp) {
+          return `编辑模板节点#${editNode.value.key}`
         } else {
-          return `编辑节点#${node.value.key}`
+          return `编辑节点#${editNode.value.key}`
         }
-      } else if (node.value.previous && node.value.previous.key) {
-        return `在节点#${node.value.previous.key}后新增节点`
+      } else if (editNode.value.previous && editNode.value.previous.key) {
+        return `在节点#${editNode.value.previous.key}后新增节点`
       } else {
         return '在根节点后新增节点'
       }
@@ -146,15 +144,13 @@ export default defineComponent({
       store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
       await store.dispatch('service/refresh')
     }
-    function onAddBtnClicked(pvsKey: string) {
-      node.value.reset()
-      store.commit('service/SET_NODE', {
-        node: pvsKey ? { previous: pvsKey } : undefined
-      })
-    }
     async function onNodeSaved(node: Node, next: () => void) {
       await api.save(node)
       next()
+    }
+    function onEdtNodeClick(node?: any) {
+      edtNdEmitter.emit('update:show', true)
+      store.commit('service/SET_NODE', { node })
     }
     async function onGroupSelect(edited: any) {
       await api.joinLib(edited.group)
@@ -177,14 +173,17 @@ export default defineComponent({
       mname,
       service,
       panelRef,
+      editNode,
       editTitle,
+      joinVisible,
       joinMapper,
+      edtNdVisible,
       edtNdEmitter,
       edtNdMapper,
 
       onNodeSaved,
-      onAddBtnClicked,
       onGroupSelect,
+      onEdtNodeClick,
       onDialogInit
     }
   }

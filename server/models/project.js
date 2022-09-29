@@ -64,6 +64,16 @@ export default db.defineModel(
         path: db.PropTypes.String,
         theme: db.PropTypes.String,
         logo: db.PropTypes.String
+      },
+      dashboard: {
+        bkgdColor: db.PropTypes.String,
+        padding: db.PropTypes.Array, // [width, height]
+        children: [{
+          ctype: db.PropTypes.String,
+          style: db.PropTypes.Object,
+          content: db.PropTypes.String,
+          children: db.PropTypes.Array
+        }]
       }
     }
   },

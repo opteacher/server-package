@@ -1,5 +1,14 @@
 import store from '@/store'
-import { endsWith, makeRequest, reqAll, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
+import {
+  endsWith,
+  makeRequest,
+  pickOrIgnore,
+  reqAll,
+  reqDelete,
+  reqGet,
+  reqPost,
+  reqPut
+} from '@/utils'
 import Project from '@/types/project'
 import Transfer from '@/types/transfer'
 import DataBase from '@/types/database'
@@ -7,6 +16,21 @@ import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import axios from 'axios'
+import { pjtAPI } from '.'
+import CmpIns from '@/types/cmpIns'
+
+function searchCmpIns(cmpIns: { key: string; children: CmpIns[] }, skey: string): CmpIns | null {
+  if (cmpIns.key === skey) {
+    return cmpIns as CmpIns
+  }
+  for (const subCmpIns of cmpIns.children) {
+    const ret = searchCmpIns(subCmpIns, skey)
+    if (ret) {
+      return ret
+    }
+  }
+  return null
+}
 
 export default {
   add: (data: any) =>
@@ -19,7 +43,7 @@ export default {
   detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
-  sync: (key: any) => {
+  sync: (key: string) => {
     Modal.confirm({
       title: '确定（重）启动项目？',
       icon: createVNode(ExclamationCircleOutlined),
@@ -40,7 +64,7 @@ export default {
       }
     })
   },
-  stop: (key: any) => {
+  stop: (key: string) => {
     Modal.confirm({
       title: '确定停止项目？',
       icon: createVNode(ExclamationCircleOutlined),
@@ -96,15 +120,15 @@ export default {
       }
     )
   },
-  status: (key: any) =>
+  status: (key: string) =>
     reqGet('project', `${key}/stat`, {
       type: 'api',
       messages: { notShow: true }
     }),
-  apis: (key: any) => reqGet('project', `${key}/apis`, { type: 'api' }),
+  apis: (key: string) => reqGet('project', `${key}/apis`, { type: 'api' }),
   middle: {
     login: {
-      save: async (key: any, data: any, next?: () => Promise<any>) => {
+      save: async (key: string, data: any, next?: () => Promise<any>) => {
         await reqPut('project', key, { 'middle.login': data })
         if (next) {
           await next()
@@ -112,10 +136,86 @@ export default {
       }
     },
     navigate: {
-      save: async (key: any, data: any, next?: () => Promise<any>) => {
+      save: async (key: string, data: any, next?: () => Promise<any>) => {
         await reqPut('project', key, { 'middle.navigate': data })
         if (next) {
           await next()
+        }
+      }
+    },
+    dashboard: {
+      save: async (key: string, data: any, next?: () => Promise<any>) => {
+        await reqPut(
+          'project',
+          key,
+          { 'middle.dashboard': pickOrIgnore(data, ['children']) },
+          { query: { updMode: 'merge' } }
+        )
+        if (next) {
+          await next()
+        }
+      },
+      compo: {
+        add: async (key: string, data: any, next?: () => Promise<any>) => {
+          await reqPut(
+            'project',
+            key,
+            { 'middle.dashboard.children': data },
+            { query: { updMode: 'append' } }
+          )
+          if (next) {
+            await next()
+          }
+        },
+        remove: async (pkey: string, ckey: string, next?: () => Promise<any>) => {
+          const project = Project.copy(await pjtAPI.detail(pkey))
+          let cmpIns = searchCmpIns(project.middle.dashboard, ckey)
+          if (!cmpIns) {
+            return
+          }
+          let childKey = `children[{key:${cmpIns.key}}]`
+          while(cmpIns.parent) {
+            cmpIns = cmpIns.parent
+            childKey = `children[{key:${cmpIns.key}}].` + childKey
+          }
+          childKey = childKey.replace('key:', '_id:')
+          await reqPut(
+            'project',
+            pkey,
+            { [`middle.dashboard.${childKey}`]: null },
+            { query: { updMode: 'delete' } }
+          )
+          if (next) {
+            await next()
+          }
+        },
+        save: async (key: string, data: any) => reqPut(
+          'project',
+          store.getters['project/ins'].key,
+          { [`middle.dashboard.children[{_id:${key}}]`]: data },
+          { query: { updMode: 'merge' } }
+        ),
+        child: {
+          opera: async (
+            pkey: string,
+            ckey: string,
+            props: string,
+            data: any = null,
+            updMode = 'cover',
+            next?: () => Promise<any>
+          ) => {
+            await reqPut(
+              'project',
+              pkey,
+              {
+                [`middle.dashboard.children[{_id:${ckey}}].${props}`]: data
+              },
+              { query: { updMode } }
+            )
+            if (next) {
+              await next()
+            }
+          }
         }
       }
     },

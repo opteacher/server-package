@@ -12,12 +12,7 @@
       <GoldOutlined />
       &nbsp;节点库
     </a-button>
-    <a-modal
-      title="节点库"
-      :footer="null"
-      :visible="store.getters['service/tempVsb']"
-      @cancel="store.commit('service/SET_TEMP_VSB')"
-    >
+    <a-modal title="节点库" :footer="null" v-model:visible="tmpVisible">
       <a-collapse v-model:activeKey="actNdGrp" accordion>
         <a-collapse-panel
           v-for="[group, tmpNds] of Object.entries(tmpNdsByGp)"
@@ -75,17 +70,10 @@ export default defineComponent({
     const store = useStore()
     const actNdGrp = ref('')
     const hasTmpNds = ref(false)
+    const tmpVisible = ref(false)
     const tmpNdsByGp = reactive({} as { [group: string]: Node[] })
 
     onMounted(rfshGroup)
-    watch(
-      () => store.getters['service/tempVsb'],
-      (show: boolean) => {
-        if (show) {
-          rfshGroup()
-        }
-      }
-    )
     watch(
       () => store.getters['service/tempNodes'],
       () => rfshGroup(false)
@@ -116,6 +104,7 @@ export default defineComponent({
       store,
       actNdGrp,
       hasTmpNds,
+      tmpVisible,
       tmpNdsByGp
     }
   }

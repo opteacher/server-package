@@ -64,7 +64,7 @@ import Form from '@/types/form'
 import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'
-import { mdlAPI as api } from '../apis'
+import { cmpAPI, mdlAPI as api } from '../apis'
 import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
 import { onFieldDropDown } from '../views/Form'
@@ -85,13 +85,16 @@ export default defineComponent({
     const route = useRoute()
     const pid = route.params.pid
     const mid = route.params.mid
-    const compos = computed(() => store.getters['model/compos'] as Compo[])
+    const compos = reactive([] as Compo[])
     const form = computed(() => store.getters['model/form'] as Form)
     const fields = computed(() => store.getters['model/fields'] as Field[])
     const active = reactive(new Field())
     const hdHeight = ref(0)
 
-    onMounted(() => store.dispatch('model/refresh'))
+    onMounted(async () => {
+      compos.splice(0, compos.length, ...(await cmpAPI.all()))
+      await store.dispatch('model/refresh')
+    })
 
     async function onDropDownEmpty(e: DragEvent) {
       if (!e.dataTransfer) {

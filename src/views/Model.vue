@@ -129,12 +129,15 @@
           <template v-else-if="svc.emit === 'timeout'">延时任务</template>
           <template v-else-if="svc.emit === 'interval'">定时任务</template>
         </template>
-        <template #conds="{ record: svc }">
-          <template v-if="svc.emit === 'timeout'">
-            {{ `${svc.condition}后` }}
+        <template #pathCond="{ record: svc }">
+          <template v-if="svc.emit === 'api'">
+            {{ svc.path }}
+          </template>
+          <template v-else-if="svc.emit === 'timeout'">
+            {{ svc.condition }}后
           </template>
           <template v-else-if="svc.emit === 'interval'">
-            {{ `每${svc.condition}` }}
+            每{{ svc.condition }}
           </template>
         </template>
         <template #flow="{ record: svc }">
@@ -154,8 +157,11 @@
             模型路由流程固定
           </template>
         </template>
-        <template #ctrl="{ record: svc }">
-          <template v-if="svc.emit === 'timeout' || svc.emit === 'interval'">
+        <template #methodCtrl="{ record: svc }">
+          <template v-if="svc.emit === 'api'">
+            {{ svc.method }}
+          </template>
+          <template v-else>
             <ul class="unstyled-list">
               <li class="mb-3">
                 <a-tooltip>

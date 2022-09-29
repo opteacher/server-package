@@ -118,7 +118,7 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const route = useRoute()
-    const pid = route.params.pid
+    const pid = route.params.pid as string
     const selMuKey = ref('')
     const selModel = computed(() => store.getters['project/model'](selMuKey.value))
     const models = computed(() => store.getters['project/ins'].models)
