@@ -76,6 +76,7 @@ export const propMapper = new Mapper({
   name: {
     label: '字段名',
     type: 'Input',
+    desc: '不可取名：offset、limit！',
     disabled: [Cond.copy({ key: 'relative.model', cmp: '!=', val: '' })],
     rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
   },

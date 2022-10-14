@@ -114,7 +114,7 @@
       <EditableTable
         title="服务"
         size="small"
-        :api="{ all: () => [] }"
+        :api="svcAPI"
         :mapper="svcMapper"
         :columns="svcColumns"
         :copy="Service.copy"
@@ -158,31 +158,29 @@
             {{ svc.method }}
           </template>
           <template v-else>
-            <ul class="unstyled-list">
-              <li class="mb-3">
-                <a-tooltip>
-                  <template #title>需先启动项目后才能启动任务！</template>
-                  <a-button
-                    size="small"
-                    type="primary"
-                    :disabled="pstatus !== 'running'"
-                    @click.stop="() => svcAPI.job.restart(svc.key)"
-                  >
-                    启动
-                  </a-button>
-                </a-tooltip>
-              </li>
-              <li v-if="svc.jobId">
+            <a-space>
+              <a-tooltip>
+                <template #title>需先启动项目后才能启动任务！</template>
                 <a-button
+                  class="mb-3"
                   size="small"
-                  danger
+                  type="primary"
                   :disabled="pstatus !== 'running'"
-                  @click.stop="() => svcAPI.job.stop(svc.key)"
+                  @click.stop="() => svcAPI.job.restart(svc.key)"
                 >
-                  停止
+                  启动
                 </a-button>
-              </li>
-            </ul>
+              </a-tooltip>
+              <a-button
+                v-if="svc.jobId"
+                size="small"
+                danger
+                :disabled="pstatus !== 'running'"
+                @click.stop="() => svcAPI.job.stop(svc.key)"
+              >
+                停止
+              </a-button>
+            </a-space>
           </template>
         </template>
       </EditableTable>

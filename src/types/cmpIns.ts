@@ -79,7 +79,7 @@ export default class CmpIns {
       tgt.style.height = force ? src.style.height : src.style.height || tgt.style.height
       tgt.style.padding = force ? src.style.padding : src.style.padding || tgt.style.padding
     }
-    tgt.extra = src.extra || tgt.extra
+    tgt.extra = force ? src.extra : src.extra || tgt.extra
     tgt.parent = src.parent || (force ? null : tgt.parent)
     tgt.children = (src.children || (force ? [] : tgt.children)).map((cmpIns: any) =>
       CmpIns.copy(Object.assign(cmpIns, { parent: tgt }))

@@ -1,5 +1,5 @@
 <template>
-  <LytMain active="component" ref="layout">
+  <LytMain active="component">
     <EditableTable
       size="small"
       :api="api"
@@ -7,7 +7,6 @@
       :mapper="mapper"
       :copy="Compo.copy"
       :emitter="emitter"
-      :scl-height="ctnrHeight"
       title="组件"
     >
       <template #expandedRowRender="{ record: compo }">
@@ -26,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
+import { defineComponent, ref } from 'vue'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
 import { columns, mapper, fldColumns, fldMapper } from './Compo'
@@ -44,8 +43,6 @@ export default defineComponent({
   setup() {
     const emitter = new Emitter()
     const fldEmitter = new Emitter()
-    const layout = ref()
-    const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 300))
     return {
       Compo,
       Field,
@@ -56,9 +53,7 @@ export default defineComponent({
       emitter,
       fldColumns,
       fldMapper,
-      fldEmitter,
-      layout,
-      ctnrHeight
+      fldEmitter
     }
   }
 })

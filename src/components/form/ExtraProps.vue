@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions title="组件附加参数" :column="1" bordered size="small">
+  <a-descriptions class="mtb-10" title="组件附加参数" :column="1" bordered size="small">
     <a-descriptions-item v-for="exField in cmpExtra" :key="exField.key" :label="exField.label">
       <a-input
         v-if="exField.ftype === 'Input'"

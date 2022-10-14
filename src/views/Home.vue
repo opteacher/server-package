@@ -1,5 +1,5 @@
 <template>
-  <LytMain active="home" ref="layout">
+  <LytMain active="home">
     <EditableTable
       size="small"
       :api="api"
@@ -7,7 +7,6 @@
       :mapper="mapper"
       :copy="Project.copy"
       :emitter="emitter"
-      :scl-height="ctnrHeight"
       title="项目"
     >
       <template #name="{ record: project }">
@@ -62,7 +61,7 @@
 
 <script lang="ts">
 import Project from '@/types/project'
-import { computed, defineComponent, onMounted, ref, watch } from 'vue'
+import { defineComponent, onMounted, ref, watch } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
 import EditableTable from '../components/com/EditableTable.vue'
@@ -90,8 +89,6 @@ export default defineComponent({
     const store = useStore()
     const projects = ref([])
     const loading = ref(false)
-    const layout = ref()
-    const ctnrHeight = computed(() => (layout.value ? layout.value.container.clientHeight : 300))
 
     watch(
       () => store.getters['project/ins'].status.stat,
@@ -117,9 +114,7 @@ export default defineComponent({
       api,
       mapper,
       emitter,
-      columns,
-      layout,
-      ctnrHeight
+      columns
     }
   }
 })

@@ -83,10 +83,12 @@
               <CompoCard
                 v-for="cmpIns of dsbProps.children"
                 :key="cmpIns.key"
-                :pid="pid"
-                :compos="compos"
-                :actCmp="cmpProps"
                 :cmpIns="cmpIns"
+                :actKey="cmpProps.key"
+                @click="(clkCmp: any) => CmpIns.copy(clkCmp, cmpProps, true)"
+                @dragenter="onCmpInsDragEnter"
+                @dragleave="onCmpInsDragLeave"
+                @drop="onDropInContainer"
                 @refresh="refresh"
               />
             </template>
@@ -142,7 +144,7 @@
 </template>
 
 <script lang="ts">
-import { computed, createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, createVNode, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LytMiddle from '../layouts/LytMiddle.vue'
 import {
@@ -162,6 +164,9 @@ import CompoCard from '../components/mid/CompoCard.vue'
 import DsbProps from '../components/mid/DsbProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'
 import Field from '@/types/field'
+import { v4 as uuidv4 } from 'uuid'
+import { pid } from 'process'
+import { refresh } from './Auth'
 
 export default defineComponent({
   name: 'MiddleDashboard',
@@ -255,6 +260,29 @@ export default defineComponent({
       tlbxExpand[pos] = !tlbxExpand[pos]
       resize()
     }
+    function onCmpInsClick(cmpIns: CmpIns) {
+      CmpIns.copy(cmpIns, cmpProps)
+    }
+    function onCmpInsDragEnter(cmpIns: CmpIns, e: DragEvent) {
+      console.log(cmpIns, e)
+    }
+    function onCmpInsDragLeave(cmpIns: CmpIns) {
+      console.log(cmpIns)
+    }
+    async function onDropInContainer(cmpIns: CmpIns, e: DragEvent) {
+      if (!e.dataTransfer) {
+        return
+      }
+      const cmpName = e.dataTransfer.getData('text/plain')
+      await pjtAPI.middle.dashboard.compo.child.opera(
+        pid,
+        cmpIns.key,
+        'children',
+        new CmpIns(cmpMap.value[cmpName] as Compo, uuidv4()),
+        'append',
+        refresh
+      )
+    }
     return {
       CmpIns,
       Field,
@@ -279,7 +307,11 @@ export default defineComponent({
       onRmvCmpClick,
       onDspCmpSwitch,
       onCmpDragStart,
-      onToolboxExpand
+      onToolboxExpand,
+      onCmpInsClick,
+      onCmpInsDragEnter,
+      onCmpInsDragLeave,
+      onDropInContainer
     }
   }
 })

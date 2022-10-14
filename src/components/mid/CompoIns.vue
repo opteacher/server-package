@@ -12,14 +12,14 @@
   <img
     v-else-if="cmpIns.ctype === 'Image'"
     :id="cmpIns.key"
-    src="https://cdn.seovx.com/?mom=302"
+    src="https://api.ixiaowai.cn/gqapi/gqapi.php"
     :style="{ 'max-width': '100%', height: 'auto' }"
   />
 </template>
 
 <script lang="ts">
 import CmpIns from '@/types/cmpIns'
-import { defineComponent, onMounted } from 'vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'CompoIns',

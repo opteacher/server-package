@@ -35,13 +35,11 @@
           margin: '24px 16px',
           padding: '24px',
           background: '#fff',
-          minHeight: '280px',
+          height: '100%',
           overflowY: 'auto'
         }"
       >
-        <div class="h-100" ref="container">
-          <slot />
-        </div>
+        <slot />
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -74,14 +72,12 @@ export default defineComponent({
   },
   setup() {
     const router = useRouter()
-    const container = ref()
 
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
     }
     return {
       collapsed: ref<boolean>(false),
-      container,
       onItemSelected
     }
   }
