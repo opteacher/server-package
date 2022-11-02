@@ -205,6 +205,7 @@ export default {
         )
       })
       if (domEle) {
+        console.log(domEle.clientHeight)
         node.size[0] = domEle.clientWidth
         node.size[1] = domEle.clientHeight
         if (!node.previous) {

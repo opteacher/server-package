@@ -27,7 +27,6 @@
     size="small"
     ref="nodeRef"
     :bordered="false"
-    :title="title"
     :style="{
       position: 'absolute',
       width: `${CardWidth}px`,
@@ -47,11 +46,19 @@
     @mouseenter="$emit('mouseenter')"
     @mouseleave="$emit('mouseleave')"
   >
+    <template #title>
+      # {{ node.title }}&nbsp;
+      <a-tag v-if="node.ntype === 'normal' && node.isFun">函数式</a-tag>
+      <template v-else-if="node.ntype === 'traversal'">
+        <a-tag v-if="node.isAwait">await</a-tag>
+        <a-tag v-else-if="node.isForIn">for……in循环</a-tag>
+      </template>
+    </template>
     <template v-if="node.group" #extra>
       <span style="color: white">{{ node.group }}</span>
     </template>
     <a-row type="flex">
-      <a-col flex="20px">
+      <a-col v-if="node.inputs.length" flex="20px">
         <div style="position: relative">
           <div
             :style="{
@@ -82,18 +89,20 @@
         </div>
       </a-col>
       <a-col flex="auto">
-        <a-card :bordered="false">
-          <template v-if="node.desc">{{ node.desc }}</template>
-          <template v-else>输入节点描述</template>
-        </a-card>
+        <template v-if="node.desc">
+          <ul class="unstyled-list">
+            <li v-for="item in node.desc.split('\n')" :key="item">{{ item }}</li>
+          </ul>
+        </template>
+        <template v-else>输入节点描述</template>
       </a-col>
-      <a-col flex="20px">
+      <a-col v-if="node.outputs.length" flex="20px">
         <div style="position: relative">
           <div
             :style="{
               position: 'absolute',
               'z-index': 100,
-              left: '10px'
+              left: 0
             }"
           >
             <a-tag
@@ -166,7 +175,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
-import Node, { NodeTypeMapper, NodeType } from '@/types/node'
+import Node from '@/types/node'
 import {
   CardMinHgt,
   AddBtnHlfWH,
@@ -203,7 +212,6 @@ export default defineComponent({
             btmSvgHgt: ArrowHlfHgt
           })
     )
-    const title = computed(() => `# ${NodeTypeMapper[node.ntype as NodeType]} - ${node.title}`)
     const addBtnPosLT = computed(() =>
       props.ndKey
         ? [
@@ -282,7 +290,6 @@ export default defineComponent({
       CardMinHgt,
       ArrowHeight,
       ArrowHlfHgt,
-      title,
       node,
       color,
       nexts,

@@ -229,6 +229,10 @@ export const svcMapper = new Mapper({
     type: 'Select',
     options: timeUnits,
     display: [Cond.copy({ key: 'emit', cmp: '!=', val: 'api' })]
+  },
+  desc: {
+    label: '描述',
+    type: 'Textarea'
   }
 })
 
@@ -236,5 +240,6 @@ export const svcColumns = [
   new Column('激活方式', 'emit'),
   new Column('路由/激发条件', 'pathCond'),
   new Column('访问方式/控制', 'methodCtrl'),
+  new Column('描述', 'desc'),
   new Column('流程', 'flow')
 ]

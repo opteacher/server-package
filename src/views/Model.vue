@@ -183,6 +183,15 @@
             </a-space>
           </template>
         </template>
+        <template #desc="{ record: svc }">
+          <a-tooltip v-if="svc.desc">
+            <template #title>{{ svc.desc }}</template>
+            <a-button type="link" click.stop="e => e.preventDefault()">
+              <template #icon><info-circle-outlined /></template>
+            </a-button>
+          </a-tooltip>
+          <template v-else>-</template>
+        </template>
       </EditableTable>
     </div>
   </LytProject>

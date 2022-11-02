@@ -17,17 +17,17 @@
           valState.type === 'DateTime'
         "
       >
-        {{ formState[skey] }}
+        {{ getProp(formState, skey) }}
       </template>
       <template v-else-if="valState.type === 'Textarea' || valState.type === 'CodeEditor'">
-        <pre>{{ formState[skey] }}</pre>
+        <pre class="mb-0">{{ getProp(formState, skey) }}</pre>
       </template>
       <template v-else-if="valState.type === 'Select' || valState.type === 'Cascader'">
-        {{ fmtDrpdwnValue(valState.options, formState[skey]) }}
+        {{ fmtDrpdwnValue(valState.options, getProp(formState, skey)) }}
       </template>
       <template v-else-if="valState.type === 'Checkbox'">
         {{
-          formState[skey]
+          getProp(formState, skey)
             ? valState.chkLabels
               ? valState.chkLabels[1]
               : '是'
@@ -36,11 +36,16 @@
             : '否'
         }}
       </template>
+      <template v-else-if="valState.type === 'EditList'">
+        <ul class="unstyled-list">
+          <li v-for="item in getProp(formState, skey)" :key="item">{{ item }}</li>
+        </ul>
+      </template>
       <template v-else-if="valState.type === 'Table'">
         <a-table
-          v-show="formState[skey] && formState[skey].length"
+          v-show="getProp(formState, skey) && getProp(formState, skey).length"
           :columns="valState.columns"
-          :data-source="formState[skey]"
+          :data-source="getProp(formState, skey)"
           :pagination="false"
           size="small"
         />
@@ -52,19 +57,19 @@
     <template v-else>
       <a-input
         v-if="valState.type === 'Input'"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         :type="valState.iptType || 'text'"
         :disabled="validConds(formState, valState.disabled) || !editable"
         :addon-before="valState.prefix"
         :addon-after="valState.suffix"
         :placeholder="valState.placeholder || '请输入'"
-        @change="(e: any) => valState.onChange(formState, e.target.value)"
+        @change="(e: any) => onFieldChanged(e.target.value)"
       />
       <a-input-number
         v-else-if="valState.type === 'Number'"
         class="w-100"
         type="number"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(formState, valState.disabled) || !editable"
         @change="(val: any) => valState.onChange(formState, val)"
@@ -73,11 +78,11 @@
         v-else-if="valState.type === 'Select'"
         class="w-100"
         :options="valState.options"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         :placeholder="valState.placeholder || '请选择'"
         :disabled="validConds(formState, valState.disabled) || !editable"
         @dropdownVisibleChange="valState.onDropdown"
-        @change="(val: any) => valState.onChange(formState, val)"
+        @change="(val: any) => onFieldChanged(val)"
       >
         <template v-if="valState.loading" #notFoundContent>
           <a-spin size="small" />
@@ -87,12 +92,12 @@
         <template #title>{{ valState.placeholder || '请确认' }}</template>
         <a-checkbox
           :name="skey"
-          v-model:checked="formState[skey]"
+          :checked="getProp(formState, skey)"
           :disabled="validConds(formState, valState.disabled) || !editable"
-          @change="(val: any) => valState.onChange(formState, val)"
+          @change="(val: any) => onFieldChanged(val)"
         >
           {{
-            formState[skey]
+            getProp(formState, skey)
               ? valState.chkLabels
                 ? valState.chkLabels[1]
                 : '是'
@@ -104,20 +109,20 @@
       </a-tooltip>
       <a-textarea
         v-else-if="valState.type === 'Textarea'"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         :rows="valState.maxRows"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(formState, valState.disabled) || !editable"
-        @change="(val: any) => valState.onChange(formState, val)"
+        @change="(val: any) => onFieldChanged(val)"
       />
       <a-cascader
         v-else-if="valState.type === 'Cascader'"
         :options="valState.options"
         :placeholder="valState.placeholder || '请选择'"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         change-on-select
         :disabled="validConds(formState, valState.disabled) || !editable"
-        @change="(e: any) => valState.onChange(formState, e)"
+        @change="(e: any) => onFieldChanged(e)"
       />
       <a-tooltip v-else-if="valState.type === 'Button'">
         <template #title>{{ valState.placeholder || '请点击' }}</template>
@@ -139,7 +144,7 @@
         show-time
         :placeholder="valState.placeholder || '请选择'"
         :disabled="validConds(formState, valState.disabled) || !editable"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
       />
       <template v-else-if="valState.type === 'Table'">
         <a-space>
@@ -164,9 +169,9 @@
         </a-space>
         <a-table
           class="mt-5"
-          v-show="formState[skey] && formState[skey].length"
+          v-show="getProp(formState, skey) && getProp(formState, skey).length"
           :columns="valState.columns.concat([new Column('操作', 'opera', { width: 80 })])"
-          :data-source="formState[skey]"
+          :data-source="getProp(formState, skey)"
           :pagination="false"
           size="small"
           :custom-row="
@@ -184,7 +189,7 @@
             <template v-if="column.dataIndex === 'opera'">
               <a-popconfirm
                 title="确定删除该字段"
-                @confirm.stop="valState.onDeleted(record.key, formState[skey])"
+                @confirm.stop="valState.onDeleted(record.key, getProp(formState, skey))"
               >
                 <a-button danger size="small" @click.stop="() => {}">删除</a-button>
               </a-popconfirm>
@@ -197,10 +202,10 @@
         :field="valState"
         :form="formState"
         path="/server-package/api/v1/temp/file"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
       />
       <a-space v-else-if="valState.type === 'Delable'">
-        {{ formState[skey] || '-' }}
+        {{ getProp(formState, skey) || '-' }}
         <CloseCircleOutlined @click="valState.onDeleted(formState.key)" />
       </a-space>
       <a-row v-else-if="valState.type === 'SelOrIpt'" type="flex">
@@ -209,7 +214,7 @@
             v-if="valState.mode === 'select'"
             style="width: 98%"
             :options="valState.options"
-            v-model:value="formState[skey]"
+            :value="getProp(formState, skey)"
             :placeholder="valState.placeholder || '请选择'"
             :disabled="validConds(formState, valState.disabled) || !editable"
           />
@@ -217,7 +222,7 @@
             v-else
             style="width: 98%"
             :placeholder="valState.placeholder || '请输入'"
-            v-model:value="formState[skey]"
+            :value="getProp(formState, skey)"
             :disabled="validConds(formState, valState.disabled) || !editable"
           />
         </a-col>
@@ -265,7 +270,7 @@
               </a-list-item-meta>
               <template #actions>
                 <a-checkbox
-                  :checked="formState[skey].includes(option.key)"
+                  :checked="getProp(formState, skey).includes(option.key)"
                   @change="(e: any) => onLstSelChecked(e.target.checked, skey as string, option.key)"
                 />
               </template>
@@ -284,10 +289,10 @@
           添加{{ valState.label }}
         </a-button>
         <a-list
-          v-show="formState[skey] && formState[skey].length"
+          v-show="getProp(formState, skey) && getProp(formState, skey).length"
           style="margin-top: 5px"
           size="small"
-          :data-source="formState[skey]"
+          :data-source="getProp(formState, skey)"
         >
           <template #renderItem="{ item, index }">
             <a-list-item>
@@ -296,16 +301,16 @@
                   <a @click="onEdtLstAdded(skey, valState)">确定</a>
                   <a @click="onEdtLstDeled(skey, valState)">取消</a>
                 </template>
-                <a v-else @click="formState[skey].splice(index, 1)">删除</a>
+                <a v-else @click="getProp(formState, skey).splice(index, 1)">删除</a>
               </template>
               <template v-if="valState.addMod && !index">
                 <a-select
                   v-if="valState.mode === 'select'"
                   class="w-100"
                   :options="valState.options"
-                  v-model:value="formState[skey][0]"
+                  v-model:value="getProp(formState, skey)[0]"
                 />
-                <a-input v-else v-model:value="formState[skey][0]" />
+                <a-input v-else v-model:value="getProp(formState, skey)[0]" />
               </template>
               <template v-else>
                 <template v-if="valState.mode === 'select'">
@@ -319,29 +324,29 @@
       </template>
       <VueAceEditor
         v-else-if="valState.type === 'CodeEditor'"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
         :disabled="validConds(formState, valState.disabled) || !editable"
       />
       <TagList
         v-else-if="valState.type === 'TagList'"
         :field="valState"
-        v-model:value="formState[skey]"
+        :value="getProp(formState, skey)"
       >
         <template #FormDialog>
           <slot name="FormDialog" />
         </template>
       </TagList>
       <template v-else>
-        {{ formState[skey] }}
+        {{ getProp(formState, skey) }}
       </template>
     </template>
   </a-form-item>
 </template>
 
 <script lang="ts">
-import { Cond, OpnType } from '@/types'
+import { OpnType } from '@/types'
 import Column from '@/types/column'
-import { defineComponent, reactive, ref, watch } from 'vue'
+import { defineComponent, reactive, watch } from 'vue'
 import {
   InfoCircleOutlined,
   CloseCircleOutlined,
@@ -353,7 +358,7 @@ import { getCopy } from '@/types/mapper'
 import VueAceEditor from './VueAceEditor.vue'
 import UploadFile from './UploadFile.vue'
 import TagList from './TagList.vue'
-import { validConds } from './utils'
+import { validConds, getProp, setProp } from './utils'
 
 export default defineComponent({
   name: 'FormItem',
@@ -437,18 +442,24 @@ export default defineComponent({
       formState[key].unshift('')
       value.addMod = true
     }
+    function onFieldChanged(newVal: any) {
+      setProp(formState, props.skey, newVal)
+      valState.onChange(formState, newVal)
+    }
     return {
       Column,
 
       formState,
       valState,
 
+      getProp,
       validConds,
       fmtDrpdwnValue,
       onLstSelChecked,
       onEdtLstAdded,
       onEdtLstDeled,
-      onEdtLstShow
+      onEdtLstShow,
+      onFieldChanged
     }
   }
 })

@@ -86,6 +86,7 @@ export default class Service {
   cdValue: number
   cdUnit: string
   needRet: boolean
+  desc: string
 
   constructor() {
     this.key = ''
@@ -101,6 +102,7 @@ export default class Service {
     this.cdValue = 1
     this.cdUnit = 's'
     this.needRet = true
+    this.desc = ''
   }
 
   reset() {
@@ -117,6 +119,7 @@ export default class Service {
     this.cdValue = 1
     this.cdUnit = 's'
     this.needRet = true
+    this.desc = ''
   }
 
   static copy(src: any, tgt?: Service): Service {
@@ -146,6 +149,7 @@ export default class Service {
     const emtUnt = /(Y|M|W|D|h|m|s|ms)$/.exec(tgt.condition)
     tgt.cdUnit = src.cdUnit || (tgt.condition && emtUnt && emtUnt.length ? emtUnt[0] : tgt.cdUnit)
     tgt.needRet = typeof src.needRet !== 'undefined' ? src.needRet : tgt.needRet
+    tgt.desc = src.desc || tgt.desc
     return tgt
   }
 }

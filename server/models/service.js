@@ -16,7 +16,8 @@ export default db.defineModel(
     // 对于time，则在此时间段后激发；对于interval，则每过此时间段就执行一次。
     // 除此以外，如果是--/--/00T00:00:00格式存储，则在该时间执行，激发方式随意
     condition: db.PropTypes.String,
-    needRet: db.PropTypes.Boolean
+    needRet: db.PropTypes.Boolean,
+    desc: db.PropTypes.LongStr
   },
   {
     router: {

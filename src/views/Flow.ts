@@ -325,6 +325,17 @@ export const edtNdMapper = new Mapper({
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ]
+      },
+      'loop.isAwait': {
+        label: '是否为await',
+        type: 'Checkbox',
+        display: [Cond.copy({ key: 'ntype', cmp: '==', val: 'traversal' })]
+      },
+      'loop.isForIn': {
+        label: '是否使用for……in循环',
+        desc: '默认for……of循环',
+        type: 'Checkbox',
+        display: [Cond.copy({ key: 'ntype', cmp: '==', val: 'traversal' })]
       }
     }
   },
@@ -395,10 +406,10 @@ export const joinMapper = new Mapper({
   }
 })
 
-export const CardMinHgt = 150
+export const CardMinHgt = 86
 export const CardWidth = 300
 export const CardHlfWid = CardWidth >> 1
-export const ArrowHeight = 100
+export const ArrowHeight = 80
 export const ArrowHlfHgt = ArrowHeight >> 1
 export const AddBtnWH = 32
 export const AddBtnHlfWH = AddBtnWH >> 1

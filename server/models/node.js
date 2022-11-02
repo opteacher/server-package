@@ -35,6 +35,10 @@ export default db.defineModel(
       }
     ],
     isFun: db.PropTypes.Boolean,
+    loop: {
+      isAwait: db.PropTypes.Boolean,
+      isForIn: db.PropTypes.Boolean
+    },
     code: db.PropTypes.String,
     previous: { type: db.PropTypes.Id, ref: 'node' },
     nexts: [{ type: db.PropTypes.Id, ref: 'node' }],
