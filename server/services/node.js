@@ -24,10 +24,8 @@ export async function bindPtCdNodes(parent, child) {
 }
 
 export async function save(node, sid) {
-  const deps = node.deps ? node.deps.map(dep => dep.id || dep) : []
+  // 不保存依赖
   if (node.key) {
-    // 覆盖依赖
-    await db.saveOne(Node, node.key, { deps })
     // 更新节点
     return db.saveOne(Node, node.key, pickOrIgnore(node, ['key', 'previous', 'nexts', 'deps']))
   }
@@ -35,8 +33,6 @@ export async function save(node, sid) {
   node = await db.save(Node, pickOrIgnore(node, ['key']))
   const nodeKey = node.id
   let tailNode = node
-  // 覆盖依赖
-  await db.saveOne(Node, nodeKey, { deps })
   switch (node.ntype) {
     case 'condNode':
       {

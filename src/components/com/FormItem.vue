@@ -94,7 +94,7 @@
           :name="skey"
           :checked="getProp(formState, skey)"
           :disabled="validConds(formState, valState.disabled) || !editable"
-          @change="(val: any) => onFieldChanged(val)"
+          @change="(e: any) => onFieldChanged(e.target.checked)"
         >
           {{
             getProp(formState, skey)
@@ -278,59 +278,18 @@
           </template>
         </a-list>
       </a-form-item-rest>
-      <template v-else-if="valState.type === 'EditList'">
-        <a-button
-          v-if="!valState.addMod"
-          class="w-100"
-          type="primary"
-          ghost
-          @click="onEdtLstShow(skey, valState)"
-        >
-          添加{{ valState.label }}
-        </a-button>
-        <a-list
-          v-show="getProp(formState, skey) && getProp(formState, skey).length"
-          style="margin-top: 5px"
-          size="small"
-          :data-source="getProp(formState, skey)"
-        >
-          <template #renderItem="{ item, index }">
-            <a-list-item>
-              <template #actions>
-                <template v-if="valState.addMod && !index">
-                  <a @click="onEdtLstAdded(skey, valState)">确定</a>
-                  <a @click="onEdtLstDeled(skey, valState)">取消</a>
-                </template>
-                <a v-else @click="getProp(formState, skey).splice(index, 1)">删除</a>
-              </template>
-              <template v-if="valState.addMod && !index">
-                <a-select
-                  v-if="valState.mode === 'select'"
-                  class="w-100"
-                  :options="valState.options"
-                  v-model:value="getProp(formState, skey)[0]"
-                />
-                <a-input v-else v-model:value="getProp(formState, skey)[0]" />
-              </template>
-              <template v-else>
-                <template v-if="valState.mode === 'select'">
-                  {{ valState.options.find((opn: any) => opn.value === item).label }}
-                </template>
-                <template v-else>{{ item }}</template>
-              </template>
-            </a-list-item>
-          </template>
-        </a-list>
-      </template>
+      <EditList v-else-if="valState.type === 'EditList'" :form="formState" :pkey="skey" />
       <VueAceEditor
         v-else-if="valState.type === 'CodeEditor'"
         :value="getProp(formState, skey)"
+        @update:value="(val: string) => setProp(formState, skey, val)"
         :disabled="validConds(formState, valState.disabled) || !editable"
       />
       <TagList
         v-else-if="valState.type === 'TagList'"
         :field="valState"
         :value="getProp(formState, skey)"
+        @update:value="(val: string) => setProp(formState, skey, val)"
       >
         <template #FormDialog>
           <slot name="FormDialog" />
@@ -358,6 +317,7 @@ import { getCopy } from '@/types/mapper'
 import VueAceEditor from './VueAceEditor.vue'
 import UploadFile from './UploadFile.vue'
 import TagList from './TagList.vue'
+import EditList from './EditList.vue'
 import { validConds, getProp, setProp } from './utils'
 
 export default defineComponent({
@@ -371,7 +331,8 @@ export default defineComponent({
 
     UploadFile,
     VueAceEditor,
-    TagList
+    TagList,
+    EditList
   },
   props: {
     form: { type: Object, required: true },
@@ -426,22 +387,6 @@ export default defineComponent({
         formState[propKey].splice(selKeys.indexOf(opnKey), 1)
       }
     }
-    function onEdtLstAdded(key: string | number, value: any) {
-      if (!formState[key][0]) {
-        return
-      }
-      formState[key].push(formState[key][0])
-      formState[key].shift()
-      value.addMod = false
-    }
-    function onEdtLstDeled(key: string | number, value: any) {
-      formState[key].shift()
-      value.addMod = false
-    }
-    function onEdtLstShow(key: string | number, value: any) {
-      formState[key].unshift('')
-      value.addMod = true
-    }
     function onFieldChanged(newVal: any) {
       setProp(formState, props.skey, newVal)
       valState.onChange(formState, newVal)
@@ -453,12 +398,10 @@ export default defineComponent({
       valState,
 
       getProp,
+      setProp,
       validConds,
       fmtDrpdwnValue,
       onLstSelChecked,
-      onEdtLstAdded,
-      onEdtLstDeled,
-      onEdtLstShow,
       onFieldChanged
     }
   }

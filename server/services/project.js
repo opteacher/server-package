@@ -176,7 +176,10 @@ async function recuNode(key, indent, callback, endKey) {
       const ret = [genAnnotation(node, indents)]
       for (let i = 0; i < node.nexts.length; ++i) {
         const nxtNode = await db.select(Node, { _index: node.nexts[i].id })
-        ret.push(indents + `${i !== 0 ? '} else ' : ''}${nxtNode.code ? 'if (' + fmtCode(nxtNode) + ')' : ''} {`)
+        ret.push(
+          indents +
+            `${i !== 0 ? '} else ' : ''}${nxtNode.code ? 'if (' + fmtCode(nxtNode) + ')' : ''} {`
+        )
         if (nxtNode.nexts.length) {
           ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, callback, node.relative)))
         }
@@ -196,7 +199,9 @@ async function recuNode(key, indent, callback, endKey) {
         [
           genAnnotation(node, indents),
           '\n' + indents,
-          `for (const ${fmtOutput(output)} of ${fmtInput(input)}) {`
+          `for ${node.loop && node.loop.isAwait ? 'await' : ''} (const ${fmtOutput(
+            output
+          )} of ${fmtInput(input)}) {`
         ].join('')
       ]
       if (node.nexts.length) {

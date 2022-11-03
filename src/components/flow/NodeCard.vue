@@ -49,16 +49,16 @@
     <template #title>
       # {{ node.title }}&nbsp;
       <a-tag v-if="node.ntype === 'normal' && node.isFun">函数式</a-tag>
-      <template v-else-if="node.ntype === 'traversal'">
-        <a-tag v-if="node.isAwait">await</a-tag>
-        <a-tag v-else-if="node.isForIn">for……in循环</a-tag>
+      <template v-else-if="node.ntype === 'traversal' && node.loop">
+        <a-tag v-if="node.loop.isAwait">await</a-tag>
+        <a-tag v-else-if="node.loop.isForIn">for……in循环</a-tag>
       </template>
     </template>
     <template v-if="node.group" #extra>
       <span style="color: white">{{ node.group }}</span>
     </template>
     <a-row type="flex">
-      <a-col v-if="node.inputs.length" flex="20px">
+      <a-col v-if="node.inputs.length" flex="1px">
         <div style="position: relative">
           <div
             :style="{
@@ -71,32 +71,39 @@
             <a-tag
               v-for="input in node.inputs"
               :key="input.key"
-              class="b-0"
+              class="b-0 mr-0"
               :class="{ 'filled-input': input.value }"
               color="#108ee9"
             >
-              <template v-if="input.value">
+              <template v-if="input.value && input.value !== input.name">
                 {{ input.value }}&nbsp;
                 <RightOutlined />
                 &nbsp;{{ input.name }}
               </template>
               <template v-else>
                 <LoginOutlined />
-                &nbsp;{{ input.name }}
+                &nbsp;{{ input.value || input.name }}
               </template>
             </a-tag>
           </div>
         </div>
       </a-col>
-      <a-col flex="auto">
+      <!-- CardWidth - (CardPadding(12) + LeftRightWidth(1) + ContentPadding(5)) * 2 -->
+      <a-col flex="auto" class="plr-5" :style="{ width: `${CardWidth - 36}px` }">
         <template v-if="node.desc">
-          <ul class="unstyled-list">
+          <ul
+            class="unstyled-list"
+            :style="{
+              'overflow-x': 'auto',
+              'white-space': 'nowrap'
+            }"
+          >
             <li v-for="item in node.desc.split('\n')" :key="item">{{ item }}</li>
           </ul>
         </template>
         <template v-else>输入节点描述</template>
       </a-col>
-      <a-col v-if="node.outputs.length" flex="20px">
+      <a-col v-if="node.outputs.length" flex="1px">
         <div style="position: relative">
           <div
             :style="{
@@ -108,17 +115,17 @@
             <a-tag
               v-for="output in node.outputs"
               :key="output.key"
-              class="b-0"
+              class="b-0 mr-0"
               :class="{ 'filled-output': output.value }"
               color="#108ee9"
             >
-              <template v-if="output.value">
+              <template v-if="output.value && output.value !== output.name">
                 {{ output.name }}&nbsp;
                 <RightOutlined />
                 &nbsp;{{ output.value }}
               </template>
               <template v-else>
-                {{ output.name }}&nbsp;
+                {{ output.value || output.name }}&nbsp;
                 <LogoutOutlined />
               </template>
             </a-tag>
