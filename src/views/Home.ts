@@ -5,6 +5,7 @@ import { createVNode } from 'vue'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import store from '@/store'
+import { pjtAPI as api } from '@/apis'
 import Mapper from '@/types/mapper'
 import { Cond } from '@/types'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -121,7 +122,7 @@ export const mapper = new Mapper({
         onOk: async () => {
           mapper.operation.disabled = true
           mapper.operation.loading = true
-          await store.dispatch('project/del')
+          await api.remove(store.getters['project/ins'].key)
           emitter.emit('show', false)
           mapper.operation.disabled = false
           mapper.operation.loading = false

@@ -72,7 +72,7 @@
         :value="getProp(formState, skey)"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(formState, valState.disabled) || !editable"
-        @change="(val: any) => valState.onChange(formState, val)"
+        @change="(val: any) => onFieldChanged(val)"
       />
       <a-select
         v-else-if="valState.type === 'Select'"
