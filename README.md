@@ -1,29 +1,34 @@
 # server-package
-
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+无代码后台编辑平台，原服务器自用包发展而来，所以名字也被沿用。现项目包含如下几大模块：
+* 项目自动化部署模块
+* 模型可视化编辑模块
+* 中台编辑生成模块
+* 权限模块
+* 可视化服务流程设计模块
+## 1. 应用场景
+我认为软件开发的本质是提炼和融合，我曾经的一位同事形象地将这过程比喻为`map`和`reduce`。该平台的开发目的便是基于此来的，在经历过多个[nodejs](https://nodejs.org/en/)项目后，我自然而然的总结出了[backend-library](https://github.com/opteacher/backend-library)这个后台自用库。尽管这个库已经极大的提升了开发效率，但重复的`npm init`和复制粘贴让我意识到，项目的生成和部署可以再优化，结果便是这个原来只有一个`docker-compose.yml`的小包发展成现在的规模。
+### 1.1 适用对象
+适用于对后端要求不高（不用架构）或对后端开发不熟悉的群体，同样也适用于手头项目众多疲于重复新建项目、定义模型的自接自开发同行们。
+### 1.2 原后端开发流程
+以Node为例：
+1. 新建项目文件夹，然后进去`npm init && npm install`；或者干脆使用既存的node框架的cli生成。
+> 原谅我很久没关注express、koa或egg之类的后端框架了。
+2. 根据项目需要定义ORM模型，根据为模型需求定义增删改查接口（如果是连着前端一起开发的话，则还有列表页、详细页、新增编辑页等等一大堆……）。
+3.  定义接口和对应的服务逻辑，然后写测试case，出错了再debug。
+4.  打包成服务或微服务部署到服务器，可能还需要调整服务器软件的配置。
+### 1.3 与原后端开发流程对比
+1. 成功部署启动之后，登录进入首页面
+2. 新建配置项目
+3. 新建配置模型
+4. 新建配置接口
+5. 项目同步成功后，使用postman测试
+## 2. 部署使用
+### 2.1 依赖
+### 2.2 安装流程
+### 2.3 使用说明
+### 2.4 可能的问题
+## 3. 现状
+### 3.1 问题
+### 3.2 展望
+## 4. 补充
+### 4.1 功能表

@@ -27,7 +27,8 @@
       "name": "Axios",
       "exports": ["axios"],
       "from": "axios",
-      "default": true
+      "default": true,
+      "version": ""
     },
     {
       "name": "Crypto",
@@ -40,21 +41,21 @@
       "exports": ["v4"],
       "from": "uuid",
       "default": false,
-      "version": "8.3.2"
+      "version": "^8.3.2"
     },
     {
       "name": "Puppeteer",
       "exports": ["puppeteer"],
       "from": "puppeteer",
       "default": true,
-      "version": "13.1.3"
+      "version": "^13.1.3"
     },
     {
       "name": "Qiniu",
       "exports": ["qiniu"],
       "from": "qiniu",
       "default": true,
-      "version": "7.4.0"
+      "version": "^7.4.0"
     },
     {
       "name": "Path",
@@ -63,101 +64,10 @@
       "default": true
     },
     {
-      "name": "Company",
-      "exports": ["company"],
-      "from": "../models/company.js",
-      "default": true,
-      "belong": "population-statistics"
-    },
-    {
-      "name": "Person",
-      "exports": ["person"],
-      "from": "../models/person.js",
-      "default": true,
-      "belong": "population-statistics"
-    },
-    {
-      "name": "Record",
-      "exports": ["record"],
-      "from": "../models/record.js",
-      "default": true,
-      "belong": "population-statistics"
-    },
-    {
-      "name": "Report",
-      "exports": ["report"],
-      "from": "../models/report.js",
-      "default": true,
-      "belong": "population-statistics"
-    },
-    {
-      "name": "Admin",
-      "exports": ["admin"],
-      "from": "../models/admin.js",
-      "default": true,
-      "belong": "population-statistics"
-    },
-    {
-      "name": "Context",
-      "exports": ["context"],
-      "from": "../models/context.js",
-      "default": true,
-      "belong": "stock-crawler"
-    },
-    {
-      "name": "Stock",
-      "exports": ["stock"],
-      "from": "../models/stock.js",
-      "default": true,
-      "belong": "stock-crawler"
-    },
-    {
-      "name": "User",
-      "exports": ["user"],
-      "from": "../models/user.js",
-      "default": true,
-      "belong": "stock-crawler"
-    },
-    {
-      "name": "page",
-      "exports": ["page"],
-      "from": "../models/page.js",
-      "default": true,
-      "belong": "gl-page-design"
-    },
-    {
-      "name": "component",
-      "exports": ["component"],
-      "from": "../models/component.js",
-      "default": true,
-      "belong": "gl-page-design"
-    },
-    {
-      "name": "project",
-      "exports": ["project"],
-      "from": "../models/project.js",
-      "default": true,
-      "belong": "gl-page-design"
-    },
-    {
       "name": "ChildProcess",
       "exports": ["exec", "execFile", "fork", "spawn", "execSync", "execFileSync", "spawnSync"],
       "from": "child_process",
       "default": false
-    },
-    {
-      "name": "admin",
-      "exports": ["admin"],
-      "from": "../models/admin.js",
-      "default": true,
-      "belong": "police-assets"
-    },
-    {
-      "name": "excel",
-      "exports": ["excel"],
-      "from": "../models/excel.js",
-      "default": true,
-      "belong": "police-assets"
     },
     {
       "name": "FileSystem",
@@ -178,70 +88,28 @@
       "exports": ["ExcelJS"],
       "from": "exceljs",
       "default": true,
-      "version": "4.2.1"
-    },
-    {
-      "name": "excel",
-      "exports": ["excel"],
-      "from": "../models/excel.js",
-      "default": true,
-      "belong": "excel-batch"
+      "version": "^4.2.1"
     },
     {
       "name": "SendFile",
       "exports": ["sendfile"],
       "from": "koa-sendfile",
       "default": true,
-      "version": "3.0.0"
+      "version": "^3.0.0"
     },
     {
       "name": "WebSocket",
       "exports": ["WebSocketServer"],
       "from": "ws",
       "default": false,
-      "version": "8.8.1"
-    },
-    {
-      "name": "Userinfo",
-      "exports": ["Userinfo"],
-      "from": "../models/userinfo.js",
-      "default": true,
-      "belong": "dow-wxminiapp"
-    },
-    {
-      "name": "Scanjob",
-      "exports": ["Scanjob"],
-      "from": "../models/scanJob.js",
-      "default": true,
-      "belong": "police-assets"
-    },
-    {
-      "name": "DevCamera",
-      "exports": ["DevCamera"],
-      "from": "../models/devCamera.js",
-      "default": true,
-      "belong": "police-assets"
+      "version": "^8.8.1"
     },
     {
       "name": "Lodash",
       "exports": ["_"],
       "from": "lodash",
       "default": true,
-      "version": "4.17.21"
-    },
-    {
-      "name": "DevServer",
-      "exports": ["DevServer"],
-      "from": "../models/devServer.js",
-      "default": true,
-      "belong": "police-assets"
-    },
-    {
-      "name": "Device",
-      "exports": ["Device"],
-      "from": "../models/device.js",
-      "default": true,
-      "belong": "police-assets"
+      "version": "^4.17.21"
     },
     {
       "name": "OS",
@@ -255,14 +123,21 @@
       "exports": ["dayjs"],
       "from": "dayjs",
       "default": true,
-      "version": "1.11.4"
+      "version": "^1.11.4"
     },
     {
-      "name": "DevComputer",
-      "exports": ["DevComputer"],
-      "from": "../models/devComputer.js",
+      "name": "XLSX",
+      "exports": ["read", "readFile", "set_fs"],
+      "from": "xlsx",
+      "default": false,
+      "version": "https://cdn.sheetjs.com/xlsx-0.18.12/xlsx-0.18.12.tgz"
+    },
+    {
+      "name": "ReadLine",
+      "exports": ["readline"],
+      "from": "readline",
       "default": true,
-      "belong": "police-assets"
+      "version": ""
     }
   ]
 }
