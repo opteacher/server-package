@@ -53,7 +53,8 @@ cd server-package
 git submodule init
 git submodule update
 ```
-6. 直接构建启动：`docker-compose up --build -d`
+6. 修改`/data`访问权限：`sudo chmod 755 /data && sudo mkdir /data/server-package`
+7. 直接构建启动：`docker-compose up --build -d`
 ### 1.3 使用说明
 ### 1.4 可能的问题
 * 错误信息：无权访问本地挂载的`data`文件！
