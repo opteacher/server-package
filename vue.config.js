@@ -11,5 +11,9 @@ module.exports = {
         changeOrigin: true
       }
     }
+  },
+
+  configureWebpack: {
+    externals: ['electron', 'fs', 'path', 'os', 'url', 'child_process']
   }
 }

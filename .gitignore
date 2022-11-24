@@ -8,6 +8,9 @@ coverage
 server/tmp
 .docker
 server/configs/nginx.conf
+.nyc_output
+screenshots
+__image_snapshots__
 
 
 # local env files

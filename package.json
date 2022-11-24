@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
+    "test:coverage": "",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -25,6 +26,9 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@cypress/code-coverage": "^3.10.0",
+    "@frsource/cypress-plugin-visual-regression-diff": "^3.1.6",
+    "@types/cypress__code-coverage": "^3.10.0",
     "@types/jest": "^24.0.19",
     "@types/lodash": "^4.14.182",
     "@types/node": "^17.0.16",
@@ -44,6 +48,8 @@
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vue/test-utils": "^2.0.0-0",
+    "babel-plugin-istanbul": "^6.1.1",
+    "cypress": "^11.2.0",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^7.0.0",
