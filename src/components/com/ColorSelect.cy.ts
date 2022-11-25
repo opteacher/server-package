@@ -16,10 +16,10 @@ function cmpColVal(input: JQuery<HTMLElement>, tgt: number = 255) {
   expect(Math.abs(tgt - (input.val() as number))).lessThan(MaxColValDiffThreshold)
 }
 
-describe('<ColorSelect style/>', () => {
-  it('renders', () => {
+describe('<ColorSelect /> - 样式', () => {
+  it('渲染', () => {
     // see: https://test-utils.vuejs.org/guide/
-    cy.mount(ColorSelect, { attrs: { style: 'width: 500px' } })
+    cy.mount(ColorSelect, { attrs: { style: 'width: 500px; height: 329' } })
     cy.get(ColValHexIpt)
       .clear()
       .type('#CDCDCD')
@@ -30,12 +30,12 @@ describe('<ColorSelect style/>', () => {
   })
 })
 
-describe('<ColorSelect opera/>', () => {
+describe('<ColorSelect /> - 界面操作', () => {
   beforeEach(() => {
-    cy.mount(ColorSelect, { attrs: { style: 'width: 500px' } })
+    cy.mount(ColorSelect, { attrs: { style: 'width: 500px; height: 329' } })
   })
 
-  it('select color', () => {
+  it('选择颜色', () => {
     const satVal = cy.$$(SatVal)
     const width = satVal.width() || 0
     const height = satVal.height() || 0
@@ -80,7 +80,7 @@ describe('<ColorSelect opera/>', () => {
       })
   })
 
-  it('change saturation color', () => {
+  it('点击渐变色板改变颜色', () => {
     const hueSlider = cy.$$(HueSld)
     const hueWid = hueSlider.width() || 0
     const hueHgt = hueSlider.height() || 0
@@ -99,7 +99,7 @@ describe('<ColorSelect opera/>', () => {
       })
   })
 
-  it('change color inputs', () => {
+  it('输入颜色代码', () => {
     const point = cy.$$(SatValPoi)
     const orgCss = point.attr('style')
     cy.get(ColValHexIpt)
@@ -114,11 +114,11 @@ describe('<ColorSelect opera/>', () => {
   })
 })
 
-describe('<ColorSelect vue/>', () => {
-  it('color synchronized', () => {
+describe('<ColorSelect /> - Vue状态', () => {
+  it('修改颜色，检查是否双向同步', () => {
     cy.mount(ColorSelect, { props: { color: '#FFFFFF' } }).then(({ wrapper }) => {
+      wrapper.setProps({ 'onUpdate:color': (color: string) => wrapper.setProps({ color }) })
       expect(wrapper.props('color')).to.eq('#FFFFFF')
-      wrapper.setProps({ 'onUpdate:color': (e: string) => wrapper.setProps({ color: e }) })
       cy.get(ColValHexIpt)
         .clear()
         .type('#00FF00')
@@ -128,7 +128,7 @@ describe('<ColorSelect vue/>', () => {
     })
   })
 
-  it('identify preset', () => {
+  it('指定预设颜色', () => {
     cy.mount(ColorSelect, { props: { preset: ['#EEFF00'] } })
     cy.get('.preset li')
       .should('have.length', 1)

@@ -6,6 +6,7 @@ export default defineConfig({
   env: {
     pluginVisualRegressionCleanupUnusedImages: false,
     pluginVisualRegressionMaxDiffThreshold: 0.1,
+    pluginVisualRegressionDiffConfig: { includeAA: false }
   },
   component: {
     viewportWidth: 1280,
