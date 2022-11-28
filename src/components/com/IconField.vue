@@ -81,7 +81,7 @@ export default defineComponent({
     const begIdx = computed(() => (pages.cur - 1) << 2)
 
     onMounted(refresh)
-    watch(() => search.value, refresh)
+    // watch(() => search.value, refresh)
 
     function refresh() {
       let iconsLibs = Object.keys(iconsMapper[selTab.value])

@@ -17,9 +17,11 @@ function cmpColVal(input: JQuery<HTMLElement>, tgt: number = 255) {
 }
 
 describe('<ColorSelect /> - 样式', () => {
-  it('渲染', () => {
-    // see: https://test-utils.vuejs.org/guide/
+  beforeEach(() => {
     cy.mount(ColorSelect, { attrs: { style: 'width: 500px; height: 329' } })
+  })
+
+  it('渲染', () => {
     cy.get(ColValHexIpt)
       .clear()
       .type('#CDCDCD')
@@ -27,12 +29,6 @@ describe('<ColorSelect /> - 样式', () => {
       .matchImage({
         matchAgainstPath: `${imgPath}grey_color.png`
       })
-  })
-})
-
-describe('<ColorSelect /> - 界面操作', () => {
-  beforeEach(() => {
-    cy.mount(ColorSelect, { attrs: { style: 'width: 500px; height: 329' } })
   })
 
   it('选择颜色', () => {

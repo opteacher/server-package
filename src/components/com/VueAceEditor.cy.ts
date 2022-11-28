@@ -11,9 +11,7 @@ describe('<VueAceEditor /> - 样式', () => {
       matchAgainstPath: `${imgPath}code_editor.png`
     })
   })
-})
 
-describe('<VueAceEditor /> - 界面操作', () => {
   it('输入文本', () => {
     cy.mount(VueAceEditor, { attrs: { style: 'width: 1167px; height: 300px' }, props: { value: '' } })
     cy.get('textarea.ace_text-input').clear(options).type('console.log()', options)
