@@ -1,4 +1,4 @@
-import TagList from './TagList.vue'
+import TagList from '@/components/com/TagList.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Button, Tag } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'

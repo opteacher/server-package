@@ -1,4 +1,4 @@
-import VueAceEditor from './VueAceEditor.vue'
+import VueAceEditor from '@/components/com/VueAceEditor.vue'
 
 const imgPath = '/Users/Tallty/Projects/server-package/src/components/com/resources/images/'
 const options = { force: true }

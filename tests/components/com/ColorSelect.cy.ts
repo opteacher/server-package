@@ -1,5 +1,5 @@
 import '../../../cypress/support/component'
-import ColorSelect from './ColorSelect.vue'
+import ColorSelect from '@/components/com/ColorSelect.vue'
 
 const imgPath = '/Users/Tallty/Projects/server-package/src/components/com/resources/images/'
 const ColSel = '.color-select'

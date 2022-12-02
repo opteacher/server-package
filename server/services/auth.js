@@ -39,7 +39,8 @@ export async function bind(pid, auth) {
       interface: 'sign',
       emit: 'api',
       method: 'POST',
-      path: `/api/v1/${model.name}/sign`
+      path: `/api/v1/${model.name}/sign`,
+      needRet: true
     })
     await db.saveOne(Model, auth.model, { svcs: sgnSvc.id }, { updMode: 'append' })
     skips.push(sgnSvc.path)
@@ -51,7 +52,8 @@ export async function bind(pid, auth) {
       interface: 'verify',
       emit: 'api',
       method: 'POST',
-      path: `/api/v1/${model.name}/verify`
+      path: `/api/v1/${model.name}/verify`,
+      needRet: true
     })
     await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
@@ -63,7 +65,8 @@ export async function bind(pid, auth) {
       interface: 'verifyDeep',
       emit: 'api',
       method: 'POST',
-      path: `/api/v1/${model.name}/verify/deep`
+      path: `/api/v1/${model.name}/verify/deep`,
+      needRet: true
     })
     await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)

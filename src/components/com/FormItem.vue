@@ -113,7 +113,7 @@
         :rows="valState.maxRows"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(formState, valState.disabled) || !editable"
-        @change="(val: any) => onFieldChanged(val)"
+        @change="(e: any) => onFieldChanged(e.target.value)"
       />
       <a-cascader
         v-else-if="valState.type === 'Cascader'"
