@@ -126,7 +126,7 @@ import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import FormItem from './FormItem.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons-vue'
-import { validConds } from '@/utils'
+import { validConds } from './utils'
 
 export default defineComponent({
   name: 'FormDialog',
