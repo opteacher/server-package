@@ -96,7 +96,7 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
   }
   const result = await makeRequest(
     axios.get(
-      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/s`,
+      `/${options.project}/${reqType(options)}/v1/${path}/s`,
       options.axiosConfig && options.axiosConfig.params
         ? Object.assign(options.axiosConfig, {
             paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
@@ -129,7 +129,7 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
   }
   const result = await makeRequest(
     axios.get(
-      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`,
+      `/${options.project}/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`,
       options.axiosConfig && options.axiosConfig.params
         ? Object.assign(options.axiosConfig, {
             paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
@@ -167,7 +167,7 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
   }
   return makeRequest(
     axios.post(
-      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}`,
+      `/${options.project}/${reqType(options)}/v1/${path}`,
       body ? pickOrIgnore(body, options.ignores) : undefined,
       options.axiosConfig
     ),
@@ -196,7 +196,7 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
   }
   return makeRequest(
     axios.delete(
-      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
+      `/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
       options.axiosConfig && options.axiosConfig.params
         ? Object.assign(options.axiosConfig, {
             paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
@@ -238,7 +238,7 @@ export function reqPut(
   }
   return makeRequest(
     axios.put(
-      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
+      `/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
       body ? pickOrIgnore(body, options.ignores) : undefined,
       options.axiosConfig
     ),
@@ -273,7 +273,7 @@ export function reqLink(
     options.messages.succeed = '提交成功！'
   }
   const url = [
-    `${baseURL}/${options.project}/${reqType(options)}/v1`,
+    `/${options.project}/${reqType(options)}/v1`,
     body.parent[0],
     body.parent[1],
     body.child[0],
