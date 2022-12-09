@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { message } from 'ant-design-vue'
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import store from '@/store'
 import Service from './types/service'
+import qs from 'qs'
 
 export interface RequestOptions {
+  project?: string
   type?: string
   middles?: {
     before?: () => void
@@ -18,7 +20,7 @@ export interface RequestOptions {
     failed?: string
   }
   ignores?: string[]
-  query?: any
+  axiosConfig?: AxiosRequestConfig<any>
   copy?: (src: any, tgt?: any) => any
   orgRes?: boolean
 }
@@ -33,9 +35,6 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
   if (!options.messages) {
     options.messages = {}
   }
-  if (typeof options.messages.notShow === 'undefined') {
-    options.messages.notShow = false
-  }
   options.middles.before && options.middles.before()
   if (!options.messages.notShow) {
     message.loading(options.messages.loading || '加载中……')
@@ -48,20 +47,25 @@ export async function makeRequest(pms: Promise<any>, options?: RequestOptions): 
     message.destroy()
   }
   options.middles.after && options.middles.after(resp)
-  const result = options.orgRes ? resp : resp.result || resp.data || resp
-  if (!options.messages.notShow) {
-    if (resp.error || result.error) {
-      if (options.messages.failed) {
-        message.error(options.messages.failed)
-      } else {
-        message.error(resp.error || result.error)
-      }
+  let result = resp
+  if (options.orgRes) {
+    result = resp
+  } else if (typeof resp.result !== 'undefined') {
+    result = resp.result
+  } else if (typeof resp.data !== 'undefined') {
+    result = resp.data
+  }
+  if (resp.error || result.error) {
+    if (!options.messages.notShow && options.messages.failed) {
+      message.error(options.messages.failed)
     } else {
-      if (options.messages.succeed) {
-        message.success(options.messages.succeed)
-      } else if (result.message) {
-        message.success(result.message)
-      }
+      message.error(resp.error || result.error)
+    }
+  } else {
+    if (!options.messages.notShow && options.messages.succeed) {
+      message.success(options.messages.succeed)
+    } else if (result.message) {
+      message.success(result.message)
     }
   }
   return Promise.resolve(result)
@@ -75,6 +79,9 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
   if (!options) {
     options = {}
   }
+  if (!options.project) {
+    options.project = 'server-package'
+  }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
   }
@@ -88,7 +95,14 @@ export async function reqAll(path: string, options?: RequestOptions): Promise<an
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
-    axios.get(`/server-package/${reqType(options)}/v1/${path}/s`, { params: options.query }),
+    axios.get(
+      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/s`,
+      options.axiosConfig && options.axiosConfig.params
+        ? Object.assign(options.axiosConfig, {
+            paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
+          })
+        : undefined
+    ),
     options
   )
   return result.map((item: any) => (options && options.copy ? options.copy(item) : item))
@@ -98,6 +112,9 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
   if (!options) {
     options = {}
   }
+  if (!options.project) {
+    options.project = 'server-package'
+  }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
   }
@@ -111,9 +128,14 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
     options.messages.succeed = '查询成功！'
   }
   const result = await makeRequest(
-    axios.get(`/server-package/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`, {
-      params: options.query
-    }),
+    axios.get(
+      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}${iden ? '/' + iden : ''}`,
+      options.axiosConfig && options.axiosConfig.params
+        ? Object.assign(options.axiosConfig, {
+            paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
+          })
+        : undefined
+    ),
     options
   )
   return options && options.copy ? options.copy(result) : result
@@ -122,6 +144,9 @@ export async function reqGet(path: string, iden?: any, options?: RequestOptions)
 export function reqPost(path: string, body?: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (!options.project) {
+    options.project = 'server-package'
   }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
@@ -142,9 +167,9 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
   }
   return makeRequest(
     axios.post(
-      `/server-package/${reqType(options)}/v1/${path}`,
+      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}`,
       body ? pickOrIgnore(body, options.ignores) : undefined,
-      { params: options.query }
+      options.axiosConfig
     ),
     options
   )
@@ -153,6 +178,9 @@ export function reqPost(path: string, body?: any, options?: RequestOptions): Pro
 export function reqDelete(path: string, iden: any, options?: RequestOptions): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (!options.project) {
+    options.project = 'server-package'
   }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
@@ -167,9 +195,14 @@ export function reqDelete(path: string, iden: any, options?: RequestOptions): Pr
     options.messages.succeed = '删除成功！'
   }
   return makeRequest(
-    axios.delete(`/server-package/${reqType(options)}/v1/${path}/${iden}`, {
-      params: options.query
-    }),
+    axios.delete(
+      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
+      options.axiosConfig && options.axiosConfig.params
+        ? Object.assign(options.axiosConfig, {
+            paramsSerializer: (params: any) => qs.stringify(params, { indices: false })
+          })
+        : undefined
+    ),
     options
   )
 }
@@ -182,6 +215,9 @@ export function reqPut(
 ): Promise<any> {
   if (!options) {
     options = {}
+  }
+  if (!options.project) {
+    options.project = 'server-package'
   }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
@@ -202,9 +238,9 @@ export function reqPut(
   }
   return makeRequest(
     axios.put(
-      `/server-package/${reqType(options)}/v1/${path}/${iden}`,
+      `${baseURL}/${options.project}/${reqType(options)}/v1/${path}/${iden}`,
       body ? pickOrIgnore(body, options.ignores) : undefined,
-      { params: options.query }
+      options.axiosConfig
     ),
     options
   )
@@ -221,6 +257,9 @@ export function reqLink(
   if (!options) {
     options = {}
   }
+  if (!options.project) {
+    options.project = 'server-package'
+  }
   if (typeof options.orgRes === 'undefined') {
     options.orgRes = false
   }
@@ -234,16 +273,16 @@ export function reqLink(
     options.messages.succeed = '提交成功！'
   }
   const url = [
-    `/server-package/${reqType(options)}/v1`,
+    `${baseURL}/${options.project}/${reqType(options)}/v1`,
     body.parent[0],
     body.parent[1],
     body.child[0],
     body.child[1]
   ].join('/')
   if (link) {
-    return makeRequest(axios.put(url, { params: options.query }), options)
+    return makeRequest(axios.put(url, options.axiosConfig), options)
   } else {
-    return makeRequest(axios.delete(url, { params: options.query }), options)
+    return makeRequest(axios.delete(url, options.axiosConfig), options)
   }
 }
 

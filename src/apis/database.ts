@@ -6,7 +6,7 @@ export default {
   remove: (key: any) => reqDelete('database', key),
   update: (data: any) => reqPut('database', data.key, data),
   all: (offset: number, limit: number) =>
-    reqAll('database', { query: { offset, limit }, copy: Database.copy }),
+    reqAll('database', { axiosConfig: { params: { offset, limit } }, copy: Database.copy }),
   detail: (_key: any) => {
     console.log('get project detail')
   }

@@ -6,6 +6,6 @@ export default {
   remove: (key: any) => reqDelete('component', key),
   update: (data: any) => reqPut('component', data.key, data),
   all: (query?: any) =>
-    reqAll('component', { query, copy: Compo.copy }),
+    reqAll('component', { axiosConfig: { params: query }, copy: Compo.copy }),
   detail: (_key: any) => reqGet('component', _key)
 }

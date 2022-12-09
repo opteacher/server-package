@@ -7,7 +7,7 @@ export default {
   update: (data: any) => reqPut('dependency', data.key, data),
   all: (offset: number, limit: number, belong = 'null') =>
     reqAll('dependency', {
-      query: { offset, limit, belong: ['==', belong] },
+      axiosConfig: { params: { offset, limit, belong: ['==', belong] } },
       copy: Dep.copy
     }),
   detail: (_key: any) => {

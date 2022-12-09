@@ -63,7 +63,7 @@ const expDft = {
         { form: pickOrIgnore(form, ['fields']) },
         {
           messages: { notShow: true },
-          query: { updMode: 'merge' }
+          axiosConfig: { params: { updMode: 'merge' } }
         }
       )
       await store.dispatch('model/refresh')
@@ -78,7 +78,7 @@ const expDft = {
             'model',
             store.getters['model/ins'].key,
             { 'form.fields': { ftype: payload.compoType } },
-            { query: { updMode: 'append' }, messages: { notShow: true } }
+            { axiosConfig: { params: { updMode: 'append' } }, messages: { notShow: true } }
           )
         )
         const field = model.form.fields[model.form.fields.length - 1]
@@ -98,7 +98,7 @@ const expDft = {
             },
             {
               messages: { notShow: true },
-              query: { updMode: 'merge' }
+              axiosConfig: { params: { updMode: 'merge' } }
             }
           )
         } else {
@@ -108,7 +108,7 @@ const expDft = {
             { 'form.fields': field },
             {
               messages: { notShow: true },
-              query: { updMode: 'append' }
+              axiosConfig: { params: { updMode: 'append' } }
             }
           )
         }
@@ -124,7 +124,7 @@ const expDft = {
             },
             {
               messages: { notShow: true },
-              query: { updMode: 'merge' }
+              axiosConfig: { params: { updMode: 'merge' } }
             }
           )
           await store.dispatch('model/refresh')
@@ -149,7 +149,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           { [`form.fields[{id:${key}}]`]: null },
-          { query: { updMode: 'delete' }, messages: { notShow: true } }
+          { axiosConfig: { params: { updMode: 'delete' } }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       }
@@ -171,7 +171,7 @@ const expDft = {
           'model',
           store.getters['model/ins'].key,
           { 'table.demoData': null },
-          { query: { updMode: 'delete' }, messages: { notShow: true } }
+          { axiosConfig: { params: { updMode: 'delete' } }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       }
@@ -182,7 +182,7 @@ const expDft = {
         store.getters['model/ins'].key,
         { table: pickOrIgnore(table, ['columns']) },
         {
-          query: { updMode: 'merge' },
+          axiosConfig: { params: { updMode: 'merge' } },
           messages: { notShow: true }
         }
       )
@@ -198,14 +198,14 @@ const expDft = {
             {
               [`table.columns[{id:${column.key}}]`]: pickOrIgnore(column, ['key'])
             },
-            { query: { updMode: 'merge' }, messages: { notShow: true } }
+            { axiosConfig: { params: { updMode: 'merge' } }, messages: { notShow: true } }
           )
         } else {
           await reqPut(
             'model',
             mid,
             { 'table.columns': pickOrIgnore(column, ['key']) },
-            { query: { updMode: 'append' }, messages: { notShow: true } }
+            { axiosConfig: { params: { updMode: 'append' } }, messages: { notShow: true } }
           )
         }
         await store.dispatch('model/refresh')
@@ -219,7 +219,7 @@ const expDft = {
           {
             [`table.cells[{refer:${cell.refer}}]`]: pickOrIgnore(cell, ['refer'])
           },
-          { query: { updMode: 'merge' }, messages: { notShow: true } }
+          { axiosConfig: { params: { updMode: 'merge' } }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       },
@@ -230,7 +230,7 @@ const expDft = {
           {
             [`table.cells[{refer:${refer}}]${cond ? '.cdCell.' + cond : ''}.format`]: format
           },
-          { query: { updMode: 'merge' }, messages: { notShow: true } }
+          { axiosConfig: { params: { updMode: 'merge' } }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')
       },
@@ -244,7 +244,7 @@ const expDft = {
                 Object.entries(cdCell).map(([cond, cell]) => [cond, pickOrIgnore(cell, ['cdCell'])])
               )
             },
-            { query: { updMode: 'merge' }, messages: { notShow: true } }
+            { axiosConfig: { params: { updMode: 'merge' } }, messages: { notShow: true } }
           )
           await store.dispatch('model/refresh')
         }

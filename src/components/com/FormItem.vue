@@ -72,7 +72,16 @@
         :value="getProp(formState, skey)"
         :placeholder="valState.placeholder || '请输入'"
         :disabled="validConds(formState, valState.disabled) || !editable"
+        :addon-before="valState.prefix"
+        :addon-after="valState.suffix"
         @change="(val: any) => onFieldChanged(val)"
+      />
+      <a-input-password
+        v-else-if="valState.type === 'Password'"
+        :value="getProp(formState, skey)"
+        :placeholder="valState.placeholder || '请输入'"
+        :disabled="validConds(formState, valState.disabled) || !editable"
+        @change="(e: any) => onFieldChanged(e.target.value)"
       />
       <a-select
         v-else-if="valState.type === 'Select'"
@@ -203,12 +212,13 @@
         :form="formState"
         path="/server-package/api/v1/temp/file"
         :value="getProp(formState, skey)"
+        @update:value="onFieldChanged"
       />
       <a-space v-else-if="valState.type === 'Delable'">
         {{ getProp(formState, skey) || '-' }}
         <CloseCircleOutlined @click="valState.onDeleted(formState.key)" />
       </a-space>
-      <a-row v-else-if="valState.type === 'SelOrIpt'" type="flex">
+      <a-row v-else-if="valState.type === 'SelOrIpt'" type="flex" :gutter="8">
         <a-col flex="auto">
           <a-select
             v-if="valState.mode === 'select'"
@@ -217,6 +227,7 @@
             :value="getProp(formState, skey)"
             :placeholder="valState.placeholder || '请选择'"
             :disabled="validConds(formState, valState.disabled) || !editable"
+            @change="(val: any) => onFieldChanged(val)"
           />
           <a-input
             v-else
@@ -224,6 +235,7 @@
             :placeholder="valState.placeholder || '请输入'"
             :value="getProp(formState, skey)"
             :disabled="validConds(formState, valState.disabled) || !editable"
+            @change="(e: any) => onFieldChanged(e.target.value)"
           />
         </a-col>
         <a-col flex="32px">
@@ -278,7 +290,12 @@
           </template>
         </a-list>
       </a-form-item-rest>
-      <EditList v-else-if="valState.type === 'EditList'" :form="formState" :pkey="skey" />
+      <EditList
+        v-else-if="valState.type === 'EditList'"
+        :field="valState"
+        :value="getProp(formState, skey)"
+        @update:value="(val: any[]) => setProp(formState, skey, val)"
+      />
       <VueAceEditor
         v-else-if="valState.type === 'CodeEditor'"
         :value="getProp(formState, skey)"

@@ -44,7 +44,7 @@ export default {
             'node',
             edtNode.key,
             { [payload.name]: payload.varb },
-            { query: { updMode: 'append' } }
+            { axiosConfig: { params: { updMode: 'append' } } }
           )
         } else {
           await reqPut('node', edtNode.key, {
@@ -67,7 +67,7 @@ export default {
           'node',
           edtNode.key,
           { [`${payload.name}[{_id:${payload.key}}]`]: null },
-          { query: { updMode: 'delete' } }
+          { axiosConfig: { params: { updMode: 'delete' } } }
         )
         await store.dispatch('service/refreshNode')
       }

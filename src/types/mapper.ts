@@ -4,6 +4,7 @@
 import { CompoType, Cond, OpnType } from '.'
 import Column from './column'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import Field from './field'
 
 export class BaseMapper {
   label: string
@@ -282,18 +283,21 @@ export class LstSelMapper extends BaseMapper {
   }
 }
 
-export class EdtLstMapper extends TableMapper {
-  lvMapper: Record<string, string>
+export class EdtLstMapper extends BaseMapper {
+  modes: ('select' | 'input')[]
+  options: OpnType[]
 
   constructor() {
     super()
-    this.lvMapper = {}
+    this.modes = []
+    this.options = []
   }
 
   static copy(src: any, tgt?: EdtLstMapper): EdtLstMapper {
     tgt = tgt || new EdtLstMapper()
-    TableMapper.copy(src, tgt)
-    tgt.lvMapper = src.lvMapper || tgt.lvMapper
+    BaseMapper.copy(src, tgt)
+    tgt.modes = src.modes || tgt.modes
+    tgt.options = src.options || tgt.options
     return tgt
   }
 }
@@ -358,6 +362,7 @@ const EleTypeCopies = {
   Unknown: BaseMapper.copy,
   Input: InputMapper.copy,
   Number: InputMapper.copy,
+  Password: InputMapper.copy,
   Textarea: TextareaMapper.copy,
   Select: SelectMapper.copy,
   Cascader: SelectMapper.copy,

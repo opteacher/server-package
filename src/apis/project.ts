@@ -39,7 +39,7 @@ export default {
   update: (data: any) =>
     reqPut('project', data.key, data, { ignores: ['models', 'auth', 'middle', 'status'] }),
   all: (offset: number, limit: number) =>
-    reqAll('project', { query: { offset, limit }, copy: Project.copy }),
+    reqAll('project', { axiosConfig: { params: { offset, limit } }, copy: Project.copy }),
   detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
@@ -149,7 +149,7 @@ export default {
           'project',
           key,
           { 'middle.dashboard': pickOrIgnore(data, ['children']) },
-          { query: { updMode: 'merge' } }
+          { axiosConfig: { params: { updMode: 'merge' } } }
         )
         if (next) {
           await next()
@@ -161,7 +161,7 @@ export default {
             'project',
             key,
             { 'middle.dashboard.children': data },
-            { query: { updMode: 'append' } }
+            { axiosConfig: { params: { updMode: 'append' } } }
           )
           if (next) {
             await next()
@@ -183,7 +183,7 @@ export default {
             'project',
             pkey,
             { [`middle.dashboard.${childKey}`]: null },
-            { query: { updMode: 'delete' } }
+            { axiosConfig: { params: { updMode: 'delete' } } }
           )
           if (next) {
             await next()
@@ -193,7 +193,7 @@ export default {
           'project',
           store.getters['project/ins'].key,
           { [`middle.dashboard.children[{_id:${key}}]`]: data },
-          { query: { updMode: 'merge' } }
+          { axiosConfig: { params: { updMode: 'merge' } } }
         ),
         child: {
           opera: async (
@@ -210,7 +210,7 @@ export default {
               {
                 [`middle.dashboard.children[{_id:${ckey}}].${props}`]: data
               },
-              { query: { updMode } }
+              { axiosConfig: { params: { updMode } } }
             )
             if (next) {
               await next()

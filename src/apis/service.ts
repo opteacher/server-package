@@ -30,7 +30,7 @@ export default {
     restart: async (key: any) => {
       await reqPost(`service/${key}/job/restart`, undefined, {
         type: 'api',
-        query: { pid: store.getters['project/ins'].key }
+        axiosConfig: { params: { pid: store.getters['project/ins'].key } }
       })
       intervalCheck({
         chkFun: async () => {
@@ -49,7 +49,7 @@ export default {
     stop: async (key: any) => {
       await reqDelete('service', `${key}/job/stop`, {
         type: 'api',
-        query: { pid: store.getters['project/ins'].key }
+        axiosConfig: { params: { pid: store.getters['project/ins'].key } }
       })
       intervalCheck({
         chkFun: async () => {
