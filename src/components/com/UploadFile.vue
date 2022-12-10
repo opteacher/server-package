@@ -13,8 +13,9 @@
         v-model:file-list="valState"
         :action="field.path || path"
         :headers="field.headers"
-        @change="onUploadChange"
+        :progress="progress"
         :beforeUpload="field.onBeforeUpload"
+        @change="onUploadChange"
       >
         <a-menu @click="onUploadClicked">
           <a-menu-item key="file">
@@ -41,6 +42,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue'
 import { UploadOutlined, FileAddOutlined, FolderAddOutlined } from '@ant-design/icons-vue'
+import type { UploadChangeParam, UploadProps, UploadFile } from 'ant-design-vue'
 import { validConds } from './utils'
 
 export default defineComponent({
@@ -55,12 +57,21 @@ export default defineComponent({
     field: { type: Object, required: true },
     form: { type: Object, required: true },
     path: { type: String, default: '' },
-    value: { type: Object, required: true },
+    value: { type: Array, required: true },
     editable: { type: Boolean, default: true }
   },
   setup(props, { emit }) {
     const uploadDir = ref(false)
     const valState = ref(props.value)
+    const progress: UploadProps['progress'] = {
+      strokeColor: {
+        '0%': '#108ee9',
+        '100%': '#87d068',
+      },
+      strokeWidth: 3,
+      format: percent => `${parseFloat((percent || 0).toFixed(2))}%`,
+      class: 'test',
+    }
 
     watch(
       () => props.value,
@@ -72,23 +83,23 @@ export default defineComponent({
     function onUploadClicked(item: { key: string }) {
       uploadDir.value = item.key === 'folder'
     }
-    function onUploadChange(info: any) {
+    function onUploadChange(info: UploadChangeParam) {
       if (props.field.onChange) {
         props.field.onChange(props.form, info)
       }
       if (
         info.fileList.reduce(
-          (prev: boolean, file: { status: 'uploading' | 'done' | 'error' | 'removed' }) =>
-            prev && file.status === 'done',
+          (prev: boolean, file: UploadFile) => prev && file.status === 'done',
           true
         )
       ) {
-        emit('update:value', info)
+        emit('update:value', valState.value)
       }
     }
     return {
       uploadDir,
       valState,
+      progress,
 
       validConds,
       onUploadClicked,

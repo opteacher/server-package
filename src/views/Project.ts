@@ -3,6 +3,7 @@
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Mapper from '@/types/mapper'
 import Transfer from '@/types/transfer'
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 
 export const tsEmitter = new Emitter()
 
@@ -10,14 +11,14 @@ export const tsMapper = new Mapper({
   file: {
     label: '上传传送文件',
     type: 'Upload',
-    onChange: (_record: Transfer, info: any) => {
-      for (const file of info.fileList) {
-        if (file.status !== 'done') {
-          tsEmitter.emit('editable', false)
-          return
-        }
-      }
-      tsEmitter.emit('editable', true)
+    onChange: (_record: Transfer, info: UploadChangeParam) => {
+      tsEmitter.emit(
+        'editable',
+        info.fileList.reduce(
+          (prev: boolean, curr: UploadFile) => prev && curr.status === 'done',
+          true
+        )
+      )
     }
   },
   dest: {

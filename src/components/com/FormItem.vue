@@ -212,7 +212,7 @@
         :form="formState"
         path="/server-package/api/v1/temp/file"
         :value="getProp(formState, skey)"
-        @update:value="onFieldChanged"
+        @update:value="(val: any) => setProp(formState, skey, val)"
       />
       <a-space v-else-if="valState.type === 'Delable'">
         {{ getProp(formState, skey) || '-' }}
