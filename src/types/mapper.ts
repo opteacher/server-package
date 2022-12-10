@@ -301,6 +301,23 @@ export class EdtLstMapper extends BaseMapper {
     return tgt
   }
 }
+
+export class TagLstMapper extends TableMapper {
+  lvMapper: Record<string, string>
+
+  constructor() {
+    super()
+    this.lvMapper = {}
+  }
+
+  static copy(src: any, tgt?: TagLstMapper): TagLstMapper {
+    tgt = tgt || new TagLstMapper()
+    TableMapper.copy(src, tgt)
+    tgt.lvMapper = src.lvMapper || tgt.lvMapper
+    return tgt
+  }
+}
+
 export class GroupMapper extends BaseMapper {
   fold: boolean
   items: Mapper
@@ -375,7 +392,7 @@ const EleTypeCopies = {
   SelOrIpt: SelOrIptMapper.copy,
   Upload: UploadMapper.copy,
   DateTime: BaseMapper.copy,
-  TagList: EdtLstMapper.copy,
+  TagList: TagLstMapper.copy,
   ListSelect: LstSelMapper.copy,
   CodeEditor: CdEdtMapper.copy,
   EditList: EdtLstMapper.copy,
