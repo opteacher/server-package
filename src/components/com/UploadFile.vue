@@ -83,7 +83,7 @@ export default defineComponent({
           true
         )
       ) {
-        emit('update:value', valState.value)
+        emit('update:value', info)
       }
     }
     return {
