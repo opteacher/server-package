@@ -89,6 +89,7 @@
                   <a-checkbox
                     :disabled="mdlOpns.length === 1"
                     v-model:checked="editing.relative.isArray"
+                    @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
                   >
                     {{ editing.relative.isArray ? '多个' : '一个' }}
                   </a-checkbox>
