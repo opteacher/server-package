@@ -245,9 +245,10 @@ export default defineComponent({
     const mname = computed(() => store.getters['model/ins'].name)
     const mdlOpns = computed(() =>
       [{ label: '无', value: '' }].concat(
-        store.getters['project/models']
-          .filter((mdl: Model) => mdl.key !== mid)
-          .map((mdl: Model) => ({ label: mdl.label || mdl.name, value: mdl.name }))
+        store.getters['project/models'].map((mdl: Model) => ({
+          label: mdl.label || mdl.name,
+          value: mdl.name
+        }))
       )
     )
     const pjtName = computed(() => store.getters['project/ins'].name)
