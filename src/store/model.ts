@@ -3,8 +3,7 @@
 import Model from '@/types/model'
 import Property from '@/types/property'
 import router from '@/router'
-import { reqAll, reqPut } from '@/utils'
-import Compo from '@/types/compo'
+import { reqPut } from '@/utils'
 import { Dispatch } from 'vuex'
 import Column from '@/types/column'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -15,7 +14,7 @@ import Form from '@/types/form'
 import Field from '@/types/field'
 import Table from '@/types/table'
 import { methods } from '@/types/index'
-import { svcEmitter } from '@/views/Model'
+import { svcEmitter, svcMapper } from '@/views/Model'
 
 type ModelState = {
   emitter: Emitter
@@ -67,7 +66,9 @@ export default {
         )
       ) {
         svcEmitter.emit('update:mapper', {
-          method: methods.concat('LINK').map(mthd => ({ label: mthd, value: mthd }))
+          method: {
+            options: methods.concat('LINK').map(mthd => ({ label: mthd, value: mthd }))
+          }
         })
       }
       state.dragOn = ''
