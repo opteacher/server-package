@@ -70,7 +70,7 @@ export const tmUntMapper = {
   Y: '年'
 } as Record<string, string>
 
-export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT'
+export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'LINK'
 
 export default class Service {
   key: string

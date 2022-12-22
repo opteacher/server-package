@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from '@/types/model'
+import Property from '@/types/property'
 import router from '@/router'
 import { reqAll, reqPut } from '@/utils'
 import Compo from '@/types/compo'
@@ -13,6 +14,8 @@ import { mdlAPI } from '../apis'
 import Form from '@/types/form'
 import Field from '@/types/field'
 import Table from '@/types/table'
+import { methods } from '@/types/index'
+import { svcEmitter } from '@/views/Model'
 
 type ModelState = {
   emitter: Emitter
@@ -53,6 +56,20 @@ export default {
       await dispatch('project/refresh', undefined, { root: true })
       const mid = router.currentRoute.value.params.mid
       Model.copy(await mdlAPI.detail(mid), state.model)
+      if (
+        state.model.props.reduce(
+          (prev: boolean, prop: Property) =>
+            prev ||
+            (prop.relative &&
+              typeof prop.relative.model !== 'undefined' &&
+              prop.relative.model !== ''),
+          false
+        )
+      ) {
+        svcEmitter.emit('update:mapper', {
+          method: methods.concat('LINK').map(mthd => ({ label: mthd, value: mthd }))
+        })
+      }
       state.dragOn = ''
       state.divider = ''
       state.emitter.emit('refresh')
@@ -94,7 +111,7 @@ export default {
     records:
       (state: ModelState) =>
       (useReal: boolean): any[] =>
-        useReal ? state.dataset : (state.model.table.demoData ? [state.model.table.demoData] : []),
+        useReal ? state.dataset : state.model.table.demoData ? [state.model.table.demoData] : [],
     dataset: (state: ModelState): any[] => state.dataset,
     table: (state: ModelState): Table => state.model.table,
     columns: (state: ModelState): Column[] => state.model.table.columns,

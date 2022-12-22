@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import axios, { AxiosRequestConfig } from 'axios'
 import store from '@/store'
 import Service from './types/service'
+import Property from './types/property'
 import qs from 'qs'
 
 export interface RequestOptions {
@@ -370,8 +371,12 @@ export function endsWith(text: string, suffix: string) {
 }
 
 export function genMdlPath(svc: Service): string {
-  const mname = store.getters['model/ins'].name
+  const model = store.getters['model/ins']
+  const relProp = model.props.find((prop: Property) => prop.relative && prop.relative.model)
+  const mname = model.name
   switch (svc.method) {
+    case 'LINK':
+      return relProp ? `/mdl/v1/${mname}/:index/${relProp.name}/:propIdx` : ''
     case 'POST':
       return `/mdl/v1/${mname}`
     case 'DELETE':
