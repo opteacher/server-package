@@ -55,22 +55,21 @@ export default {
       await dispatch('project/refresh', undefined, { root: true })
       const mid = router.currentRoute.value.params.mid
       Model.copy(await mdlAPI.detail(mid), state.model)
-      if (
-        state.model.props.reduce(
-          (prev: boolean, prop: Property) =>
-            prev ||
-            (prop.relative &&
-              typeof prop.relative.model !== 'undefined' &&
-              prop.relative.model !== ''),
-          false
-        )
-      ) {
-        svcEmitter.emit('update:mapper', {
-          method: {
-            options: methods.concat('LINK').map(mthd => ({ label: mthd, value: mthd }))
-          }
+      const hasRelProp = state.model.props.reduce(
+        (prev: boolean, prop: Property) =>
+          prev ||
+          (prop.relative &&
+            typeof prop.relative.model !== 'undefined' &&
+            prop.relative.model !== ''),
+        false
+      )
+      svcEmitter.emit('update:mapper', {
+        method: Object.assign(svcMapper.method, {
+          options: methods
+            .concat(hasRelProp ? 'LINK' : [])
+            .map(mthd => ({ label: mthd, value: mthd }))
         })
-      }
+      })
       state.dragOn = ''
       state.divider = ''
       state.emitter.emit('refresh')

@@ -5,7 +5,7 @@ import Column from '@/types/column'
 import Mapper from '@/types/mapper'
 import Property from '@/types/property'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Service, { emitTypeOpns, timeUnits } from '@/types/service'
+import Service, { Method, emitTypeOpns, timeUnits } from '@/types/service'
 import store from '@/store'
 import { genMdlPath } from '@/utils'
 
@@ -193,7 +193,11 @@ export const svcMapper = new Mapper({
       label: mthd,
       value: mthd
     })),
-    onChange: (svc: Service) => {
+    onChange: (svc: Service, to: Method) => {
+      if (to === 'LINK') {
+        svc.isModel = true
+      }
+      svcMapper['isModel'].disabled = to === 'LINK'
       if (svc.isModel) {
         svc.path = genMdlPath(svc)
       }
