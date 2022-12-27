@@ -46,7 +46,7 @@
         </a-button>
         <a-button
           v-if="project.thread || project.status.stat === 'loading'"
-          class="ml-5"
+          class="ml-1"
           size="small"
           danger
           @click.stop="api.stop(project.key)"
@@ -64,7 +64,6 @@ import Project from '@/types/project'
 import { defineComponent, onMounted, ref, watch } from 'vue'
 import { mapper, emitter, columns } from './Home'
 import LytMain from '../layouts/LytMain.vue'
-import EditableTable from '../components/com/EditableTable.vue'
 import {
   SyncOutlined,
   PoweroffOutlined,
@@ -79,7 +78,6 @@ export default defineComponent({
   name: 'Home',
   components: {
     LytMain,
-    EditableTable,
     SyncOutlined,
     PoweroffOutlined,
     ClearOutlined,
@@ -119,19 +117,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.home {
-  height: 100%;
-  padding: 5vh 10vw;
-}
-
-.project-list {
-  height: 100%;
-}
-
-.ant-list-item-meta-avatar {
-  line-height: 48px;
-  vertical-align: middle;
-}
-</style>

@@ -1,9 +1,9 @@
 <template>
-  <a-layout class="h-100">
+  <a-layout class="h-full">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item key="home">
+        <a-menu-item key="home" class="mt-0">
           <project-outlined />
           <span>项目</span>
         </a-menu-item>
@@ -21,24 +21,26 @@
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
-    <a-layout>
-      <a-layout-header style="background: #fff; padding: 0">
+    <a-layout class="flex flex-col">
+      <a-layout-header class="bg-white p-0 flex items-center justify-between">
         <menu-unfold-outlined
           v-if="collapsed"
           class="trigger"
           @click="() => (collapsed = !collapsed)"
         />
         <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <a-popover placement="bottomRight">
+          <template #content>
+            <a-button class="w-full" type="primary" danger>退出登录</a-button>
+          </template>
+          <a-avatar
+            size="large"
+            class="p-5 border-2 cursor-pointer hover:border-primary mr-6"
+            src="https://joeschmoe.io/api/v1/random"
+          />
+        </a-popover>
       </a-layout-header>
-      <a-layout-content
-        :style="{
-          margin: '24px 16px',
-          padding: '24px',
-          background: '#fff',
-          height: '100%',
-          overflowY: 'auto'
-        }"
-      >
+      <a-layout-content class="flex-auto mx-6 mt-4 p-6 bg-white overflow-y-hidden">
         <slot />
       </a-layout-content>
     </a-layout>

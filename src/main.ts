@@ -2,10 +2,12 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/antd.css'
-import './styles.less'
 import axios from 'axios'
+import Antd from 'ant-design-vue'
+import MyLib from './lib/frontend-library/src/index'
+import './lib/frontend-library/src/assets/main.css'
+import 'ant-design-vue/dist/antd.css'
+import './styles.css'
 
 axios.interceptors.request.use(
   function (config) {
@@ -41,4 +43,4 @@ axios.defaults.paramsSerializer = function (params: any): string {
   return ret.join('&')
 }
 
-createApp(App).use(store).use(router).use(Antd).mount('#app')
+createApp(App).use(store).use(router).use(Antd).use(MyLib).mount('#app')

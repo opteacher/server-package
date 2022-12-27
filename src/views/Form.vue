@@ -1,8 +1,8 @@
 <template>
   <LytDesign :active="`project/${pid}/model/${mid}/form`">
-    <a-layout class="h-100">
-      <a-layout-sider width="20%" class="white-bkgd vertical-scroll pr-20">
-        <div class="ant-descriptions-title mb-20">
+    <a-layout class="h-full">
+      <a-layout-sider width="20%" class="bg-white overflow-y-auto pr-5">
+        <div class="ant-descriptions-title mb-5">
           <build-outlined />
           &nbsp;组件
         </div>
@@ -15,17 +15,17 @@
         </a-list>
       </a-layout-sider>
       <a-layout-content class="main-panel" @click="active.reset()">
-        <div class="white-bkgd h-100 plr-30" style="overflow-y: auto">
+        <div class="bg-white h-full px-7 overflow-y-auto">
           <a-empty
             v-if="!fields.length"
-            class="ptb-30"
+            class="py-7"
             description="无组件"
             @dragover="(e: any) => e.preventDefault()"
             @drop="onDropDownEmpty"
           />
           <a-form
             v-else
-            :style="{ margin: '0 auto', position: 'relative' }"
+            class="mx-auto my-0 relative"
             :label-col="{ span: form.labelWidth + 2 }"
             :wrapper-col="{ span: 22 - form.labelWidth }"
           >
@@ -42,7 +42,7 @@
           </a-form>
         </div>
       </a-layout-content>
-      <a-layout-sider width="30%" class="white-bkgd vertical-scroll pl-20">
+      <a-layout-sider width="30%" class="bg-white overflow-y-auto pr-5">
         <FormProps v-if="!active.key" :form="form" />
         <FieldProps v-else :field="active" />
         <ExtraProps v-if="active.key" :field="active" :save="api.form.fields.extra.save" />

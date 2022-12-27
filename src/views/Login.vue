@@ -1,21 +1,6 @@
 <template>
-  <div
-    :style="{
-      height: '100%',
-      padding: '25vh 10vw',
-      'background-image': `url(${require('@/assets/background.png')})`,
-      'background-size': '100% 100%'
-    }"
-  >
-    <div
-      :style="{
-        width: '30vw',
-        float: 'right',
-        padding: '5vh 3vw',
-        background: 'rgba(256, 256, 256, 0.9)',
-        'border-radius': '4px'
-      }"
-    >
+  <div class="h-full flex items-center text-right bg-login bg-cover">
+    <div class="w-4/12 px-20 py-10 bg-black bg-opacity-90 rounded">
       <a-form
         name="登录"
         :model="formState"

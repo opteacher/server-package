@@ -46,7 +46,7 @@
           </a-descriptions-item>
           <a-descriptions-item label="主题颜色">
             <a-select
-              class="w-100"
+              class="w-full"
               :options="[
                 { label: '深色', value: 'dark' },
                 { label: '浅色', value: 'light' }
@@ -66,7 +66,7 @@
               action="/server-package/api/v1/temp/image"
               @change="onUploadLogoImg"
             >
-              <a-button class="w-100">
+              <a-button class="w-full">
                 <template #icon><upload-outlined /></template>
                 上传图片
               </a-button>
@@ -98,7 +98,6 @@ import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import LytMiddle from '../layouts/LytMiddle.vue'
 import Model from '../types/model'
-import IconField from '../components/com/IconField.vue'
 import MidNav from '@/types/midNav'
 import { pjtAPI, mdlAPI } from '../apis'
 import { fixStartsWith } from '@/utils'
@@ -109,7 +108,6 @@ export default defineComponent({
   name: 'MiddleNavigate',
   components: {
     LytMiddle,
-    IconField,
     ModelMenu,
 
     PictureOutlined,

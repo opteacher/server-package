@@ -1,16 +1,13 @@
 <template>
-  <LytMiddle :active="`project/${pid}/mid/login`">
+  <LytMiddle :active="`project/${pid}/mid/login`" class="flex flex-col">
     <div
       v-if="!hasAuth"
-      class="center-container"
+      class="h-full absolute backdrop-opacity-25 z-50 flex items-center justify-items-center"
       :style="{
-        position: 'absolute',
         left: `${mnMask[0]}px`,
         top: `${mnMask[1]}px`,
         width: `${mnMask[2]}px`,
-        height: `${mnMask[3]}px`,
-        'background-color': '#000000AE',
-        'z-index': 501
+        height: `${mnMask[3]}px`
       }"
     >
       <a-tooltip>
@@ -24,7 +21,7 @@
         </a-button>
       </a-tooltip>
     </div>
-    <div id="pnlMain">
+    <div class="flex-auto">
       <a-descriptions title="登录页面参数" :column="4" :labelStyle="{ 'margin-left': '10px' }">
         <a-descriptions-item label="登录路由">
           <a-input
@@ -39,7 +36,7 @@
         </a-descriptions-item>
         <a-descriptions-item label="背景图片">
           <a-upload
-            class="w-100"
+            class="w-full"
             name="file"
             :maxCount="1"
             :multiple="false"
@@ -47,7 +44,7 @@
             action="/server-package/api/v1/temp/image"
             @change="onUploadBkgdImg"
           >
-            <a-button class="w-100" size="small">
+            <a-button class="w-full" size="small">
               <template #icon><upload-outlined /></template>
               上传图片
             </a-button>
@@ -55,7 +52,7 @@
         </a-descriptions-item>
         <a-descriptions-item label="表单位置">
           <a-select
-            class="w-100"
+            class="w-full"
             size="small"
             :options="[
               { label: '右对齐', value: 'right' },

@@ -2,13 +2,13 @@
   <LytProject :active="`project/${pid}/model/${mid}`">
     <a-row class="mb-5">
       <a-col :span="12">
-        <p style="font-size: 15pt; font-weight: bold; margin-bottom: 0">
+        <p class="mb-0 text-lg font-bold">
           <appstore-outlined />
           &nbsp;{{ model.name }}
           <span v-if="model.label">&nbsp;({{ model.label }})</span>
         </p>
       </a-col>
-      <a-col :span="12" style="text-align: right">
+      <a-col :span="12" class="text-right">
         <a-space>
           <a-tooltip>
             <template #title>需要所在项目启动后才可以查看数据集！</template>
@@ -49,7 +49,7 @@
         </a-space>
       </a-col>
     </a-row>
-    <div class="mt-24">
+    <div class="mt-6">
       <EditableTable
         title="字段"
         size="small"
@@ -74,7 +74,7 @@
               <a-col :span="4">
                 <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
                   <a-select
-                    class="w-100"
+                    class="w-full"
                     :disabled="mdlOpns.length === 1"
                     :value="editing.relative.belong ? 'belong' : 'has'"
                     @change="(val: string) => { editing.relative.belong = val === 'belong' }"
@@ -98,7 +98,7 @@
               <a-col :span="16">
                 <a-form-item class="mb-0" ref="relative.model" name="relative.model">
                   <a-select
-                    class="w-100"
+                    class="w-full"
                     :disabled="mdlOpns.length === 1"
                     v-model:value="editing.relative.model"
                     :options="mdlOpns"
@@ -111,7 +111,7 @@
         </template>
       </EditableTable>
     </div>
-    <div class="mt-24">
+    <div class="mt-6">
       <EditableTable
         title="服务"
         size="small"
@@ -203,8 +203,6 @@ import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import EditableTable from '../components/com/EditableTable.vue'
-import FormDialog from '../components/com/FormDialog.vue'
 import { expMapper, propEmitter, svcEmitter, svcMapper } from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
@@ -226,8 +224,6 @@ export default defineComponent({
   name: 'Model',
   components: {
     LytProject,
-    EditableTable,
-    FormDialog,
     DatabaseOutlined,
     ExportOutlined,
     FormOutlined,

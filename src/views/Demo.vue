@@ -1,6 +1,6 @@
 <template>
   <LytDesign :active="`project/${pid}/model/${mid}/demo`">
-    <div class="w-100 text-right">
+    <div class="w-full text-right">
       <a-switch
         v-model:checked="useRealData"
         checked-children="真实"
@@ -10,7 +10,7 @@
       &nbsp;数据
     </div>
     <a-divider />
-    <a-row class="mb-10" type="flex">
+    <a-row class="mb-2.5" type="flex">
       <a-col flex="auto">
         <a-space>
           <h3 class="mb-0">{{ table.title }}</h3>
@@ -29,7 +29,7 @@
     </a-row>
     <RefreshBox
       v-if="table.refresh.length"
-      class="mb-10"
+      class="mb-2.5"
       :tblRfsh="table.refresh"
       @click="onRefresh"
     />
@@ -38,7 +38,7 @@
       :data-source="records"
       :size="table.size"
       :scroll="{ y: 300 }"
-      :rowClassName="() => 'white-bkgd'"
+      :rowClassName="() => 'bg-white'"
       :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
       bordered
@@ -99,7 +99,7 @@
       </template>
       <template v-if="table.expandURL" #expandedRowRender="{ record }">
         <iframe
-          class="w-100"
+          class="w-full"
           :style="{ height: table.expHeight !== -1 ? table.expHeight + 'px' : 'auto' }"
           :src="fmtStrByObj(/\s?@.+?(?=\s)/g, record, table.expandURL)"
         />
@@ -139,7 +139,6 @@ import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
-import FormDialog from '@/components/com/FormDialog.vue'
 import Form from '@/types/form'
 import Field from '@/types/field'
 import { BaseTypes } from '@/types'
@@ -148,7 +147,6 @@ import dayjs, { Dayjs } from 'dayjs'
 export default defineComponent({
   name: 'Demo',
   components: {
-    FormDialog,
     LytDesign,
     RefreshBox,
     CellCard

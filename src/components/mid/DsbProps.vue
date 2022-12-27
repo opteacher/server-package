@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mtb-10" title="主配置" :column="1" size="small" bordered>
+  <a-descriptions class="my-2.5" title="主配置" :column="1" size="small" bordered>
     <a-descriptions-item label="背景颜色">
       <ColorField :color="valState.bkgdColor" @submit="onBkgdColSubmit" />
     </a-descriptions-item>
@@ -8,7 +8,7 @@
         <a-row :gutter="8">
           <a-col :span="12">
             <a-input-number
-              class="w-100"
+              class="w-full"
               v-model:value="valState.padding[0]"
               :min="-1"
               placeholder="上下边距"
@@ -17,7 +17,7 @@
           </a-col>
           <a-col :span="12">
             <a-input-number
-              class="w-100"
+              class="w-full"
               v-model:value="valState.padding[1]"
               :min="-1"
               placeholder="左右边距"

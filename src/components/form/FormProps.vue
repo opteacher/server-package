@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mb-50" :column="1" bordered size="small">
+  <a-descriptions class="mb-12" :column="1" bordered size="small">
     <template #title>
       <control-outlined />
       &nbsp;表单参数
@@ -12,7 +12,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="表单宽度">
       <a-input-number
-        class="w-100"
+        class="w-full"
         v-model:value="formState.width"
         :min="1"
         :max="100"
@@ -23,7 +23,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="标签宽度">
       <a-input-number
-        class="w-100"
+        class="w-full"
         v-model:value="formState.labelWidth"
         :min="1"
         :max="23"

@@ -24,7 +24,7 @@
         >
           <template #headerCell="{ column }">
             {{ column.title }}
-            <a-input-group class="mt-5 w-100" compact>
+            <a-input-group class="mt-5 w-full" compact>
               <a-select
                 size="small"
                 placeholder="等于……"
@@ -59,7 +59,6 @@
 <script lang="ts">
 import Mapper from '@/types/mapper'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import FormDialog from '../com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ExportOutlined, EllipsisOutlined } from '@ant-design/icons-vue'
 import Batch from '@/types/batch'
@@ -72,7 +71,6 @@ import { upperFirst } from '@/utils'
 export default defineComponent({
   name: 'BatchExportBox',
   components: {
-    FormDialog,
     ExportOutlined,
     EllipsisOutlined
   },

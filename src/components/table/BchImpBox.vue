@@ -54,7 +54,6 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, watch } from 'vue'
-import FormDialog from '../com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Mapper from '@/types/mapper'
 import ExcelJS, { CellValue } from 'exceljs'
@@ -67,7 +66,6 @@ import { ImportOutlined } from '@ant-design/icons-vue'
 export default defineComponent({
   name: 'BatchImportBox',
   components: {
-    FormDialog,
     ImportOutlined
   },
   emits: ['refresh', 'submit'],

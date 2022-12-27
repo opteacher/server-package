@@ -70,7 +70,7 @@
         <template v-else>
           <template v-if="field.extra.style === 'button'">
             <a-button
-              class="w-100"
+              class="w-full"
               :ghost="formState[field.refer]"
               @click="
                 () => {
@@ -92,20 +92,20 @@
       </template>
       <a-select
         v-else-if="field.ftype === 'Select'"
-        class="w-100"
+        class="w-full"
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
         :options="field.extra.options"
       />
       <a-input-number
         v-else-if="field.ftype === 'Number'"
-        class="w-100"
+        class="w-full"
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
       />
       <a-date-picker
         v-else-if="field.ftype === 'DateTime'"
-        class="w-100"
+        class="w-full"
         v-model:value="formState[field.refer]"
         :placeholder="field.placeholder"
         show-time

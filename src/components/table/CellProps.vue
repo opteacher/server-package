@@ -2,7 +2,7 @@
   <a-descriptions class="mb-50" title="项" :column="1" bordered size="small">
     <a-descriptions-item label="条件">
       <a-select
-        class="w-100"
+        class="w-full"
         v-model:value="edtCells.selCond"
         :options="cdOptions"
         placeholder="默认属性"
@@ -11,7 +11,7 @@
         <template #dropdownRender="{ menuNode: menu }">
           <v-nodes :vnodes="menu" />
           <a-divider style="margin: 4px 0" />
-          <a-button class="w-100" type="link" @click="condStatic.visible = true">
+          <a-button class="w-full" type="link" @click="condStatic.visible = true">
             <template #icon><plus-outlined /></template>
             添加
           </a-button>
@@ -44,7 +44,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="类型">
       <a-select
-        class="w-100"
+        class="w-full"
         :options="ctOptions"
         v-model:value="edtCell.ctype"
         @change="onCellTypeChange"
@@ -53,7 +53,7 @@
     <template v-if="edtCell.ctype === 'Number' && isNumFmtAva(edtCell.format)">
       <a-descriptions-item label="小数点后保留位数">
         <a-input-number
-          class="w-100"
+          class="w-full"
           :min="-1"
           v-model:value="edtCell.format.fix"
           @change="(fix: number) => onFormatSave({ fix })"
@@ -63,7 +63,7 @@
     <template v-else-if="edtCell.ctype === 'DateTime' && isDateFmtAva(edtCell.format)">
       <a-descriptions-item label="时间格式">
         <a-select
-          class="w-100"
+          class="w-full"
           :options="fmtStatic.DateTime.options"
           v-model:value="edtCell.format.pattern"
           @change="(pattern: string) => onFormatSave({ pattern })"
@@ -74,7 +74,7 @@
       <a-descriptions-item label="链接">
         <a-mentions
           rows="3"
-          class="w-100"
+          class="w-full"
           v-model:value="edtCell.format.href"
           @blur="(e: any) => onFormatSave({ href: e.target.value })"
         >
@@ -90,9 +90,7 @@
 <script lang="ts">
 import Cell from '@/types/cell'
 import { computed, defineComponent, reactive, watch } from 'vue'
-import ColorField from '@/components/table/ColorField.vue'
 import { mdlAPI as api } from '@/apis'
-import FormDialog from '@/components/com/FormDialog.vue'
 import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Cells } from '@/types/table'
@@ -103,9 +101,6 @@ export default defineComponent({
   name: 'CellProps',
   emits: ['update:cond'],
   components: {
-    ColorField,
-    FormDialog,
-
     PlusOutlined,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes

@@ -1,13 +1,13 @@
 <template>
   <LytDesign :active="`project/${pid}/model/${mid}/table`">
-    <a-layout class="h-100">
+    <a-layout class="h-full">
       <a-layout-content class="main-panel" @click="selected = ''">
-        <div class="white-bkgd p-10">
-          <a-row class="mb-10" type="flex">
+        <div class="bg-white p-2.5">
+          <a-row class="mb-2.5" type="flex">
             <a-col flex="auto">
               <a-space>
                 <h3 class="mb-0">{{ table.title }}</h3>
-                <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
+                <span class="text-gray-400">{{ table.desc }}</span>
               </a-space>
             </a-col>
             <a-col class="text-right" flex="200px">
@@ -29,13 +29,13 @@
               </a-space>
             </a-col>
           </a-row>
-          <RefreshBox v-if="table.refresh.length" class="mb-10" :tblRfsh="table.refresh" />
+          <RefreshBox v-if="table.refresh.length" class="mb-2.5" :tblRfsh="table.refresh" />
           <a-table
             class="demo-table"
             :columns="columns"
             :data-source="records"
             :size="table.size"
-            :rowClassName="() => 'white-bkgd'"
+            :rowClassName="() => 'bg-white'"
             :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
             bordered
           >
@@ -83,7 +83,7 @@
           </a-table>
         </div>
       </a-layout-content>
-      <a-layout-sider width="30%" class="white-bkgd p-20 vertical-scroll">
+      <a-layout-sider width="30%" class="bg-white p-20 overflow-y-auto">
         <TableProps v-if="!selected" :table="table" />
         <ColumnProps
           v-else-if="selected.startsWith('head_')"

@@ -1,9 +1,9 @@
 <template>
-  <a-layout class="h-100">
+  <a-layout class="h-full">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="logo" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item :key="`project/${pid}/mid/login`">
+        <a-menu-item :key="`project/${pid}/mid/login`" class="mt-0">
           <login-outlined />
           <span>登录页</span>
         </a-menu-item>
@@ -18,32 +18,26 @@
       </a-menu>
     </a-layout-sider>
     <a-layout>
-      <a-layout-header style="background: #fff; padding: 0">
-        <a-row>
-          <a-col :span="12">
-            <menu-unfold-outlined
-              v-if="collapsed"
-              class="trigger"
-              @click="() => (collapsed = !collapsed)"
-            />
-            <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
-          </a-col>
-          <a-col :span="12" style="text-align: right; padding-right: 24px">
-            <a-popover placement="bottomRight">
-              <template #content>
-                <a-button class="w-100" type="primary" danger>退出登录</a-button>
-              </template>
-              <a-avatar
-                size="large"
-                class="p-5 avatar-float"
-                src="https://joeschmoe.io/api/v1/random"
-              />
-            </a-popover>
-          </a-col>
-        </a-row>
+      <a-layout-header class="bg-white p-0 flex items-center justify-between">
+        <menu-unfold-outlined
+          v-if="collapsed"
+          class="trigger"
+          @click="() => (collapsed = !collapsed)"
+        />
+        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <a-popover placement="bottomRight">
+          <template #content>
+            <a-button class="w-full" type="primary" danger>退出登录</a-button>
+          </template>
+          <a-avatar
+            size="large"
+            class="p-5 border-2 cursor-pointer hover:border-primary mr-6"
+            src="https://joeschmoe.io/api/v1/random"
+          />
+        </a-popover>
       </a-layout-header>
-      <a-layout>
-        <a-space style="margin: 16px 24px">
+      <a-layout class="flex flex-col">
+        <a-space class="mx-6 my-4">
           <a-button @click="$router.go(-1)">
             <template #icon><arrow-left-outlined /></template>
           </a-button>
@@ -59,16 +53,8 @@
             <a-breadcrumb-item v-else-if="active.endsWith('dashboard')">首页</a-breadcrumb-item>
           </a-breadcrumb>
         </a-space>
-        <a-layout-content
-          :style="{
-            margin: '0 24px 16px 24px',
-            padding: '24px',
-            background: '#fff',
-            minHeight: '280px',
-            overflowY: 'auto'
-          }"
-        >
-          <a-row id="midOperBox" class="mb-16">
+        <a-layout-content class="flex-auto mx-6 mt-4 p-6 bg-white overflow-y-hidden">
+          <a-row class="mb-1">
             <a-col :span="12">
               <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
                 <template #icon><cloud-upload-outlined /></template>
@@ -156,7 +142,6 @@ import {
 } from '@ant-design/icons-vue'
 import Mapper from '@/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import FormDialog from '../components/com/FormDialog.vue'
 import Middle from '@/types/middle'
 import { pjtAPI as api } from '../apis'
 
@@ -171,9 +156,7 @@ export default defineComponent({
     MenuFoldOutlined,
     EyeOutlined,
     BuildOutlined,
-    DashboardOutlined,
-
-    FormDialog
+    DashboardOutlined
   },
   props: {
     active: { type: String, required: true }
@@ -263,13 +246,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.avatar-float {
-  border: 2px solid white;
-}
-.avatar-float:hover {
-  cursor: pointer;
-  border: 2px solid #1890ff;
-}
-</style>

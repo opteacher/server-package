@@ -1,8 +1,8 @@
 <template>
   <LytProject :active="`project/${pid}/auth`">
-    <a-row class="mb-10">
+    <a-row class="mb-2.5">
       <a-col :span="12">
-        <p style="margin-bottom: 0; font-size: 15pt; font-weight: bold">
+        <p class="mb-0 text-lg font-bold">
           <audit-outlined />
           &nbsp;权限系统
         </p>
@@ -103,12 +103,12 @@
             <template #pathEDT="{ editing, mapper }">
               <a-input-group compact>
                 <a-form-item-rest>
-                  <a-input :value="`/ ${pjtName}`" style="width: 20%; text-align: right" disabled />
+                  <a-input :value="`/ ${pjtName}`" class="w-1/5 text-right" disabled />
                 </a-form-item-rest>
                 <a-cascader
                   :options="mapper.options"
                   :value="editing.path.split('/')"
-                  style="width: 80%"
+                  class="w-4/5"
                   expand-trigger="hover"
                   change-on-select
                   :allow-clear="true"
@@ -126,8 +126,6 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineComponent, computed, ref, onMounted, watch } from 'vue'
-import FormDialog from '../components/com/FormDialog.vue'
-import EditableTable from '../components/com/EditableTable.vue'
 import {
   apiColumn,
   apiMapper,
@@ -162,8 +160,6 @@ import Sign from '@/types/cfgSign'
 export default defineComponent({
   name: 'Authorization',
   components: {
-    EditableTable,
-    FormDialog,
     LytProject,
     AuditOutlined,
     UnlockOutlined,

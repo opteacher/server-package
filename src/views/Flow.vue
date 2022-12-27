@@ -1,5 +1,5 @@
 <template>
-  <a-space style="margin: 16px 24px">
+  <a-space class="mx-6 my-4">
     <a-button @click="$router.go(-1)">
       <template #icon><arrow-left-outlined /></template>
     </a-button>
@@ -26,16 +26,8 @@
       <a-breadcrumb-item>设计流程</a-breadcrumb-item>
     </a-breadcrumb>
   </a-space>
-  <div
-    :style="{
-      margin: '0 24px 16px 24px',
-      padding: '24px',
-      background: '#fff',
-      height: '100%',
-      overflowY: 'auto'
-    }"
-  >
-    <div style="position: relative; width: 100%; height: 100%">
+  <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
+    <div class="relative w-full h-full">
       <div class="flow-panel" ref="panelRef">
         <VarsPanel />
         <TmpNdPanel />
@@ -85,7 +77,6 @@
 import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
 import NodeCard from '../components/flow/NodeCard.vue'
 import Node from '../types/node'
-import FormDialog from '../components/com/FormDialog.vue'
 import { edtNdEmitter, edtNdMapper, edtNdVisible, joinMapper, joinVisible } from './Flow'
 import { useStore } from 'vuex'
 import VarsPanel from '../components/flow/VarsPanel.vue'
@@ -99,7 +90,6 @@ export default defineComponent({
   name: 'Flow',
   components: {
     NodeCard,
-    FormDialog,
     VarsPanel,
     TmpNdPanel,
 

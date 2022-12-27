@@ -3,7 +3,7 @@
     <a-row class="mb-5">
       <a-col :span="12">
         <a-space>
-          <p style="font-size: 15pt; font-weight: bold; margin-bottom: 0">
+          <p class="mb-0 text-lg font-bold">
             <project-outlined />
             &nbsp;{{ project.name }}
           </p>
@@ -18,7 +18,7 @@
           </a-tag>
         </a-space>
       </a-col>
-      <a-col :span="12" style="text-align: right">
+      <a-col :span="12" class="text-right">
         <a-space>
           <a-button @click="showProj = true">
             <template #icon><SettingOutlined /></template>
@@ -95,7 +95,7 @@
         />
       </a-descriptions-item>
     </a-descriptions>
-    <div class="mt-24">
+    <div class="mt-6">
       <EditableTable
         title="模型"
         size="small"
@@ -130,8 +130,6 @@ import {
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import FormDialog from '../components/com/FormDialog.vue'
-import EditableTable from '../components/com/EditableTable.vue'
 import { tsMapper, tsEmitter } from './Project'
 import { columns as mdlColumns, mapper as mdlMapper } from './Model'
 import { mapper as projMapper } from './Home'
@@ -147,8 +145,6 @@ export default defineComponent({
   name: 'Project',
   components: {
     LytProject,
-    FormDialog,
-    EditableTable,
     SettingOutlined,
     InfoCircleOutlined,
     SyncOutlined,
@@ -208,39 +204,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less" scoped>
-.editable-cell {
-  position: relative;
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 48px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 48px 5px 5px;
-  }
-
-  .editable-cell-icon {
-    position: absolute;
-    width: 20px;
-    cursor: pointer;
-    line-height: 28px;
-  }
-
-  .editable-cell-icon {
-    display: none;
-  }
-
-  .editable-cell-icon:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
-}
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
-}
-</style>

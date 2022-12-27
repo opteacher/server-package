@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="index === 0"
+    class="pb-2.5"
     :style="{
-      'padding-bottom': '12px',
       width: `${cmpRect[2]}px`
     }"
     @dragover.stop="e => e.preventDefault()"
@@ -16,19 +16,13 @@
         store.getters['model/divider'] === `divider_top_${field.key}`
       "
       :id="`divider_top_${field.key}`"
-      :style="{ display: 'none', height: '2px', 'background-color': '#1890ff' }"
+      class="hidden h-0.5 bg-primary"
     />
   </div>
-  <DmFormItem
-    :id="field.key"
-    class="p-10 m-0"
-    :field="field"
-    :form="{}"
-    style="position: relative"
-  />
+  <DmFormItem :id="field.key" class="p-0.5 m-0 relative" :field="field" :form="{}" />
   <div
+    class="px-2.5 py-0"
     :style="{
-      padding: '12px 0',
       width: `${cmpRect[2]}px`
     }"
     @dragover.stop="e => e.preventDefault()"
@@ -42,21 +36,19 @@
         store.getters['model/divider'] === `divider_btm_${field.key}`
       "
       :id="`divider_btm_${field.key}`"
-      :style="{ display: 'none', height: '2px', 'background-color': '#1890ff' }"
+      class="hidden h-0.5 bg-primary"
     />
   </div>
 
   <div
     :class="{ 'card-hover': mosMvOver && active !== field.key }"
+    class="cursor-pointer absolute rounded"
     :style="{
-      cursor: 'pointer',
-      position: 'absolute',
       left: `${cmpRect[0]}px`,
       top: `${cmpRect[1]}px`,
       width: `${cmpRect[2]}px`,
       height: `${cmpRect[3]}px`,
-      border: active === field.key ? '2px solid #1890ff' : '',
-      'border-radius': '4px'
+      border: active === field.key ? '2px solid #1890ff' : ''
     }"
     @click.stop="$emit('update:active', field)"
     :draggable="true"
@@ -74,7 +66,7 @@
       danger
       type="primary"
       size="small"
-      :style="{ position: 'absolute', top: 0, right: '-30px' }"
+      class="absolute top-0 -right-7"
       @click.stop="onFieldDel"
     >
       <template #icon>

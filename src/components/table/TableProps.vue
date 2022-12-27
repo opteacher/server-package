@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mb-50" title="表参数" :column="1" bordered size="small">
+  <a-descriptions class="mb-12" title="表参数" :column="1" bordered size="small">
     <template #extra>
       <a-switch
         v-model:checked="dispHidCol"
@@ -21,7 +21,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="操作风格">
       <a-select
-        class="w-100"
+        class="w-full"
         :disabled="!formState.operable.length"
         :options="[
           { label: '按钮', value: 'button' },
@@ -33,7 +33,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="尺寸">
       <a-select
-        class="w-100"
+        class="w-full"
         :options="['default', 'middle', 'small'].map(item => ({ label: item, value: item }))"
         :value="formState.size"
         @change="(size: any) => api.table.save({ size })"
@@ -44,7 +44,7 @@
         <a-row :gutter="4">
           <a-col :span="6">
             <a-checkbox
-              :style="{ 'vertical-align': 'middle', 'line-height': '30px' }"
+              class="align-middle leading-7"
               :checked="formState.hasPages"
               @change="(e: any) => api.table.save({ hasPages: e.target.checked })"
             >
@@ -54,7 +54,7 @@
           <a-col :span="18">
             <a-input-number
               :disabled="!formState.hasPages"
-              class="w-100"
+              class="w-full"
               placeholder="输入单页可显示的最大记录数"
               v-model:value="formState.maxPerPgs"
               @change="(maxPerPgs: any) => api.table.save({ maxPerPgs })"
@@ -122,7 +122,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="折叠界面高度">
       <a-input-number
-        class="w-100"
+        class="w-full"
         type="number"
         :precision="0"
         v-model:value="formState.expHeight"

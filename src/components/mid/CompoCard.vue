@@ -8,10 +8,8 @@
   >
     <div
       @click.stop="$emit('click', cmpIns)"
+      class="absolute cursor-pointer z-50"
       :style="{
-        position: 'absolute',
-        'z-index': 998,
-        cursor: 'pointer',
         width: cmpIns.style.width,
         height: cmpIns.style.height,
         border: actKey === cmpIns.key ? '2px solid #1890ff' : 'none'

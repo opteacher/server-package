@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mtb-10" title="组件附加参数" :column="1" bordered size="small">
+  <a-descriptions class="my-0.5" title="组件附加参数" :column="1" bordered size="small">
     <a-descriptions-item v-for="exField in cmpExtra" :key="exField.key" :label="exField.label">
       <a-input
         v-if="exField.ftype === 'Input'"
@@ -9,7 +9,7 @@
       />
       <a-input-number
         v-else-if="exField.ftype === 'Number'"
-        class="w-100"
+        class="w-full"
         v-model:value="edtField.extra[exField.refer]"
         :placeholder="exField.placeholder"
         @blur="(e: any) => save(edtField.key, { [exField.refer]: e.target.value })"
@@ -22,7 +22,7 @@
       />
       <a-select
         v-else-if="exField.ftype === 'Select'"
-        class="w-100"
+        class="w-full"
         v-model:value="edtField.extra[exField.refer]"
         :placeholder="exField.placeholder"
         :options="exField.extra.options"
@@ -30,7 +30,7 @@
       />
       <a-cascader
         v-else-if="exField.ftype === 'Cascader'"
-        class="w-100"
+        class="w-full"
         v-model:value="edtField.extra[exField.refer]"
         :placeholder="exField.placeholder"
         :options="exField.extra.options"
@@ -67,17 +67,11 @@
 <script lang="ts">
 import Field from '@/types/field'
 import { computed, defineComponent, onMounted, reactive, watch } from 'vue'
-import IconField from '../com/IconField.vue'
-import EditableList from '../com/EditableList.vue'
 import { pickOrIgnore } from '@/utils'
 import { cmpAPI } from '@/apis'
 import Compo from '@/types/compo'
 
 export default defineComponent({
-  components: {
-    IconField,
-    EditableList
-  },
   props: {
     field: { type: Field, required: true },
     save: { type: Function, required: true },

@@ -22,14 +22,14 @@
     </a-descriptions-item>
     <a-descriptions-item label="宽度">
       <a-input-number
-        class="w-100"
+        class="w-full"
         v-model:value="colState.width"
         @blur="(width: number) => onPropChange({ key: colState.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
       <a-select
-        class="w-100"
+        class="w-full"
         :options="[
           { label: '左对齐', value: 'left' },
           { label: '居中对齐', value: 'center' },
@@ -47,7 +47,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="默认顺序">
       <a-select
-        class="w-100"
+        class="w-full"
         :options="[
           { label: '无', value: '' },
           { label: '升序', value: 'ascend' },

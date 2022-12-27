@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mb-50" title="组件基础参数" :column="1" bordered size="small">
+  <a-descriptions class="mb-12" title="组件基础参数" :column="1" bordered size="small">
     <a-descriptions-item label="关联">
       <a-mentions v-model:value="edtField.refer">
         <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
@@ -15,7 +15,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="类型">
       <a-select
-        class="w-100"
+        class="w-full"
         v-model:value="edtField.ftype"
         :options="compoOpns"
         @change="(ftype: string) => api.form.fields.save({ key: edtField.key, ftype })"
@@ -30,7 +30,7 @@
     </a-descriptions-item>
     <a-descriptions-item label="占位提示">
       <a-input
-        class="w-100"
+        class="w-full"
         v-model:value="edtField.placeholder"
         @blur="
           (e: any) => api.form.fields.save({

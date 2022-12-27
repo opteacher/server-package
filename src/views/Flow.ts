@@ -415,5 +415,6 @@ export const AddBtnWH = 32
 export const AddBtnHlfWH = AddBtnWH >> 1
 export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
+export const StokeColor = '#f0f0f0'
 
 export const ndCdEmitter = new Emitter()

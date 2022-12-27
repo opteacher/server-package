@@ -19,7 +19,7 @@
           <template #renderItem="{ item: compo }">
             <a-list-item class="b-0 pt-0">
               <a-card
-                class="w-100 hover-pbd"
+                class="w-full hover-pbd"
                 size="small"
                 :draggable="true"
                 @dragstart="(e: DragEvent) => onCmpDragStart(e, compo.name)"
@@ -59,9 +59,9 @@
         </a-button>
       </a-col>
       <a-col flex="5" ref="dsbCtnr" @click="cmpProps.reset()">
-        <div class="w-100 mb-24" :style="{ height: mainHeight }">
+        <div class="w-full mb-24" :style="{ height: mainHeight }">
           <div
-            class="h-100"
+            class="h-full"
             :style="{
               overflow: 'auto',
               border: '1px solid #e0e2e5',
@@ -132,7 +132,7 @@
           :save="pjtAPI.middle.dashboard.compo.save"
         >
           <a-descriptions-item label="操作">
-            <a-button class="w-100" danger @click="onRmvCmpClick">
+            <a-button class="w-full" danger @click="onRmvCmpClick">
               <template #icon><delete-outlined /></template>
               删除
             </a-button>

@@ -1,8 +1,8 @@
 <template>
   <svg
     v-if="node && node.previous"
+    class="absolute"
     :style="{
-      position: 'absolute',
       width: `${arwTopSvgSizeW}px`,
       height: `${ArrowHlfHgt}px`,
       left: `${arwTopSvgPosLT[0]}px`,
@@ -11,14 +11,14 @@
   >
     <line
       stroke-width="2"
-      stroke="#f0f0f0"
+      :stroke="StokeColor"
       :x1="arwTopSvgSizeW >> 1"
       :y1="0"
       :x2="arwTopSvgSizeW >> 1"
       :y2="ArrowHlfHgt"
     />
     <template v-if="multiCond">
-      <line stroke-width="4" stroke="#f0f0f0" :x1="0" :y1="0" :x2="arwTopSvgSizeW" :y2="0" />
+      <line stroke-width="4" :stroke="StokeColor" :x1="0" :y1="0" :x2="arwTopSvgSizeW" :y2="0" />
     </template>
   </svg>
   <a-card
@@ -27,8 +27,8 @@
     size="small"
     ref="nodeRef"
     :bordered="false"
+    class="absolute"
     :style="{
-      position: 'absolute',
       width: `${CardWidth}px`,
       left: `${node.posLT[0]}px`,
       top: `${node.posLT[1]}px`
@@ -39,7 +39,7 @@
     }"
     :bodyStyle="{
       position: 'relative',
-      border: '1px solid #f0f0f0'
+      border: `1px solid ${StokeColor}`
     }"
     hoverable
     @click="$emit('click:card')"
@@ -59,19 +59,12 @@
     </template>
     <a-row type="flex">
       <a-col v-if="node.inputs.length" flex="1px">
-        <div style="position: relative">
-          <div
-            :style="{
-              position: 'absolute',
-              'z-index': 100,
-              right: 0,
-              'text-align': 'right'
-            }"
-          >
+        <div class="relative">
+          <div class="absolute z-50 right-0 text-right">
             <a-tag
               v-for="input in node.inputs"
               :key="input.key"
-              class="b-0 mr-0"
+              class="border-0 mr-0"
               :class="{ 'filled-input': input.value }"
               color="#108ee9"
             >
@@ -89,33 +82,21 @@
         </div>
       </a-col>
       <!-- CardWidth - (CardPadding(12) + LeftRightWidth(1) + ContentPadding(5)) * 2 -->
-      <a-col flex="auto" class="plr-5" :style="{ width: `${CardWidth - 36}px` }">
+      <a-col flex="auto" class="px-1.5" :style="{ width: `${CardWidth - 36}px` }">
         <template v-if="node.desc">
-          <ul
-            class="unstyled-list"
-            :style="{
-              'overflow-x': 'auto',
-              'white-space': 'nowrap'
-            }"
-          >
+          <ul class="pl-0 list-none mb-0 overflow-x-auto whitespace-nowrap">
             <li v-for="item in node.desc.split('\n')" :key="item">{{ item }}</li>
           </ul>
         </template>
         <template v-else>输入节点描述</template>
       </a-col>
       <a-col v-if="node.outputs.length" flex="1px">
-        <div style="position: relative">
-          <div
-            :style="{
-              position: 'absolute',
-              'z-index': 100,
-              left: 0
-            }"
-          >
+        <div class="relative">
+          <div class="absolute z-50 left-0">
             <a-tag
               v-for="output in node.outputs"
               :key="output.key"
-              class="b-0 mr-0"
+              class="border-0 mr-0"
               :class="{ 'filled-output': output.value }"
               color="#108ee9"
             >
@@ -137,11 +118,10 @@
   <a-button
     type="primary"
     shape="circle"
+    class="absolute z-10"
     :style="{
-      position: 'absolute',
       left: `${addBtnPosLT[0]}px`,
-      top: `${addBtnPosLT[1]}px`,
-      'z-index': 1
+      top: `${addBtnPosLT[1]}px`
     }"
     @click="$emit('click:addBtn', node.key)"
   >
@@ -149,8 +129,8 @@
   </a-button>
   <svg
     v-if="ndKey"
+    class="absolute"
     :style="{
-      position: 'absolute',
       width: `${arwBtmSvgSizeW}px`,
       height: `${node.btmSvgHgt}px`,
       left: `${arwBtmSvgPosLT[0]}px`,
@@ -159,7 +139,7 @@
   >
     <line
       stroke-width="2"
-      stroke="#f0f0f0"
+      :stroke="StokeColor"
       :x1="arwBtmSvgSizeW >> 1"
       :y1="0"
       :x2="arwBtmSvgSizeW >> 1"
@@ -168,7 +148,7 @@
     <template v-if="nexts.length > 1">
       <line
         stroke-width="4"
-        stroke="#f0f0f0"
+        :stroke="StokeColor"
         :x1="0"
         :y1="node.btmSvgHgt"
         :x2="arwBtmSvgSizeW"
@@ -190,6 +170,7 @@ import {
   ArrowHlfHgt,
   CardWidth,
   CardHlfWid,
+  StokeColor,
   ndCdEmitter
 } from '@/views/Flow'
 import { useStore } from 'vuex'
@@ -297,6 +278,7 @@ export default defineComponent({
       CardMinHgt,
       ArrowHeight,
       ArrowHlfHgt,
+      StokeColor,
       node,
       color,
       nexts,

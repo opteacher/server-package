@@ -13,7 +13,7 @@
     v-else-if="cmpIns.ctype === 'Image'"
     :id="cmpIns.key"
     src="https://api.ixiaowai.cn/gqapi/gqapi.php"
-    :style="{ 'max-width': '100%', height: 'auto' }"
+    class="max-w-full h-auto"
   />
 </template>
 

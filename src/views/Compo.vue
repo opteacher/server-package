@@ -27,7 +27,6 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import LytMain from '../layouts/LytMain.vue'
-import EditableTable from '../components/com/EditableTable.vue'
 import { columns, mapper, fldColumns, fldMapper } from './Compo'
 import Compo from '../types/compo'
 import Field from '../types/field'
@@ -37,8 +36,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 export default defineComponent({
   name: 'Component',
   components: {
-    LytMain,
-    EditableTable
+    LytMain
   },
   setup() {
     const emitter = new Emitter()

@@ -2,11 +2,10 @@
   <a-input placeholder="输入颜色代码" :value="color" :size="size">
     <template #suffix>
       <div
+        class="cursor-pointer border border-black"
         :style="{
           width: `${colDspSz}px`,
           height: `${colDspSz}px`,
-          cursor: 'pointer',
-          border: '1px solid black',
           'background-color': color
         }"
         @click="
@@ -30,15 +29,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, reactive } from 'vue'
-import ColorSelect from '../com/ColorSelect.vue'
 
 const szMap = { default: 20, large: 25, small: 15 }
 
 export default defineComponent({
   name: 'ColorField',
-  components: {
-    ColorSelect
-  },
   emits: ['submit'],
   props: {
     color: { type: String, default: '' },
