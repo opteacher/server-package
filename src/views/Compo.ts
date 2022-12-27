@@ -1,6 +1,6 @@
 import { baseTypes, compoOpns } from '@/types'
-import Column from '@/types/column'
-import Mapper from '@/types/mapper'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
 
 export const columns = [new Column('组件名', 'name'), new Column('绑定类型', 'ctype')]
 

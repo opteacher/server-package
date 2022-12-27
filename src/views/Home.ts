@@ -6,10 +6,10 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import store from '@/store'
 import { pjtAPI as api } from '@/apis'
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import { Cond } from '@/types'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 
 export const emitter = new Emitter()
 

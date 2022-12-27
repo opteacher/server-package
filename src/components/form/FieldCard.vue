@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts">
-import Field, { mgnBtm } from '@/types/field'
+import Field from '@lib/types/field'
 import { createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -176,7 +176,6 @@ export default defineComponent({
     }
     return {
       store,
-      mgnBtm,
       cmpRect,
       mosMvOver,
 

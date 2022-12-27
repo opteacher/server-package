@@ -4,7 +4,7 @@ import Node, { NodeTypeMapper } from '@/types/node'
 import Service from '@/types/service'
 import Dep from '@/types/dep'
 import { OpnType } from '@/types'
-import { LstOpnType } from '@/types/mapper'
+import { LstOpnType } from '@lib/types/mapper'
 import { reqGet, until, reqAll } from '@/utils'
 import {
   edtNdEmitter,

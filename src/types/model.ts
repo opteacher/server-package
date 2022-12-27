@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Table from './table'
-import Form from './form'
+import Form from '@lib/types/form'
 import Property from './property'
 import Service from './service'
 

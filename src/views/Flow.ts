@@ -6,11 +6,11 @@ import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import { baseTypes, Cond } from '@/types'
 import Variable from '@/types/variable'
 import Node, { NodeType, NodeTypeMapper } from '@/types/node'
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import { ndAPI as api } from '../apis'
 
 function scanLocVars(ndKey: string): Variable[] {

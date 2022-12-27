@@ -1,7 +1,7 @@
 <template>
   <a-layout class="h-full">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
-      <div class="logo" />
+      <div class="h-8 m-4 bg-gray-700" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
         <a-menu-item :key="`project/${pid}/mid/login`" class="mt-0">
           <login-outlined />
@@ -21,19 +21,23 @@
       <a-layout-header class="bg-white p-0 flex items-center justify-between">
         <menu-unfold-outlined
           v-if="collapsed"
-          class="trigger"
+          class="text-xl px-6 py-0 cursor-pointer transition hover:text-primary"
           @click="() => (collapsed = !collapsed)"
         />
-        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <menu-fold-outlined
+          v-else
+          class="text-xl px-6 py-0 cursor-pointer transition hover:text-primary"
+          @click="() => (collapsed = !collapsed)"
+        />
         <a-popover placement="bottomRight">
           <template #content>
             <a-button class="w-full" type="primary" danger>退出登录</a-button>
           </template>
-          <a-avatar
-            size="large"
-            class="p-5 border-2 cursor-pointer hover:border-primary mr-6"
-            src="https://joeschmoe.io/api/v1/random"
-          />
+          <a-avatar size="large" class="border-2 cursor-pointer hover:border-primary mr-6">
+            <template #icon>
+              <UserOutlined />
+            </template>
+          </a-avatar>
         </a-popover>
       </a-layout-header>
       <a-layout class="flex flex-col">
@@ -53,7 +57,7 @@
             <a-breadcrumb-item v-else-if="active.endsWith('dashboard')">首页</a-breadcrumb-item>
           </a-breadcrumb>
         </a-space>
-        <a-layout-content class="flex-auto mx-6 mt-4 p-6 bg-white overflow-y-hidden">
+        <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
           <a-row class="mb-1">
             <a-col :span="12">
               <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
@@ -138,9 +142,10 @@ import {
   MenuFoldOutlined,
   EyeOutlined,
   BuildOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  UserOutlined
 } from '@ant-design/icons-vue'
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Middle from '@/types/middle'
 import { pjtAPI as api } from '../apis'
@@ -156,7 +161,8 @@ export default defineComponent({
     MenuFoldOutlined,
     EyeOutlined,
     BuildOutlined,
-    DashboardOutlined
+    DashboardOutlined,
+    UserOutlined
   },
   props: {
     active: { type: String, required: true }

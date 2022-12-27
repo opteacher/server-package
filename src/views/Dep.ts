@@ -1,5 +1,5 @@
-import Column from '@/types/column'
-import Mapper from '@/types/mapper'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
 
 export const columns = [
   new Column('名称', 'name'),

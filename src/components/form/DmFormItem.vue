@@ -4,7 +4,7 @@
       {{ field.label }}&nbsp;
       <a-tooltip v-if="field.desc">
         <template #title>{{ field.desc }}</template>
-        <InfoCircleOutlined style="color: #1890ff" />
+        <InfoCircleOutlined class="text-primary" />
       </a-tooltip>
     </template>
     <template v-if="viewOnly">
@@ -129,7 +129,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive } from 'vue'
-import Field from '@/types/field'
+import Field from '@lib/types/field'
 import { OpnType } from '@/types'
 import * as antdIcons from '@ant-design/icons-vue/lib/icons'
 

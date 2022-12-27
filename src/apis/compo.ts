@@ -1,4 +1,4 @@
-import Compo from "@/types/compo"
+import Compo from '@lib/types/compo'
 import { reqAll, reqDelete, reqGet, reqPost, reqPut } from "@/utils"
 
 export default {

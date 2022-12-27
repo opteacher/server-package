@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import Form from '@/types/form'
+import Form from '@lib/types/form'
 import { defineComponent, reactive } from 'vue'
 import { mdlAPI as api } from '@/apis'
 import { ControlOutlined, PercentageOutlined } from '@ant-design/icons-vue'

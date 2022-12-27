@@ -25,10 +25,10 @@
           <template #headerCell="{ column }">
             {{ column.title }}&nbsp;
             <a-select
-              class="mt-5"
+              class="mt-1.5 min-w-min"
               size="small"
               placeholder="绑定到……"
-              :style="{ 'min-width': '100px', 'max-width': `${column.width}px` }"
+              :style="{ 'max-width': `${column.width}px` }"
               :options="cols.map((col: Column) => ({ label: col.title, value: col.dataIndex }))"
               @select="(selected: string) => onBdPropSelect(formState, selected, column.dataIndex)"
             />
@@ -55,12 +55,12 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, watch } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import ExcelJS, { CellValue } from 'exceljs'
 import { Cond } from '@/types'
 import { upperFirst } from '@/utils'
 import Batch from '@/types/batch'
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import { ImportOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({

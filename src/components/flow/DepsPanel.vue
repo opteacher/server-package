@@ -1,13 +1,5 @@
 <template>
-  <div
-    :style="{
-      position: 'fixed',
-      bottom: '50px',
-      right: '100px',
-      'z-index': 1000,
-      'background-color': 'white'
-    }"
-  >
+  <div class="fixed bottom-12 right-24 z-50 bg-white">
     <a-collapse v-if="deps.length">
       <a-collapse-panel class="collapse-ptb-0">
         <template #header>

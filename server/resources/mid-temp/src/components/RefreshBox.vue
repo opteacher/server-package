@@ -17,20 +17,20 @@
         v-model:value="autoRfsh.interval"
         size="small"
         :min="1"
-        :style="{ width: '200px' }"
+        class="w-48"
         @change="autoRfsh.tip = true"
       >
         <template #addonAfter>
           <a-select
             v-model:value="autoRfsh.unit"
             :options="timeUnits"
-            style="width: 100px"
+            class="w-24"
             @change="autoRfsh.tip = true"
           />
         </template>
       </a-input-number>
       <template v-if="autoRfsh.tip">
-        <info-circle-outlined style="color: #faad14" />
+        <info-circle-outlined class="text-warning" />
         &nbsp;修改刷新间隔后需要重启自动刷新（关闭后再开启）
       </template>
     </template>

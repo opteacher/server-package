@@ -149,36 +149,33 @@
         </a-descriptions-item>
       </a-descriptions>
       <div
+        class="absolute opacity-0 z-50"
         :style="{
-          position: 'absolute',
           left: `${dspMask[0]}px`,
           top: `${dspMask[1]}px`,
           width: `${dspMask[2]}px`,
-          height: `${dspMask[3]}px`,
-          opacity: 0,
-          'z-index': 500
+          height: `${dspMask[3]}px`
         }"
       />
       <div
         id="pnlDisplay"
+        class="flex items-center"
         :style="{
           padding: `50px ${lgnProps.padding}px`,
-          display: 'flex',
-          'align-items': 'center',
           'justify-content': lgnProps.align,
           'background-image': lgnProps.background ? `url(${lgnProps.background})` : '',
           'background-color': lgnProps.bkgdColor
         }"
       >
         <div
+          class="px-5 pt-4"
           :style="{
-            padding: '16px 20px 0 20px',
             'border-radius': `${lgnProps.radius}px`,
             width: `${lgnProps.width}%`,
             'background-color': lgnProps.fmBkgdColor
           }"
         >
-          <h1 :style="{ 'font-size': '20pt', 'text-align': 'center', 'margin-bottom': '20px' }">
+          <h1 class="text-xl text-center mb-5">
             {{ lgnProps.title }}
           </h1>
           <a-form
@@ -219,10 +216,10 @@ import { UploadOutlined, PercentageOutlined } from '@ant-design/icons-vue'
 import ColorField from '../components/table/ColorField.vue'
 import MidLgn from '@/types/midLgn'
 import { fixStartsWith, waitFor } from '@/utils'
-import Form from '@/types/form'
+import Form from '@lib/types/form'
 import { mdlAPI } from '@/apis'
 import DmFormItem from '@/components/form/DmFormItem.vue'
-import Field from '@/types/field'
+import Field from '@lib/types/field'
 import { pjtAPI } from '@/apis'
 
 export default defineComponent({

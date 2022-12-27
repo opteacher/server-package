@@ -10,7 +10,7 @@
   <span
     v-else
     :style="{
-      color: selected ? '#1890ff' : pcsCell.color
+      color: selected ? '@primary-color' : pcsCell.color
     }"
   >
     <HighLight

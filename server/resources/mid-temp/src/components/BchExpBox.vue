@@ -24,11 +24,11 @@
         >
           <template #headerCell="{ column }">
             {{ column.title }}
-            <a-input-group class="mt-5 w-100" compact>
+            <a-input-group class="mt-1.5 w-full" compact>
               <a-select
+                class="w-9/12"
                 size="small"
                 placeholder="等于……"
-                style="width: 75%"
                 :options="cols.map((col: Column) => ({ label: col.title, value: col.dataIndex }))"
                 @select="(selected: string) => onAsIdenSelect(formState, selected, column.dataIndex)"
               />
@@ -57,14 +57,14 @@
 </template>
 
 <script lang="ts">
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import FormDialog from '../com/FormDialog.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ExportOutlined, EllipsisOutlined } from '@ant-design/icons-vue'
 import Batch from '@/types/batch'
 import { CellValue } from 'exceljs'
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import ExcelJS from 'exceljs'
 import { Cond } from '@/types'
 import { upperFirst } from '@/utils'

@@ -24,8 +24,8 @@
 </template>
 
 <script lang="ts">
-import Field from '@/types/field'
-import Form from '@/types/form'
+import Field from '@lib/types/field'
+import Form from '@lib/types/form'
 import { computed, defineComponent, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { TinyEmitter as Emitter } from 'tiny-emitter'

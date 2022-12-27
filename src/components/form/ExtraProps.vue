@@ -65,11 +65,11 @@
 </template>
 
 <script lang="ts">
-import Field from '@/types/field'
+import Field from '@lib/types/field'
 import { computed, defineComponent, onMounted, reactive, watch } from 'vue'
 import { pickOrIgnore } from '@/utils'
 import { cmpAPI } from '@/apis'
-import Compo from '@/types/compo'
+import Compo from '@lib/types/compo'
 
 export default defineComponent({
   props: {
@@ -81,7 +81,7 @@ export default defineComponent({
     const edtField = reactive(props.field)
     const cmpState = reactive(props.compo)
     const cmpExtra = computed(() =>
-      cmpState.key ? cmpState.extra.map((field: any) => Field.copy(field)) : []
+      cmpState.key ? cmpState.props : []
     )
 
     watch(() => props.field.key, refresh)

@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import API from '@/types/api'
 import { authValues } from '@/types/rule'
-import Column from '@/types/column'
-import Mapper from '@/types/mapper'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
 import { Cond, methods } from '@/types'
 import Model from '@/types/model'
 import Service from '@/types/service'

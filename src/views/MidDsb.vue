@@ -1,30 +1,26 @@
 <template>
   <LytMiddle :active="`project/${pid}/mid/dashboard`">
     <a-row type="flex" :gutter="16" :style="{ height: mainHeight }">
-      <a-col v-show="tlbxExpand.left" flex="2" class="b-1 mb-24">
-        <a-row type="flex" class="mtb-10">
-          <a-col flex="auto">
-            <div class="ant-descriptions-title">组件库</div>
-          </a-col>
-          <a-col flex="100px" class="text-right">
-            <a-switch
-              v-model:checked="dspAllCmps"
-              checked-children="所有"
-              un-checked-children="展示类"
-              @change="onDspCmpSwitch"
-            />
-          </a-col>
-        </a-row>
-        <a-list :data-source="dspCmps" :style="{ height: '60vh', 'overflow-y': 'auto' }">
+      <a-col v-show="tlbxExpand.left" flex="2" class="border mb-6 flex flex-col">
+        <div class="my-2.5 flex justify-between">
+          <div class="ant-descriptions-title">组件库</div>
+          <a-switch
+            v-model:checked="dspAllCmps"
+            checked-children="所有"
+            un-checked-children="展示类"
+            @change="onDspCmpSwitch"
+          />
+        </div>
+        <a-list :data-source="dspCmps" class="flex-auto overflow-y-auto">
           <template #renderItem="{ item: compo }">
-            <a-list-item class="b-0 pt-0">
+            <a-list-item class="border-0 pt-0">
               <a-card
-                class="w-full hover-pbd"
+                class="w-full cursor-pointer"
                 size="small"
                 :draggable="true"
                 @dragstart="(e: DragEvent) => onCmpDragStart(e, compo.name)"
               >
-                {{ cmpLblMap[compo.name] || compo.name }}
+                {{ cmpLblMap[compo.name as CompoType] || compo.name }}
               </a-card>
             </a-list-item>
           </template>
@@ -32,14 +28,7 @@
       </a-col>
       <a-col flex="0" class="p-0">
         <a-button
-          :style="{
-            height: '80px',
-            padding: '5px',
-            'z-index': 500,
-            'border-top-left-radius': 0,
-            'border-bottom-left-radius': 0,
-            'border-left': '1px solid white'
-          }"
+          class="h-20 p-1.5 z-50 rounded-tl-none rounded-bl-none border-l border-white"
           @click="() => onToolboxExpand('left')"
         >
           <template v-if="tlbxExpand.right">
@@ -59,14 +48,10 @@
         </a-button>
       </a-col>
       <a-col flex="5" ref="dsbCtnr" @click="cmpProps.reset()">
-        <div class="w-full mb-24" :style="{ height: mainHeight }">
+        <div class="w-full mb-6" :style="{ height: mainHeight }">
           <div
-            class="h-full"
+            class="h-full overflow-auto border rounded relative"
             :style="{
-              overflow: 'auto',
-              border: '1px solid #e0e2e5',
-              'border-radius': '2px',
-              position: 'relative',
               'background-color': dsbProps.bkgdColor,
               padding: [
                 dsbProps.padding[0] === -1 ? 'auto' : `${dsbProps.padding[0]}px`,
@@ -97,14 +82,7 @@
       </a-col>
       <a-col flex="0" class="p-0">
         <a-button
-          :style="{
-            height: '80px',
-            padding: '5px',
-            'z-index': 500,
-            'border-top-right-radius': 0,
-            'border-bottom-right-radius': 0,
-            'border-right': '1px solid white'
-          }"
+          class="h-20 p-1.5 z-50 rounded-tr-none rounded-br-none border-l border-white"
           @click="() => onToolboxExpand('right')"
         >
           <template v-if="tlbxExpand.right">
@@ -123,7 +101,7 @@
           </template>
         </a-button>
       </a-col>
-      <a-col v-show="tlbxExpand.right" flex="3" class="b-1 mb-24">
+      <a-col v-show="tlbxExpand.right" flex="3" class="border mb-6">
         <DsbProps v-if="!cmpProps.key" v-model:value="dsbProps" />
         <ExtraProps
           v-else
@@ -158,12 +136,12 @@ import CmpIns from '@/types/cmpIns'
 import MidDsb from '@/types/midDsb'
 import { useStore } from 'vuex'
 import { Modal } from 'ant-design-vue'
-import Compo from '@/types/compo'
-import { cmpLblMap } from '@/types'
+import Compo from '@lib/types/compo'
+import { cmpLblMap, CompoType } from '@/types'
 import CompoCard from '../components/mid/CompoCard.vue'
 import DsbProps from '../components/mid/DsbProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'
-import Field from '@/types/field'
+import Field from '@lib/types/field'
 import { v4 as uuidv4 } from 'uuid'
 import { pid } from 'process'
 import { refresh } from './Auth'

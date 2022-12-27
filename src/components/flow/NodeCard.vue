@@ -55,7 +55,7 @@
       </template>
     </template>
     <template v-if="node.group" #extra>
-      <span style="color: white">{{ node.group }}</span>
+      <span class="text-white">{{ node.group }}</span>
     </template>
     <a-row type="flex">
       <a-col v-if="node.inputs.length" flex="1px">

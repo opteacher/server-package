@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import Compo from '@/types/compo'
+import Compo from '@lib/types/compo'
 import { defineComponent } from 'vue'
 
 export default defineComponent({

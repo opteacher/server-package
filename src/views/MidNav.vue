@@ -1,18 +1,11 @@
 <template>
   <LytMiddle :active="`project/${pid}/mid/navigate`">
-    <a-row style="height: 65vh" :gutter="24">
-      <a-col :span="16" style="background-color: #ededed" @click="selMuKey = ''">
-        <div
-          :style="{
-            width: '25vw',
-            height: '100%',
-            margin: '0 auto'
-          }"
-        >
+    <a-row :gutter="24">
+      <a-col :span="16" class="bg-gray-500" @click="selMuKey = ''">
+        <div class="w-1/4 h-full mx-auto my-0 flex flex-col">
           <div
+            class="h-8 cursor-pointer"
             :style="{
-              height: '10%',
-              cursor: 'pointer',
               padding: selMuKey === '#' ? '12px' : '14px',
               border: selMuKey === '#' ? '2px solid #1890ff' : 'none',
               color: navProps.theme === 'dark' ? '#FFFFFFA6' : '#001529',
@@ -25,7 +18,7 @@
             &nbsp;Logo
           </div>
           <a-menu
-            :style="{ height: '90%' }"
+            class="flex-auto"
             :selectedKeys="[selMuKey]"
             mode="inline"
             :theme="navProps.theme"
@@ -36,7 +29,7 @@
         </div>
       </a-col>
       <a-col :span="8">
-        <a-descriptions class="mb-20" title="菜单参数" :column="1" size="small" bordered>
+        <a-descriptions class="mb-1.5" title="菜单参数" :column="1" size="small" bordered>
           <a-descriptions-item label="主路由">
             <a-input
               v-model:value="navProps.path"

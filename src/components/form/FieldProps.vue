@@ -45,7 +45,7 @@
 
 <script lang="ts">
 import { compoOpns } from '@/types'
-import Field from '@/types/field'
+import Field from '@lib/types/field'
 import Model from '@/types/model'
 import { computed, defineComponent, reactive, watch } from 'vue'
 import { useStore } from 'vuex'

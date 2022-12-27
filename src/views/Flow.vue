@@ -28,7 +28,7 @@
   </a-space>
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
-      <div class="flow-panel" ref="panelRef">
+      <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
         <VarsPanel />
         <TmpNdPanel />
         <NodeCard v-if="Object.values(nodes).length === 0" @click:addBtn="() => onEdtNodeClick()" />
@@ -46,7 +46,7 @@
     <FormDialog
       :title="editTitle"
       width="70vw"
-      :column="[2, 22]"
+      :lblWid="2"
       :copy="Node.copy"
       :object="editNode"
       v-model:show="edtNdVisible"
@@ -179,14 +179,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.flow-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 64px;
-  right: 0;
-  overflow-y: auto;
-}
-</style>

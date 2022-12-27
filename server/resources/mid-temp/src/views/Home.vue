@@ -1,44 +1,40 @@
 <template>
   <IndexLayout ref="layout" @change="onMuItmChange">
-    <a-row class="mb-10" type="flex">
-      <a-col flex="auto">
-        <a-space>
-          <h3 class="mb-0">{{ table.title }}</h3>
-          <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
+    <div class="mb-2.5 flex justify-between">
+      <a-space>
+        <h3 class="mb-0">{{ table.title }}</h3>
+        <span class="text-gray-400">{{ table.desc }}</span>
+      </a-space>
+      <div v-if="table.operable.includes('可增加')">
+        <SelColBox v-if="table.colDspable" v-model:columns="columns" />
+        <a-space v-if="table.operable.includes('可增加')">
+          <BchExpBox
+            v-if="table.imExport.includes('export')"
+            :columns="columns"
+            :copyFun="bchEptCopy"
+          />
+          <BchImpBox
+            v-if="table.imExport.includes('import')"
+            :columns="columns"
+            :copyFun="bchIptCopy"
+          />
+          <a-button
+            type="primary"
+            @click="
+              fmEmitter.emit('update:show', {
+                show: true,
+                cpyRcd: (tgt: any) => actCopy(actCopy({}), tgt, true)
+              })
+            "
+          >
+            添加
+          </a-button>
         </a-space>
-      </a-col>
-      <a-col v-if="table.operable.includes('可增加')" style="text-align: right" flex="200px">
-        <a-space>
-          <SelColBox v-if="table.colDspable" v-model:columns="columns" />
-          <a-space v-if="table.operable.includes('可增加')">
-            <BchExpBox
-              v-if="table.imExport.includes('export')"
-              :columns="columns"
-              :copyFun="bchEptCopy"
-            />
-            <BchImpBox
-              v-if="table.imExport.includes('import')"
-              :columns="columns"
-              :copyFun="bchIptCopy"
-            />
-            <a-button
-              type="primary"
-              @click="
-                fmEmitter.emit('update:show', {
-                  show: true,
-                  cpyRcd: (tgt: any) => actCopy(actCopy({}), tgt, true)
-                })
-              "
-            >
-              添加
-            </a-button>
-          </a-space>
-        </a-space>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
     <RefreshBox
       v-if="table.refresh.length"
-      class="mb-10"
+      class="mb-2.5"
       :tblRfsh="table.refresh"
       @click="refresh"
     />
@@ -47,7 +43,7 @@
       :data-source="records"
       :size="table.size"
       :scroll="{ y: ctnrHeight }"
-      :rowClassName="() => 'white-bkgd'"
+      :rowClassName="() => 'bg-white'"
       :expandedRowKeys="expRowKeys"
       :pagination="table.hasPages ? { pageSize: table.maxPerPgs } : false"
       :loading="loading"
@@ -72,27 +68,25 @@
       <template
         #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
       >
-        <div v-if="column.searchable" style="padding: 8px">
+        <div v-if="column.searchable" class="p-1.5">
           <a-input
             ref="searchInput"
             :placeholder="`搜索${column.title}`"
             :value="selectedKeys[0]"
-            style="width: 188px; margin-bottom: 8px; display: block"
+            class="w-48 mb-2 block"
             @change="(e: any) => setSelectedKeys(e.target.value ? [e.target.value] : [])"
             @pressEnter="onDoSearch(selectedKeys, confirm, column.dataIndex)"
           />
           <a-button
             type="primary"
             size="small"
-            style="width: 90px; margin-right: 8px"
+            class="w-24 mr-2"
             @click="onDoSearch(selectedKeys, confirm, column.dataIndex)"
           >
             <template #icon><SearchOutlined /></template>
             搜索
           </a-button>
-          <a-button size="small" style="width: 90px" @click="onSchReset(clearFilters)">
-            重置
-          </a-button>
+          <a-button size="small" class="w-24" @click="onSchReset(clearFilters)">重置</a-button>
         </div>
       </template>
       <template #bodyCell="{ text, column, record }">
@@ -101,7 +95,7 @@
             <a-button
               v-if="table.operable.includes('可编辑')"
               size="small"
-              class="mb-5"
+              class="mb-1.5"
               @click.stop="
                 fmEmitter.emit('update:show', {
                   show: true,
@@ -126,7 +120,7 @@
           <template v-else>
             <a
               v-if="table.operable.includes('可编辑')"
-              class="mr-5"
+              class="mr-1.5"
               @click.stop="
                 fmEmitter.emit('update:show', {
                   show: true,
@@ -143,7 +137,7 @@
               cancel-text="取消"
               @confirm="onRecordDel(record)"
             >
-              <a style="color: #ff4d4f">删除</a>
+              <a class="text-error">删除</a>
             </a-popconfirm>
           </template>
         </template>
@@ -167,10 +161,7 @@
         />
       </template>
       <template #expandIcon="{ record }">
-        <a-button
-          @click.stop="onRowExpand(record)"
-          :style="{ width: '20px', height: '20px', 'font-size': '10px', padding: '0 5px' }"
-        >
+        <a-button @click.stop="onRowExpand(record)" class="w-5 h-5 text-2xl py-0 px-1.5">
           <template v-if="expRowKeys.includes(record.key)">-</template>
           <template v-else>+</template>
         </a-button>
@@ -189,7 +180,7 @@ import Table, { Cells } from '../types/table'
 import { baseCopy, endsWith, fmtStrByObj } from '../utils'
 import api from '../api'
 import FormDialog from '../components/FormDialog.vue'
-import Column from '../types/column'
+import Column from '@lib/types/column'
 import RefreshBox from '../components/RefreshBox.vue'
 import SelColBox from '../components/SelColBox.vue'
 import CellCard from '../components/CellCard.vue'
@@ -345,35 +336,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.unstyled-list {
-  padding-left: 0;
-  list-style: none;
-  margin-bottom: 0 !important;
-}
-
-.mb-0 {
-  margin-bottom: 0 !important;
-}
-
-.mb-3 {
-  margin-bottom: 3px !important;
-}
-
-.mb-5 {
-  margin-bottom: 5px !important;
-}
-
-.mb-10 {
-  margin-bottom: 10px !important;
-}
-
-.p-10 {
-  padding: 10px !important;
-}
-
-.w-100 {
-  width: 100%;
-}
-</style>

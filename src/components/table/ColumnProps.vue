@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import { defineComponent, reactive } from 'vue'
 import { mdlAPI as api } from '@/apis'
 

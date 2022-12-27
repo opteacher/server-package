@@ -1,23 +1,20 @@
 <template>
   <div
+    class="px-5 py-12 h-full flex items-center"
     :style="{
-      padding: '50px 24px',
-      height: '100%',
-      display: 'flex',
-      'align-items': 'center',
       'justify-content': lgnProps.align,
       'background-color': lgnProps.bkgdColor
     }"
   >
     <div
+      class="px-5 pt-4"
       :style="{
-        padding: '16px 20px 0 20px',
         'border-radius': `${lgnProps.radius}px`,
         width: `${lgnProps.width}%`,
         'background-color': lgnProps.fmBkgdColor
       }"
     >
-      <h1 :style="{ 'font-size': '20pt', 'text-align': 'center', 'margin-bottom': '20px' }">
+      <h1 class="text-2xl text-center mb-5">
         {{ lgnProps.title }}
       </h1>
       <a-form
@@ -48,7 +45,7 @@
 import { defineComponent, onMounted, reactive } from 'vue'
 import FormItem from '../components/FormItem.vue'
 import MidLgn from '../types/midLgn'
-import Field from '../types/field'
+import Field from '@lib/types/field'
 import { useRouter } from 'vue-router'
 import api from '../api'
 

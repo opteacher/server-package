@@ -1,13 +1,5 @@
 <template>
-  <div
-    v-if="hasTmpNds"
-    :style="{
-      position: 'fixed',
-      top: '150px',
-      left: '100px',
-      'z-index': 1000
-    }"
-  >
+  <div v-if="hasTmpNds" class="fixed top-40 left-24 z-50">
     <a-button type="primary" @click="store.commit('service/SET_TEMP_VSB', true)">
       <GoldOutlined />
       &nbsp;节点库

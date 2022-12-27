@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Cell from './cell'
-import Column from './column'
+import Column from '@lib/types/column'
 
 export class Cells extends Cell {
   refer: string

@@ -14,7 +14,7 @@
           </template>
         </a-list>
       </a-layout-sider>
-      <a-layout-content class="main-panel" @click="active.reset()">
+      <a-layout-content class="p-5 w-1/2" @click="active.reset()">
         <div class="bg-white h-full px-7 overflow-y-auto">
           <a-empty
             v-if="!fields.length"
@@ -58,9 +58,9 @@ import LytDesign from '../layouts/LytDesign.vue'
 import CompoCard from '../components/form/CompoCard.vue'
 import FieldCard from '../components/form/FieldCard.vue'
 import { useStore } from 'vuex'
-import Field from '@/types/field'
-import Compo from '@/types/compo'
-import Form from '@/types/form'
+import Field from '@lib/types/field'
+import Compo from '@lib/types/compo'
+import Form from '@lib/types/form'
 import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'
@@ -124,29 +124,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="less">
-.bd-form-item {
-  border-top: 1px solid #108ee9;
-  border-left: 1px solid #108ee9;
-  border-right: 1px solid #108ee9;
-}
-
-.bd-form-oper {
-  border-left: 1px solid #108ee9;
-  border-right: 1px solid #108ee9;
-  border-bottom: 1px solid #108ee9;
-}
-
-.main-panel {
-  padding: 20px;
-  width: 50%;
-}
-
-.form-container {
-  position: fixed;
-  bottom: 30px;
-  left: 70px;
-  right: 70px;
-}
-</style>

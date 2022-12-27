@@ -1,78 +1,73 @@
 <template>
   <LytProject :active="`project/${pid}`">
-    <a-row class="mb-5">
-      <a-col :span="12">
-        <a-space>
-          <p class="mb-0 text-lg font-bold">
-            <project-outlined />
-            &nbsp;{{ project.name }}
-          </p>
-          <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
-            {{ project.status.stat }}
-          </a-tag>
-          <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
-            {{ project.status.stat }}
-          </a-tag>
-          <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
-            {{ project.status.stat }}
-          </a-tag>
-        </a-space>
-      </a-col>
-      <a-col :span="12" class="text-right">
-        <a-space>
-          <a-button @click="showProj = true">
-            <template #icon><SettingOutlined /></template>
-            &nbsp;配置
-          </a-button>
-          <FormDialog
-            title="配置项目"
-            :copy="Project.copy"
-            v-model:show="showProj"
-            :mapper="projMapper"
-            :object="project"
-            @submit="onConfig"
-          />
+    <div class="mb-1.5 flex justify-between">
+      <a-space>
+        <p class="mb-0 text-lg font-bold">
+          <project-outlined />
+          &nbsp;{{ project.name }}
+        </p>
+        <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
+          {{ project.status.stat }}
+        </a-tag>
+        <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
+          {{ project.status.stat }}
+        </a-tag>
+        <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
+          {{ project.status.stat }}
+        </a-tag>
+      </a-space>
+      <a-space>
+        <a-button @click="showProj = true">
+          <template #icon><SettingOutlined /></template>
+          &nbsp;配置
+        </a-button>
+        <FormDialog
+          title="配置项目"
+          :copy="Project.copy"
+          v-model:show="showProj"
+          :mapper="projMapper"
+          :object="project"
+          @submit="onConfig"
+        />
+        <a-button
+          type="primary"
+          :disabled="project.status.stat === 'loading'"
+          :loading="project.status.stat === 'loading'"
+          @click="api.sync(pid)"
+        >
+          <template #icon><SyncOutlined /></template>
+          &nbsp;同步
+        </a-button>
+        <a-tooltip v-if="project.thread">
+          <template #title>传输本地文件到项目实例中</template>
           <a-button
-            type="primary"
             :disabled="project.status.stat === 'loading'"
             :loading="project.status.stat === 'loading'"
-            @click="api.sync(pid)"
+            @click="showTsfm = true"
           >
-            <template #icon><SyncOutlined /></template>
-            &nbsp;同步
+            <template #icon><UploadOutlined /></template>
+            &nbsp;传输文件
           </a-button>
-          <a-tooltip>
-            <template #title>传输本地文件到项目实例中</template>
-            <a-button
-              v-if="project.thread"
-              :disabled="project.status.stat === 'loading'"
-              :loading="project.status.stat === 'loading'"
-              @click="showTsfm = true"
-            >
-              <template #icon><UploadOutlined /></template>
-              &nbsp;传输文件
-            </a-button>
-          </a-tooltip>
-          <FormDialog
-            title="投放文件"
-            :copy="Transfer.copy"
-            v-model:show="showTsfm"
-            :mapper="tsMapper"
-            :emitter="tsEmitter"
-            @submit="onTransfer"
-          />
-          <a-button
-            v-if="project.thread || project.status.stat === 'loading'"
-            danger
-            @click="api.stop(pid)"
-          >
-            <template #icon><PoweroffOutlined /></template>
-            &nbsp;停止
-          </a-button>
-        </a-space>
-      </a-col>
-    </a-row>
-    <p class="mb-16">
+        </a-tooltip>
+        <FormDialog
+          title="投放文件"
+          :copy="Transfer.copy"
+          v-model:show="showTsfm"
+          :mapper="tsMapper"
+          :emitter="tsEmitter"
+          @submit="onTransfer"
+        />
+        <a-button
+          v-if="project.thread || project.status.stat === 'loading'"
+          danger
+          @click="api.stop(pid)"
+        >
+          <template #icon><PoweroffOutlined /></template>
+          &nbsp;停止
+        </a-button>
+      </a-space>
+    </div>
+    <p class="mb-4">
       <info-circle-outlined />
       &nbsp;{{ project.desc }}
     </p>
@@ -89,13 +84,13 @@
       </a-descriptions-item>
       <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
         <a-typography-paragraph
-          style="white-space: pre-line"
+          class="whitespace-pre-line"
           :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
           :content="project.commands"
         />
       </a-descriptions-item>
     </a-descriptions>
-    <div class="mt-6">
+    <div class="mt-1.5">
       <EditableTable
         title="模型"
         size="small"

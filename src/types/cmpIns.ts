@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { CompoType } from '.'
-import Compo from './compo'
+import Compo from '@lib/types/compo'
+import Field from '@lib/types/field'
 
 function defaultValue(ctype: CompoType) {
   switch (ctype) {
@@ -50,7 +51,7 @@ export default class CmpIns {
       padding: ['auto', 'auto', 'auto', 'auto']
     }
     this.extra = compo ? Object.fromEntries(
-      (compo.extra || []).map((item: any) => [item.refer, defaultValue(item.ftype)])
+      (compo.props || []).map((item: Field) => [item.refer, defaultValue(item.ftype)])
     ) : {}
     this.parent = null
     this.children = []

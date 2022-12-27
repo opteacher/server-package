@@ -1,34 +1,30 @@
 <template>
   <LytDesign :active="`project/${pid}/model/${mid}/table`">
     <a-layout class="h-full">
-      <a-layout-content class="main-panel" @click="selected = ''">
+      <a-layout-content class="p-5" width="70%" @click="selected = ''">
         <div class="bg-white p-2.5">
-          <a-row class="mb-2.5" type="flex">
-            <a-col flex="auto">
-              <a-space>
-                <h3 class="mb-0">{{ table.title }}</h3>
-                <span class="text-gray-400">{{ table.desc }}</span>
+          <div class="mb-2.5 flex justify-between">
+            <a-space>
+              <h3 class="mb-0">{{ table.title }}</h3>
+              <span class="text-gray-400">{{ table.desc }}</span>
+            </a-space>
+            <a-space>
+              <SelColBox v-if="table.colDspable" v-model:columns="columns" />
+              <a-space v-if="table.operable.includes('可增加')">
+                <BchExpBox
+                  v-if="table.imExport.includes('export')"
+                  :columns="columns"
+                  :copyFun="() => undefined"
+                />
+                <BchImpBox
+                  v-if="table.imExport.includes('import')"
+                  :columns="columns"
+                  :copyFun="() => undefined"
+                />
+                <a-button type="primary">添加</a-button>
               </a-space>
-            </a-col>
-            <a-col class="text-right" flex="200px">
-              <a-space>
-                <SelColBox v-if="table.colDspable" v-model:columns="columns" />
-                <a-space v-if="table.operable.includes('可增加')">
-                  <BchExpBox
-                    v-if="table.imExport.includes('export')"
-                    :columns="columns"
-                    :copyFun="() => undefined"
-                  />
-                  <BchImpBox
-                    v-if="table.imExport.includes('import')"
-                    :columns="columns"
-                    :copyFun="() => undefined"
-                  />
-                  <a-button type="primary">添加</a-button>
-                </a-space>
-              </a-space>
-            </a-col>
-          </a-row>
+            </a-space>
+          </div>
           <RefreshBox v-if="table.refresh.length" class="mb-2.5" :tblRfsh="table.refresh" />
           <a-table
             class="demo-table"
@@ -40,7 +36,11 @@
             bordered
           >
             <template #headerCell="{ title, column }">
-              <span :style="{ color: selected === `head_${column.key}` ? '#1890ff' : '#000000d9' }">
+              <span
+                :style="{
+                  color: selected === `head_${column.key}` ? '@primary-color' : '#000000d9'
+                }"
+              >
                 {{ title }}
               </span>
             </template>
@@ -54,10 +54,10 @@
                     删除
                   </a-button>
                 </template>
-                <template v-else>
-                  <a v-if="table.operable.includes('可编辑')" class="mr-5">编辑</a>
-                  <a v-if="table.operable.includes('可删除')" style="color: #ff4d4f">删除</a>
-                </template>
+                <div v-else class="space-x-1.5">
+                  <a v-if="table.operable.includes('可编辑')">编辑</a>
+                  <a v-if="table.operable.includes('可删除')" class="text-error">删除</a>
+                </div>
               </template>
               <CellCard
                 v-else
@@ -109,7 +109,7 @@ import { useStore } from 'vuex'
 import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import DemoForm from '../components/form/DemoForm.vue'
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import Table, { Cells } from '@/types/table'
 import { pickOrIgnore, endsWith } from '@/utils'
 import TableProps from '../components/table/TableProps.vue'
@@ -256,18 +256,6 @@ export default defineComponent({
 </script>
 
 <style lang="less">
-.main-panel {
-  padding: 20px;
-  width: 70%;
-}
-
-.table-container {
-  position: fixed;
-  bottom: 30px;
-  left: 70px;
-  right: 70px;
-}
-
 .demo-table {
   th:hover {
     cursor: pointer;

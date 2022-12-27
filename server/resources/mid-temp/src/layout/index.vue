@@ -1,15 +1,14 @@
 <template>
-  <a-layout class="h-100">
+  <a-layout class="h-full">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div
+        class="cursor-pointer"
         :style="{
-          height: '10%',
-          cursor: 'pointer',
           'background-color': navigate.theme === 'dark' ? '#001529' : 'white'
         }"
       />
       <a-menu
-        class="h-100"
+        class="h-full"
         :selectedKeys="[active]"
         :theme="navigate.theme"
         mode="inline"
@@ -24,40 +23,26 @@
       </a-menu>
     </a-layout-sider>
     <a-layout>
-      <a-layout-header style="background: #fff; padding: 0">
-        <a-row>
-          <a-col :span="12">
-            <menu-unfold-outlined
-              v-if="collapsed"
-              class="trigger"
-              @click="() => (collapsed = !collapsed)"
-            />
-            <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
-          </a-col>
-          <a-col :span="12" style="text-align: right; padding-right: 24px">
-            <a-popover placement="bottomRight">
-              <template #content>
-                <a-button class="w-100" type="primary" danger @click="onLogout">退出登录</a-button>
-              </template>
-              <a-avatar
-                size="large"
-                class="p-5 avatar-float"
-                src="https://joeschmoe.io/api/v1/random"
-              />
-            </a-popover>
-          </a-col>
-        </a-row>
+      <a-layout-header class="bg-white p-0 flex justify-between">
+        <menu-unfold-outlined
+          v-if="collapsed"
+          class="trigger"
+          @click="() => (collapsed = !collapsed)"
+        />
+        <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <a-popover placement="bottomRight">
+          <template #content>
+            <a-button class="w-full" type="primary" danger @click="onLogout">退出登录</a-button>
+          </template>
+          <a-avatar size="large" class="border-2 cursor-pointer hover:border-primary mr-6">
+            <template #icon>
+              <UserOutlined />
+            </template>
+          </a-avatar>
+        </a-popover>
       </a-layout-header>
-      <a-layout-content
-        :style="{
-          margin: '24px 16px',
-          padding: '24px',
-          background: '#fff',
-          minHeight: '280px',
-          overflowY: 'auto'
-        }"
-      >
-        <div class="h-100" ref="container"><slot /></div>
+      <a-layout-content class="flex-auto mx-6 mt-4 p-6 bg-white overflow-y-hidden">
+        <slot />
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -137,29 +122,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style>
-.trigger {
-  font-size: 18px;
-  line-height: 64px;
-  padding: 0 24px;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.trigger:hover {
-  color: #1890ff;
-}
-
-.site-layout .site-layout-background {
-  background: #fff;
-}
-
-.avatar-float {
-  border: 2px solid white;
-}
-.avatar-float:hover {
-  cursor: pointer;
-  border: 2px solid #1890ff;
-}
-</style>

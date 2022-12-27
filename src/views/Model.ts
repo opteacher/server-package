@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseTypes, Cond, methods } from '@/types/index'
-import Column from '@/types/column'
-import Mapper from '@/types/mapper'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
 import Property from '@/types/property'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import Service, { Method, emitTypeOpns, timeUnits } from '@/types/service'
@@ -150,7 +150,7 @@ export const propMapper = new Mapper({
   },
   remark: {
     label: '备注',
-    type: 'Input'
+    type: 'Textarea'
   }
 })
 

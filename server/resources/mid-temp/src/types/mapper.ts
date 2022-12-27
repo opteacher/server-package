@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { CompoType, Cond, OpnType } from '.'
-import Column from './column'
+import Column from '@lib/types/column'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export class BaseMapper {

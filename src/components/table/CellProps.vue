@@ -10,7 +10,7 @@
       >
         <template #dropdownRender="{ menuNode: menu }">
           <v-nodes :vnodes="menu" />
-          <a-divider style="margin: 4px 0" />
+          <a-divider class="my-1 mx-0" />
           <a-button class="w-full" type="link" @click="condStatic.visible = true">
             <template #icon><plus-outlined /></template>
             添加
@@ -91,7 +91,7 @@
 import Cell from '@/types/cell'
 import { computed, defineComponent, reactive, watch } from 'vue'
 import { mdlAPI as api } from '@/apis'
-import Mapper from '@/types/mapper'
+import Mapper from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Cells } from '@/types/table'
 import { PlusOutlined } from '@ant-design/icons-vue'

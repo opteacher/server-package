@@ -22,15 +22,15 @@
       <template #status="{ record: project }">
         <template v-if="project.thread === 0">
           <a-badge status="error" />
-          <span style="color: #f5222d">停止</span>
+          <span class="text-error">停止</span>
         </template>
         <template v-else-if="project.status.stat === 'loading'">
           <loading-outlined />
-          <span style="color: #faad14">加载中</span>
+          <span class="text-warning">加载中</span>
         </template>
         <template v-else>
           <a-badge status="success" />
-          <span style="color: #52c41a">运行中</span>
+          <span class="text-success">运行中</span>
         </template>
       </template>
       <template #operation="{ record: project }">

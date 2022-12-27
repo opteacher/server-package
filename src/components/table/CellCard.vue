@@ -3,7 +3,7 @@
   <span
     v-else
     :style="{
-      color: selected ? '#1890ff' : cell.color
+      color: selected ? '@primary-color' : cell.color
     }"
   >
     {{ fmtTxt }}

@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import { defineComponent, reactive, ref, watch } from 'vue'
 import { InsertRowAboveOutlined } from '@ant-design/icons-vue'
 

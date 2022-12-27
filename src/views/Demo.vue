@@ -10,23 +10,15 @@
       &nbsp;数据
     </div>
     <a-divider />
-    <a-row class="mb-2.5" type="flex">
-      <a-col flex="auto">
-        <a-space>
-          <h3 class="mb-0">{{ table.title }}</h3>
-          <span style="color: rgba(0, 0, 0, 0.45)">{{ table.desc }}</span>
-        </a-space>
-      </a-col>
-      <a-col v-if="table.operable.includes('可增加')" flex="100px">
-        <a-button
-          class="float-right"
-          type="primary"
-          @click="formDialog.emitter.emit('update:show', { show: true })"
-        >
-          添加
-        </a-button>
-      </a-col>
-    </a-row>
+    <div class="mb-2.5 flex justify-between">
+      <a-space>
+        <h3 class="mb-0">{{ table.title }}</h3>
+        <span class="text-gray-400">{{ table.desc }}</span>
+      </a-space>
+      <a-button type="primary" @click="formDialog.emitter.emit('update:show', { show: true })">
+        添加
+      </a-button>
+    </div>
     <RefreshBox
       v-if="table.refresh.length"
       class="mb-2.5"
@@ -86,7 +78,7 @@
               cancel-text="取消"
               @confirm="onRecordDel(record)"
             >
-              <a style="color: #ff4d4f" @click.stop="(e: any) => e.preventDefault()">删除</a>
+              <a class="text-error" @click.stop="(e: any) => e.preventDefault()">删除</a>
             </a-popconfirm>
           </template>
         </template>
@@ -105,10 +97,7 @@
         />
       </template>
       <template #expandIcon="{ record }">
-        <a-button
-          @click.stop="onRowExpand(record)"
-          :style="{ width: '20px', height: '20px', 'font-size': '10px', padding: '0 5px' }"
-        >
+        <a-button @click.stop="onRowExpand(record)" class="w-5 h-5 text-xl py-0 px-1.5">
           <template v-if="expRowKeys.includes(record.key)">-</template>
           <template v-else>+</template>
         </a-button>
@@ -127,7 +116,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Column from '@/types/column'
+import Column from '@lib/types/column'
 import { pickOrIgnore, endsWith, fmtStrByObj } from '@/utils'
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -139,10 +128,11 @@ import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
-import Form from '@/types/form'
-import Field from '@/types/field'
+import Form from '@lib/types/form'
+import Field from '@lib/types/field'
 import { BaseTypes } from '@/types'
 import dayjs, { Dayjs } from 'dayjs'
+import { createByFields } from '@lib/types/mapper'
 
 export default defineComponent({
   name: 'Demo',
@@ -188,9 +178,7 @@ export default defineComponent({
 
     async function onRefresh() {
       await store.dispatch('model/refresh', { reqDataset: useRealData.value })
-      formDialog.mapper = Object.fromEntries(
-        fields.value.map(field => [field.refer, field.toMapper()])
-      )
+      formDialog.mapper = createByFields(fields.value)
     }
     function onRecordSave(record: any, next: () => void) {
       console.log(record)
