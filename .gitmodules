@@ -1,3 +1,6 @@
 [submodule "server/lib/backend-library"]
 	path = server/lib/backend-library
 	url = https://github.com/opteacher/backend-library.git
+[submodule "src/lib/frontend-library"]
+	path = src/lib/frontend-library
+	url = https://github.com/opteacher/frontend-library.git
