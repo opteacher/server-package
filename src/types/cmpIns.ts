@@ -13,7 +13,7 @@ function defaultValue(ctype: CompoType) {
     case 'Switch':
       return false
     case 'Table':
-    case 'Upload':
+    case 'UploadFile':
     case 'Cascader':
     case 'ListSelect':
     case 'EditList':

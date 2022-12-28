@@ -1,20 +1,34 @@
-import { baseTypes, compoOpns } from '@/types'
+import { bsTpOpns, compoOpns } from '@/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 
-export const columns = [new Column('组件名', 'name'), new Column('绑定类型', 'ctype')]
+export const columns = [
+  new Column('组件名', 'name'),
+  new Column('绑定类型', 'ctype'),
+  new Column('类别', 'category')
+]
 
 export const mapper = new Mapper({
   name: {
     label: '组件名',
-    type: 'Input'
+    type: 'Select',
+    options: compoOpns
   },
   ctype: {
-    label: '组件名',
+    label: '绑定类型',
     type: 'Select',
-    options: baseTypes
+    options: bsTpOpns
   },
-  fields: {
+  category: {
+    label: '类别',
+    type: 'Select',
+    options: [
+      { label: '表单项', value: 'field' },
+      { label: '展示', value: 'display' },
+      { label: '容器', value: 'container' }
+    ]
+  },
+  props: {
     expanded: true,
     display: false
   }

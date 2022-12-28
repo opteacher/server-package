@@ -47,7 +47,7 @@
         @change="(value: boolean) => save(edtField.key, { [exField.refer]: value })"
       />
       <IconField
-        v-else-if="exField.ftype === 'Icon'"
+        v-else-if="exField.ftype === 'IconField'"
         :icon="edtField.extra[exField.refer]"
         :placeholder="exField.placeholder"
         @select="(icon: string) => save(edtField.key, { [exField.refer]: icon })"
@@ -80,9 +80,7 @@ export default defineComponent({
   setup(props) {
     const edtField = reactive(props.field)
     const cmpState = reactive(props.compo)
-    const cmpExtra = computed(() =>
-      cmpState.key ? cmpState.props : []
-    )
+    const cmpExtra = computed(() => (cmpState.key ? cmpState.props : []))
 
     watch(() => props.field.key, refresh)
     onMounted(refresh)
