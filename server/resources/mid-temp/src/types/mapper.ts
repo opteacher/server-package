@@ -368,13 +368,13 @@ const EleTypeCopies = {
   Text: BaseMapper.copy,
   Delable: TableMapper.copy,
   SelOrIpt: SelOrIptMapper.copy,
-  Upload: UploadMapper.copy,
+  UploadFile: UploadMapper.copy,
   DateTime: BaseMapper.copy,
   TagList: EdtLstMapper.copy,
   ListSelect: LstSelMapper.copy,
   CodeEditor: CdEdtMapper.copy,
   EditList: EdtLstMapper.copy,
-  Group: GroupMapper.copy
+  FormGroup: GroupMapper.copy
 } as { [elType: string]: (src: any, tgt?: any) => any }
 
 export type MapperType = BaseMapper & Record<string, any>

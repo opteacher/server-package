@@ -190,7 +190,7 @@ export default defineComponent({
 const mapper = new Mapper({
   file: {
     label: '上传参照文档',
-    type: 'Upload',
+    type: 'UploadFile',
     desc: '没有参照文档，则导出所有设备',
     path: '/police-assets/api/v1/excel/upload',
     headers: { authorization: `Bearer ${localStorage.getItem('token')}` },

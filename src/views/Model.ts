@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { baseTypes, Cond, methods } from '@/types/index'
+import { BaseTypes, baseTypes, Cond, methods } from '@/types/index'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import Property from '@/types/property'
@@ -94,7 +94,7 @@ export const propMapper = new Mapper({
       value: bsTyp
     })),
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
-    onChange: (_prop: Property, toType: string) => {
+    onChange: (_prop: Property, toType: BaseTypes) => {
       switch (toType) {
         case 'LongStr':
           propMapper['default'].type = 'Textarea'

@@ -53,7 +53,7 @@ export const mapper = new Mapper({
   },
   commands: {
     label: '高级',
-    type: 'Group',
+    type: 'FormGroup',
     items: {
       commands: {
         label: '前置命令',

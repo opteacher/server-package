@@ -10,7 +10,7 @@ export const tsEmitter = new Emitter()
 export const tsMapper = new Mapper({
   file: {
     label: '上传传送文件',
-    type: 'Upload',
+    type: 'UploadFile',
     onChange: (_record: Transfer, info: UploadChangeParam) => {
       tsEmitter.emit(
         'editable',

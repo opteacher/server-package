@@ -159,7 +159,7 @@ export default defineComponent({
 const mapper = new Mapper({
   file: {
     label: '上传在案资产',
-    type: 'Upload',
+    type: 'UploadFile',
     rules: [
       {
         required: true,
@@ -221,7 +221,7 @@ const mapper = new Mapper({
   },
   advanced: {
     label: '高级',
-    type: 'Group',
+    type: 'FormGroup',
     display: [
       Cond.copy({ key: 'file.length', cmp: '!=', val: 0 }),
       Cond.copy({ key: 'file[0].status', cmp: '!=', val: 'done' })

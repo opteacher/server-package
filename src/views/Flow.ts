@@ -192,7 +192,7 @@ export const edtNdMapper = new Mapper({
   },
   advanced: {
     label: '开发者配置',
-    type: 'Group',
+    type: 'FormGroup',
     items: {
       inputs: {
         label: '输入',

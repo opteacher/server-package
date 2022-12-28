@@ -47,12 +47,12 @@ export type CompoType =
   | 'Textarea'
   | 'Delable'
   | 'SelOrIpt'
-  | 'Upload'
+  | 'UploadFile'
   | 'Cascader'
   | 'ListSelect'
   | 'CodeEditor'
   | 'EditList'
-  | 'Group'
+  | 'FormGroup'
   | 'Unknown'
 
 export const compoOpns = [
@@ -70,7 +70,7 @@ export const compoOpns = [
   { label: '多行输入框', value: 'Textarea' },
   { label: '可删除', value: 'Delable' },
   { label: '可选可输入', value: 'SelOrIpt' },
-  { label: '上传', value: 'Upload' },
+  { label: '上传', value: 'UploadFile' },
   { label: '层级选择框', value: 'Cascader' },
   { label: '列表选择框', value: 'ListSelect' },
   { label: '代码编辑框', value: 'CodeEditor' },
