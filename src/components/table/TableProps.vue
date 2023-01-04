@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mb-12" title="表参数" :column="1" bordered size="small">
+  <a-descriptions class="mb-3" title="表参数" :column="1" bordered size="small">
     <template #extra>
       <a-switch
         v-model:checked="dispHidCol"

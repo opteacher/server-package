@@ -128,7 +128,7 @@ import LytDesign from '../layouts/LytDesign.vue'
 import RefreshBox from '../components/table/RefreshBox.vue'
 import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
-import Form from '@lib/types/form'
+import Form from '@/types/form'
 import Field from '@lib/types/field'
 import { BaseTypes } from '@/types'
 import dayjs, { Dayjs } from 'dayjs'
@@ -178,7 +178,7 @@ export default defineComponent({
 
     async function onRefresh() {
       await store.dispatch('model/refresh', { reqDataset: useRealData.value })
-      formDialog.mapper = createByFields(fields.value)
+      formDialog.emitter.emit('update:mapper', createByFields(fields.value))
     }
     function onRecordSave(record: any, next: () => void) {
       console.log(record)

@@ -41,7 +41,7 @@
         </a-popover>
       </a-layout-header>
       <a-layout class="flex flex-col">
-        <a-space class="mx-6 my-4">
+        <a-space class="mx-6 mt-4">
           <a-button @click="$router.go(-1)">
             <template #icon><arrow-left-outlined /></template>
           </a-button>
@@ -57,72 +57,64 @@
             <a-breadcrumb-item v-else-if="active.endsWith('dashboard')">首页</a-breadcrumb-item>
           </a-breadcrumb>
         </a-space>
-        <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
-          <a-row class="mb-1">
-            <a-col :span="12">
+        <a-layout-content
+          class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto flex flex-col space-y-3"
+        >
+          <div class="flex justify-between mb-1">
+            <a-space>
               <a-button type="primary" :loading="middle.loading" @click="onPubDlgShow(true)">
                 <template #icon><cloud-upload-outlined /></template>
                 发布中台
               </a-button>
-              <FormDialog
-                title="配置中台"
-                :copy="Middle.copy"
-                v-model:show="showPub"
-                :mapper="pubMapper"
-                :emitter="pubEmitter"
-                @submit="onPublish"
-              >
-                <template #footer="pubInfo">
-                  <template v-if="publish">
-                    <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
-                    <a-button type="primary" @click="onPublish(pubInfo)">确定</a-button>
-                  </template>
-                  <template v-else>
-                    <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
-                    <a-button type="primary" @click="onGenMid(pubInfo)">导出</a-button>
-                    <a-divider type="vertical" />
-                    <a-upload
-                      name="file"
-                      :multiple="false"
-                      :directory="true"
-                      :showUploadList="false"
-                      action="/server-package/api/v1/temp/file"
-                      @change="(info: any) => onDepMid(info, pubInfo)"
-                    >
-                      <a-tooltip>
-                        <template #title>选择build生成的dist文件夹</template>
-                        <a-button type="primary">导入</a-button>
-                      </a-tooltip>
-                    </a-upload>
-                  </template>
-                </template>
-              </FormDialog>
               <a-tooltip>
                 <template #title>
                   在线编译可能导致服务器内存溢出，建议离线编译打包后在上传发布
                 </template>
-                <a-button
-                  class="ml-10"
-                  :loading="middle.loading"
-                  @click="onPubDlgShow(true, false)"
-                >
+                <a-button :loading="middle.loading" @click="onPubDlgShow(true, false)">
                   <template #icon><build-outlined /></template>
                   离线编译
                 </a-button>
               </a-tooltip>
-            </a-col>
-            <a-col :span="12" class="text-right">
-              <a-button
-                :disabled="middle.loading || !middle.url"
-                :href="middle.url"
-                target="_blank"
-              >
-                <template #icon><eye-outlined /></template>
-                浏览中台
-              </a-button>
-            </a-col>
-          </a-row>
-          <slot />
+            </a-space>
+            <a-button :disabled="middle.loading || !middle.url" :href="middle.url" target="_blank">
+              <template #icon><eye-outlined /></template>
+              浏览中台
+            </a-button>
+          </div>
+          <FormDialog
+            title="配置中台"
+            :copy="Middle.copy"
+            v-model:show="showPub"
+            :mapper="pubMapper"
+            :emitter="pubEmitter"
+            @submit="onPublish"
+          >
+            <template #footer="pubInfo">
+              <template v-if="publish">
+                <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
+                <a-button type="primary" @click="onPublish(pubInfo)">确定</a-button>
+              </template>
+              <template v-else>
+                <a-button type="default" @click="onPubDlgShow(false)">取消</a-button>
+                <a-button type="primary" @click="onGenMid(pubInfo)">导出</a-button>
+                <a-divider type="vertical" />
+                <a-upload
+                  name="file"
+                  :multiple="false"
+                  :directory="true"
+                  :showUploadList="false"
+                  action="/server-package/api/v1/temp/file"
+                  @change="(info: any) => onDepMid(info, pubInfo)"
+                >
+                  <a-tooltip>
+                    <template #title>选择build生成的dist文件夹</template>
+                    <a-button type="primary">导入</a-button>
+                  </a-tooltip>
+                </a-upload>
+              </template>
+            </template>
+          </FormDialog>
+          <div class="flex-auto"><slot /></div>
         </a-layout-content>
       </a-layout>
     </a-layout>

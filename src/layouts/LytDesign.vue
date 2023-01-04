@@ -22,7 +22,7 @@
       </a-menu>
     </a-layout-sider>
     <a-layout>
-      <a-layout-header class="bg-white p-0 flex justify-between">
+      <a-layout-header class="bg-white p-0 flex items-center justify-between">
         <menu-unfold-outlined
           v-if="collapsed"
           class="text-xl px-6 py-0 cursor-pointer transition hover:text-primary"
@@ -45,7 +45,7 @@
         </a-popover>
       </a-layout-header>
       <a-layout class="flex flex-col">
-        <a-space class="mx-6 my-4">
+        <a-space class="mx-6 mt-4">
           <a-button @click="$router.go(-1)">
             <template #icon><arrow-left-outlined /></template>
           </a-button>

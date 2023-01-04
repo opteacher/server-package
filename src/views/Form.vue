@@ -42,7 +42,7 @@
           </a-form>
         </div>
       </a-layout-content>
-      <a-layout-sider width="30%" class="bg-white overflow-y-auto pr-5">
+      <a-layout-sider width="30%" class="bg-white overflow-y-auto pl-5">
         <FormProps v-if="!active.key" :form="form" />
         <FieldProps v-else :field="active" />
         <ExtraProps v-if="active.key" :field="active" :save="api.form.fields.extra.save" />
@@ -60,7 +60,7 @@ import FieldCard from '../components/form/FieldCard.vue'
 import { useStore } from 'vuex'
 import Field from '@lib/types/field'
 import Compo from '@lib/types/compo'
-import Form from '@lib/types/form'
+import Form from '@/types/form'
 import FormProps from '../components/form/FormProps.vue'
 import FieldProps from '../components/form/FieldProps.vue'
 import ExtraProps from '../components/form/ExtraProps.vue'

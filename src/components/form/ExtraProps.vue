@@ -52,7 +52,7 @@
         :placeholder="exField.placeholder"
         @select="(icon: string) => save(edtField.key, { [exField.refer]: icon })"
       />
-      <EditableList
+      <EditList
         v-else-if="exField.ftype === 'EditList'"
         :field="edtField"
         :exField="exField"

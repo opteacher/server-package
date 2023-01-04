@@ -31,7 +31,7 @@
           class="h-20 p-1.5 z-50 rounded-tl-none rounded-bl-none border-l border-white"
           @click="() => onToolboxExpand('left')"
         >
-          <template v-if="tlbxExpand.right">
+          <template v-if="tlbxExpand.left">
             收
             <br />
             起

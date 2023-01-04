@@ -4,7 +4,7 @@ import store from '@/store'
 import Service from './types/service'
 import Property from './types/property'
 
-export * from './lib/frontend-library/src/utils'
+export * from '@lib/utils'
 
 export function genMdlPath(svc: Service): string {
   const model = store.getters['model/ins']

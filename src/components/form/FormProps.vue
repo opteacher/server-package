@@ -1,5 +1,5 @@
 <template>
-  <a-descriptions class="mb-12" :column="1" bordered size="small">
+  <a-descriptions class="mb-3" :column="1" bordered size="small">
     <template #title>
       <control-outlined />
       &nbsp;表单参数
@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import Form from '@lib/types/form'
+import Form from '@/types/form'
 import { defineComponent, reactive } from 'vue'
 import { mdlAPI as api } from '@/apis'
 import { ControlOutlined, PercentageOutlined } from '@ant-design/icons-vue'

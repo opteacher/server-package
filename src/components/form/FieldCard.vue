@@ -11,15 +11,18 @@
     @drop.stop="e => onDropDown(e)"
   >
     <div
-      v-show="
-        store.getters['model/dragOn'] === `divider_top_${field.key}` ||
-        store.getters['model/divider'] === `divider_top_${field.key}`
-      "
+      v-show="showDivider('top')"
       :id="`divider_top_${field.key}`"
       class="hidden h-0.5 bg-primary"
     />
   </div>
-  <DmFormItem :id="field.key" class="p-0.5 m-0 relative" :field="field" :form="{}" />
+  <FormItem
+    :id="field.key"
+    class="p-2.5 m-0 relative"
+    :form="form"
+    :skey="field.refer"
+    :value="mapper"
+  />
   <div
     class="px-2.5 py-0"
     :style="{
@@ -31,10 +34,7 @@
     @drop.stop="e => onDropDown(e)"
   >
     <div
-      v-show="
-        store.getters['model/dragOn'] === `divider_btm_${field.key}` ||
-        store.getters['model/divider'] === `divider_btm_${field.key}`
-      "
+      v-show="showDivider('btm')"
       :id="`divider_btm_${field.key}`"
       class="hidden h-0.5 bg-primary"
     />
@@ -78,20 +78,19 @@
 
 <script lang="ts">
 import Field from '@lib/types/field'
-import { createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
-import DmFormItem from './DmFormItem.vue'
+import { createByFields } from '@lib/types/mapper'
+import { bsTpDefault } from '@/types'
 
 export default defineComponent({
   name: 'FieldCard',
   components: {
-    CloseOutlined,
-
-    DmFormItem
+    CloseOutlined
   },
   props: {
     index: { type: Number, required: true },
@@ -105,6 +104,10 @@ export default defineComponent({
     const cmpRect = reactive([0, 0, 0, 0] as [number, number, number, number])
     const rszObs = new ResizeObserver(onFieldResized)
     const mosMvOver = ref(false)
+    const form = computed(() => ({
+      [props.field.refer]: props.field.default || bsTpDefault(props.field.vtype)
+    }))
+    const mapper = computed(() => createByFields([props.field])[props.field.refer])
 
     onMounted(async () => {
       const el = await onFieldResized()
@@ -174,16 +177,25 @@ export default defineComponent({
         return `top_${keys[0]}`
       }
     }
+    function showDivider(pos: 'top' | 'btm') {
+      return (
+        store.getters['model/dragOn'] === `divider_${pos}_${props.field.key}` ||
+        store.getters['model/divider'] === `divider_${pos}_${props.field.key}`
+      )
+    }
     return {
       store,
       cmpRect,
       mosMvOver,
+      mapper,
+      form,
 
       onFieldDel,
       onDragStart,
       onDragEnter,
       onDragLeave,
-      onDragging
+      onDragging,
+      showDivider
     }
   }
 })

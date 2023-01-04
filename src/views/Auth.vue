@@ -1,23 +1,19 @@
 <template>
   <LytProject :active="`project/${pid}/auth`">
-    <a-row class="mb-2.5">
-      <a-col :span="12">
-        <p class="mb-0 text-lg font-bold">
-          <audit-outlined />
-          &nbsp;权限系统
-        </p>
-      </a-col>
-      <a-col class="text-right" :span="12">
-        <a-button v-if="!bindMdl" type="primary" @click="onAuthShow(true)">
-          <template #icon><unlock-outlined /></template>
-          绑定
-        </a-button>
-        <a-button v-else @click="onAuthShow(true)">
-          <template #icon><lock-outlined /></template>
-          已绑定
-        </a-button>
-      </a-col>
-    </a-row>
+    <div class="flex justify-between mb-2.5">
+      <p class="mb-0 text-lg font-bold">
+        <audit-outlined />
+        &nbsp;权限系统
+      </p>
+      <a-button v-if="!bindMdl" type="primary" @click="onAuthShow(true)">
+        <template #icon><unlock-outlined /></template>
+        绑定
+      </a-button>
+      <a-button v-else @click="onAuthShow(true)">
+        <template #icon><lock-outlined /></template>
+        已绑定
+      </a-button>
+    </div>
     <FormDialog
       title="配置"
       :show="authVsb"
@@ -63,7 +59,7 @@
       @update:show="onSignShow"
       @submit="onSignCfg"
     />
-    <div class="mt-20">
+    <div class="mt-6">
       <EditableTable
         title="角色"
         size="small"

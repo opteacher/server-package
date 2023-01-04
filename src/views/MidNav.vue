@@ -1,10 +1,10 @@
 <template>
   <LytMiddle :active="`project/${pid}/mid/navigate`">
-    <a-row :gutter="24">
+    <a-row :gutter="24" class="h-full">
       <a-col :span="16" class="bg-gray-500" @click="selMuKey = ''">
-        <div class="w-1/4 h-full mx-auto my-0 flex flex-col">
+        <div class="w-1/3 h-full mx-auto my-0 flex flex-col">
           <div
-            class="h-8 cursor-pointer"
+            class="h-14 cursor-pointer"
             :style="{
               padding: selMuKey === '#' ? '12px' : '14px',
               border: selMuKey === '#' ? '2px solid #1890ff' : 'none',

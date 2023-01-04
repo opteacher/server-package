@@ -71,19 +71,24 @@
             <template #emptyText>
               <a-empty>
                 <template #description>未查询到数据</template>
-                <a-button
-                  type="primary"
-                  @click.stop="fmEmitter.emit('update:show', { show: true })"
-                >
+                <a-button type="primary" @click.stop="emitter.emit('update:show', { show: true })">
                   点击创建一条演示记录
                 </a-button>
-                <DemoForm :emitter="fmEmitter" @submit="onFormSubmit" />
+                <FormDialog
+                  :title="form.title"
+                  :with="`${form.width}vw`"
+                  :labelWidth="form.labelWidth"
+                  :copy="copy"
+                  :mapper="mapper"
+                  :emitter="emitter"
+                  @submit="onFormSubmit"
+                />
               </a-empty>
             </template>
           </a-table>
         </div>
       </a-layout-content>
-      <a-layout-sider width="30%" class="bg-white p-20 overflow-y-auto">
+      <a-layout-sider width="30%" class="bg-white p-5 overflow-y-auto">
         <TableProps v-if="!selected" :table="table" />
         <ColumnProps
           v-else-if="selected.startsWith('head_')"
@@ -108,7 +113,6 @@ import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import LytDesign from '../layouts/LytDesign.vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import DemoForm from '../components/form/DemoForm.vue'
 import Column from '@lib/types/column'
 import Table, { Cells } from '@/types/table'
 import { pickOrIgnore, endsWith } from '@/utils'
@@ -124,12 +128,15 @@ import Cell from '@/types/cell'
 import SelColBox from '../components/table/SelColBox.vue'
 import BchExpBox from '../components/table/BchExpBox.vue'
 import BchImpBox from '../components/table/BchImpBox.vue'
+import { createByFields } from '@lib/types/mapper'
+import Field from '@lib/types/field'
+import { bsTpDefault } from '@lib/types'
+import Form from '@/types/form'
 
 export default defineComponent({
   name: 'Table',
   components: {
     LytDesign,
-    DemoForm,
     TableProps,
     ColumnProps,
     CellProps,
@@ -173,8 +180,19 @@ export default defineComponent({
         return ret as Column[]
       }
     })
+    const mapper = computed(() => createByFields(store.getters['model/fields']))
+    const copy = computed(
+      () => () =>
+        Object.fromEntries(
+          store.getters['model/fields'].map((field: Field) => [
+            field.refer,
+            field.default || bsTpDefault(field.vtype)
+          ])
+        )
+    )
+    const form = computed(() => store.getters['model/form'] as Form)
     const records = computed(() => store.getters['model/records'](false))
-    const fmEmitter = new Emitter()
+    const emitter = new Emitter()
     const selected = ref('')
     const table = computed(() => store.getters['model/table'] as Table)
     const cells = computed(() => store.getters['model/cells'])
@@ -182,9 +200,13 @@ export default defineComponent({
     const selCname = ref('')
     const selCell = reactive(new Cells())
 
-    onMounted(() => store.dispatch('model/refresh'))
+    onMounted(refresh)
     watch(() => selected.value, onSelChange)
 
+    async function refresh() {
+      await store.dispatch('model/refresh')
+      emitter.emit('update:mapper', createByFields(store.getters['model/fields']))
+    }
     function onHdCellClick(e: PointerEvent, colKey: string) {
       selected.value = `head_${colKey}`
       e.stopPropagation()
@@ -237,13 +259,16 @@ export default defineComponent({
       hdHeight,
       mdlProps,
       columns,
+      mapper,
+      copy,
+      form,
       cells,
       records,
       selected,
       selColumn,
       selCell,
       selCname,
-      fmEmitter,
+      emitter,
 
       onFormSubmit,
       endsWith,

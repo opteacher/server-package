@@ -45,7 +45,7 @@
         </a-popover>
       </a-layout-header>
       <a-layout class="flex flex-col">
-        <a-space class="mx-6 my-4">
+        <a-space class="mx-6 mt-4">
           <a-button @click="$router.push('/server-package')">
             <template #icon><home-outlined /></template>
           </a-button>
