@@ -25,7 +25,7 @@ services:
       - /data/server-package/mongo/db:/data/db
       - /data/server-package/mongo/config:/data/config
 
-  '1':
+  default:
     container_name: server-package
     build:
       context: ./

@@ -1,20 +1,28 @@
 <template>
-  <div class="h-full flex items-center text-right bg-login bg-cover">
-    <div class="w-4/12 px-20 py-10 bg-black bg-opacity-90 rounded">
+  <div
+    class="h-full flex items-center justify-end bg-cover"
+    :style="{
+      'background-image': `url(${require('@/assets/background.png')})`
+    }"
+  >
+    <div class="w-1/3 px-14 py-8 mr-50 bg-white rounded">
       <a-form
         name="登录"
         :model="formState"
-        :label-col="{ span: 6 }"
-        :wrapper-col="{ span: 18 }"
+        layout="vertical"
         autocomplete="off"
         @finish="onFinish"
       >
-        <a-form-item label="模式" name="mode">
-          <a-switch
-            :checked="formState.mode === '登录'"
-            @change="(checked: any) => (checked ? (formState.mode = '登录') : (formState.mode = '注册'))"
-          />
-          &nbsp;{{ formState.mode }}
+        <a-form-item name="title">
+          <template #label>
+            <a-typography-title>
+              <smile-outlined />
+              登录主面板
+            </a-typography-title>
+          </template>
+          <a-typography-paragraph>
+            无代码后台编辑平台，原服务器自用包发展而来，所以名字也被沿用。
+          </a-typography-paragraph>
         </a-form-item>
         <a-form-item
           label="用户名"
@@ -50,8 +58,20 @@
           <a-input v-model:value="formState.code" />
         </a-form-item>
 
-        <a-form-item :wrapper-col="{ offset: 6, span: 18 }">
-          <a-button type="primary" html-type="submit">{{ formState.mode }}</a-button>
+        <a-form-item>
+          <a-button class="w-full mb-2" type="primary" size="large" html-type="submit">
+            {{ formState.mode }}
+          </a-button>
+          <a-typography-text v-if="formState.mode === '登录'" type="secondary">
+            不是管理员，先
+            <a @click="formState.mode = '注册'">注册</a>
+            ！
+          </a-typography-text>
+          <a-typography-text v-else type="secondary">
+            已是管理员，直接
+            <a @click="formState.mode = '登录'">登录</a>
+            ！
+          </a-typography-text>
         </a-form-item>
       </a-form>
     </div>
@@ -66,9 +86,13 @@ import axios from 'axios'
 import { defineComponent, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { SmileOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'Login',
+  components: {
+    SmileOutlined
+  },
   setup() {
     const store = useStore()
     const router = useRouter()
