@@ -2,7 +2,7 @@
   "data": [
     {
       "name": "mongo",
-      "dbs": ["test", "stock-crawler"],
+      "dbs": ["test", "stock-crawler", "vote-video", "frontend-library"],
       "host": "mongo",
       "port": 27017,
       "username": "root",
@@ -10,7 +10,7 @@
     },
     {
       "name": "mysql",
-      "dbs": ["population-statistics"],
+      "dbs": ["population-statistics", "police-assets"],
       "host": "mysql",
       "port": 3306,
       "username": "root",

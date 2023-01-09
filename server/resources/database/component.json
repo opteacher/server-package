@@ -1,292 +1,689 @@
 {
   "data": [
     {
-      "name": "Color",
+      "name": "ColorSelect",
       "ctype": "String",
-      "extra": []
+      "category": "field",
+      "props": [
+        {
+          "key": "ea701d66-1029-47cb-8bd8-31114ff5e127",
+          "label": "颜色",
+          "refer": "color",
+          "vtype": "String",
+          "default": "#000000",
+          "ftype": "Input",
+          "placeholder": "输入颜色代码（16进制）",
+          "vModel": true
+        },
+        {
+          "key": "f5aedb20-e491-402e-85a2-9da0e1e9d38f",
+          "label": "预设颜色",
+          "refer": "preset",
+          "vtype": "Array",
+          "ftype": "EditList",
+          "extra": {
+            "lblProp": "color",
+            "inline": true,
+            "mapper": {
+              "color": {
+                "placeholder": "预设颜色",
+                "type": "Input",
+                "rules": [
+                  {
+                    "required": true,
+                    "message": "输入预设颜色"
+                  }
+                ]
+              }
+            },
+            "emitter": "return new Emitter()",
+            "copy": "return (src, tgt = undefined) => { tgt = tgt || { color: '#000000' }; tgt.color = src.color || tgt.color; return tgt }"
+          }
+        }
+      ]
     },
-    {
-      "name": "Cascader",
-      "ctype": "Array",
-      "extra": []
-    },
+
     {
       "name": "EditList",
       "ctype": "Array",
-      "extra": []
-    },
-    {
-      "name": "Button",
-      "ctype": "Event",
-      "extra": [
+      "category": "field",
+      "props": [
         {
-          "label": "文本内容",
+          "key": "fcbbc85c-0999-4ebe-9a62-97d37be54b2f",
+          "label": "标签",
+          "refer": "label",
           "ftype": "Input",
-          "refer": "inner",
-          "placeholder": "请输入按钮中的文本内容"
+          "vtype": "String",
+          "default": "项"
         },
         {
+          "key": "8aa4e4ab-d3c0-4d9d-8061-518785c5bb9e",
+          "label": "项/标签字段",
+          "desc": "由field.mapper给出",
+          "refer": "field.lblProp",
+          "ftype": "Select",
+          "vtype": "String"
+        },
+        {
+          "key": "391bfe16-6a64-4383-9905-9ff3da0c8fee",
+          "label": "项/行表单",
+          "refer": "field.inline",
+          "ftype": "Checkbox",
+          "vtype": "Boolean"
+        },
+        {
+          "key": "8aa4e4ab-d3c0-4d9d-8061-518785c5bb9e",
+          "label": "项/新增表单",
+          "refer": "field.fields",
+          "ftype": "EditList",
+          "vtype": "Array",
+          "extra": {
+            "lblProp": "label",
+            "inline": false,
+            "mapper": {
+              "refer": {
+                "label": "",
+                "type": "Input",
+                "rules": [
+                  {
+                    "required": true,
+                    "message": "请输入关联字段！"
+                  }
+                ],
+                "desc": "",
+                "placeholder": "输入关联字段",
+                "disabled": false,
+                "loading": false,
+                "display": true,
+                "expanded": true,
+                "reset": false,
+                "empty": false,
+                "onChange": "return () => undefined"
+              },
+              "label": {
+                "label": "",
+                "type": "Input",
+                "rules": [],
+                "desc": "",
+                "placeholder": "输入标签",
+                "disabled": false,
+                "loading": false,
+                "display": true,
+                "expanded": true,
+                "reset": false,
+                "empty": false,
+                "onChange": "return () => undefined"
+              },
+              "ftype": {
+                "label": "",
+                "type": "Select",
+                "options": [
+                  {
+                    "label": "输入框",
+                    "value": "Input"
+                  },
+                  {
+                    "label": "选择框",
+                    "value": "Select"
+                  }
+                ],
+                "rules": [],
+                "desc": "",
+                "placeholder": "选择类型",
+                "disabled": false,
+                "loading": false,
+                "display": true,
+                "expanded": false,
+                "reset": true,
+                "empty": false,
+                "onChange": "return () => undefined"
+              }
+            },
+            "emitter": "return new Emitter()",
+            "copy": "return (src, tgt = undefined) => { tgt = tgt || { refer: '', label: '', ftype: 'Input' }; tgt.refer = src.refer || tgt.refer; tgt.label = src.label || tgt.label; tgt.ftype = src.ftype || tgt.ftype; return tgt }",
+            "onChange": "return (state, array) => { state.field.mapper = createByFields(array) }"
+          }
+        },
+        {
+          "key": "d5a8d30a-35ba-4a1f-99da-2ba068a95328",
+          "label": "项/拷贝函数",
+          "refer": "field.copy",
+          "ftype": "CodeEditor",
+          "vtype": "Function"
+        },
+        {
+          "key": "316640b6-24f7-47ba-96f4-a6e1f47259cb",
+          "label": "值列表",
+          "refer": "value",
+          "ftype": "EditList",
+          "vtype": "Array",
+          "vModel": true
+        }
+      ]
+    },
+
+    {
+      "name": "IconField",
+      "ctype": "String",
+      "category": "field",
+      "props": [
+        {
+          "key": "f29778ff-1f4d-4e4d-978e-10d80313c3af",
           "label": "图标",
-          "ftype": "Icon",
-          "refer": "icon"
+          "refer": "icon",
+          "vtype": "String",
+          "ftype": "Input",
+          "placeholder": "从ant图标库中选择",
+          "vModel": true
+        }
+      ]
+    },
+
+    {
+      "name": "UploadFile",
+      "ctype": "Array",
+      "category": "field",
+      "props": [
+        {
+          "key": "189420cf-e229-42dc-9e2a-f9cb9b924744",
+          "label": "根表单",
+          "refer": "form",
+          "vtype": "Object",
+          "ftype": "CodeEditor",
+          "default": "{ \"files\": [] }"
         },
         {
-          "label": "类型",
-          "ftype": "Select",
-          "refer": "type",
+          "key": "00a2f0af-e95b-477e-a04d-0a477570cbd4",
+          "label": "上传URL",
+          "refer": "path",
+          "vtype": "String",
+          "ftype": "Input",
+          "default": "/frontend-library/api/v1/asset/upload"
+        },
+        {
+          "key": "6904c6c7-1088-4ee2-8a30-3376e54e2051",
+          "label": "请求头",
+          "refer": "headers",
+          "vtype": "Object",
+          "ftype": "CodeEditor"
+        },
+        {
+          "key": "e32bf133-d17e-44e2-818e-213c8ef9723d",
+          "label": "文件列表",
+          "refer": "value",
+          "vtype": "Array",
+          "ftype": "EditList",
           "extra": {
-            "options": [
-              {
-                "label": "默认",
-                "value": "default"
-              },
-              {
-                "label": "主要",
-                "value": "primary"
-              },
-              {
-                "label": "链接",
-                "value": "link"
-              },
-              {
-                "label": "虚线框",
-                "value": "dashed"
-              }
-            ]
-          }
-        },
-        {
-          "label": "警告/危险",
-          "ftype": "Checkbox",
-          "refer": "danger"
-        }
-      ]
-    },
-    {
-      "name": "Input",
-      "ctype": "String",
-      "extra": [
-        {
-          "label": "前缀",
-          "ftype": "Input",
-          "refer": "prefix"
-        },
-        {
-          "label": "后缀",
-          "ftype": "Input",
-          "refer": "suffix"
-        }
-      ]
-    },
-    {
-      "name": "Number",
-      "ctype": "String",
-      "extra": [
-        {
-          "label": "前缀",
-          "ftype": "Input",
-          "refer": "prefix"
-        },
-        {
-          "label": "后缀",
-          "ftype": "Input",
-          "refer": "suffix"
-        },
-        {
-          "label": "最小值",
-          "ftype": "Number",
-          "refer": "min"
-        },
-        {
-          "label": "最大值",
-          "ftype": "Number",
-          "refer": "max"
-        }
-      ]
-    },
-    {
-      "name": "Select",
-      "ctype": "String",
-      "extra": [
-        {
-          "label": "选项",
-          "ftype": "List",
-          "refer": "options",
-          "extra": {
+            "lblProp": "name",
+            "inline": false,
             "mapper": {
-              "label": {
-                "label": "标签",
+              "name": {
+                "label": "文件名",
                 "type": "Input"
               },
-              "value": {
-                "label": "值",
-                "type": "Input"
+              "status": {
+                "label": "状态",
+                "type": "Select",
+                "options": [
+                  {
+                    "label": "上传中",
+                    "value": "uploading"
+                  },
+                  {
+                    "label": "完成",
+                    "value": "done"
+                  },
+                  {
+                    "label": "出错",
+                    "value": "error"
+                  },
+                  {
+                    "label": "已移除",
+                    "value": "removed"
+                  }
+                ]
               }
             },
-            "title": "label",
-            "desc": "value"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Textarea",
-      "ctype": "String",
-      "extra": [
-        {
-          "label": "最小行数",
-          "ftype": "Number",
-          "refer": "autosize.minRows"
-        },
-        {
-          "label": "最大行数",
-          "ftype": "Number",
-          "refer": "autosize.maxRows"
-        }
-      ]
-    },
-    {
-      "name": "Checkbox",
-      "ctype": "Boolean|Array",
-      "extra": [
-        {
-          "label": "多选",
-          "ftype": "Checkbox",
-          "refer": "mult"
-        },
-        {
-          "label": "风格",
-          "ftype": "Select",
-          "refer": "style",
-          "extra": {
-            "options": [
-              {
-                "label": "多选风格",
-                "value": "checkbox"
-              },
-              {
-                "label": "开关风格",
-                "value": "switch"
-              },
-              {
-                "label": "按钮风格",
-                "value": "button"
-              },
-              {
-                "label": "标签风格",
-                "value": "tag"
-              }
-            ]
+            "emitter": "return new Emitter()",
+            "copy": "return (src, tgt = undefined) => { tgt = tgt || { name: '', status: 'removed' }; tgt.name = src.name || tgt.name; tgt.status = src.status || tgt.status; return tgt }"
           }
         },
         {
-          "label": "选项",
-          "ftype": "List",
-          "refer": "options",
-          "extra": {
-            "mapper": {
-              "label": {
-                "label": "标签",
-                "type": "Input"
-              },
-              "value": {
-                "label": "值",
-                "type": "Input"
-              }
-            },
-            "title": "label",
-            "desc": "value"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Switch",
-      "ctype": "Boolean",
-      "extra": [
-        {
-          "label": "选中内容",
-          "ftype": "Input",
-          "refer": "checkedChildren"
+          "key": "b0c03bb6-5158-4226-96dc-41b237008323",
+          "label": "上传前回调",
+          "desc": "如果要中断上传，则返回false",
+          "refer": "onBeforeUpload",
+          "vtype": "Function",
+          "ftype": "CodeEditor"
         },
         {
-          "label": "非选中时的内容",
-          "ftype": "Input",
-          "refer": "unCheckedChildren"
+          "key": "59c3f2e5-2e7c-4558-9c7e-ad0aba6d1779",
+          "label": "上传中回调",
+          "refer": "onChange",
+          "vtype": "Function",
+          "ftype": "CodeEditor"
         }
       ]
     },
-    {
-      "name": "Radio",
-      "ctype": "String",
-      "extra": [
-        {
-          "label": "选项",
-          "ftype": "List",
-          "refer": "options",
-          "extra": {
-            "mapper": {
-              "label": {
-                "label": "标签",
-                "type": "Input"
-              },
-              "value": {
-                "label": "值",
-                "type": "Input"
-              }
-            },
-            "title": "label",
-            "desc": "value"
-          }
-        }
-      ]
-    },
+
     {
       "name": "CodeEditor",
       "ctype": "String",
-      "extra": [
+      "category": "field",
+      "props": [
         {
+          "key": "574896b4-b62b-4dc1-988a-ae70d9ad9fee",
+          "label": "内容",
+          "refer": "value",
+          "vtype": "String",
+          "ftype": "Textarea",
+          "vModel": true
+        },
+        {
+          "key": "53854400-9135-4e29-b0ec-1773201de65e",
           "label": "语言",
+          "refer": "lang",
+          "vtype": "String",
           "ftype": "Select",
-          "refer": "lang"
+          "default": "javascript",
+          "extra": {
+            "options": [
+              {
+                "label": "javascript",
+                "value": "javascript"
+              },
+              {
+                "label": "json",
+                "value": "json"
+              }
+            ]
+          }
         }
       ]
     },
+
     {
-      "name": "Card",
-      "ctype": "Unknown",
-      "category": "display",
-      "extra": []
-    },
-    {
-      "name": "Image",
-      "ctype": "Unknown",
-      "category": "display",
-      "extra": []
-    },
-    {
-      "name": "Row",
-      "ctype": "Unknown",
-      "category": "container",
-      "extra": [
+      "name": "TagList",
+      "ctype": "Array",
+      "category": "field",
+      "props": [
         {
-          "label": "间隔",
-          "ftype": "Number",
-          "refer": "gutter"
-        }
-      ]
-    },
-    {
-      "name": "Col",
-      "ctype": "Unknown",
-      "category": "container",
-      "extra": [
+          "key": "16ccb406-2b49-40c9-b421-77e246497ec2",
+          "label": "标签字段",
+          "refer": "lblProp",
+          "vtype": "String",
+          "ftype": "Select"
+        },
         {
-          "label": "占位",
-          "ftype": "Number",
-          "refer": "span"
+          "key": "5ccf7ae9-8817-43e8-b4db-a0cf5d7386bb",
+          "label": "抹平元素",
+          "desc": "抹平单元素表单列表：[{ key: 'abc' }] => ['abc']，（注意：会抹去元素的键信息）",
+          "refer": "flatItem",
+          "vtype": "Boolean",
+          "ftype": "Checkbox",
+          "default": true
+        },
+        {
+          "key": "9459af24-e7c4-4b9d-8b77-419cfb371221",
+          "label": "表单信息",
+          "refer": "mapper",
+          "vtype": "Object",
+          "ftype": "CodeEditor"
+        },
+        {
+          "key": "22220060-39f6-4356-9e1d-2e144e26fa60",
+          "label": "事件激活器",
+          "refer": "emitter",
+          "vtype": "Object",
+          "default": "return new Emitter()",
+          "ftype": "Input",
+          "disabled": true
+        },
+        {
+          "key": "e373235e-f8a8-4029-98f0-a3f17d5437ae",
+          "label": "拷贝函数",
+          "refer": "copy",
+          "vtype": "Function",
+          "ftype": "CodeEditor"
         }
-      ]
+      ],
+      "components": ["63a41a2a950ded21d7abe67e"],
+      "__v": 1
+    },
+
+    {
+      "name": "FormItem",
+      "ctype": "Any",
+      "category": "field",
+      "props": [
+        {
+          "key": "7d6b8fda-1744-41f0-a7cd-1ffcaed3dac7",
+          "label": "标签",
+          "refer": "value.label",
+          "ftype": "Input",
+          "vtype": "String"
+        },
+        {
+          "key": "0d787e11-047a-4af7-9d84-b53e6860a734",
+          "label": "描述",
+          "refer": "value.desc",
+          "ftype": "Textarea",
+          "vtype": "String"
+        },
+        {
+          "key": "5521fe52-6358-47e6-9894-c0694528d78b",
+          "label": "类型",
+          "refer": "value.type",
+          "ftype": "Select",
+          "vtype": "String",
+          "default": "Unknown",
+          "extra": {
+            "options": [
+              {
+                "label": "输入框",
+                "value": "Input"
+              },
+              {
+                "label": "密码框",
+                "value": "Password"
+              },
+              {
+                "label": "数字框",
+                "value": "Number"
+              },
+              {
+                "label": "按钮",
+                "value": "Button"
+              },
+              {
+                "label": "选择框",
+                "value": "Select"
+              },
+              {
+                "label": "日期选择",
+                "value": "DateTime"
+              },
+              {
+                "label": "多选框",
+                "value": "Checkbox"
+              },
+              {
+                "label": "单选框",
+                "value": "Switch"
+              },
+              {
+                "label": "可编辑表",
+                "value": "Table"
+              },
+              {
+                "label": "多行输入框",
+                "value": "Textarea"
+              },
+              {
+                "label": "可删除",
+                "value": "Delable"
+              },
+              {
+                "label": "可选可输入",
+                "value": "SelOrIpt"
+              },
+              {
+                "label": "上传",
+                "value": "Upload"
+              },
+              {
+                "label": "层级选择框",
+                "value": "Cascader"
+              },
+              {
+                "label": "列表选择框",
+                "value": "ListSelect"
+              },
+              {
+                "label": "代码编辑框",
+                "value": "CodeEditor"
+              },
+              {
+                "label": "可编辑列表",
+                "value": "EditList"
+              },
+              {
+                "label": "未知",
+                "value": "Unknown"
+              }
+            ]
+          }
+        },
+        {
+          "key": "8a8f1bdc-c8f8-4f99-b2be-2f37a3c83297",
+          "label": "占位描述",
+          "refer": "value.placeholder",
+          "ftype": "Input",
+          "vtype": "String"
+        },
+        {
+          "key": "1df5c99e-3408-4b3d-83c1-7915d2863fce",
+          "label": "校验规则",
+          "refer": "value.rules",
+          "ftype": "EditList",
+          "vtype": "Array"
+        }
+      ],
+      "components": []
+    },
+
+    {
+      "name": "FormGroup",
+      "ctype": "Object",
+      "category": "field",
+      "props": [
+        {
+          "key": "d5812329-a6c3-473e-87cd-847d3196e82f",
+          "label": "标签宽度",
+          "refer": "lblWid",
+          "ftype": "Number",
+          "vtype": "Number",
+          "default": 4
+        },
+        {
+          "key": "979dfe0b-14f8-4177-9366-b35e7a6ae8d0",
+          "label": "拷贝函数",
+          "refer": "copy",
+          "ftype": "CodeEditor",
+          "vtype": "Function",
+          "default": "return (src, tgt) => { tgt = tgt || { input: '', password: '', number: 0, textarea: '', codeEditor: '', select: undefined, cascader: [], listSelect: [], tagList: [], datetime: dayjs(), checkbox: false, switch: false, table: [], delable: '', selOrIpt: '', upload: [] }; tgt.input = src.input || tgt.input; tgt.password = src.password || tgt.password; tgt.number = src.number || tgt.number; tgt.textarea = src.textarea || tgt.textarea; tgt.codeEditor = src.codeEditor || tgt.codeEditor; tgt.select = src.select || tgt.select; tgt.cascader = src.cascader || tgt.cascader; tgt.listSelect = src.listSelect || tgt.listSelect; tgt.tagList = src.tagList || tgt.tagList; tgt.datetime = src.datetime || tgt.datetime; tgt.checkbox = typeof src.checkbox !== 'undefined' ? src.checkbox : tgt.checkbox; tgt.switch = typeof src.switch !== 'undefined' ? src.switch : tgt.switch; tgt.table = src.table || tgt.table; tgt.delable = src.delable || tgt.delable; tgt.selOrIpt = src.selOrIpt || tgt.selOrIpt; tgt.upload = src.upload || tgt.upload; return tgt }",
+          "extra": {
+            "display": false
+          }
+        },
+        {
+          "key": "323566de-a1b4-4211-85f1-f3c725348d47",
+          "label": "默认值",
+          "refer": "object",
+          "ftype": "CodeEditor",
+          "vtype": "Object",
+          "extra": {
+            "display": false
+          }
+        },
+        {
+          "key": "a353736c-fcba-43ee-ad5b-058d0aa2d7dd",
+          "label": "表单结构",
+          "refer": "mapper",
+          "ftype": "CodeEditor",
+          "vtype": "Object",
+          "default": {
+            "input": {
+              "label": "输入框",
+              "type": "Input"
+            },
+            "password": {
+              "label": "密码框",
+              "type": "Password"
+            },
+            "number": {
+              "label": "数字框",
+              "type": "Number"
+            },
+            "textarea": {
+              "label": "多行输入框",
+              "type": "Textarea"
+            },
+            "codeEditor": {
+              "label": "代码编辑框",
+              "type": "CodeEditor"
+            },
+            "select": {
+              "label": "选择框",
+              "type": "Select"
+            },
+            "cascader": {
+              "label": "层级选择框",
+              "type": "Cascader"
+            },
+            "listSelect": {
+              "label": "列表选择框",
+              "type": "ListSelect"
+            },
+            "tagList": {
+              "label": "标签列表",
+              "type": "TagList"
+            },
+            "datetime": {
+              "label": "日期选择",
+              "type": "DateTime"
+            },
+            "checkbox": {
+              "label": "多选框",
+              "type": "Checkbox"
+            },
+            "switch": {
+              "label": "单选框",
+              "type": "Switch"
+            },
+            "table": {
+              "label": "可编辑表",
+              "type": "Table",
+              "columns": [],
+              "mapper": {},
+              "emitter": "return new Emitter()",
+              "copy": "return () => ({})",
+              "addable": true,
+              "edtable": true,
+              "delable": true
+            },
+            "delable": {
+              "label": "可删除",
+              "type": "Delable"
+            },
+            "selOrIpt": {
+              "label": "可选可输入",
+              "type": "SelOrIpt"
+            },
+            "upload": {
+              "label": "上传",
+              "type": "Upload"
+            }
+          },
+          "extra": {
+            "display": false
+          }
+        },
+        {
+          "key": "b0152077-3058-48b6-820e-ca3a74b01c87",
+          "label": "表单数据",
+          "refer": "form",
+          "ftype": "CodeEditor",
+          "vtype": "Object",
+          "extra": {
+            "display": false,
+            "lang": "json"
+          }
+        },
+        {
+          "key": "b7442d94-025d-4209-bbe8-f9eaa476ee12",
+          "label": "可编辑",
+          "refer": "editable",
+          "ftype": "Checkbox",
+          "vtype": "Boolean",
+          "default": true
+        },
+        {
+          "key": "1605cba0-62ed-4dd3-8d53-d8e3e65f854b",
+          "label": "只读",
+          "refer": "viewOnly",
+          "ftype": "Checkbox",
+          "vtype": "Boolean",
+          "default": false
+        }
+      ],
+      "components": []
+    },
+
+    {
+      "name": "FormDialog",
+      "ctype": "Object",
+      "category": "field",
+      "props": [
+        {
+          "key": "58c54315-e18e-498b-85ef-7329fa70182a",
+          "label": "显示",
+          "refer": "show",
+          "ftype": "Switch",
+          "vtype": "Boolean",
+          "default": false,
+          "extra": {
+            "chkLabels": ["关闭", "开启"]
+          }
+        },
+        {
+          "key": "b7b6d20e-eb32-464c-9730-b7adfd379102",
+          "label": "拷贝函数",
+          "refer": "copy",
+          "ftype": "CodeEditor",
+          "vtype": "Function",
+          "default": "return () => ({})",
+          "extra": {
+            "display": false
+          }
+        },
+        {
+          "key": "adea0272-1ee9-4828-bed5-8dbc2f602814",
+          "label": "宽度",
+          "refer": "width",
+          "ftype": "Input",
+          "vtype": "String",
+          "default": "60vw",
+          "extra": {
+            "suffix": "vw"
+          }
+        },
+        {
+          "key": "585afabc-b27f-4cb6-b104-8cfd74366b35",
+          "label": "标签宽度",
+          "desc": "范围：0~24",
+          "refer": "lblWid",
+          "ftype": "Number",
+          "vtype": "Number",
+          "default": 4
+        },
+        {
+          "key": "a013f7c5-bf9d-4230-9c52-d21bccab98ae",
+          "label": "标题",
+          "refer": "title",
+          "ftype": "Input",
+          "vtype": "String",
+          "default": "表单对话框"
+        },
+        {
+          "key": "afae4439-24b2-4bef-a5b8-1b3fe0800d0d",
+          "label": "表单结构",
+          "refer": "mapper",
+          "ftype": "CodeEditor",
+          "vtype": "Object"
+        }
+      ],
+      "components": []
     }
   ]
 }
