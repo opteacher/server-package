@@ -6,15 +6,18 @@
           <project-outlined />
           &nbsp;{{ project.name }}
         </p>
-        <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
-          {{ project.status.stat }}
-        </a-tag>
-        <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
-          {{ project.status.stat }}
-        </a-tag>
-        <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
-          {{ project.status.stat }}
-        </a-tag>
+        <a-tooltip>
+          <template #title>点击刷新状态</template>
+          <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
+            <a @click="refresh">{{ project.status.stat }}</a>
+          </a-tag>
+          <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
+            <a @click="refresh">{{ project.status.stat }}</a>
+          </a-tag>
+          <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
+            <a @click="refresh">{{ project.status.stat }}</a>
+          </a-tag>
+        </a-tooltip>
       </a-space>
       <a-space>
         <a-button @click="showProj = true">
