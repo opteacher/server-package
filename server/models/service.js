@@ -5,7 +5,7 @@ export default db.defineModel(
   {
     name: db.PropTypes.String,
     interface: db.PropTypes.String,
-    // api / timeout / interval / none
+    // api / timeout / interval / app_start / app_end / none
     emit: db.PropTypes.String,
     flow: { type: db.PropTypes.Id, ref: 'node' },
     isModel: db.PropTypes.Boolean,

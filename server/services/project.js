@@ -276,7 +276,13 @@ export async function generate(pid) {
   const appTmp = Path.join(tmpPath, 'app.js')
   const appGen = Path.join(genPath, 'app.js')
   console.log(`调整应用文件：${appTmp} -> ${appGen}`)
-  adjustFile(appTmp, appGen, { project })
+  adjustFile(appTmp, appGen, {
+    project,
+    start_svcs: project.models
+      .map(model => model.svcs.filter(svc => svc.emit === 'app_start'))
+      .flat(),
+    stop_svcs: project.models.map(model => model.svcs.filter(svc => svc.emit === 'app_stop')).flat()
+  })
 
   const dkrTmp = Path.join(tmpPath, 'Dockerfile')
   const dkrGen = Path.join(genPath, 'Dockerfile')
@@ -335,15 +341,17 @@ export async function generate(pid) {
     const services = {}
     const svcRts = {}
     for (const svc of svcs) {
-      let pamIdx = svc.path.indexOf('/:')
-      pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
-      const pathPfx = svc.path.substring(0, pamIdx)
-      const rotGen = Path.join(rotPath, pathPfx)
-      fs.mkdirSync(rotGen, { recursive: true })
-      if (rotGen in svcRts) {
-        svcRts[rotGen].push({ svc, pamIdx })
-      } else {
-        svcRts[rotGen] = [{ svc, pamIdx }]
+      if (svc.path) {
+        let pamIdx = svc.path.indexOf('/:')
+        pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
+        const pathPfx = svc.path.substring(0, pamIdx)
+        const rotGen = Path.join(rotPath, pathPfx)
+        fs.mkdirSync(rotGen, { recursive: true })
+        if (rotGen in svcRts) {
+          svcRts[rotGen].push({ svc, pamIdx })
+        } else {
+          svcRts[rotGen] = [{ svc, pamIdx }]
+        }
       }
 
       if (svc.name === 'auth') {

@@ -1,63 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Node from './node'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type EmitType = 'api' | 'timeout' | 'interval' | 'none'
+export const emitMapper = {
+  api: '网络接口',
+  timeout: '延时',
+  interval: '定时',
+  app_start: '服务开始',
+  app_stop: '服务停止',
+  none: '无'
+}
 
-export const emitTypeOpns = [
-  {
-    label: '网络接口',
-    value: 'api'
-  },
-  {
-    label: '延时',
-    value: 'timeout'
-  },
-  {
-    label: '定时',
-    value: 'interval'
-  },
-  {
-    label: '无',
-    value: 'none'
-  }
-]
+export type EmitType = keyof typeof emitMapper
 
-export const timeUnits = [
-  {
-    label: '毫秒',
-    value: 'ms'
-  },
-  {
-    label: '秒',
-    value: 's'
-  },
-  {
-    label: '分钟',
-    value: 'm'
-  },
-  {
-    label: '小时',
-    value: 'h'
-  },
-  {
-    label: '天',
-    value: 'D'
-  },
-  {
-    label: '周',
-    value: 'W'
-  },
-  {
-    label: '月',
-    value: 'M'
-  },
-  {
-    label: '年',
-    value: 'Y'
-  }
-]
+export const emitTypeOpns = Object.entries(emitMapper).map(([value, label]) => ({ label, value }))
 
 export const tmUntMapper = {
   ms: '毫秒',
@@ -69,6 +26,8 @@ export const tmUntMapper = {
   M: '月',
   Y: '年'
 } as Record<string, string>
+
+export const timeUnits = Object.entries(tmUntMapper).map(([value, label]) => ({ label, value }))
 
 export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'LINK'
 

@@ -122,9 +122,7 @@
         @delete="refresh"
       >
         <template #emit="{ record: svc }">
-          <template v-if="svc.emit === 'api'">网络接口</template>
-          <template v-else-if="svc.emit === 'timeout'">延时任务</template>
-          <template v-else-if="svc.emit === 'interval'">定时任务</template>
+          {{ emitMapper[svc.emit as EmitType] }}
         </template>
         <template #pathCond="{ record: svc }">
           <template v-if="svc.emit === 'api'">
@@ -132,6 +130,11 @@
           </template>
           <template v-else-if="svc.emit === 'timeout'">{{ svc.condition }}后</template>
           <template v-else-if="svc.emit === 'interval'">每{{ svc.condition }}</template>
+          <template v-else>-</template>
+        </template>
+        <template #fileFunc="{ record: svc }">
+          <template v-if="!svc.isModel">{{ svc.name }}.{{ svc.interface }}()</template>
+          <template v-else>-</template>
         </template>
         <template #flow="{ record: svc }">
           <a-button
@@ -154,8 +157,8 @@
           <template v-if="svc.emit === 'api'">
             {{ svc.method }}
           </template>
-          <template v-else>
-            <a-space>
+          <template v-else-if="svc.emit === 'timeout' || svc.emit === 'interval'">
+            <a-space align="center">
               <a-tooltip>
                 <template #title>需先启动项目后才能启动任务！</template>
                 <a-button
@@ -179,6 +182,7 @@
               </a-button>
             </a-space>
           </template>
+          <template v-else>-</template>
         </template>
         <template #desc="{ record: svc }">
           <a-tooltip v-if="svc.desc">
@@ -202,7 +206,7 @@ import LytProject from '../layouts/LytProject.vue'
 import { expMapper, propEmitter, svcEmitter, svcMapper } from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
-import Service from '@/types/service'
+import Service, { emitMapper, EmitType } from '@/types/service'
 import {
   DatabaseOutlined,
   ExportOutlined,
@@ -301,6 +305,7 @@ export default defineComponent({
       svcColumns,
       svcEmitter,
       svcMapper,
+      emitMapper,
 
       refresh,
       onRelMdlChange,

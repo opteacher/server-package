@@ -9,6 +9,7 @@ import cors from 'koa2-cors'
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
+/*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
 const router = await genApiRoutes(path.resolve('routes'))
 const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'))
 const app = new Koa()
@@ -44,8 +45,15 @@ app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾（如果没有则index.html默认为404页面）
 app.use(ctx => ctx.render('index'))
 
-app.listen(0/*return project.port*/, undefined, () => {
+app.listen(0/*return project.port*/, undefined, async () => {
   console.log('服务已部署，占用端口：/*return project.port*/')
+  /*return start_svcs.map(svc => `await ${svc.interface}()`).join('\n')*/
+})
+
+process.on('exit', () => {
+  setTimeout(async () => {
+    /*return stop_svcs.map(svc => `await ${svc.interface}()`).join('\n')*/
+  }, 0)
 })
 
 export default app

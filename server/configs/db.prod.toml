@@ -2,5 +2,5 @@
 database="server-package"
 username="root"
 password="12345"
-host="111.229.159.217"
+host="1.15.57.178"
 port=27017

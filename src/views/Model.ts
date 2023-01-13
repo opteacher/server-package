@@ -225,14 +225,24 @@ export const svcMapper = new Mapper({
     label: '触发值',
     desc: '指定时间间隔或时刻',
     type: 'Input',
-    display: [Cond.copy({ key: 'emit', cmp: '!=', val: 'api' })]
+    display: {
+      OR: [
+        Cond.copy({ key: 'emit', cmp: '==', val: 'timeout' }),
+        Cond.copy({ key: 'emit', cmp: '==', val: 'interval' })
+      ]
+    }
   },
   cdUnit: {
     label: '触发值',
     desc: '指定时间间隔或时刻',
     type: 'Select',
     options: timeUnits,
-    display: [Cond.copy({ key: 'emit', cmp: '!=', val: 'api' })]
+    display: {
+      OR: [
+        Cond.copy({ key: 'emit', cmp: '==', val: 'timeout' }),
+        Cond.copy({ key: 'emit', cmp: '==', val: 'interval' })
+      ]
+    }
   },
   desc: {
     label: '描述',
@@ -244,6 +254,7 @@ export const svcColumns = [
   new Column('激活方式', 'emit'),
   new Column('路由/激发条件', 'pathCond'),
   new Column('访问方式/控制', 'methodCtrl'),
+  new Column('文件/方法', 'fileFunc'),
   new Column('描述', 'desc'),
   new Column('流程', 'flow')
 ]
