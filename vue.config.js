@@ -8,7 +8,7 @@ module.exports = {
     port: '8081',
     proxy: {
       '/server-package/(mdl|api)': {
-        target: 'http://127.0.0.1:4000/',
+        target: 'http://1.15.57.178/',
         ws: true,
         changeOrigin: true
       }

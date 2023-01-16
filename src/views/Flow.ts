@@ -101,9 +101,11 @@ const iptMapper = new Mapper({
       }
       const edtNode = store.getters['service/editNode']
       const pvsNode = store.getters['service/node'](edtNode.previous)
-      const selVar = getLocVars(pvsNode, pvsNode.nexts.length).find(
-        (v: any) => v.value === to || v.name === to
-      )
+      const selVar = pvsNode
+        ? getLocVars(pvsNode, pvsNode.nexts.length).find(
+            (v: any) => v.value === to || v.name === to
+          )
+        : input
       if (selVar) {
         input.name = selVar.value || selVar.name
       }
@@ -214,13 +216,17 @@ export const edtNdMapper = new Mapper({
         dsKey: '',
         copy: Variable.copy,
         onEdit: (node: any) => {
-          const pvsNode = store.getters['service/node'](node.previous)
-          iptMapper['value'].options = getLocVars(pvsNode, pvsNode.nexts.length).map(
-            (locVar: Variable) => ({
-              label: locVar.value || locVar.name,
-              value: locVar.value || locVar.name
-            })
-          )
+          if (node.previous) {
+            const pvsNode = store.getters['service/node'](node.previous)
+            iptMapper['value'].options = getLocVars(pvsNode, pvsNode.nexts.length).map(
+              (locVar: Variable) => ({
+                label: locVar.value || locVar.name,
+                value: locVar.value || locVar.name
+              })
+            )
+          } else {
+            iptMapper['value'].options = [{ label: 'ctx', value: 'ctx' }]
+          }
           iptEmitter.emit('update:mapper', iptMapper)
         },
         onSaved: async (input: Variable) => {
