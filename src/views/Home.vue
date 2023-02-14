@@ -1,13 +1,14 @@
 <template>
   <LytMain active="home">
     <EditableTable
+      title="项目"
       size="small"
       :api="api"
       :columns="columns"
       :mapper="mapper"
       :copy="Project.copy"
       :emitter="emitter"
-      title="项目"
+      sclHeight="h-full"
     >
       <template #name="{ record: project }">
         <a :href="`/server-package/project/${project.key}`" @click.stop="">{{ project.name }}</a>

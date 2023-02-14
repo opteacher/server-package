@@ -1,13 +1,14 @@
 <template>
   <LytMain active="dependency">
     <EditableTable
+      title="依赖"
       size="small"
       :api="api"
       :columns="columns"
       :mapper="mapper"
       :copy="Dep.copy"
       :emitter="emitter"
-      title="依赖"
+      sclHeight="h-full"
     />
   </LytMain>
 </template>

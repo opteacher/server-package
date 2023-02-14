@@ -1,51 +1,51 @@
 <template>
   <LytProject :active="`project/${pid}/model/${mid}`">
-    <div class="mb-5 flex justify-between">
-      <p class="mb-0 text-xl font-bold">
-        <appstore-outlined />
-        &nbsp;{{ model.name }}
-        <span v-if="model.label">&nbsp;({{ model.label }})</span>
-      </p>
-      <a-space>
-        <a-tooltip>
-          <template #title>需要所在项目启动后才可以查看数据集！</template>
+    <div class="h-full space-y-6">
+      <div class="flex justify-between">
+        <p class="mb-0 text-xl font-bold">
+          <appstore-outlined />
+          &nbsp;{{ model.name }}
+          <span v-if="model.label">&nbsp;({{ model.label }})</span>
+        </p>
+        <a-space>
+          <a-tooltip>
+            <template #title>需要所在项目启动后才可以查看数据集！</template>
+            <a-button
+              :disabled="pstatus !== 'running'"
+              @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+            >
+              <template #icon><DatabaseOutlined /></template>
+              &nbsp;浏览数据
+            </a-button>
+          </a-tooltip>
           <a-button
-            :disabled="pstatus !== 'running'"
-            @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+            @click.stop="
+              () => {
+                expCls.update(model)
+                showExpCls = true
+              }
+            "
           >
-            <template #icon><DatabaseOutlined /></template>
-            &nbsp;浏览数据
+            <template #icon><ExportOutlined /></template>
+            &nbsp;导出类
           </a-button>
-        </a-tooltip>
-        <a-button
-          @click.stop="
-            () => {
-              expCls.update(model)
-              showExpCls = true
-            }
-          "
-        >
-          <template #icon><ExportOutlined /></template>
-          &nbsp;导出类
-        </a-button>
-        <FormDialog
-          title="导出类"
-          v-model:show="showExpCls"
-          :object="expCls"
-          :copy="ExpCls.copy"
-          :mapper="expMapper"
-          @submit="(formData: any) => mdlAPI.export(formData)"
-        />
-        <a-button
-          type="primary"
-          @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
-        >
-          <template #icon><FormOutlined /></template>
-          &nbsp;表单/表项设计
-        </a-button>
-      </a-space>
-    </div>
-    <div class="mt-6">
+          <FormDialog
+            title="导出类"
+            v-model:show="showExpCls"
+            :object="expCls"
+            :copy="ExpCls.copy"
+            :mapper="expMapper"
+            @submit="(formData: any) => mdlAPI.export(formData)"
+          />
+          <a-button
+            type="primary"
+            @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+          >
+            <template #icon><FormOutlined /></template>
+            &nbsp;表单/表项设计
+          </a-button>
+        </a-space>
+      </div>
       <EditableTable
         title="字段"
         size="small"
@@ -106,8 +106,6 @@
           </a-input-group>
         </template>
       </EditableTable>
-    </div>
-    <div class="mt-6">
       <EditableTable
         title="服务"
         size="small"

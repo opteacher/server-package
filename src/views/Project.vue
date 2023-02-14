@@ -93,25 +93,23 @@
         />
       </a-descriptions-item>
     </a-descriptions>
-    <div class="mt-1.5">
-      <EditableTable
-        title="模型"
-        size="small"
-        :api="mdlAPI"
-        :columns="mdlColumns"
-        :mapper="mdlMapper"
-        :copy="Model.copy"
-        :emitter="mdlEmitter"
-        @save="refresh"
-        @delete="refresh"
-      >
-        <template #name="{ record: model }">
-          <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop="">
-            {{ model.name }}
-          </a>
-        </template>
-      </EditableTable>
-    </div>
+    <EditableTable
+      title="模型"
+      size="small"
+      :api="mdlAPI"
+      :columns="mdlColumns"
+      :mapper="mdlMapper"
+      :copy="Model.copy"
+      :emitter="mdlEmitter"
+      @save="refresh"
+      @delete="refresh"
+    >
+      <template #name="{ record: model }">
+        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop="">
+          {{ model.name }}
+        </a>
+      </template>
+    </EditableTable>
   </LytProject>
 </template>
 

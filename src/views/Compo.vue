@@ -1,13 +1,14 @@
 <template>
   <LytMain active="component">
     <EditableTable
+      title="组件"
       size="small"
       :api="api"
       :columns="columns"
       :mapper="mapper"
       :copy="Compo.copy"
       :emitter="emitter"
-      title="组件"
+      sclHeight="h-full"
     >
       <template #expandedRowRender="{ record: compo }">
         <EditableTable

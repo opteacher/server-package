@@ -329,6 +329,7 @@ export const edtNdMapper = new Mapper({
         display: [
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
+          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ]
       },
