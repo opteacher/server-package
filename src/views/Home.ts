@@ -64,6 +64,11 @@ export const mapper = new Mapper({
         type: 'Checkbox',
         desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存'
       },
+      baseImgs: {
+        label: '基镜像',
+        type: 'EditList',
+        desc: '项目依赖的线上镜像，FROM命令指定'
+      },
       envVars: {
         label: '环境变量',
         type: 'Table',

@@ -16,6 +16,7 @@ export default class Project {
   dropDbs: boolean
   commands: string
   independ: boolean
+  baseImgs: string[]
   envVars: { name: string; value: string }[]
   expPorts: number[]
   models: Model[]
@@ -33,6 +34,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.independ = false
+    this.baseImgs = []
     this.envVars = []
     this.expPorts = []
     this.models = []
@@ -51,6 +53,7 @@ export default class Project {
     this.dropDbs = false
     this.commands = ''
     this.independ = false
+    this.baseImgs = []
     this.envVars = []
     this.expPorts = []
     this.models = []
@@ -70,6 +73,7 @@ export default class Project {
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
     tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
+    tgt.baseImgs = src.baseImgs || tgt.baseImgs
     tgt.envVars = src.envVars
       ? src.envVars.map((evar: any) => ({
           key: evar.key || evar._id || undefined,
