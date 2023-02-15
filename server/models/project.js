@@ -6,12 +6,12 @@ export default db.defineModel(
     name: db.PropTypes.String,
     desc: db.PropTypes.String,
     port: db.PropTypes.Number,
+    image: db.PropTypes.String, // 基镜像，即FROM
     thread: db.PropTypes.Number,
     database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     commands: db.PropTypes.String,
     independ: db.PropTypes.Boolean, // 为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存
-    baseImgs: db.PropTypes.Array, // 基镜像，即FROM。可以定义多个
     envVars: [{
       name: db.PropTypes.String,
       value: db.PropTypes.String

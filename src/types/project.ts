@@ -11,12 +11,12 @@ export default class Project {
   name: string
   desc: string
   port: number
+  image: string
   thread: number
   database: string[]
   dropDbs: boolean
   commands: string
   independ: boolean
-  baseImgs: string[]
   envVars: { name: string; value: string }[]
   expPorts: number[]
   models: Model[]
@@ -29,12 +29,12 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
+    this.image = ''
     this.thread = 0
     this.database = []
     this.dropDbs = false
     this.commands = ''
     this.independ = false
-    this.baseImgs = []
     this.envVars = []
     this.expPorts = []
     this.models = []
@@ -48,12 +48,12 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
+    this.image = ''
     this.thread = 0
     this.database = []
     this.dropDbs = false
     this.commands = ''
     this.independ = false
-    this.baseImgs = []
     this.envVars = []
     this.expPorts = []
     this.models = []
@@ -68,12 +68,12 @@ export default class Project {
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
+    tgt.image = src.image || tgt.image
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
     tgt.commands = src.commands || tgt.commands
     tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
-    tgt.baseImgs = src.baseImgs || tgt.baseImgs
     tgt.envVars = src.envVars
       ? src.envVars.map((evar: any) => ({
           key: evar.key || evar._id || undefined,

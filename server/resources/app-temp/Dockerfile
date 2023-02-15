@@ -1,5 +1,4 @@
-##return project.baseImgs && project.baseImgs.length ? project.baseImgs.map(img => `FROM ${img}`).join('\n') : ''*/
-FROM node:latest
+##return project.image ? `FROM ${project.image}` : 'FROM node:latest'*/
 WORKDIR /app
 COPY . /app
 ##return project.envVars && project.envVars.length ? project.envVars.map(evar => `ENV ${evar.name}="${evar.value}"`).join('\n') : ''*/
