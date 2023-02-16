@@ -64,11 +64,25 @@ export const mapper = new Mapper({
         type: 'Checkbox',
         desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存'
       },
-      image: {
-        label: '基镜像',
-        type: 'Input',
-        desc: '项目依赖的线上镜像，FROM命令指定',
-        placeholder: '输入基镜像，默认：node:latest'
+      volumes: {
+        label: '共享文件/夹',
+        type: 'EditList',
+        mapper: {
+          dest: {
+            type: 'Input',
+            placeholder: '投送到……'
+          },
+          src: {
+            type: 'Input',
+            placeholder: '容器内……'
+          }
+        },
+        copy: (src: any, tgt?: any): any => {
+          tgt = tgt || { dest: '/', src: 'test:/' },
+          tgt.dest = src.dest || tgt.dest
+          tgt.src = src.src || tgt.src
+          return tgt
+        }
       },
       envVars: {
         label: '环境变量',

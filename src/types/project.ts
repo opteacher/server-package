@@ -11,7 +11,7 @@ export default class Project {
   name: string
   desc: string
   port: number
-  image: string
+  volume: string[]
   thread: number
   database: string[]
   dropDbs: boolean
@@ -29,7 +29,7 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
-    this.image = ''
+    this.volume = []
     this.thread = 0
     this.database = []
     this.dropDbs = false
@@ -48,7 +48,7 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
-    this.image = ''
+    this.volume = []
     this.thread = 0
     this.database = []
     this.dropDbs = false
@@ -68,7 +68,7 @@ export default class Project {
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
-    tgt.image = src.image || tgt.image
+    tgt.volume = src.volume || tgt.volume
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs

@@ -6,7 +6,7 @@ export default db.defineModel(
     name: db.PropTypes.String,
     desc: db.PropTypes.String,
     port: db.PropTypes.Number,
-    image: db.PropTypes.String, // 基镜像，即FROM
+    volumes: db.PropTypes.Array, // 共享文件|夹，冒号分隔
     thread: db.PropTypes.Number,
     database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
