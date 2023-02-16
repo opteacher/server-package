@@ -184,7 +184,8 @@ export const svcMapper = new Mapper({
         svc.path = genMdlPath(svc)
       }
     },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
+    disabled: [Cond.copy({ key: 'method', cmp: '===', val: 'LINK'})]
   },
   method: {
     label: '访问方式',
@@ -197,7 +198,6 @@ export const svcMapper = new Mapper({
       if (to === 'LINK') {
         svc.isModel = true
       }
-      svcMapper['isModel'].disabled = to === 'LINK'
       if (svc.isModel) {
         svc.path = genMdlPath(svc)
       }

@@ -201,7 +201,15 @@ import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import { expMapper, propEmitter, svcEmitter, svcMapper } from './Model'
+import {
+  expMapper,
+  propColumns,
+  propMapper,
+  propEmitter,
+  svcEmitter,
+  svcMapper,
+  svcColumns
+} from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
 import Service, { emitMapper, EmitType } from '@/types/service'
@@ -214,9 +222,10 @@ import {
   EditOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons-vue'
-import { propColumns, propMapper, svcColumns } from './Model'
 import { mdlAPI, propAPI, svcAPI } from '../apis'
 import Model from '@/types/model'
+
+console.log(svcMapper)
 
 export default defineComponent({
   name: 'Model',
@@ -271,7 +280,7 @@ export default defineComponent({
       prop.visible = true
     }
     function onAddSvcClicked() {
-      svcEmitter.emit('update:data', { name: mname.value, emit: 'timeout' })
+      svcEmitter.emit('update:data', { name: mname.value })
     }
     function onBefSave(svc: Service) {
       if (svc.emit === 'timeout' || svc.emit === 'interval') {
