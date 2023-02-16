@@ -11,7 +11,6 @@ export default class Project {
   name: string
   desc: string
   port: number
-  volume: string[]
   thread: number
   database: string[]
   dropDbs: boolean
@@ -19,6 +18,7 @@ export default class Project {
   independ: boolean
   envVars: { name: string; value: string }[]
   expPorts: number[]
+  volumes: any[]
   models: Model[]
   auth: Auth
   middle: Middle
@@ -29,7 +29,6 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
-    this.volume = []
     this.thread = 0
     this.database = []
     this.dropDbs = false
@@ -37,6 +36,7 @@ export default class Project {
     this.independ = false
     this.envVars = []
     this.expPorts = []
+    this.volumes = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -48,7 +48,6 @@ export default class Project {
     this.name = ''
     this.desc = ''
     this.port = 0
-    this.volume = []
     this.thread = 0
     this.database = []
     this.dropDbs = false
@@ -56,6 +55,7 @@ export default class Project {
     this.independ = false
     this.envVars = []
     this.expPorts = []
+    this.volumes = []
     this.models = []
     this.auth = new Auth()
     this.middle = new Middle()
@@ -68,7 +68,6 @@ export default class Project {
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port
-    tgt.volume = src.volume || tgt.volume
     tgt.thread = src.thread || 0
     tgt.database = src.database || tgt.database
     tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
@@ -82,6 +81,7 @@ export default class Project {
         }))
       : tgt.envVars
     tgt.expPorts = src.expPorts || tgt.expPorts
+    tgt.volumes = src.volumes || tgt.volumes
     if (src.models) {
       tgt.models.splice(0, tgt.models.length)
       for (const model of src.models) {
