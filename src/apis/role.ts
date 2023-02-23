@@ -23,8 +23,8 @@ export default {
       { [`auth.roles[{_id:${data.key}}]`]: pickOrIgnore(data, ['key']) },
       { axiosConfig: { params: { updMode: 'merge' } } }
     ),
-  all: (offset: number, limit: number) =>
-    store.getters['project/auth'].roles.slice(offset, offset + limit),
+  all: () =>
+    store.getters['project/auth'].roles,
   detail: (key: any) => {
     console.log(key)
   }

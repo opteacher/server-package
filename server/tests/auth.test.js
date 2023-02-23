@@ -88,7 +88,7 @@ describe('# 权限服务', () => {
       path: '/mdl/v1/model1'
     })
     sid = svcTest.id.toString()
-    await db.saveOne(Model, model.id, { svcs: sid }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { services: sid }, { updMode: 'append' })
 
     svcTest = await db.save(Service, {
       name: 'model1',
@@ -97,11 +97,11 @@ describe('# 权限服务', () => {
       method: 'GET',
       path: '/mdl/v1/model1/:id'
     })
-    await db.saveOne(Model, model.id, { svcs: svcTest.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { services: svcTest.id }, { updMode: 'append' })
   })
   test('# bind', async () => {
     await bind(pid, { model: mid, skips: ['/mdl/v1/model1/test'] })
-    const project = await db.select(Project, { _index: pid })
+    const project = await db.select(Project, { _index: pid }, { ext: true })
     expect(project.auth.model).toEqual(mid)
     expect(project.auth.skips.length).toEqual(3)
     const skips = project.auth.skips.map(skip => skip.substring('/api/v1/model1/'.length))
@@ -109,24 +109,24 @@ describe('# 权限服务', () => {
     expect(skips).toContain('verify')
     expect(skips).toContain('test')
 
-    const model = await db.select(Model, { _index: mid }, { ext: true })
+    const model = await db.select(Model, { _index: mid })
     expect(model.props.map(prop => prop.name)).toContain('role')
-    expect(model.svcs.length).toEqual(4)
-    const svcItfcs = model.svcs.map(svc => svc.interface)
+    expect(project.services.length).toEqual(4)
+    const svcItfcs = project.services.map(svc => svc.interface)
     expect(svcItfcs).toContain('sign')
     expect(svcItfcs).toContain('verify')
   })
   describe('# unbind', () => {
     test('# 解绑有绑定权限', async () => {
       await unbind(pid)
-      const project = await db.select(Project, { _index: pid })
+      const project = await db.select(Project, { _index: pid }, { ext: true })
       expect(project.auth.model).toEqual('')
       expect(project.auth.skips.length).toEqual(0)
 
-      const model = await db.select(Model, { _index: mid }, { ext: true })
+      const model = await db.select(Model, { _index: mid })
       expect(model.props.map(prop => prop.name)).not.toContain('role')
-      expect(model.svcs.length).toEqual(2)
-      const svcItfcs = model.svcs.map(svc => svc.interface)
+      expect(project.services.length).toEqual(2)
+      const svcItfcs = project.services.map(svc => svc.interface)
       expect(svcItfcs).not.toContain('sign')
       expect(svcItfcs).not.toContain('verify')
     })
@@ -145,11 +145,10 @@ describe('# 权限服务', () => {
         { key: uuidv4(), name: 'username', alg: 'none' },
         { key: uuidv4(), name: 'password', alg: 'sha256' }
       ])
-      const project = await db.select(Project, { _index: pid })
-      const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
-      const sgnIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')
+      const project = await db.select(Project, { _index: pid }, { ext: true })
+      const sgnIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')
       expect(sgnIdx).not.toEqual(-1)
-      const sgnSvc = model.svcs[sgnIdx]
+      const sgnSvc = project.services[sgnIdx]
       expect(sgnSvc.flow).not.toBeNull()
       const getSecret = await db.select(Node, { _index: sgnSvc.flow })
       expect(getSecret.title).toEqual('获取密钥')

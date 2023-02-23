@@ -14,7 +14,7 @@ import Form from '@/types/form'
 import Field from '@lib/types/field'
 import Table from '@/types/table'
 import { methods } from '@/types/index'
-import { svcEmitter, svcMapper } from '@/views/Model'
+import { svcEmitter, svcMapper } from '@/views/Project'
 
 type ModelState = {
   emitter: Emitter

@@ -19,7 +19,7 @@ const expDft = {
     return reqDelete('model', key, { type: 'api' })
   },
   update: async (data: any, next?: () => Promise<any>) => {
-    await reqPut('model', data.key, data, { ignores: ['svcs'] })
+    await reqPut('model', data.key, data)
     if (next) {
       await next()
     }

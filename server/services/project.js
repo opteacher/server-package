@@ -278,10 +278,8 @@ export async function generate(pid) {
   console.log(`调整应用文件：${appTmp} -> ${appGen}`)
   adjustFile(appTmp, appGen, {
     project,
-    start_svcs: project.models
-      .map(model => model.svcs.filter(svc => svc.emit === 'app_start'))
-      .flat(),
-    stop_svcs: project.models.map(model => model.svcs.filter(svc => svc.emit === 'app_stop')).flat()
+    start_svcs: project.services.filter(svc => svc.emit === 'app_start').flat(),
+    stop_svcs: project.services.filter(svc => svc.emit === 'app_stop').flat()
   })
 
   const dkrTmp = Path.join(tmpPath, 'Dockerfile')
@@ -326,9 +324,64 @@ export async function generate(pid) {
   const mdlData = fs.readFileSync(mdlTmp)
   const svcData = fs.readFileSync(svcTmp)
   const rotData = fs.readFileSync(rotTmp)
+  const svcRts = {}
+  const svcMap = {}
+  console.log('收集非模型服务实例……')
+  for (const service of project.services.filter(svc => !svc.model)) {
+    if (svc.path) {
+      let pamIdx = svc.path.indexOf('/:')
+      pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
+      const pathPfx = svc.path.substring(0, pamIdx)
+      const rotGen = Path.join(rotPath, pathPfx)
+      fs.mkdirSync(rotGen, { recursive: true })
+      if (rotGen in svcRts) {
+        svcRts[rotGen].push({ svc, pamIdx })
+      } else {
+        svcRts[rotGen] = [{ svc, pamIdx }]
+      }
+    }
+
+    if (svc.name === 'auth') {
+      console.log('跳过授权服务')
+      continue
+    }
+
+    console.log('收集项目依赖模块：')
+    const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
+    svcExt.deps = []
+    svcExt.nodes = svcExt.flow
+      ? await recuNode(svcExt.flow.id, 4, node => {
+          if (node.deps) {
+            for (const dep of node.deps) {
+              if (!(dep.id in deps)) {
+                console.log(`\t${dep.name}: ${dep.version}`)
+                deps[dep.id] = dep
+              }
+              svcExt.deps.push(dep)
+            }
+          }
+        })
+      : []
+    if (!(svc.name in svcMap)) {
+      svcMap[svc.name] = [svcExt]
+    } else {
+      svcMap[svc.name].push(svcExt)
+    }
+  }
+  console.log('生成非模型服务的路由……')
+  for (const [rotGen, services] of Object.entries(svcRts)) {
+    console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
+    adjustFile(rotData, `${rotGen}/index.js`, { services })
+  }
+  console.log('生成非模型服务实例……')
+  for (const [aname, services] of Object.entries(svcMap)) {
+    const svcGen = Path.join(svcPath, aname + '.js')
+    console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
+    adjustFile(svcData, svcGen, { services })
+  }
+  console.log('生成模型实例……')
   for (const model of project.models) {
-    const svcs = model.svcs.filter(svc => !svc.isModel)
-    model.svcs = model.svcs.filter(svc => svc.isModel)
+    model.services = project.services.filter(svc => svc.model === model.name)
 
     model.props = model.props.map(prop =>
       Object.assign(prop, { default: formatToStr(prop.default, prop.ptype) })
@@ -337,61 +390,6 @@ export async function generate(pid) {
     const mdlGen = Path.join(mdlPath, model.name + '.js')
     console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
-
-    const services = {}
-    const svcRts = {}
-    for (const svc of svcs) {
-      if (svc.path) {
-        let pamIdx = svc.path.indexOf('/:')
-        pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
-        const pathPfx = svc.path.substring(0, pamIdx)
-        const rotGen = Path.join(rotPath, pathPfx)
-        fs.mkdirSync(rotGen, { recursive: true })
-        if (rotGen in svcRts) {
-          svcRts[rotGen].push({ svc, pamIdx })
-        } else {
-          svcRts[rotGen] = [{ svc, pamIdx }]
-        }
-      }
-
-      if (svc.name === 'auth') {
-        console.log('跳过授权服务')
-        continue
-      }
-
-      console.log('收集项目依赖模块：')
-      const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
-      svcExt.deps = []
-      svcExt.nodes = svcExt.flow
-        ? await recuNode(svcExt.flow.id, 4, node => {
-            if (node.deps) {
-              for (const dep of node.deps) {
-                if (!(dep.id in deps)) {
-                  console.log(`\t${dep.name}: ${dep.version}`)
-                  deps[dep.id] = dep
-                }
-                svcExt.deps.push(dep)
-              }
-            }
-          })
-        : []
-      if (!(svc.name in services)) {
-        services[svc.name] = [svcExt]
-      } else {
-        services[svc.name].push(svcExt)
-      }
-    }
-
-    for (const [rotGen, svcs] of Object.entries(svcRts)) {
-      console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
-      adjustFile(rotData, `${rotGen}/index.js`, { svcs })
-    }
-
-    for (const [aname, svcs] of Object.entries(services)) {
-      const svcGen = Path.join(svcPath, aname + '.js')
-      console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-      adjustFile(svcData, svcGen, { svcs })
-    }
   }
   const pkgTmp = Path.join(tmpPath, 'package.json')
   const pkgGen = Path.join(genPath, 'package.json')
@@ -428,8 +426,7 @@ export async function genAuth(project, tmpPath, genPath) {
     nodes: [],
     deps: []
   }
-  const authMdl = await db.select(Model, { _index: project.auth.model }, { ext: true })
-  const authSvc = authMdl.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
+  const authSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const mdlDep = await db.select(Dep, { _index: project.auth.model })
   args.mdlName = mdlDep.exports[0]
   deps[mdlDep.id] = mdlDep.toObject()
@@ -613,11 +610,10 @@ export async function del(pid) {
     await stopSync(project)
   }
   for (const mid of project.models) {
-    const model = await db.select(Model, { _index: mid })
-    for (const sid of model.svcs) {
-      await db.remove(Service, { _index: sid })
-    }
     await db.remove(Model, { _index: mid })
+  }
+  for (const sid of project.services) {
+    await db.remove(Service, { _index: sid })
   }
   return db.remove(Project, { _index: pid })
 }
@@ -763,44 +759,41 @@ export async function transfer(info) {
 
 export async function getAllAPIs(pid) {
   const ret = []
-  const project = await db.select(Project, { _index: pid })
-  for (const mid of project.models) {
-    const model = await db.select(Model, { _index: mid }, { ext: true })
-    for (const service of model.svcs) {
-      switch (service.emit) {
-        case 'api':
-          ret.push({
-            key: service.id,
-            name: service.name,
-            func: service.interface,
-            model: model.name,
-            method: service.method,
-            path: service.path
-          })
-          break
-        case 'timeout':
-        case 'interval':
-          ret.push({
-            key: `${service.id}_restart`,
-            name: service.name,
-            func: service.interface,
-            model: model.name,
-            method: 'POST',
-            path: service.path
-          })
-          ret.push({
-            key: `${service.id}_stop`,
-            name: service.name,
-            interface: service.interface,
-            model: model.name,
-            method: 'DELETE',
-            path: `${service.path}/:tmot`
-          })
-          break
-      }
-      if (service.flow) {
-        ret[ret.length - 1].flow = service.flow
-      }
+  const project = await db.select(Project, { _index: pid }, { ext: true })
+  for (const service of project.services) {
+    switch (service.emit) {
+      case 'api':
+        ret.push({
+          key: service.id,
+          name: service.name,
+          func: service.interface,
+          model: model.name,
+          method: service.method,
+          path: service.path
+        })
+        break
+      case 'timeout':
+      case 'interval':
+        ret.push({
+          key: `${service.id}_restart`,
+          name: service.name,
+          func: service.interface,
+          model: model.name,
+          method: 'POST',
+          path: service.path
+        })
+        ret.push({
+          key: `${service.id}_stop`,
+          name: service.name,
+          interface: service.interface,
+          model: model.name,
+          method: 'DELETE',
+          path: `${service.path}/:tmot`
+        })
+        break
+    }
+    if (service.flow) {
+      ret[ret.length - 1].flow = service.flow
     }
   }
   return ret

@@ -96,20 +96,19 @@ describe('# 项目服务', () => {
     const service1 = await db.save(Service, {
       model: 'model1',
       emit: 'api',
-      isModel: true,
+      model: 'model1',
       method: 'POST'
     })
-    await db.saveOne(Model, model.id, { svcs: service1.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: service1.id }, { updMode: 'append' })
 
     const service2 = await db.save(Service, {
       name: 'service2',
       interface: 'test',
       emit: 'api',
-      isModel: false,
       method: 'GET',
       path: '/abcd/api/v1/test'
     })
-    await db.saveOne(Model, model.id, { svcs: service2.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: service2.id }, { updMode: 'append' })
 
     const node1 = await db.save(Node, {
       title: 'node1',

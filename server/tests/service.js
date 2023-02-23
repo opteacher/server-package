@@ -65,26 +65,24 @@ describe('# 任务服务', () => {
       model: 'model1',
       interface: 'testSvc1',
       emit: 'interval',
-      isModel: false,
       path: '/abcd/job/v1/model1/interval',
       jobId: 0,
       condition: '3s'
     })
     intervalSid = service.id
-    await db.saveOne(Model, model.id, { svcs: intervalSid }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: intervalSid }, { updMode: 'append' })
 
     service = await db.save(Service, {
       name: 'svc2',
       model: 'model1',
       interface: 'testSvc2',
       emit: 'interval',
-      isModel: false,
       path: '/abcd/job/v1/model1/timeout',
       jobId: 0,
       condition: '22/05/09T23:05:00'
     })
     timeoutSid = service.id
-    await db.saveOne(Model, model.id, { svcs: timeoutSid }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: timeoutSid }, { updMode: 'append' })
 
     const node = await db.save(Node, {
       isTemp: false,

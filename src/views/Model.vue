@@ -106,92 +106,7 @@
           </a-input-group>
         </template>
       </EditableTable>
-      <EditableTable
-        title="服务"
-        size="small"
-        :api="svcAPI"
-        :mapper="svcMapper"
-        :columns="svcColumns"
-        :copy="Service.copy"
-        :emitter="svcEmitter"
-        @add="onAddSvcClicked"
-        @before-save="onBefSave"
-        @save="refresh"
-        @delete="refresh"
-      >
-        <template #emit="{ record: svc }">
-          {{ emitMapper[svc.emit as EmitType] }}
-        </template>
-        <template #pathCond="{ record: svc }">
-          <template v-if="svc.emit === 'api'">
-            {{ svc.path }}
-          </template>
-          <template v-else-if="svc.emit === 'timeout'">{{ svc.condition }}后</template>
-          <template v-else-if="svc.emit === 'interval'">每{{ svc.condition }}</template>
-          <template v-else>-</template>
-        </template>
-        <template #fileFunc="{ record: svc }">
-          <template v-if="!svc.isModel">{{ svc.name }}.{{ svc.interface }}()</template>
-          <template v-else>-</template>
-        </template>
-        <template #flow="{ record: svc }">
-          <a-button
-            v-if="!svc.isModel"
-            type="primary"
-            size="small"
-            @click.stop="
-              $router.push(`/server-package/project/${pid}/model/${mid}/flow/${svc.key}`)
-            "
-          >
-            <template #icon><edit-outlined /></template>
-            &nbsp;设计流程
-          </a-button>
-          <template v-else>
-            <InfoCircleOutlined />
-            模型路由流程固定
-          </template>
-        </template>
-        <template #methodCtrl="{ record: svc }">
-          <template v-if="svc.emit === 'api'">
-            {{ svc.method }}
-          </template>
-          <template v-else-if="svc.emit === 'timeout' || svc.emit === 'interval'">
-            <a-space align="center">
-              <a-tooltip>
-                <template #title>需先启动项目后才能启动任务！</template>
-                <a-button
-                  class="mb-3"
-                  size="small"
-                  type="primary"
-                  :disabled="pstatus !== 'running'"
-                  @click.stop="() => svcAPI.job.restart(svc.key)"
-                >
-                  启动
-                </a-button>
-              </a-tooltip>
-              <a-button
-                v-if="svc.jobId"
-                size="small"
-                danger
-                :disabled="pstatus !== 'running'"
-                @click.stop="() => svcAPI.job.stop(svc.key)"
-              >
-                停止
-              </a-button>
-            </a-space>
-          </template>
-          <template v-else>-</template>
-        </template>
-        <template #desc="{ record: svc }">
-          <a-tooltip v-if="svc.desc">
-            <template #title>{{ svc.desc }}</template>
-            <a-button type="link" size="small" click.stop="e => e.preventDefault()">
-              <template #icon><info-circle-outlined /></template>
-            </a-button>
-          </a-tooltip>
-          <template v-else>-</template>
-        </template>
-      </EditableTable>
+      <SvcTable :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
     </div>
   </LytProject>
 </template>
@@ -201,31 +116,22 @@ import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import {
-  expMapper,
-  propColumns,
-  propMapper,
-  propEmitter,
-  svcEmitter,
-  svcMapper,
-  svcColumns
-} from './Model'
+import { expMapper, propColumns, propMapper, propEmitter } from './Model'
 import ExpCls from '@/types/expCls'
 import Property from '@/types/property'
-import Service, { emitMapper, EmitType } from '@/types/service'
+import Service, { emitMapper } from '@/types/service'
 import {
   DatabaseOutlined,
   ExportOutlined,
   FormOutlined,
   AppstoreOutlined,
-  PartitionOutlined,
-  EditOutlined,
-  InfoCircleOutlined
+  PartitionOutlined
 } from '@ant-design/icons-vue'
 import { mdlAPI, propAPI, svcAPI } from '../apis'
 import Model from '@/types/model'
-
-console.log(svcMapper)
+import { Stat } from '@/types/status'
+import { OpnType } from '@/types'
+import { svcColumns, svcEmitter, svcMapper } from './Project'
 
 export default defineComponent({
   name: 'Model',
@@ -235,9 +141,7 @@ export default defineComponent({
     ExportOutlined,
     FormOutlined,
     AppstoreOutlined,
-    PartitionOutlined,
-    EditOutlined,
-    InfoCircleOutlined
+    PartitionOutlined
   },
   setup() {
     const route = useRoute()
@@ -245,9 +149,8 @@ export default defineComponent({
     const store = useStore()
     const pid = route.params.pid as string
     const mid = route.params.mid as string
-    const model = computed(() => store.getters['model/ins'])
-    const mname = computed(() => store.getters['model/ins'].name)
-    const mdlOpns = computed(() =>
+    const model = computed<Model>(() => store.getters['model/ins'])
+    const mdlOpns = computed<OpnType[]>(() =>
       [{ label: '无', value: '' }].concat(
         store.getters['project/models'].map((mdl: Model) => ({
           label: mdl.label || mdl.name,
@@ -255,8 +158,8 @@ export default defineComponent({
         }))
       )
     )
-    const pjtName = computed(() => store.getters['project/ins'].name)
-    const pstatus = computed(() => store.getters['project/ins'].status.stat)
+    const pjtName = computed<string>(() => store.getters['project/ins'].name)
+    const pstatus = computed<Stat>(() => store.getters['project/ins'].status.stat)
     const showExpCls = ref(false)
     const expCls = reactive(new ExpCls())
 
@@ -265,7 +168,10 @@ export default defineComponent({
     async function refresh() {
       await store.dispatch('model/refresh')
       propEmitter.emit('refresh', model.value.props)
-      svcEmitter.emit('refresh', model.value.svcs)
+      svcEmitter.emit(
+        'refresh',
+        store.getters['project/ins'].service.find((svc: Service) => svc.model === model.value.name)
+      )
     }
     function onRelMdlChange(prop: Property, mname: string) {
       if (!mname) {
@@ -278,14 +184,6 @@ export default defineComponent({
       prop.index = false
       prop.unique = false
       prop.visible = true
-    }
-    function onAddSvcClicked() {
-      svcEmitter.emit('update:data', { name: mname.value })
-    }
-    function onBefSave(svc: Service) {
-      if (svc.emit === 'timeout' || svc.emit === 'interval') {
-        svc.path = `/job/v1/${mname.value}/${svc.interface}`
-      }
     }
     return {
       ExpCls,
@@ -309,15 +207,13 @@ export default defineComponent({
       propMapper,
       propEmitter,
       svcAPI,
+      svcMapper,
       svcColumns,
       svcEmitter,
-      svcMapper,
       emitMapper,
 
       refresh,
-      onRelMdlChange,
-      onAddSvcClicked,
-      onBefSave
+      onRelMdlChange
     }
   }
 })

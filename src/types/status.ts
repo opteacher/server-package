@@ -1,5 +1,7 @@
+export type Stat = 'loading' | 'running' | 'stopped'
+
 export default class Status {
-  stat: 'loading' | 'running' | 'stopped'
+  stat: Stat
   name: string
   pid: number
   memory: {

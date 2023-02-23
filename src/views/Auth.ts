@@ -89,7 +89,6 @@ export const roleMapper = new Mapper({
     type: 'Input'
   },
   props: {
-    expanded: true,
     display: false
   }
 })

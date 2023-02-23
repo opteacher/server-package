@@ -110,6 +110,7 @@
         </a>
       </template>
     </EditableTable>
+    <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
   </LytProject>
 </template>
 
@@ -126,21 +127,24 @@ import {
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import { tsMapper, tsEmitter } from './Project'
+import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns } from './Project'
 import { columns as mdlColumns, mapper as mdlMapper } from './Model'
 import { mapper as projMapper } from './Home'
 import { useStore } from 'vuex'
 import Project from '@/types/project'
 import Model from '@/types/model'
+import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import ExpCls from '@/types/expCls'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { pjtAPI as api, mdlAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
+import SvcTable from '@/components/SvcTable.vue'
 
 export default defineComponent({
   name: 'Project',
   components: {
     LytProject,
+    SvcTable,
     SettingOutlined,
     InfoCircleOutlined,
     SyncOutlined,
@@ -161,6 +165,7 @@ export default defineComponent({
     async function refresh() {
       await store.dispatch('project/refresh')
       mdlEmitter.emit('refresh', project.value.models)
+      svcEmitter.emit('refresh', project.value.services)
     }
     async function onConfig(pjt: Project) {
       await api.update(pjt)
@@ -176,12 +181,17 @@ export default defineComponent({
       Project,
       Transfer,
       Model,
+      Service,
       ExpCls,
 
       mdlAPI,
       mdlEmitter,
       mdlColumns,
       mdlMapper,
+      svcAPI,
+      svcEmitter,
+      svcMapper,
+      svcColumns,
       pid,
       api,
       store,

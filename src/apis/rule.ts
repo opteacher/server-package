@@ -23,10 +23,10 @@ export default (rid: string) => ({
       { [`auth.roles[{_id:${rid}}].rules[{_id:${data.key}}]`]: pickOrIgnore(data, ['key']) },
       { axiosConfig: { params: { updMode: 'merge' } } }
     ),
-  all: (offset: number, limit: number) =>
+  all: () =>
     store.getters['project/ins'].auth.roles
       .find((role: any) => role.key === rid)
-      .rules.slice(offset, offset + limit),
+      .rules,
   detail: (key: any) => {
     console.log(key)
   }

@@ -10,8 +10,8 @@ import Node from '../models/node.js'
 import { del as delNode, save as saveNode, scanNextss } from './node.js'
 
 export async function bind(pid, auth) {
-  let project = await db.select(Project, { _index: pid })
-  const model = await db.select(Model, { _index: auth.model }, { ext: true })
+  let project = await db.select(Project, { _index: pid }, { ext: true })
+  const model = await db.select(Model, { _index: auth.model })
   // 查看欲绑定的模型下是否有role字段，没有则创建
   const roleIdx = model.props.findIndex(prop => prop.name === 'role')
   if (roleIdx === -1) {
@@ -32,7 +32,7 @@ export async function bind(pid, auth) {
   }
   // 检查模型是否具有签发、验证接口，没有则添加
   const skips = project.auth.skips
-  let svcIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')
+  let svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')
   if (svcIdx === -1) {
     const sgnSvc = await db.save(Service, {
       name: 'auth',
@@ -42,10 +42,10 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/sign`,
       needRet: true
     })
-    await db.saveOne(Model, auth.model, { svcs: sgnSvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: sgnSvc.id }, { updMode: 'append' })
     skips.push(sgnSvc.path)
   }
-  svcIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
+  svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
   if (svcIdx === -1) {
     const vfySvc = await db.save(Service, {
       name: 'auth',
@@ -55,10 +55,10 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/verify`,
       needRet: true
     })
-    await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
-  svcIdx = model.svcs.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
+  svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
   if (svcIdx === -1) {
     const vfySvc = await db.save(Service, {
       name: 'auth',
@@ -68,7 +68,7 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/verify/deep`,
       needRet: true
     })
-    await db.saveOne(Model, auth.model, { svcs: vfySvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { service: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
   // 跳过的路由附加到授权系统中
@@ -78,13 +78,13 @@ export async function bind(pid, auth) {
 }
 
 export async function unbind(pid) {
-  const project = await db.select(Project, { _index: pid })
+  const project = await db.select(Project, { _index: pid }, { ext: true })
   if (!project.auth.model) {
     return { error: '项目未绑定模型' }
   }
   // 收集模型权限相关的接口
   const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
-  const sgnSvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
+  const sgnSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const sgnSid = sgnSvc ? sgnSvc.id : null
   if (sgnSid) {
     if (sgnSvc.flow) {
@@ -95,19 +95,19 @@ export async function unbind(pid) {
       await delNode(sgnSvc.flow, sgnSvc.id)
     }
     await db.remove(Service, { _index: sgnSid })
-    await db.saveOne(Model, project.auth.model, { svcs: sgnSid }, { updMode: 'delete' })
+    await db.saveOne(Project, pid, { service: sgnSid }, { updMode: 'delete' })
   }
-  let vfySvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'verify')
+  let vfySvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'verify')
   let vfySid = vfySvc ? vfySvc.id : null
   if (vfySid) {
     await db.remove(Service, { _index: vfySid })
-    await db.saveOne(Model, project.auth.model, { svcs: vfySid }, { updMode: 'delete' })
+    await db.saveOne(Project, pid, { service: vfySid }, { updMode: 'delete' })
   }
-  vfySvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'verifyDeep')
+  vfySvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'verifyDeep')
   vfySid = vfySvc ? vfySvc.id : null
   if (vfySid) {
     await db.remove(Service, { _index: vfySid })
-    await db.saveOne(Model, project.auth.model, { svcs: vfySid }, { updMode: 'delete' })
+    await db.saveOne(Project, pid, { service: vfySid }, { updMode: 'delete' })
   }
   // 清除模型role字段
   await db.saveOne(Model, project.auth.model, { 'props[{name:role}]': null }, { updMode: 'delete' })
@@ -126,14 +126,14 @@ export async function unbind(pid) {
  * @returns
  */
 export async function genSign(pid, props) {
-  const project = await db.select(Project, { _index: pid })
+  const project = await db.select(Project, { _index: pid }, { ext: true })
   if (!project.auth || !project.auth.model) {
     return { error: '项目未绑定模型！' }
   }
   // 更新比对字段
   await db.saveOne(Project, pid, { 'auth.props': props })
-  const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
-  const sgnSvc = model.svcs.find(svc => svc.name === 'auth' && svc.interface === 'sign')
+  const model = await db.select(Model, { _index: project.auth.model })
+  const sgnSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   if (!sgnSvc) {
     return { error: '未找到签名服务！' }
   }

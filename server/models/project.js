@@ -18,6 +18,7 @@ export default db.defineModel(
     }],
     expPorts: db.PropTypes.Array,
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
+    services: [{ type: db.PropTypes.Id, ref: 'service' }],
     auth: {
       model: db.PropTypes.String,
       skips: db.PropTypes.Array,

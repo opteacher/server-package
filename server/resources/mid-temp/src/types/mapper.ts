@@ -14,7 +14,6 @@ export class BaseMapper {
   disabled: boolean | Cond[] | { [cmpRel: string]: Cond[] }
   loading: boolean
   display: boolean | Cond[] | { [cmpRel: string]: Cond[] }
-  expanded: boolean
   reset: boolean
   empty: boolean
   onChange: (record: any, to: any, from?: any, extra?: any) => void
@@ -28,7 +27,6 @@ export class BaseMapper {
     this.disabled = false
     this.loading = false
     this.display = true
-    this.expanded = false
     this.reset = true
     this.empty = false
     this.onChange = () => undefined
@@ -53,7 +51,6 @@ export class BaseMapper {
         : typeof src.display !== 'undefined'
         ? src.display
         : tgt.display
-    tgt.expanded = typeof src.expanded !== 'undefined' ? src.expanded : tgt.expanded
     tgt.empty = typeof src.empty !== 'undefined' ? src.empty : tgt.empty
     tgt.onChange = src.onChange || tgt.onChange
     return tgt

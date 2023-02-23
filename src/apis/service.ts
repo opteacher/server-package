@@ -1,18 +1,17 @@
 import store from '@/store'
 import Service from '@/types/service'
 import { reqDelete, reqGet, reqPost, reqPut, intervalCheck } from '@/utils'
-import { svcEmitter } from '../views/Model'
 
 export default {
   add: async (data: any) => {
-    const mid = store.getters['model/ins'].key
+    const pid = store.getters['project/ins'].key
     data.condition = `${data.cdValue}${data.cdUnit}`
     const svc = Service.copy(await reqPost('service', data))
-    return reqPut(`model/${mid}`, `svcs/${svc.key}`)
+    return reqPut(`project/${pid}`, `services/${svc.key}`)
   },
   remove: async (key: any) => {
-    const mid = store.getters['model/ins'].key
-    await reqDelete(`model/${mid}`, `svcs/${key}`)
+    const pid = store.getters['project/ins'].key
+    await reqDelete(`project/${pid}`, `services/${key}`)
     return reqDelete('service', key, { type: 'api' })
   },
   update: (data: any) => {
@@ -22,8 +21,8 @@ export default {
     return reqPut('service', data.key, data, { ignores: ['flow'] })
   },
   all: async () => {
-    await store.dispatch('model/refresh')
-    return store.getters['model/ins'].svcs
+    await store.dispatch('project/refresh')
+    return store.getters['project/ins'].services
   },
   detail: (key: any) => reqGet('model', key),
   job: {
@@ -40,9 +39,6 @@ export default {
           } catch (e: any) {
             return false
           }
-        },
-        middle: {
-          succeed: () => svcEmitter.emit('refresh')
         }
       })
     },
@@ -59,9 +55,6 @@ export default {
           } catch (e: any) {
             return false
           }
-        },
-        middle: {
-          succeed: () => svcEmitter.emit('refresh')
         }
       })
     }

@@ -13,7 +13,6 @@ export default class Model {
   desc: string
   logTime: boolean
   props: Property[]
-  svcs: Service[]
   form: Form
   table: Table
 
@@ -25,7 +24,6 @@ export default class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.svcs = []
     this.form = new Form()
     this.table = new Table()
   }
@@ -38,7 +36,6 @@ export default class Model {
     this.desc = ''
     this.logTime = true
     this.props = []
-    this.svcs = []
     this.form = new Form()
     this.table = new Table()
   }
@@ -67,11 +64,6 @@ export default class Model {
       }
     } else if (force) {
       tgt.props = []
-    }
-    if (src.svcs && src.svcs.length) {
-      tgt.svcs = src.svcs.map((svc: any) => Service.copy(svc))
-    } else if (force) {
-      tgt.svcs = []
     }
     if (src.form) {
       Form.copy(src.form, tgt.form)

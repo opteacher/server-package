@@ -69,7 +69,7 @@
         :copy="Role.copy"
         :emitter="roleEmitter"
         :filter="(record: any) => showGuest || record.name !== 'guest'"
-        :disabled="(record: any) => record.name === 'guest'"
+        :disable="(record: any) => record.name === 'guest'"
         :addable="auth.model !== ''"
         @save="refresh"
         @delete="refresh"

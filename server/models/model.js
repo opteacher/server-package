@@ -25,7 +25,6 @@ export default db.defineModel(
         default: db.PropTypes.Any
       }
     ],
-    svcs: [{ type: db.PropTypes.Id, ref: 'service' }],
     form: {
       title: db.PropTypes.String,
       width: db.PropTypes.Number,

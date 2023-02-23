@@ -128,45 +128,45 @@ export async function create(data) {
   if (data.pid) {
     const project = await db.select(Project, { _index: data.pid })
     await db.saveOne(Dep, model.id, { belong: project.name })
-    let svc = await db.save(Service, {
+    let service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      isModel: true,
+      model: model.name,
       method: 'POST',
       path: `/mdl/v1/${model.name}`,
       needRet: true
     })
-    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+    await db.saveOne(Project, data.pid, { services: service.id }, { updMode: 'append' })
 
-    svc = await db.save(Service, {
+    service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      isModel: true,
+      model: model.name,
       method: 'DELETE',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
     })
-    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+    await db.saveOne(Project, data.pid, { services: service.id }, { updMode: 'append' })
 
-    svc = await db.save(Service, {
+    service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      isModel: true,
+      model: model.name,
       method: 'PUT',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
     })
-    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+    await db.saveOne(Project, data.pid, { services: service.id }, { updMode: 'append' })
 
-    svc = await db.save(Service, {
+    service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      isModel: true,
+      model: model.name,
       method: 'GET',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
     })
-    await db.saveOne(Model, model.id, { svcs: svc.id }, { updMode: 'append' })
+    await db.saveOne(Project, data.pid, { services: service.id }, { updMode: 'append' })
   }
   await genForm(model.id)
   await genTable(model.id)
@@ -176,7 +176,8 @@ export async function create(data) {
 export async function del(key) {
   await db.remove(Dep, { _index: key })
   const model = await db.select(Model, { _index: key })
-  await Promise.all(model.svcs.map(sid => delSvc(sid)))
+  const msvcs = await db.select(Service, { model: model.name })
+  await Promise.all(msvcs.map(sid => delSvc(sid)))
   return db.remove(Model, { _index: key })
 }
 

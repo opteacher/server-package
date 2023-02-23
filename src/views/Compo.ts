@@ -29,7 +29,6 @@ export const mapper = new Mapper({
     ]
   },
   props: {
-    expanded: true,
     display: false
   }
 })

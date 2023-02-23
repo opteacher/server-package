@@ -5,6 +5,7 @@ import Auth from './auth'
 import Status from './status'
 import Middle from './middle'
 import Model from './model'
+import Service from './service'
 
 export default class Project {
   key: string
@@ -20,6 +21,7 @@ export default class Project {
   expPorts: number[]
   volumes: any[]
   models: Model[]
+  services: Service[]
   auth: Auth
   middle: Middle
   status: Status
@@ -38,6 +40,7 @@ export default class Project {
     this.expPorts = []
     this.volumes = []
     this.models = []
+    this.services = []
     this.auth = new Auth()
     this.middle = new Middle()
     this.status = new Status()
@@ -57,12 +60,13 @@ export default class Project {
     this.expPorts = []
     this.volumes = []
     this.models = []
+    this.services = []
     this.auth = new Auth()
     this.middle = new Middle()
     this.status = new Status()
   }
 
-  static copy(src: any, tgt?: Project): Project {
+  static copy(src: any, tgt?: Project, force = false): Project {
     tgt = tgt || new Project()
     tgt.key = src.key || src._id || tgt.key
     tgt.name = src.name || tgt.name
@@ -83,10 +87,14 @@ export default class Project {
     tgt.expPorts = src.expPorts || tgt.expPorts
     tgt.volumes = src.volumes || tgt.volumes
     if (src.models) {
-      tgt.models.splice(0, tgt.models.length)
-      for (const model of src.models) {
-        tgt.models.push(Model.copy(model))
-      }
+      tgt.models.splice(0, tgt.models.length, ...src.models.map((mdl: any) => Model.copy(mdl)))
+    }
+    if (src.services) {
+      tgt.services.splice(
+        0,
+        tgt.services.length,
+        ...src.services.map((svc: any) => Service.copy(svc))
+      )
     }
     tgt.auth = src.auth ? Auth.copy(src.auth) : tgt.auth
     tgt.middle = src.middle ? Middle.copy(src.middle) : tgt.middle
