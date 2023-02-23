@@ -78,7 +78,7 @@ export default class Service {
   interface: string
   emit: EmitType
   flow: Node | null
-  isModel: boolean
+  model: string
   method: Method
   path: string | undefined
   jobId: number
@@ -93,7 +93,7 @@ export default class Service {
     this.interface = ''
     this.emit = 'api'
     this.flow = null
-    this.isModel = false
+    this.model = ''
     this.method = 'GET'
     this.path = undefined
     this.jobId = 0
@@ -109,7 +109,7 @@ export default class Service {
     this.interface = ''
     this.emit = 'api'
     this.flow = null
-    this.isModel = false
+    this.model = ''
     this.method = 'GET'
     this.path = undefined
     this.jobId = 0
@@ -135,7 +135,7 @@ export default class Service {
     } else {
       tgt.flow = null
     }
-    tgt.isModel = src.isModel || tgt.isModel
+    tgt.model = src.model || tgt.model
     tgt.method = src.method || tgt.method
     tgt.path = src.path || tgt.path
     tgt.jobId = src.jobId || tgt.jobId

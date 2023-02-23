@@ -83,7 +83,7 @@ describe('# 权限服务', () => {
     let svcTest = await db.save(Service, {
       name: 'model1',
       emit: 'api',
-      isModel: true,
+      model: 'model1',
       method: 'POST',
       path: '/mdl/v1/model1'
     })
@@ -93,7 +93,7 @@ describe('# 权限服务', () => {
     svcTest = await db.save(Service, {
       name: 'model1',
       emit: 'api',
-      isModel: true,
+      model: 'model1',
       method: 'GET',
       path: '/mdl/v1/model1/:id'
     })

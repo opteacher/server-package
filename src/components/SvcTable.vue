@@ -76,12 +76,12 @@ export default defineComponent({
       <template v-else>-</template>
     </template>
     <template #fileFunc="{ record: svc }">
-      <template v-if="!svc.isModel">{{ svc.name }}.{{ svc.interface }}()</template>
+      <template v-if="!svc.model">{{ svc.name }}.{{ svc.interface }}()</template>
       <template v-else>-</template>
     </template>
     <template #flow="{ record: svc }">
       <a-button
-        v-if="!svc.isModel"
+        v-if="!svc.model"
         type="primary"
         size="small"
         @click.stop="$router.push(`/server-package/project/${pid}/flow/${svc.key}`)"

@@ -64,24 +64,24 @@ export const svcMapper = new Mapper({
     label: '文件名',
     desc: '所在文件，可以直接选择为模型名',
     type: 'SelOrIpt',
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
+    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
   },
   interface: {
     label: '方法',
     desc: '指定函数',
     type: 'Input',
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })]
+    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
   },
-  isModel: {
-    label: '是否为模型路由',
-    type: 'Checkbox',
-    onChange: (svc: Service, to: boolean) => {
-      if (to) {
-        svc.name = store.getters['model/ins'].name
-        svc.interface = ''
-        svc.path = genMdlPath(svc)
-      }
-    },
+  model: {
+    label: '模型路由',
+    type: 'Select',
+    // onChange: (svc: Service, to: boolean) => {
+    //   if (to) {
+    //     svc.name = store.getters['model/ins'].name
+    //     svc.interface = ''
+    //     svc.path = genMdlPath(svc)
+    //   }
+    // },
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
     disabled: [Cond.copy({ key: 'method', cmp: '===', val: 'LINK' })]
   },
@@ -106,7 +106,7 @@ export const svcMapper = new Mapper({
     label: '路由',
     type: 'Input',
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
-    disabled: [Cond.copy({ key: 'isModel', cmp: '==', val: true })],
+    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })],
     onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {
         svc.path = `/${path}`

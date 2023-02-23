@@ -21,7 +21,6 @@ describe('# 节点服务', () => {
       name: 'service',
       interface: 'test',
       emit: 'api',
-      isModel: false,
       method: 'GET',
       path: '/abcd/api/v1/test'
     })
