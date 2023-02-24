@@ -763,14 +763,9 @@ export async function getAllAPIs(pid) {
   for (const service of project.services) {
     switch (service.emit) {
       case 'api':
-        ret.push({
-          key: service.id,
-          name: service.name,
-          func: service.interface,
-          model: model.name,
-          method: service.method,
-          path: service.path
-        })
+        ret.push(
+          pickOrIgnore(service, ['id', 'name', 'interface', 'model', 'method', 'path'], false)
+        )
         break
       case 'timeout':
       case 'interval':
@@ -778,7 +773,6 @@ export async function getAllAPIs(pid) {
           key: `${service.id}_restart`,
           name: service.name,
           func: service.interface,
-          model: model.name,
           method: 'POST',
           path: service.path
         })
@@ -786,7 +780,6 @@ export async function getAllAPIs(pid) {
           key: `${service.id}_stop`,
           name: service.name,
           interface: service.interface,
-          model: model.name,
           method: 'DELETE',
           path: `${service.path}/:tmot`
         })

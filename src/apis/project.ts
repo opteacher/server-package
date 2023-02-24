@@ -1,5 +1,6 @@
 import store from '@/store'
 import {
+  RequestOptions,
   endsWith,
   makeRequest,
   pickOrIgnore,
@@ -38,8 +39,8 @@ export default {
   remove: (key: any) => reqDelete('project', key, { type: 'api' }),
   update: (data: any) =>
     reqPut('project', data.key, data, { ignores: ['models', 'auth', 'middle', 'status'] }),
-  all: (offset: number, limit: number) =>
-    reqAll('project', { axiosConfig: { params: { offset, limit } }, copy: Project.copy }),
+  all: (options: RequestOptions) =>
+    reqAll('project', Object.assign(options, { copy: Project.copy })),
   detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
