@@ -106,7 +106,12 @@
           </a-input-group>
         </template>
       </EditableTable>
-      <SvcTable :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
+      <SvcTable
+        :mapper="svcMapper"
+        :columns="svcColumns"
+        :emitter="svcEmitter"
+        :model="model.name"
+      />
     </div>
   </LytProject>
 </template>

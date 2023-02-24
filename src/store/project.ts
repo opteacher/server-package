@@ -10,6 +10,7 @@ import API from '@/types/api'
 import Middle from '@/types/middle'
 import Status from '@/types/status'
 import { intervalCheck } from '@/utils'
+import { svcEmitter } from '@/views/Project'
 
 type PjtState = { project: Project; apis: API[] }
 
@@ -34,6 +35,14 @@ export default {
       }
       const pid = router.currentRoute.value.params.pid as string
       Project.copy(await pjtAPI.detail(pid), state.project)
+      svcEmitter.emit('update:mapper', {
+        model: {
+          options: state.project.models.map((mdl: Model) => ({
+            label: mdl.label,
+            value: mdl.name
+          }))
+        }
+      })
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
     },
@@ -43,7 +52,7 @@ export default {
         chkFun: async () => {
           try {
             state.project.status = Status.copy(await pjtAPI.status(state.project.key))
-          } catch(e: any) {
+          } catch (e: any) {
             return false
           }
           return expect === state.project.status.stat

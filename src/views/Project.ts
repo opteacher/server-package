@@ -75,13 +75,6 @@ export const svcMapper = new Mapper({
   model: {
     label: '模型路由',
     type: 'Select',
-    // onChange: (svc: Service, to: boolean) => {
-    //   if (to) {
-    //     svc.name = store.getters['model/ins'].name
-    //     svc.interface = ''
-    //     svc.path = genMdlPath(svc)
-    //   }
-    // },
     display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
     disabled: [Cond.copy({ key: 'method', cmp: '===', val: 'LINK' })]
   },

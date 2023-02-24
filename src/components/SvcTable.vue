@@ -17,7 +17,8 @@ export default defineComponent({
   props: {
     emitter: { type: Emitter, default: new Emitter() },
     mapper: { type: Mapper, required: true },
-    columns: { type: Array, required: true }
+    columns: { type: Array, required: true },
+    model: { type: String, default: '' }
   },
   setup(props) {
     const pid = computed(() => store.getters['project/ins'].key)
@@ -52,9 +53,8 @@ export default defineComponent({
   <EditableTable
     title="服务"
     size="small"
-    :api="{
-      all: () => project.services
-    }"
+    :api="api"
+    :filter="(svc: any) => model ? svc.model === model : true"
     :mapper="mapper"
     :columns="columns"
     :copy="Service.copy"
