@@ -25,12 +25,12 @@ export default defineComponent({
     const project = computed(() => store.getters['project/ins'])
     const pstatus = computed(() => store.getters['project/ins'].status.stat)
 
-    function onAddSvcClicked(mname: string) {
-      props.emitter.emit('update:data', { name: mname })
+    function onAddSvcClicked() {
+      props.emitter.emit('update:data', { name: props.model })
     }
-    function onBefSave(mname: string, svc: Service) {
+    function onBefSave(svc: Service) {
       if (svc.emit === 'timeout' || svc.emit === 'interval') {
-        svc.path = `/job/v1/${mname}/${svc.interface}`
+        svc.path = `/job/v1/${props.model}/${svc.interface}`
       }
     }
     return {
@@ -54,7 +54,7 @@ export default defineComponent({
     title="服务"
     size="small"
     :api="api"
-    :filter="(svc: any) => model ? svc.model === model : true"
+    :filter="(svc: any) => model ? svc.model === model : !svc.model"
     :mapper="mapper"
     :columns="columns"
     :copy="Service.copy"
@@ -68,9 +68,7 @@ export default defineComponent({
       {{ emitMapper[svc.emit as EmitType] }}
     </template>
     <template #pathCond="{ record: svc }">
-      <template v-if="svc.emit === 'api'">
-        {{ svc.path }}
-      </template>
+      <template v-if="svc.emit === 'api'">{{ svc.path }}</template>
       <template v-else-if="svc.emit === 'timeout'">{{ svc.condition }}后</template>
       <template v-else-if="svc.emit === 'interval'">每{{ svc.condition }}</template>
       <template v-else>-</template>
@@ -126,12 +124,7 @@ export default defineComponent({
       <template v-else>-</template>
     </template>
     <template #desc="{ record: svc }">
-      <a-tooltip v-if="svc.desc">
-        <template #title>{{ svc.desc }}</template>
-        <a-button type="link" size="small" click.stop="e => e.preventDefault()">
-          <template #icon><info-circle-outlined /></template>
-        </a-button>
-      </a-tooltip>
+      <pre v-if="svc.desc">{{ svc.desc }}</pre>
       <template v-else>-</template>
     </template>
   </EditableTable>

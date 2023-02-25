@@ -323,7 +323,7 @@ export const edtNdMapper = new Mapper({
         maxRows: 6
       },
       isFun: {
-        label: '是否为函数式',
+        label: '函数式',
         desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
         display: [

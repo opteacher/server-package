@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+import { copy as gnlCpy } from '../utils'
 import Node from './node'
 
 export const emitMapper = {
@@ -39,7 +39,7 @@ export default class Service {
   flow: Node | null
   model: string
   method: Method
-  path: string | undefined
+  path: string
   jobId: number
   condition: string
   cdValue: number
@@ -55,7 +55,7 @@ export default class Service {
     this.flow = null
     this.model = ''
     this.method = 'GET'
-    this.path = undefined
+    this.path = ''
     this.jobId = 0
     this.condition = ''
     this.cdValue = 1
@@ -72,7 +72,7 @@ export default class Service {
     this.flow = null
     this.model = ''
     this.method = 'GET'
-    this.path = undefined
+    this.path = ''
     this.jobId = 0
     this.condition = ''
     this.cdValue = 1
@@ -81,9 +81,12 @@ export default class Service {
     this.desc = ''
   }
 
-  static copy(src: any, tgt?: Service): Service {
-    tgt = tgt || new Service()
-    tgt.key = src.key || src._id || tgt.key
+  static copy(src: any, tgt?: Service, force = false): Service {
+    tgt = gnlCpy(Service, src, tgt, {
+      force,
+      ignProps: ['name', 'interface', 'cdValue', 'cdUnit'],
+      cpyMapper: { flow: Node.copy }
+    })
     if (src.service && src.service.length === 2) {
       tgt.name = src.service[0]
       tgt.interface = src.service[1]
@@ -91,24 +94,11 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    tgt.emit = src.emit || tgt.emit
-    if (src.flow) {
-      tgt.flow = Node.copy(src.flow)
-    } else {
-      tgt.flow = null
-    }
-    tgt.model = src.model || tgt.model
-    tgt.method = src.method || tgt.method
-    tgt.path = src.path || tgt.path
-    tgt.jobId = src.jobId || tgt.jobId
-    tgt.condition = src.condition || tgt.condition
     const emtNum = /^\d+/.exec(tgt.condition)
     tgt.cdValue =
       src.cdValue || (tgt.condition && emtNum && emtNum.length ? emtNum[0] : tgt.cdValue)
     const emtUnt = /(Y|M|W|D|h|m|s|ms)$/.exec(tgt.condition)
     tgt.cdUnit = src.cdUnit || (tgt.condition && emtUnt && emtUnt.length ? emtUnt[0] : tgt.cdUnit)
-    tgt.needRet = typeof src.needRet !== 'undefined' ? src.needRet : tgt.needRet
-    tgt.desc = src.desc || tgt.desc
     return tgt
   }
 }
