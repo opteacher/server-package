@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { copy as gnlCpy } from '../utils'
+import { gnlCpy } from '../utils'
 import Node from './node'
 
 export const emitMapper = {

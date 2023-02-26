@@ -15,7 +15,6 @@ import Form from '../views/Form.vue'
 import Table from '../views/Table.vue'
 import Demo from '../views/Demo.vue'
 import Test from '../views/Test.vue'
-import Frontend from '../views/FrtMain.vue'
 import axios from 'axios'
 import { makeRequest } from '@/utils'
 
@@ -116,12 +115,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/project/:pid/model/:mid/demo',
     name: 'Demo',
     component: Demo,
-    meta: { reqLogin: true }
-  },
-  {
-    path: '/server-package/project/:pid/frt',
-    name: 'Frontend',
-    component: Frontend,
     meta: { reqLogin: true }
   }
 ]

@@ -78,8 +78,7 @@ export const mapper = new Mapper({
           }
         },
         copy: (src: any, tgt?: any): any => {
-          tgt = tgt || { dest: '/', src: 'test:/' },
-          tgt.dest = src.dest || tgt.dest
+          ;(tgt = tgt || { dest: '/', src: 'test:/' }), (tgt.dest = src.dest || tgt.dest)
           tgt.src = src.src || tgt.src
           return tgt
         }

@@ -20,6 +20,43 @@
         </a-tooltip>
       </a-space>
       <a-space>
+        <a-dropdown>
+          <a-button class="w-28" @click.prevent>
+            <template #icon><ant-design-outlined /></template>
+            &nbsp;前端
+          </a-button>
+          <template #overlay>
+            <a-menu @click="onFrtMuClick">
+              <a-menu-item key="export">
+                <template #icon>
+                  <export-outlined />
+                </template>
+                <span>导出</span>
+              </a-menu-item>
+              <a-menu-item key="deploy" v-if="project.thread">
+                <template #icon>
+                  <gold-outlined />
+                </template>
+                <span>部署</span>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+        <FormDialog
+          title="导出前端"
+          :lblWid="3"
+          :emitter="frontend.expEmitter"
+          :mapper="frontend.expMapper"
+          :copy="Export.copy"
+        >
+          <template #name="{ formState }">
+            <a-input v-model:value="formState.name">
+              <template #suffix>
+                <a-checkbox />
+              </template>
+            </a-input>
+          </template>
+        </FormDialog>
         <a-button @click="showProj = true">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
@@ -123,11 +160,14 @@ import {
   SyncOutlined,
   UploadOutlined,
   PoweroffOutlined,
-  ProjectOutlined
+  ProjectOutlined,
+  AntDesignOutlined,
+  ExportOutlined,
+  GoldOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns } from './Project'
+import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns, frontend } from './Project'
 import { columns as mdlColumns, mapper as mdlMapper } from './Model'
 import { mapper as projMapper } from './Home'
 import { useStore } from 'vuex'
@@ -139,6 +179,7 @@ import ExpCls from '@/types/expCls'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
 import SvcTable from '@/components/SvcTable.vue'
+import { Export } from '@/types/frontend'
 
 export default defineComponent({
   name: 'Project',
@@ -150,7 +191,10 @@ export default defineComponent({
     SyncOutlined,
     UploadOutlined,
     PoweroffOutlined,
-    ProjectOutlined
+    ProjectOutlined,
+    AntDesignOutlined,
+    ExportOutlined,
+    GoldOutlined
   },
   setup() {
     const route = useRoute()
@@ -177,12 +221,18 @@ export default defineComponent({
       await store.dispatch('project/refresh')
       showTsfm.value = false
     }
+    function onFrtMuClick({ key }: { key: 'export' | 'deploy' }) {
+      frontend[`${key.slice(0, 3)}Emitter` as 'expEmitter' | 'depEmitter'].emit('update:show', {
+        show: true
+      })
+    }
     return {
       Project,
       Transfer,
       Model,
       Service,
       ExpCls,
+      Export,
 
       mdlAPI,
       mdlEmitter,
@@ -192,6 +242,7 @@ export default defineComponent({
       svcEmitter,
       svcMapper,
       svcColumns,
+      frontend,
       pid,
       api,
       store,
@@ -205,7 +256,8 @@ export default defineComponent({
 
       refresh,
       onConfig,
-      onTransfer
+      onTransfer,
+      onFrtMuClick
     }
   }
 })

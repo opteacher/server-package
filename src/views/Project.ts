@@ -10,6 +10,7 @@ import { Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Property from '@/types/property'
 import Service from '@/types/service'
 import store from '@/store'
+import { lytOpns, Page } from '@/types/frontend'
 
 export const tsEmitter = new Emitter()
 
@@ -149,3 +150,40 @@ export const svcColumns = [
   new Column('描述', 'desc'),
   new Column('流程', 'flow')
 ]
+
+export const frontend = {
+  expEmitter: new Emitter(),
+  expMapper: new Mapper({
+    name: {
+      label: '名称',
+      desc: '不能与所属项目同名！',
+      type: 'Input'
+    },
+    pages: {
+      label: '页面',
+      type: 'Table',
+      columns: [new Column('路由', 'path'), new Column('布局', 'layout')],
+      mapper: new Mapper({
+        path: {
+          label: '路由',
+          type: 'Input'
+        },
+        layout: {
+          label: '布局',
+          type: 'Select',
+          options: lytOpns
+        }
+      }),
+      copy: Page.copy
+    },
+    withLib: {
+      label: '前端库',
+      type: 'Checkbox'
+    },
+    modules: {
+      label: '模组',
+      type: 'EditList'
+    }
+  }),
+  depEmitter: new Emitter()
+}

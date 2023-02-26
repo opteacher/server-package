@@ -996,3 +996,7 @@ export async function chkMiddle(pid) {
   }
   return { midURL, status: 'published' }
 }
+
+export async function expFrtend(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+}

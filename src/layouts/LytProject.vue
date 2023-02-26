@@ -19,10 +19,6 @@
           <layout-outlined />
           <span>中台</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/frt`">
-          <ant-design-outlined />
-          <span>前端</span>
-        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -88,8 +84,7 @@ import {
   AuditOutlined,
   HomeOutlined,
   LayoutOutlined,
-  UserOutlined,
-  AntDesignOutlined
+  UserOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -105,8 +100,7 @@ export default defineComponent({
     AuditOutlined,
     HomeOutlined,
     LayoutOutlined,
-    UserOutlined,
-    AntDesignOutlined
+    UserOutlined
   },
   props: {
     active: { type: String, required: true }
