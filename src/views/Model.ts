@@ -69,6 +69,25 @@ export const propColumns = [
   new Column('备注', 'remark', { width: 300 })
 ]
 
+const dftMapper = {
+  LongStr: { type: 'Textarea' },
+  Object: {
+    type: 'CodeEditor',
+    lang: 'json'
+  },
+  Array: { type: 'EditList' },
+  Boolean: {
+    type: 'Select',
+    options: [
+      { label: 'TRUE', value: 'true' },
+      { label: 'FALSE', value: 'false' }
+    ]
+  },
+  DateTime: { type: 'DateTime' },
+  Number: { type: 'Number' },
+  String: { type: 'Input' }
+} as Record<BaseTypes, any>
+
 export const propMapper = new Mapper({
   name: {
     label: '字段名',
@@ -92,36 +111,7 @@ export const propMapper = new Mapper({
     })),
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
     onChange: (_prop: Property, toType: BaseTypes) => {
-      switch (toType) {
-        case 'LongStr':
-          propMapper['default'].type = 'Textarea'
-          break
-        case 'Object':
-          propMapper['default'].type = 'CodeEditor'
-          propMapper['default'].lang = 'json'
-          break
-        case 'Array':
-          propMapper['default'].type = 'EditList'
-          break
-        case 'Boolean':
-          propMapper['default'].type = 'Select'
-          propMapper['default'].options = [
-            { label: 'TRUE', value: 'true' },
-            { label: 'FALSE', value: 'false' }
-          ]
-          break
-        case 'DateTime':
-          propMapper['default'].type = 'DateTime'
-          break
-        case 'Number':
-          propMapper['default'].type = 'Number'
-          break
-        case 'String':
-        default:
-          propMapper['default'].type = 'Input'
-          break
-      }
-      propEmitter.emit('update:mapper', propMapper)
+      propEmitter.emit('update:mapper', { default: dftMapper[toType as BaseTypes] })
       propEmitter.emit('update:data', { default: toType === 'Array' ? [] : null })
     }
   },

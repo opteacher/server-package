@@ -15,7 +15,7 @@ export default defineComponent({
     InfoCircleOutlined
   },
   props: {
-    emitter: { type: Emitter, default: new Emitter() },
+    emitter: { type: Emitter, required: true },
     mapper: { type: Mapper, required: true },
     columns: { type: Array, required: true },
     model: { type: String, default: '' }
@@ -54,7 +54,7 @@ export default defineComponent({
     title="服务"
     size="small"
     :api="api"
-    :filter="(svc: any) => model ? svc.model === model : !svc.model"
+    :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
     :mapper="mapper"
     :columns="columns"
     :copy="Service.copy"
@@ -124,7 +124,7 @@ export default defineComponent({
       <template v-else>-</template>
     </template>
     <template #desc="{ record: svc }">
-      <pre v-if="svc.desc">{{ svc.desc }}</pre>
+      <pre v-if="svc.desc" class="w-48">{{ svc.desc }}</pre>
       <template v-else>-</template>
     </template>
   </EditableTable>

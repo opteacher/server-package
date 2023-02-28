@@ -65,19 +65,25 @@ export const svcMapper = new Mapper({
     label: '文件名',
     desc: '所在文件，可以直接选择为模型名',
     type: 'SelOrIpt',
-    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
+    disabled: [
+      Cond.copy({ key: 'model', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+    ]
   },
   interface: {
     label: '方法',
     desc: '指定函数',
     type: 'Input',
-    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
+    disabled: [
+      Cond.copy({ key: 'model', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+    ]
   },
   model: {
     label: '模型路由',
     type: 'Select',
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
-    disabled: [Cond.copy({ key: 'method', cmp: '===', val: 'LINK' })]
+    display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })],
+    disabled: [Cond.copy({ key: 'method', cmp: '=', val: 'LINK' })]
   },
   method: {
     label: '访问方式',
@@ -94,13 +100,16 @@ export const svcMapper = new Mapper({
         svc.path = genMdlPath(svc)
       }
     },
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+    display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })]
   },
   path: {
     label: '路由',
     type: 'Input',
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })],
-    disabled: [Cond.copy({ key: 'model', cmp: '!=', val: '' })],
+    display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })],
+    disabled: [
+      Cond.copy({ key: 'model', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+    ],
     onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {
         svc.path = `/${path}`
@@ -111,7 +120,7 @@ export const svcMapper = new Mapper({
     label: '是否返回',
     desc: '是否返回一个result，选择否则可以自定义返回体ctx.body = X',
     type: 'Checkbox',
-    display: [Cond.copy({ key: 'emit', cmp: '==', val: 'api' })]
+    display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })]
   },
   cdValue: {
     label: '触发值',
@@ -131,8 +140,8 @@ export const svcMapper = new Mapper({
     options: timeUnits,
     display: {
       OR: [
-        Cond.copy({ key: 'emit', cmp: '==', val: 'timeout' }),
-        Cond.copy({ key: 'emit', cmp: '==', val: 'interval' })
+        Cond.copy({ key: 'emit', cmp: '=', val: 'timeout' }),
+        Cond.copy({ key: 'emit', cmp: '=', val: 'interval' })
       ]
     }
   },
@@ -145,7 +154,7 @@ export const svcMapper = new Mapper({
 export const svcColumns = [
   new Column('激活方式', 'emit'),
   new Column('路由/激发条件', 'pathCond'),
-  new Column('访问方式/控制', 'methodCtrl'),
+  new Column('访问方式/控制', 'methodCtrl', { width: 80 }),
   new Column('文件/方法', 'fileFunc'),
   new Column('描述', 'desc'),
   new Column('流程', 'flow')
