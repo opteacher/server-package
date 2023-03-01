@@ -10,17 +10,11 @@
           {{ pname }}
         </a>
       </a-breadcrumb-item>
-      <a-breadcrumb-item>
-        <a :href="`/server-package/project/${pid}`">模型</a>
-      </a-breadcrumb-item>
-      <a-breadcrumb-item>
-        <a :href="`/server-package/project/${pid}/model/${mid}`">{{ mname }}</a>
-      </a-breadcrumb-item>
       <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
       <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
       <a-breadcrumb-item>
-        <a :href="`/server-package/project/${pid}/model/${mid}`">
-          {{ service.name }}_{{ service.interface || service.method }}
+        <a :href="`/server-package/project/${pid}`">
+          {{ service.name }}.{{ service.interface || service.method }}
         </a>
       </a-breadcrumb-item>
       <a-breadcrumb-item>设计流程</a-breadcrumb-item>
@@ -99,22 +93,24 @@ export default defineComponent({
     const store = useStore()
     const route = useRoute()
     const pid = route.params.pid
-    const mid = route.params.mid
     const sid = route.params.sid
     const panelRef = ref()
     const editNode = computed(() => store.getters['service/editNode'])
     const pname = computed(() => store.getters['project/ins'].name)
-    const mname = computed(() => store.getters['model/ins'].name)
     const service = computed(() => store.getters['service/ins'])
-    const editTitle = computed(() => {
-      if (editNode.value.key) {
-        if (editNode.value.isTemp) {
-          return `编辑模板节点#${editNode.value.key}`
+    const editTitle = computed<string>(() => {
+      const node = store.getters['service/editNode']
+      if (!node) {
+        return ''
+      }
+      if (node.key) {
+        if (node.isTemp) {
+          return `编辑模板节点#${node.key}`
         } else {
-          return `编辑节点#${editNode.value.key}`
+          return `编辑节点#${node.key}`
         }
-      } else if (editNode.value.previous && editNode.value.previous.key) {
-        return `在节点#${editNode.value.previous.key}后新增节点`
+      } else if (node.previous && node.previous.key) {
+        return `在节点#${node.previous.key}后新增节点`
       } else {
         return '在根节点后新增节点'
       }
@@ -154,13 +150,11 @@ export default defineComponent({
       Node,
 
       pid,
-      mid,
       sid,
       api,
       store,
       nodes,
       pname,
-      mname,
       service,
       panelRef,
       editNode,

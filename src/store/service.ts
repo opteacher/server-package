@@ -5,7 +5,7 @@ import Service from '@/types/service'
 import Dep from '@/types/dep'
 import { OpnType } from '@/types'
 import { LstOpnType } from '@lib/types/mapper'
-import { reqGet, until, reqAll } from '@/utils'
+import { reqGet, until, reqAll, setProp } from '@/utils'
 import {
   edtNdEmitter,
   edtNdMapper,
@@ -29,7 +29,7 @@ type SvcState = {
   service: Service
   nodes: NodesInPnl
   width: number
-  node: Node
+  edtNdKey: string
 }
 
 export default {
@@ -39,36 +39,34 @@ export default {
       service: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
-      node: new Node()
+      edtNdKey: ''
     } as SvcState),
   mutations: {
     SET_WIDTH(state: SvcState, width: number) {
       state.width = width
     },
-    SET_NODE(state: SvcState, payload?: { node?: Node; viewOnly?: boolean }) {
+    SET_NODE(state: SvcState, payload?: { key?: string; viewOnly?: boolean }) {
       if (!payload) {
-        payload = { node: new Node(), viewOnly: false }
-      } else if (!payload.node) {
-        payload.node = new Node()
+        payload = { key: '', viewOnly: false }
       }
-      state.node.reset()
-      Node.copy(payload.node, state.node, true)
-      if (state.node.previous && state.nodes[state.node.previous].ntype === 'condition') {
+      state.edtNdKey = payload.key || ''
+      const edtNode = state.nodes[state.edtNdKey]
+      if (edtNode.previous && state.nodes[edtNode.previous].ntype === 'condition') {
         // 添加修改条件节点
-        state.node.ntype = 'condNode'
-        edtNdMapper.delete.display = state.node.key !== ''
+        edtNode.ntype = 'condNode'
+        edtNdMapper.delete.display = state.edtNdKey !== ''
         edtNdMapper.ntype.options = [{ label: '条件节点', value: 'condNode' }]
-      } else if (state.node.ntype === 'endNode') {
+      } else if (edtNode.ntype === 'endNode') {
         // 修改循环结束节点
         edtNdMapper.delete.display = false
         edtNdMapper.ntype.options = [{ label: '循环结束节点', value: 'endNode' }]
-      } else if (state.node.key) {
+      } else if (edtNode.key) {
         // 修改结束节点
         edtNdMapper.delete.display = true
         edtNdMapper.ntype.options = [
           {
-            label: NodeTypeMapper[state.node.ntype],
-            value: state.node.ntype
+            label: NodeTypeMapper[edtNode.ntype],
+            value: edtNode.ntype
           }
         ]
       } else {
@@ -81,24 +79,24 @@ export default {
           }))
           .filter(item => item.value !== 'endNode' && item.value !== 'condNode')
       }
-      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.node.key}.inputs`
-      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.node.key}.outputs`
+      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.edtNdKey}.inputs`
+      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.edtNdKey}.outputs`
       edtNdVisible.value = true
       edtNdEmitter.emit('viewOnly', payload.viewOnly)
     },
     RESET_NODE(state: SvcState) {
-      state.node.reset()
+      state.edtNdKey = ''
     },
     RESET_STATE(state: SvcState) {
       state.service.reset()
       state.width = 0
       state.nodes = {}
-      state.node.reset()
+      state.edtNdKey = ''
     },
     RESET_NODES(state: SvcState) {
       state.width = 0
       state.nodes = {}
-      state.node.reset()
+      state.edtNdKey = ''
     }
   },
   actions: {
@@ -107,7 +105,6 @@ export default {
         return
       }
       const sid = router.currentRoute.value.params.sid
-      await dispatch('model/refresh', undefined, { root: true })
       const deps = await depAPI.all()
       edtNdMapper.advanced.items.deps.lvMapper = Object.fromEntries(
         deps.map((dep: Dep) => [dep.key, dep.name])
@@ -129,6 +126,7 @@ export default {
         const rootKey = state.service.flow.key
         // commit('RESET_NODES')
         await dispatch('readNodes', rootKey)
+        console.log(state.nodes)
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
         await dispatch('fillPlaceholder', rootKey)
         await dispatch('fixWidth')
@@ -172,7 +170,7 @@ export default {
         return
       }
       if (!(key in state.nodes)) {
-        state.nodes[key] = NodeInPnl.copy(res)
+        setProp(state.nodes, key, NodeInPnl.copy(res))
       } else {
         Node.copy(res, state.nodes[key])
       }
@@ -241,11 +239,8 @@ export default {
       }
     },
     async refreshNode({ state }: { state: SvcState }, key?: string) {
-      const nkey = key || state.node.key
+      const nkey = key || state.edtNdKey
       Node.copy(await reqGet('node', nkey), state.nodes[nkey])
-      if (!key) {
-        Node.copy(state.nodes[nkey], state.node)
-      }
     },
     async refreshTemps({ state }: { state: SvcState }) {
       const resp = await reqAll('node/temp', { type: 'api' })
@@ -282,7 +277,7 @@ export default {
       (state: SvcState) =>
       (key: string): NodeInPnl =>
         state.nodes[key],
-    editNode: (state: SvcState): Node => state.node,
+    editNode: (state: SvcState): Node => state.nodes[state.edtNdKey],
     tempNodes: (state: SvcState): Node[] => {
       return Object.values(state.nodes).filter((nd: any) => nd.isTemp)
     },
