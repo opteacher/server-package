@@ -24,7 +24,7 @@ export default {
     await store.dispatch('project/refresh')
     return store.getters['project/ins'].services
   },
-  detail: (key: any) => reqGet('model', key),
+  detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   job: {
     restart: async (key: any) => {
       await reqPost(`service/${key}/job/restart`, undefined, {

@@ -6,11 +6,12 @@ import Transfer from '@/types/transfer'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Cond, methods } from '@lib/types'
 import Column from '@lib/types/column'
-import { Method, emitTypeOpns, timeUnits } from '@/types/service'
+import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Property from '@/types/property'
 import Service from '@/types/service'
 import store from '@/store'
 import { lytOpns, Page } from '@/types/frontend'
+import Model from '@/types/model'
 
 export const tsEmitter = new Emitter()
 
@@ -36,18 +37,21 @@ export const tsMapper = new Mapper({
 })
 
 function genMdlPath(svc: Service): string {
-  const model = store.getters['model/ins']
+  const model = (store.getters['project/models'] as Model[])
+    .find(model => model.name === svc.model)
+  if (!model) {
+    return ''
+  }
   const relProp = model.props.find((prop: Property) => prop.relative && prop.relative.model)
-  const mname = model.name
   switch (svc.method) {
     case 'LINK':
-      return relProp ? `/mdl/v1/${mname}/:index/${relProp.name}/:propIdx` : ''
+      return relProp ? `/mdl/v1/${svc.model}/:index/${relProp.name}/:propIdx` : ''
     case 'POST':
-      return `/mdl/v1/${mname}`
+      return `/mdl/v1/${svc.model}`
     case 'DELETE':
     case 'PUT':
     case 'GET':
-      return `/mdl/v1/${mname}/:index`
+      return `/mdl/v1/${svc.model}/:index`
     default:
       return ''
   }
@@ -59,7 +63,27 @@ export const svcMapper = new Mapper({
   emit: {
     label: '激发类型',
     type: 'Select',
-    options: emitTypeOpns
+    options: emitTypeOpns,
+    rules: [{ required: true, message: '必须选择一种激活方式！' }],
+    onChange: (_svc: Service, to: EmitType) => {
+      switch (to) {
+      case 'api':
+        svcEmitter.emit('update:mapper', {
+          method: { rules: [{ required: true, message: '必须选择一种访问方式' }] },
+          path: { rules: [{ required: true, message: '必须填入访问路由！' }] }
+        })
+        break
+      case 'timeout':
+      case 'interval':
+        svcEmitter.emit('update:mapper', {
+          method: { rules: [] },
+          path: { rules: [] },
+          cdValue: { rules: [{ required: true, message: '必须填入时间值！' }] },
+          cdUnit: { rules: [{ required: true, message: '必须选择时间类型！' }] }
+        })
+        break
+      }
+    }
   },
   name: {
     label: '文件名',
@@ -68,7 +92,8 @@ export const svcMapper = new Mapper({
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),
       Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
-    ]
+    ],
+    rules: [{ required: true, message: '必须填入文件名！' }]
   },
   interface: {
     label: '方法',
@@ -77,13 +102,20 @@ export const svcMapper = new Mapper({
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),
       Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
-    ]
+    ],
+    rules: [{ required: true, message: '必须填入方法！' }]
   },
   model: {
     label: '模型路由',
     type: 'Select',
+    allowClear: true,
     display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })],
-    disabled: [Cond.copy({ key: 'method', cmp: '=', val: 'LINK' })]
+    disabled: [Cond.copy({ key: 'method', cmp: '=', val: 'LINK' })],
+    onChange: (svcState: Service, to: string) => {
+      if (to) {
+        svcState.name = to
+      }
+    }
   },
   method: {
     label: '访问方式',

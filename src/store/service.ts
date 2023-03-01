@@ -22,11 +22,11 @@ import { Dispatch } from 'vuex'
 import router from '@/router'
 import { reactive } from 'vue'
 import NodeInPnl from '@/types/ndInPnl'
-import { depAPI } from '@/apis'
+import { depAPI, svcAPI } from '@/apis'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
-  svc: Service
+  service: Service
   nodes: NodesInPnl
   width: number
   node: Node
@@ -36,7 +36,7 @@ export default {
   namespaced: true,
   state: () =>
     ({
-      svc: new Service(),
+      service: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
       node: new Node()
@@ -90,7 +90,7 @@ export default {
       state.node.reset()
     },
     RESET_STATE(state: SvcState) {
-      state.svc.reset()
+      state.service.reset()
       state.width = 0
       state.nodes = {}
       state.node.reset()
@@ -102,23 +102,13 @@ export default {
     }
   },
   actions: {
-    async refresh({
-      state,
-      dispatch,
-      rootGetters
-    }: {
-      state: SvcState
-      dispatch: Dispatch
-      rootGetters: any
-    }) {
+    async refresh({ state, dispatch }: { state: SvcState; dispatch: Dispatch; rootGetters: any }) {
       if (!router.currentRoute.value.params.sid) {
         return
       }
       const sid = router.currentRoute.value.params.sid
       await dispatch('model/refresh', undefined, { root: true })
-      const deps = (await depAPI.all(0, Number.MAX_VALUE)).concat(
-        await depAPI.all(0, Number.MAX_VALUE, rootGetters['project/ins'].name)
-      )
+      const deps = await depAPI.all()
       edtNdMapper.advanced.items.deps.lvMapper = Object.fromEntries(
         deps.map((dep: Dep) => [dep.key, dep.name])
       )
@@ -134,9 +124,9 @@ export default {
         })
       )
       await dispatch('refreshTemps')
-      Service.copy(await reqGet('service', sid), state.svc)
-      if (state.svc.flow) {
-        const rootKey = state.svc.flow.key
+      state.service = await svcAPI.detail(sid)
+      if (state.service.flow) {
+        const rootKey = state.service.flow.key
         // commit('RESET_NODES')
         await dispatch('readNodes', rootKey)
         await dispatch('buildNodes', { ndKey: rootKey, height: 0 })
@@ -283,7 +273,7 @@ export default {
     }
   },
   getters: {
-    ins: (state: SvcState): Service => state.svc,
+    ins: (state: SvcState): Service => state.service,
     nodes: (state: SvcState): NodesInPnl => {
       return Object.fromEntries(Object.entries(state.nodes).filter(([, node]) => !node.isTemp))
     },

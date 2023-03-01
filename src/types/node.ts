@@ -76,6 +76,7 @@ export default class Node implements Record<string, any> {
   }
 
   static copy(src: any, tgt?: Node, force = false): Node {
+    console.log(src, tgt)
     tgt = tgt || new Node()
     tgt.key = force ? src.key || src._id : src.key || src._id || tgt.key
     tgt.isTemp = typeof src.isTemp !== 'undefined' ? src.isTemp : force ? false : tgt.isTemp
