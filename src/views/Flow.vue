@@ -56,7 +56,7 @@ import { edtNdEmitter, edtNdMapper } from './Flow'
 import { useStore } from 'vuex'
 import VarsPanel from '../components/flow/VarsPanel.vue'
 import { useRoute } from 'vue-router'
-import { ndAPI as api } from '../apis'
+import { ndAPI as api, pjtAPI } from '../apis'
 import { NodesInPnl } from '@/store/service'
 import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import NodeInPnl from '@/types/ndInPnl'
@@ -76,7 +76,7 @@ export default defineComponent({
     const pid = route.params.pid
     const sid = route.params.sid
     const panelRef = ref()
-    const pname = computed<string>(() => store.getters['project/ins'].name)
+    const pname = ref('')
     const service = computed<Service>(() => store.getters['service/ins'])
     const editTitle = computed<string>(() => {
       const node = store.getters['service/editNode']
@@ -96,6 +96,7 @@ export default defineComponent({
     })
 
     async function refresh() {
+      pname.value = (await pjtAPI.detail(route.params.pid)).name
       store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
       await store.dispatch('service/refresh')
     }
@@ -104,11 +105,7 @@ export default defineComponent({
       next()
     }
     function onEdtNodeClick(node?: any) {
-      if (node) {
-        store.commit('service/SET_NODE', { key: node.key })
-      } else {
-        edtNdEmitter.emit('update:show', { show: true, cpyRcd: (node: Node) => node.reset() })
-      }
+      store.commit('service/SET_NODE', node)
     }
     return {
       Node,

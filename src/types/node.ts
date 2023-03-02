@@ -74,19 +74,17 @@ export default class Node implements Record<string, any> {
   }
 
   static copy(src: any, tgt?: Node, force = false): Node {
-    const gen = gnlCpy(Node, src, tgt, {
+    tgt = gnlCpy(Node, src, tgt, {
       force,
       ignProps: ['previous', 'loop'],
       cpyMapper: { inputs: Variable.copy, outputs: Variable.copy }
     })
-    if (!tgt) {
-      tgt = gen
-    }
     tgt.previous = src.previous
       ? src.previous.key || src.previous._id || src.previous
       : force
       ? null
       : tgt.previous
+    tgt.nexts = tgt.nexts.map((next: any) => next._id || next)
     if (src.ntype === 'traversal') {
       if (src.loop) {
         tgt.loop.isAwait =

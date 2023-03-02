@@ -1,17 +1,14 @@
 import store from '@/store'
 import Variable from '@/types/variable'
-import { makeRequest, reqDelete, reqPost, reqPut, pickOrIgnore, reqGet } from '@/utils'
-import { notification } from 'ant-design-vue'
-import axios from 'axios'
+import { reqDelete, reqPost, reqPut, reqGet } from '@/utils'
 import { v4 as uuidv4 } from 'uuid'
 import Node from '@/types/node'
 
 const exp = {
   save: async (data: any) => {
     const sid = store.getters['service/ins'].key
-    await reqPost(`service/${sid}/node${data.key ? '/' + data.key : ''}`, data, {
-      type: 'api'
-    })
+    const nid = data.key ? '/' + data.key : ''
+    await reqPost(`service/${sid}/node${nid}`, data, { type: 'api' })
     await store.dispatch('service/refresh')
   },
   remove: async (key: any) => {
@@ -20,14 +17,14 @@ const exp = {
     await store.dispatch('service/refresh')
   },
   all: async (rootKey: string): Promise<Node[]> => {
-    const res = await reqGet('node', rootKey)
+    const res = await reqGet('node', rootKey, { messages: { notShow: true } })
     if (!res) {
       return []
     }
     const ret = Node.copy(res)
-    const nexts: Node[] = []
+    let nexts: Node[] = []
     for (const nxtKey of ret.nexts) {
-      nexts.concat(await exp.all(nxtKey))
+      nexts = nexts.concat(await exp.all(nxtKey))
     }
     return [ret].concat(nexts)
   },

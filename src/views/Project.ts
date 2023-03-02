@@ -37,8 +37,7 @@ export const tsMapper = new Mapper({
 })
 
 function genMdlPath(svc: Service): string {
-  const model = (store.getters['project/models'] as Model[])
-    .find(model => model.name === svc.model)
+  const model = (store.getters['project/models'] as Model[]).find(model => model.name === svc.model)
   if (!model) {
     return ''
   }
@@ -67,21 +66,21 @@ export const svcMapper = new Mapper({
     rules: [{ required: true, message: '必须选择一种激活方式！' }],
     onChange: (_svc: Service, to: EmitType) => {
       switch (to) {
-      case 'api':
-        svcEmitter.emit('update:mapper', {
-          method: { rules: [{ required: true, message: '必须选择一种访问方式' }] },
-          path: { rules: [{ required: true, message: '必须填入访问路由！' }] }
-        })
-        break
-      case 'timeout':
-      case 'interval':
-        svcEmitter.emit('update:mapper', {
-          method: { rules: [] },
-          path: { rules: [] },
-          cdValue: { rules: [{ required: true, message: '必须填入时间值！' }] },
-          cdUnit: { rules: [{ required: true, message: '必须选择时间类型！' }] }
-        })
-        break
+        case 'api':
+          svcEmitter.emit('update:mapper', {
+            method: { rules: [{ required: true, message: '必须选择一种访问方式' }] },
+            path: { rules: [{ required: true, message: '必须填入访问路由！' }] }
+          })
+          break
+        case 'timeout':
+        case 'interval':
+          svcEmitter.emit('update:mapper', {
+            method: { rules: [] },
+            path: { rules: [] },
+            cdValue: { rules: [{ required: true, message: '必须填入时间值！' }] },
+            cdUnit: { rules: [{ required: true, message: '必须选择时间类型！' }] }
+          })
+          break
       }
     }
   },
@@ -91,7 +90,7 @@ export const svcMapper = new Mapper({
     type: 'SelOrIpt',
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+      Cond.copy({ key: 'model', cmp: '!=', val: undefined })
     ],
     rules: [{ required: true, message: '必须填入文件名！' }]
   },
@@ -101,7 +100,7 @@ export const svcMapper = new Mapper({
     type: 'Input',
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+      Cond.copy({ key: 'model', cmp: '!=', val: undefined })
     ],
     rules: [{ required: true, message: '必须填入方法！' }]
   },
@@ -140,7 +139,7 @@ export const svcMapper = new Mapper({
     display: [Cond.copy({ key: 'emit', cmp: '=', val: 'api' })],
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'model', cmp: '!=', val: 'undefined' })
+      Cond.copy({ key: 'model', cmp: '!=', val: undefined })
     ],
     onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {

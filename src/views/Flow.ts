@@ -171,7 +171,6 @@ export const edtNdMapper = new Mapper({
   ntype: {
     label: '类型',
     type: 'Select',
-    options: ndTpOpns,
     onChange: (node: Node, to: NodeType) => {
       if (to === 'condNode') {
         node.isFun = false
@@ -181,6 +180,10 @@ export const edtNdMapper = new Mapper({
   advanced: {
     label: '开发者配置',
     type: 'FormGroup',
+    display: [
+      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
+      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+    ],
     items: {
       inputs: {
         label: '输入',
@@ -340,7 +343,10 @@ export const edtNdMapper = new Mapper({
   delete: {
     label: '操作',
     type: 'Button',
-    display: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
+    display: [
+      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
+      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+    ],
     inner: '删除节点',
     danger: true,
     onClick: (node: Node) => {

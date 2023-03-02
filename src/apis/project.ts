@@ -41,7 +41,7 @@ export default {
     reqPut('project', data.key, data, { ignores: ['models', 'auth', 'middle', 'status'] }),
   all: (options: RequestOptions) =>
     reqAll('project', Object.assign(options, { copy: Project.copy })),
-  detail: (key: any) => reqGet('project', key).then((pjt: any) => Project.copy(pjt)),
+  detail: (key: any) => reqGet('project', key, { copy: Project.copy }),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
   sync: (key: string) => {
