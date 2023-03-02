@@ -9,9 +9,12 @@ import { Moment } from 'moment'
 import Mapper from '@lib/types/mapper'
 import { baseTypes, Cond } from '@/types'
 import Variable from '@/types/variable'
-import Node, { NodeType, NodeTypeMapper } from '@/types/node'
+import Node, { NodeType, ndTpOpns } from '@/types/node'
 import Column from '@lib/types/column'
 import { ndAPI as api } from '../apis'
+import { until } from '@/utils'
+import NodeInPnl from '@/types/ndInPnl'
+import { NodesInPnl } from '@/store/service'
 
 function scanLocVars(ndKey: string): Variable[] {
   const nodes = store.getters['service/nodes']
@@ -149,25 +152,11 @@ const iptMapper = new Mapper({
 
 const optEmitter = new Emitter()
 
-export const edtNdVisible = ref(false)
-
 export const edtNdEmitter = new Emitter()
 
 const depEmitter = new Emitter()
 
 export const edtNdMapper = new Mapper({
-  temp: {
-    label: '模板',
-    type: 'Cascader',
-    options: [],
-    display: [Cond.copy({ key: 'key', cmp: '==', val: '' })],
-    onChange(addNode: Node, to: [string, string]) {
-      const temp = Node.copy(store.getters['service/node'](to[1]))
-      temp.key = ''
-      temp.isTemp = false
-      Node.copy(temp, addNode)
-    }
-  },
   title: {
     label: '标题',
     type: 'Input',
@@ -182,10 +171,7 @@ export const edtNdMapper = new Mapper({
   ntype: {
     label: '类型',
     type: 'Select',
-    options: Object.entries(NodeTypeMapper).map(([key, val]) => ({
-      label: val,
-      value: key
-    })),
+    options: ndTpOpns,
     onChange: (node: Node, to: NodeType) => {
       if (to === 'condNode') {
         node.isFun = false
@@ -351,33 +337,6 @@ export const edtNdMapper = new Mapper({
     type: 'Text',
     display: false
   },
-  addLib: {
-    label: '操作',
-    type: 'Button',
-    display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'group', cmp: '==', val: '' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
-    ],
-    primary: true,
-    inner: '加入库',
-    onClick: () => {
-      joinVisible.value = true
-    }
-  },
-  group: {
-    label: '节点库',
-    type: 'Delable',
-    display: [
-      Cond.copy({ key: 'group', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'isTemp', cmp: '!=', val: true })
-    ],
-    onDeleted: async (key: string) => {
-      await api.save({ key, group: '' })
-      edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-    }
-  },
   delete: {
     label: '操作',
     type: 'Button',
@@ -393,23 +352,11 @@ export const edtNdMapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          edtNdVisible.value = false
           await api.remove(node.key)
-          store.commit('service/RESET_NODE')
+          edtNdEmitter.emit('update:show', false)
         }
       })
     }
-  }
-})
-
-export const joinVisible = ref(false)
-
-export const joinMapper = new Mapper({
-  group: {
-    label: '节点组',
-    type: 'SelOrIpt',
-    options: [],
-    mode: 'select'
   }
 })
 
@@ -424,4 +371,85 @@ export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
 export const StokeColor = '#f0f0f0'
 
-export const ndCdEmitter = new Emitter()
+export async function buildNodes(ndKey: string, height: number) {
+  const ndMapper = store.getters['service/nodes'] as NodesInPnl
+  const node = ndMapper[ndKey]
+  let domEle: null | HTMLElement = document.getElementById(ndKey)
+  await until(() => {
+    if (!domEle) {
+      domEle = document.getElementById(ndKey)
+    }
+    return Promise.resolve(domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0)
+  })
+  if (domEle) {
+    node.size[0] = domEle.clientWidth
+    node.size[1] = domEle.clientHeight
+    if (!node.previous) {
+      node.posLT[0] = (store.getters['service/width'] >> 1) - CardHlfWid
+      node.posLT[1] = height
+    } else if (node.ntype === 'endNode') {
+      const relNode = ndMapper[node.relative]
+      node.posLT[0] = relNode.posLT[0]
+      let maxHeight = 0
+      const traverse = (node: NodeInPnl) => {
+        if (node.key === ndKey) {
+          return
+        }
+        const height = node.posLT[1] + node.size[1] + ArrowHeight
+        maxHeight = height > maxHeight ? height : maxHeight
+        for (const nxtKey of node.nexts) {
+          traverse(ndMapper[nxtKey])
+        }
+      }
+      traverse(relNode)
+      node.posLT[1] = maxHeight
+    } else {
+      const pvsNode = ndMapper[node.previous]
+      const nexts = pvsNode.nexts
+      const oddLen = nexts.length % 2
+      const pvsLft = ndMapper[pvsNode.key].posLT[0] + (oddLen ? 0 : CardHlfWid + CardHlfGutter)
+      const index = nexts.indexOf(node.key)
+      const midIdx = (nexts.length - (oddLen ? 1 : 0)) >> 1
+      const idxDif = index - midIdx
+      node.posLT[0] =
+        pvsLft +
+        // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
+        idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
+      // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
+      node.posLT[1] = height
+    }
+  }
+  for (const nxtKey of node.nexts) {
+    await buildNodes(nxtKey, node.posLT[1] + node.size[1] + ArrowHeight)
+  }
+}
+
+export async function fixWidth() {
+  let left = 0
+  let right = 0
+  for (const node of Object.values(store.getters['service/nodes'] as NodesInPnl)) {
+    if (node.posLT[0] < left) {
+      left = node.posLT[0]
+    }
+    if (node.posLT[0] + node.size[0] > right) {
+      right = node.posLT[0] + node.size[0]
+    }
+  }
+  if (store.getters['service/width'] < right - left) {
+    store.commit('service/SET_WIDTH', right - left)
+    await store.dispatch('service/refresh')
+  }
+}
+
+export async function fillPlaceholder(key: string) {
+  const ndMapper = store.getters['service/nodes']
+  const node = ndMapper[key]
+  for (const nxtKey of node.nexts) {
+    const nxtNode = ndMapper[nxtKey]
+    const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
+    if (height > ArrowHeight) {
+      node.btmSvgHgt = height - ArrowHlfHgt
+    }
+    await fillPlaceholder(nxtKey)
+  }
+}

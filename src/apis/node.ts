@@ -1,12 +1,12 @@
 import store from '@/store'
 import Variable from '@/types/variable'
-import { makeRequest, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
-import { joinVisible } from '@/views/Flow'
+import { makeRequest, reqDelete, reqPost, reqPut, pickOrIgnore, reqGet } from '@/utils'
 import { notification } from 'ant-design-vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
+import Node from '@/types/node'
 
-export default {
+const exp = {
   save: async (data: any) => {
     const sid = store.getters['service/ins'].key
     await reqPost(`service/${sid}/node${data.key ? '/' + data.key : ''}`, data, {
@@ -16,9 +16,22 @@ export default {
   },
   remove: async (key: any) => {
     const sid = store.getters['service/ins'].key
-    await reqDelete(`service/${sid}/node`, key, { type: 'api' })
+    await reqDelete(`service/${sid}`, `node/${key}`, { type: 'api' })
     await store.dispatch('service/refresh')
   },
+  all: async (rootKey: string): Promise<Node[]> => {
+    const res = await reqGet('node', rootKey)
+    if (!res) {
+      return []
+    }
+    const ret = Node.copy(res)
+    const nexts: Node[] = []
+    for (const nxtKey of ret.nexts) {
+      nexts.concat(await exp.all(nxtKey))
+    }
+    return [ret].concat(nexts)
+  },
+  detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
     save: (deps: string[]) => {
       const edtNode = store.getters['service/editNode']
@@ -72,34 +85,7 @@ export default {
         await store.dispatch('service/refreshNode')
       }
     }
-  },
-  joinLib: async (group: string) => {
-    const baseURL = '/server-package/api/v1/node/temp'
-    const edtNode = store.getters['service/editNode']
-    // 组和标题与数据库中模板节点相等的，判定为不可入库
-    const chkExs = await makeRequest(
-      axios.get(`${baseURL}/exists`, {
-        params: { group, title: edtNode.title }
-      })
-    )
-    if (chkExs.length) {
-      notification.error({
-        message: '加入模板库错误！',
-        description: '模板库已有相应节点存在，如需修改，点击模板节点库查看修改'
-      })
-      return
-    }
-    await makeRequest(
-      axios.post(
-        baseURL,
-        Object.assign(pickOrIgnore(edtNode, ['key', 'nexts', 'previous', 'relative']), {
-          group,
-          isTemp: true
-        })
-      )
-    )
-    joinVisible.value = false
-    await store.dispatch('service/refreshTemps')
-    await store.dispatch('service/refreshNode')
   }
 }
+
+export default exp

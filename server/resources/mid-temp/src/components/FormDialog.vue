@@ -4,7 +4,7 @@
     :title="form.title"
     :width="`${form.width}vw`"
     @ok="onOkClick"
-    @cancel="emitter.emit('update:show', { show: false })"
+    @cancel="emitter.emit('update:show', false)"
   >
     <a-form
       ref="formRef"
@@ -21,7 +21,7 @@
       />
     </a-form>
     <template v-if="viewOnly" #footer>
-      <a-button @click="emitter.emit('update:show', { show: false })">Cancel</a-button>
+      <a-button @click="emitter.emit('update:show', false)">Cancel</a-button>
     </template>
   </a-modal>
 </template>
@@ -64,7 +64,7 @@ export default defineComponent({
       try {
         await formRef.value.validate()
         emit('submit', formState, () => {
-          props.emitter.emit('update:show', { show: false })
+          props.emitter.emit('update:show', false)
         })
       } catch (e) {
         console.error(e)

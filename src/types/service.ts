@@ -82,11 +82,14 @@ export default class Service {
   }
 
   static copy(src: any, tgt?: Service, force = false): Service {
-    tgt = gnlCpy(Service, src, tgt, {
+    const gen = gnlCpy(Service, src, tgt, {
       force,
       ignProps: ['name', 'interface', 'cdValue', 'cdUnit'],
       cpyMapper: { flow: Node.copy }
     })
+    if (!tgt) {
+      tgt = gen
+    }
     if (src.service && src.service.length === 2) {
       tgt.name = src.service[0]
       tgt.interface = src.service[1]

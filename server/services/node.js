@@ -4,18 +4,6 @@ import Node from '../models/node.js'
 import Service from '../models/service.js'
 import { db, pickOrIgnore } from '../utils/index.js'
 
-export function tempNodes() {
-  return db.select(Node, { isTemp: true }, { ext: true })
-}
-
-export function newTemp(node) {
-  return db.save(Node, pickOrIgnore(node, ['previous', 'nexts']))
-}
-
-export function tempByGrpAndTtl(group, title) {
-  return db.select(Node, { group, title, isTemp: true }, { ext: true })
-}
-
 export async function bindPtCdNodes(parent, child) {
   return Promise.all([
     db.saveOne(Node, parent, { nexts: child }, { updMode: 'append' }),

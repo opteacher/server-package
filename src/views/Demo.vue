@@ -15,9 +15,7 @@
         <h3 class="mb-0">{{ table.title }}</h3>
         <span class="text-gray-400">{{ table.desc }}</span>
       </a-space>
-      <a-button type="primary" @click="formDialog.emitter.emit('update:show', { show: true })">
-        添加
-      </a-button>
+      <a-button type="primary" @click="formDialog.emitter.emit('update:show', true)">添加</a-button>
     </div>
     <RefreshBox
       v-if="table.refresh.length"

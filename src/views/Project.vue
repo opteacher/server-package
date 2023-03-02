@@ -222,9 +222,7 @@ export default defineComponent({
       showTsfm.value = false
     }
     function onFrtMuClick({ key }: { key: 'export' | 'deploy' }) {
-      frontend[`${key.slice(0, 3)}Emitter` as 'expEmitter' | 'depEmitter'].emit('update:show', {
-        show: true
-      })
+      frontend[`${key.slice(0, 3)}Emitter` as 'expEmitter' | 'depEmitter'].emit('update:show', true)
     }
     return {
       Project,

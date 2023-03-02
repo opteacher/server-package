@@ -71,7 +71,7 @@
             <template #emptyText>
               <a-empty>
                 <template #description>未查询到数据</template>
-                <a-button type="primary" @click.stop="emitter.emit('update:show', { show: true })">
+                <a-button type="primary" @click.stop="emitter.emit('update:show', true)">
                   点击创建一条演示记录
                 </a-button>
                 <FormDialog
