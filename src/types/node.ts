@@ -76,9 +76,14 @@ export default class Node implements Record<string, any> {
   static copy(src: any, tgt?: Node, force = false): Node {
     tgt = gnlCpy(Node, src, tgt, {
       force,
-      ignProps: ['previous', 'loop'],
+      ignProps: ['previous', 'loop', 'deps'],
       cpyMapper: { inputs: Variable.copy, outputs: Variable.copy }
     })
+    if (src.deps) {
+      tgt.deps = src.deps.map((dep: any) => dep.key || dep._id || dep)
+    } else if (force) {
+      tgt.deps = []
+    }
     tgt.previous = src.previous
       ? src.previous.key || src.previous._id || src.previous
       : force

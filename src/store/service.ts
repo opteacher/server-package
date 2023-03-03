@@ -14,7 +14,7 @@ type SvcState = {
   service: Service
   nodes: NodesInPnl
   width: number
-  edtNdKey: string
+  editing: { key?: string; previous?: string }
 }
 
 export default {
@@ -24,7 +24,7 @@ export default {
       service: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
-      edtNdKey: ''
+      editing: {}
     } as SvcState),
   mutations: {
     SET_WIDTH(state: SvcState, width: number) {
@@ -32,15 +32,20 @@ export default {
     },
     SET_NODE(state: SvcState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       if (!payload || (!payload.key && !payload.previous)) {
+        edtNdMapper.ntype.options = ndTpOpns.filter(
+          item => item.value !== 'endNode' && item.value !== 'condNode'
+        )
+        edtNdEmitter.emit('update:mapper', edtNdMapper)
         edtNdEmitter.emit('update:show', {
           show: true,
           cpyRcd: (node: Node) => node.reset()
         })
         return
       }
-      state.edtNdKey = payload.key || ''
-      const edtNode = state.edtNdKey
-        ? state.nodes[state.edtNdKey]
+      state.editing.key = payload.key || ''
+      state.editing.previous = payload.previous || ''
+      const edtNode = state.editing.key
+        ? state.nodes[state.editing.key]
         : Node.copy({ previous: payload.previous })
       if (edtNode.previous && state.nodes[edtNode.previous].ntype === 'condition') {
         // 添加修改条件节点
@@ -63,8 +68,8 @@ export default {
           item => item.value !== 'endNode' && item.value !== 'condNode'
         )
       }
-      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.edtNdKey}.inputs`
-      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.edtNdKey}.outputs`
+      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.editing.key}.inputs`
+      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.editing.key}.outputs`
       edtNdEmitter.emit('update:mapper', edtNdMapper)
       edtNdEmitter.emit('update:show', {
         show: true,
@@ -72,19 +77,11 @@ export default {
         cpyRcd: (tgt: Node) => Node.copy(edtNode, tgt, true)
       })
     },
-    RESET_NODE(state: SvcState) {
-      state.edtNdKey = ''
-    },
     RESET_STATE(state: SvcState) {
       state.service.reset()
       state.width = 0
       state.nodes = {}
-      state.edtNdKey = ''
-    },
-    RESET_NODES(state: SvcState) {
-      state.width = 0
-      state.nodes = {}
-      state.edtNdKey = ''
+      state.editing = {}
     }
   },
   actions: {
@@ -119,12 +116,14 @@ export default {
         await fixWidth()
       } else {
         state.nodes = {}
-        state.edtNdKey = ''
+        state.editing = {}
       }
     },
     async refreshNode({ state }: { state: SvcState }, key?: string) {
-      const nkey = key || state.edtNdKey
-      state.nodes[nkey] = await ndAPI.detail(nkey)
+      const nkey = key || state.editing.key
+      if (nkey) {
+        NodeInPnl.copy(await ndAPI.detail(nkey), state.nodes[nkey])
+      }
     }
   },
   getters: {
@@ -135,6 +134,8 @@ export default {
       (state: SvcState) =>
       (key: string): NodeInPnl =>
         state.nodes[key],
-    editNode: (state: SvcState): Node => state.nodes[state.edtNdKey]
+    editNode: (state: SvcState): Node =>
+      state.editing.key ? state.nodes[state.editing.key] : new Node(),
+    edtNdKey: (state: SvcState): string | undefined => state.editing.key
   }
 }

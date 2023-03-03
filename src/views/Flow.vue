@@ -78,10 +78,9 @@ export default defineComponent({
     const panelRef = ref()
     const pname = ref('')
     const service = computed<Service>(() => store.getters['service/ins'])
-    const editTitle = computed<string>(() => {
-      const node = store.getters['service/editNode']
-      return node && node.key ? `编辑节点#${node.key}` : '添加节点'
-    })
+    const editTitle = computed<string>(() =>
+      store.getters['service/edtNdKey'] ? '编辑节点' : '添加节点'
+    )
     const nodes = computed<NodeInPnl[]>(() =>
       Object.values(store.getters['service/nodes'] as NodesInPnl)
     )

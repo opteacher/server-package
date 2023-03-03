@@ -30,15 +30,12 @@ const exp = {
   },
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
-    save: (deps: string[]) => {
-      const edtNode = store.getters['service/editNode']
-      return reqPut('node', edtNode.key, { deps })
-    }
+    save: (deps: string[]) => reqPut('node', store.getters['service/edtNdKey'], { deps })
   },
   inOutput: {
     save: async (payload: { name: 'inputs' | 'outputs'; varb: any }) => {
       const edtNode = store.getters['service/editNode']
-      if (!edtNode.key) {
+      if (!edtNode || !edtNode.key) {
         if (!payload.varb.key) {
           payload.varb.key = uuidv4()
           edtNode[payload.name].push(Variable.copy(payload.varb))

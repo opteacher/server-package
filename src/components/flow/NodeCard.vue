@@ -31,15 +31,15 @@
     :style="{
       width: `${CardWidth}px`,
       left: `${node.posLT[0]}px`,
-      top: `${node.posLT[1]}px`
+      top: `${node.posLT[1]}px`,
+      border: `1px solid ${StokeColor}`
     }"
     :headStyle="{
       color: 'white',
       'background-color': color
     }"
     :bodyStyle="{
-      position: 'relative',
-      border: `1px solid ${StokeColor}`
+      position: 'relative'
     }"
     hoverable
     @click="$emit('click:card')"
@@ -47,12 +47,22 @@
     @mouseleave="$emit('mouseleave')"
   >
     <template #title>
-      # {{ node.title }}&nbsp;
-      <a-tag v-if="node.ntype === 'normal' && node.isFun">函数式</a-tag>
-      <template v-else-if="node.ntype === 'traversal' && node.loop">
-        <a-tag v-if="node.loop.isAwait">await</a-tag>
-        <a-tag v-else-if="node.loop.isForIn">for……in循环</a-tag>
-      </template>
+      <a-space>
+        <h3 class="text-white mb-0"># {{ node.title }}&nbsp;</h3>
+        <a-tag v-if="node.ntype === 'normal' && node.isFun" color="cyan">函数式</a-tag>
+        <template v-else-if="node.ntype === 'traversal' && node.loop">
+          <a-tag v-if="node.loop.isAwait" color="green">await</a-tag>
+          <a-tag v-else-if="node.loop.isForIn" color="blue">for……in循环</a-tag>
+        </template>
+      </a-space>
+    </template>
+    <template #extra v-if="node.deps">
+      <a-tag color="pink" class="mr-0">
+        <template #icon>
+          <gold-outlined />
+        </template>
+        {{ node.deps.length }}&nbsp;依赖
+      </a-tag>
     </template>
     <a-row type="flex">
       <a-col v-if="node.inputs.length" flex="1px">
@@ -142,7 +152,7 @@
       :x2="arwBtmSvgSizeW >> 1"
       :y2="node.btmSvgHgt"
     />
-    <template v-if="nexts.length > 1">
+    <template v-if="node.nexts.length > 1">
       <line
         stroke-width="4"
         :stroke="StokeColor"
@@ -158,7 +168,13 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, ref } from 'vue'
-import { PlusOutlined, LoginOutlined, LogoutOutlined, RightOutlined } from '@ant-design/icons-vue'
+import {
+  PlusOutlined,
+  LoginOutlined,
+  LogoutOutlined,
+  RightOutlined,
+  GoldOutlined
+} from '@ant-design/icons-vue'
 import Node from '@/types/node'
 import {
   CardMinHgt,
@@ -179,7 +195,8 @@ export default defineComponent({
     PlusOutlined,
     LoginOutlined,
     LogoutOutlined,
-    RightOutlined
+    RightOutlined,
+    GoldOutlined
   },
   props: {
     node: { type: NodeInPnl, default: new NodeInPnl() }
@@ -225,7 +242,6 @@ export default defineComponent({
           return 'grey'
       }
     })
-    const nexts = computed(() => props.node.nexts.map(next => store.getters['service/node'](next)))
     const multiCond = computed(() => {
       const relative = store.getters['service/node'](props.node.relative)
       return props.node.ntype === 'endNode' && relative.nexts.length > 1
@@ -256,9 +272,8 @@ export default defineComponent({
       ArrowHlfHgt,
       StokeColor,
       color,
-      nexts,
-      multiCond,
       nodeRef,
+      multiCond,
       addBtnPosLT,
       arwBtmSvgPosLT,
       arwBtmSvgSizeW,
@@ -271,7 +286,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="less" scoped>
+<style>
 .filled-input {
   background: linear-gradient(to right, #87d068, #87d068 50%, #108ee9 51%, #108ee9 100%);
 }

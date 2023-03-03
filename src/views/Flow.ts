@@ -7,9 +7,9 @@ import { createVNode, ref } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
 import Mapper from '@lib/types/mapper'
-import { baseTypes, Cond } from '@/types'
+import { baseTypes, bsTpOpns, Cond } from '@/types'
 import Variable from '@/types/variable'
-import Node, { NodeType, ndTpOpns } from '@/types/node'
+import Node, { NodeType } from '@/types/node'
 import Column from '@lib/types/column'
 import { ndAPI as api } from '../apis'
 import { until } from '@/utils'
@@ -48,10 +48,7 @@ const iptMapper = new Mapper({
   vtype: {
     label: '类型',
     type: 'Select',
-    options: baseTypes.map(bscType => ({
-      label: bscType,
-      value: bscType
-    })),
+    options: bsTpOpns,
     onChange: (input: Variable, to: string) => {
       switch (to) {
         case 'Any':
@@ -73,9 +70,7 @@ const iptMapper = new Mapper({
           break
         case 'Array':
           iptMapper['value'].type = 'Input'
-          iptMapper['value'].prefix = '['
-          iptMapper['value'].suffix = ']'
-          input.value = ''
+          input.value = []
           break
         case 'Unknown':
           iptMapper['value'].type = 'Input'

@@ -6,7 +6,7 @@ export default {
   add: (data: any) => reqPost('dependency', data),
   remove: (key: any) => reqDelete('dependency', key),
   update: (data: any) => reqPut('dependency', data.key, data),
-  all: async () => {
+  all: async (): Promise<Dep[]> => {
     const ret = await reqAll('dependency', {
       copy: Dep.copy,
       axiosConfig: { params: { belong: ['==', 'null'] } }
