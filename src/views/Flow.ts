@@ -198,7 +198,6 @@ export const edtNdMapper = new Mapper({
           new Column('备注', 'remark')
         ],
         mapper: iptMapper,
-        dsKey: '',
         copy: Variable.copy,
         onEdit: (node: any) => {
           if (node.previous) {
@@ -213,15 +212,6 @@ export const edtNdMapper = new Mapper({
             iptMapper['value'].options = [{ label: 'ctx', value: 'ctx' }]
           }
           iptEmitter.emit('update:mapper', iptMapper)
-        },
-        onSaved: async (input: Variable) => {
-          await api.inOutput.save({ name: 'inputs', varb: input })
-          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-          iptEmitter.emit('update:show', false)
-        },
-        onDeleted: async (key: string) => {
-          await api.inOutput.remove({ name: 'inputs', key })
-          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
         },
         addable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })],
         delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
@@ -256,18 +246,7 @@ export const edtNdMapper = new Mapper({
             type: 'Input'
           }
         }),
-        dsKey: '',
         copy: Variable.copy,
-        onSaved: async (output: Variable) => {
-          output.vtype = 'Object'
-          await api.inOutput.save({ name: 'outputs', varb: output })
-          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-          optEmitter.emit('update:show', false)
-        },
-        onDeleted: async (key: string) => {
-          await api.inOutput.remove({ name: 'outputs', key })
-          edtNdEmitter.emit('update:data', store.getters['service/editNode'])
-        },
         delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
       deps: {

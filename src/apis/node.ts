@@ -1,7 +1,5 @@
 import store from '@/store'
-import Variable from '@/types/variable'
 import { reqDelete, reqPost, reqPut, reqGet } from '@/utils'
-import { v4 as uuidv4 } from 'uuid'
 import Node from '@/types/node'
 
 const exp = {
@@ -31,54 +29,6 @@ const exp = {
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
     save: (deps: string[]) => reqPut('node', store.getters['service/edtNdKey'], { deps })
-  },
-  inOutput: {
-    save: async (payload: { name: 'inputs' | 'outputs'; varb: any }) => {
-      const edtNode = store.getters['service/editNode']
-      if (!edtNode || !edtNode.key) {
-        if (!payload.varb.key) {
-          payload.varb.key = uuidv4()
-          edtNode[payload.name].push(Variable.copy(payload.varb))
-        } else {
-          Variable.copy(
-            payload.varb,
-            edtNode[payload.name].find((varb: any) => varb.key === payload.varb.key)
-          )
-        }
-      } else {
-        if (!payload.varb.key) {
-          await reqPut(
-            'node',
-            edtNode.key,
-            { [payload.name]: payload.varb },
-            { axiosConfig: { params: { updMode: 'append' } } }
-          )
-        } else {
-          await reqPut('node', edtNode.key, {
-            [`${payload.name}[{_id:${payload.varb.key}}]`]: payload.varb
-          })
-        }
-        await store.dispatch('service/refreshNode')
-      }
-    },
-    remove: async (payload: { name: 'inputs' | 'outputs'; key: any }) => {
-      const edtNode = store.getters['service/editNode']
-      if (!edtNode.key) {
-        const index = edtNode[payload.name].findIndex((varb: any) => varb.key === payload.key)
-        if (index === -1) {
-          return
-        }
-        edtNode[payload.name].splice(index, 1)
-      } else {
-        await reqPut(
-          'node',
-          edtNode.key,
-          { [`${payload.name}[{_id:${payload.key}}]`]: null },
-          { axiosConfig: { params: { updMode: 'delete' } } }
-        )
-        await store.dispatch('service/refreshNode')
-      }
-    }
   }
 }
 
