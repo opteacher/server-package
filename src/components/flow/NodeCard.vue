@@ -31,15 +31,15 @@
     :style="{
       width: `${CardWidth}px`,
       left: `${node.posLT[0]}px`,
-      top: `${node.posLT[1]}px`,
-      border: `1px solid ${StokeColor}`
+      top: `${node.posLT[1]}px`
     }"
     :headStyle="{
       color: 'white',
       'background-color': color
     }"
     :bodyStyle="{
-      position: 'relative'
+      position: 'relative',
+      border: `1px solid ${StokeColor}`
     }"
     hoverable
     @click="$emit('click:card')"
@@ -56,13 +56,17 @@
         </template>
       </a-space>
     </template>
-    <template #extra v-if="node.deps">
-      <a-tag color="pink" class="mr-0">
-        <template #icon>
-          <gold-outlined />
+    <template #extra>
+      <a-dropdown :trigger="['click']">
+        <template #overlay>
+          <a-menu mode="inline">
+            <a-menu-item key="deps">依赖：{{ node.deps.length }}个模组</a-menu-item>
+          </a-menu>
         </template>
-        {{ node.deps.length }}&nbsp;依赖
-      </a-tag>
+        <a-button type="text" class="hover:border hover:border-white" @click.stop>
+          <template #icon><more-outlined class="text-white" /></template>
+        </a-button>
+      </a-dropdown>
     </template>
     <a-row type="flex">
       <a-col v-if="node.inputs.length" flex="1px">
@@ -173,7 +177,7 @@ import {
   LoginOutlined,
   LogoutOutlined,
   RightOutlined,
-  GoldOutlined
+  MoreOutlined
 } from '@ant-design/icons-vue'
 import Node from '@/types/node'
 import {
@@ -196,7 +200,7 @@ export default defineComponent({
     LoginOutlined,
     LogoutOutlined,
     RightOutlined,
-    GoldOutlined
+    MoreOutlined
   },
   props: {
     node: { type: NodeInPnl, default: new NodeInPnl() }
