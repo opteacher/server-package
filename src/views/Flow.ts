@@ -155,7 +155,8 @@ export const edtNdMapper = new Mapper({
   title: {
     label: '标题',
     type: 'Input',
-    display: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })]
+    display: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })],
+    rules: [{ required: true, message: '标题不能为空！' }]
   },
   desc: {
     label: '描述',

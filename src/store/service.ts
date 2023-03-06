@@ -14,7 +14,7 @@ type SvcState = {
   service: Service
   nodes: NodesInPnl
   width: number
-  editing: { key?: string; previous?: string }
+  editing: Node
 }
 
 export default {
@@ -24,7 +24,7 @@ export default {
       service: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
-      editing: {}
+      editing: new Node()
     } as SvcState),
   mutations: {
     SET_WIDTH(state: SvcState, width: number) {
@@ -42,11 +42,10 @@ export default {
         })
         return
       }
-      state.editing.key = payload.key || ''
-      state.editing.previous = payload.previous || ''
-      const edtNode = state.editing.key
-        ? state.nodes[state.editing.key]
-        : Node.copy({ previous: payload.previous })
+      const edtNode = Node.copy(
+        payload.key ? state.nodes[payload.key] : { previous: payload.previous },
+        state.editing
+      )
       if (edtNode.previous && state.nodes[edtNode.previous].ntype === 'condition') {
         // 添加修改条件节点
         edtNode.ntype = 'condNode'
@@ -68,20 +67,17 @@ export default {
           item => item.value !== 'endNode' && item.value !== 'condNode'
         )
       }
-      edtNdMapper.advanced.items.inputs.dsKey = `service/nodes.${state.editing.key}.inputs`
-      edtNdMapper.advanced.items.outputs.dsKey = `service/nodes.${state.editing.key}.outputs`
       edtNdEmitter.emit('update:mapper', edtNdMapper)
       edtNdEmitter.emit('update:show', {
         show: true,
-        viewOnly: payload.viewOnly,
-        cpyRcd: (tgt: Node) => Node.copy(edtNode, tgt, true)
+        viewOnly: payload.viewOnly
       })
     },
     RESET_STATE(state: SvcState) {
       state.service.reset()
       state.width = 0
       state.nodes = {}
-      state.editing = {}
+      state.editing.reset()
     }
   },
   actions: {
@@ -116,7 +112,7 @@ export default {
         await fixWidth()
       } else {
         state.nodes = {}
-        state.editing = {}
+        state.editing.reset()
       }
     },
     async refreshNode({ state }: { state: SvcState }, key?: string) {
@@ -134,8 +130,7 @@ export default {
       (state: SvcState) =>
       (key: string): NodeInPnl =>
         state.nodes[key],
-    editNode: (state: SvcState): Node =>
-      state.editing.key ? state.nodes[state.editing.key] : new Node(),
-    edtNdKey: (state: SvcState): string | undefined => state.editing.key
+    editNode: (state: SvcState): Node => state.editing,
+    edtNdKey: (state: SvcState): string => state.editing.key
   }
 }

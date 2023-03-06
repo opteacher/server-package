@@ -43,6 +43,7 @@
       :copy="Node.copy"
       :mapper="edtNdMapper"
       :emitter="edtNdEmitter"
+      :object="store.getters['service/editNode']"
       @submit="onNodeSaved"
     />
   </div>
