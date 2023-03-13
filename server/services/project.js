@@ -328,26 +328,26 @@ export async function generate(pid) {
   const svcMap = {}
   console.log('收集非模型服务实例……')
   for (const service of project.services.filter(svc => !svc.model)) {
-    if (svc.path) {
-      let pamIdx = svc.path.indexOf('/:')
-      pamIdx = pamIdx === -1 ? svc.path.length : pamIdx
-      const pathPfx = svc.path.substring(0, pamIdx)
+    if (service.path) {
+      let pamIdx = service.path.indexOf('/:')
+      pamIdx = pamIdx === -1 ? service.path.length : pamIdx
+      const pathPfx = service.path.substring(0, pamIdx)
       const rotGen = Path.join(rotPath, pathPfx)
       fs.mkdirSync(rotGen, { recursive: true })
       if (rotGen in svcRts) {
-        svcRts[rotGen].push({ svc, pamIdx })
+        svcRts[rotGen].push({ service, pamIdx })
       } else {
-        svcRts[rotGen] = [{ svc, pamIdx }]
+        svcRts[rotGen] = [{ service, pamIdx }]
       }
     }
 
-    if (svc.name === 'auth') {
+    if (service.name === 'auth') {
       console.log('跳过授权服务')
       continue
     }
 
     console.log('收集项目依赖模块：')
-    const svcExt = await db.select(Service, { _index: svc.id }, { ext: true })
+    const svcExt = await db.select(Service, { _index: service.id }, { ext: true })
     svcExt.deps = []
     svcExt.nodes = svcExt.flow
       ? await recuNode(svcExt.flow.id, 4, node => {
@@ -362,10 +362,10 @@ export async function generate(pid) {
           }
         })
       : []
-    if (!(svc.name in svcMap)) {
-      svcMap[svc.name] = [svcExt]
+    if (!(service.name in svcMap)) {
+      svcMap[service.name] = [svcExt]
     } else {
-      svcMap[svc.name].push(svcExt)
+      svcMap[service.name].push(svcExt)
     }
   }
   console.log('生成非模型服务的路由……')
