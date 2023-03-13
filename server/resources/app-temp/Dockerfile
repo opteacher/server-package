@@ -1,7 +1,7 @@
 FROM node:latest
 WORKDIR /app
 COPY . /app
-RUN mv /etc/apt/sources.list /etc/apt/sources.list \
+RUN mv /etc/apt/sources.list /etc/apt/sources.list.backup \
   && echo deb https://mirrors.tencent.com/debian/ bullseye main non-free contrib > /etc/apt/sources.list \
   && echo deb-src https://mirrors.tencent.com/debian/ bullseye main non-free contrib >> /etc/apt/sources.list \
   && echo deb https://mirrors.tencent.com/debian-security/ bullseye-security main >> /etc/apt/sources.list \
