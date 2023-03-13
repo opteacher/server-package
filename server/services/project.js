@@ -178,7 +178,9 @@ async function recuNode(key, indent, callback, endKey) {
         const nxtNode = await db.select(Node, { _index: node.nexts[i].id })
         ret.push(
           indents +
-            `${i !== 0 ? '} else ' : ''}${nxtNode.code ? 'if (' + fmtCode(nxtNode) + ')' : ''} {`
+            `${i !== 0 ? '} else ' : ''}${
+              nxtNode.code ? 'if (' + fmtCode(Object.assign(nxtNode, { isFun: false })) + ')' : ''
+            } {`
         )
         if (nxtNode.nexts.length) {
           ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, callback, node.relative)))
