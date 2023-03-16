@@ -185,7 +185,7 @@ async function recuNode(key, indent, callback, endKey) {
               nxtNode.code ? 'if (' + fmtCode(Object.assign(nxtNode, { isFun: false })) + ')' : ''
             } {`
         )
-        if (nxtNode.nexts.length) {
+        if (nxtNode.nexts && nxtNode.nexts.length) {
           ret.push(...(await recuNode(nxtNode.nexts[0], indent + 2, callback, node.relative)))
         }
         if (i === node.nexts.length - 1) {
