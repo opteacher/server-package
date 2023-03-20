@@ -176,7 +176,7 @@ async function recuNode(key, indent, callback, endKey) {
       const ret = [genAnnotation(node, indents)]
       const nxtNds = await Promise.all(node.nexts.map(nxtNode => db.select(Node, { _index: nxtNode.id })))
       // 把code为空的条件节点移到数组最后
-      nxtNds.push(nxtNds.splice(nxtNds.findIndex(nd => !nd.code), 1))
+      nxtNds.push(...nxtNds.splice(nxtNds.findIndex(nd => !nd.code), 1))
       for (let i = 0; i < nxtNds.length; ++i) {
         const nxtNode = nxtNds[i]
         ret.push(
