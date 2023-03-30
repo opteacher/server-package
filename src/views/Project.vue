@@ -1,11 +1,7 @@
 <template>
   <LytProject :active="`project/${pid}`">
-    <div class="mb-1.5 flex justify-between">
-      <a-space>
-        <p class="mb-0 text-lg font-bold">
-          <project-outlined />
-          &nbsp;{{ project.name }}
-        </p>
+    <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.desc">
+      <template #tags>
         <a-tooltip>
           <template #title>点击刷新状态</template>
           <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
@@ -18,8 +14,8 @@
             <a @click="refresh">{{ project.status.stat }}</a>
           </a-tag>
         </a-tooltip>
-      </a-space>
-      <a-space>
+      </template>
+      <template #extra>
         <a-dropdown>
           <a-button class="w-28" @click.prevent>
             <template #icon><ant-design-outlined /></template>
@@ -105,31 +101,27 @@
           <template #icon><PoweroffOutlined /></template>
           &nbsp;停止
         </a-button>
-      </a-space>
-    </div>
-    <p class="mb-4">
-      <info-circle-outlined />
-      &nbsp;{{ project.desc }}
-    </p>
-    <a-descriptions size="small" :column="4">
-      <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
-      <a-descriptions-item label="数据库">
-        {{ project.database[0] }}/{{ project.database[1] }}
-      </a-descriptions-item>
-      <a-descriptions-item label="启动时清空数据库">
-        {{ project.dropDbs ? '是' : '否' }}
-      </a-descriptions-item>
-      <a-descriptions-item label="独立部署（不依赖server-package）">
-        {{ project.independ ? '是' : '否' }}
-      </a-descriptions-item>
-      <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
-        <a-typography-paragraph
-          class="whitespace-pre-line"
-          :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-          :content="project.commands"
-        />
-      </a-descriptions-item>
-    </a-descriptions>
+      </template>
+      <a-descriptions size="small" :column="4">
+        <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
+        <a-descriptions-item label="数据库">
+          {{ project.database[0] }}/{{ project.database[1] }}
+        </a-descriptions-item>
+        <a-descriptions-item label="启动时清空数据库">
+          {{ project.dropDbs ? '是' : '否' }}
+        </a-descriptions-item>
+        <a-descriptions-item label="独立部署（不依赖server-package）">
+          {{ project.independ ? '是' : '否' }}
+        </a-descriptions-item>
+        <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
+          <a-typography-paragraph
+            class="whitespace-pre-line"
+            :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+            :content="project.commands"
+          />
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-page-header>
     <EditableTable
       title="模型"
       size="small"
@@ -156,11 +148,9 @@
 import { computed, defineComponent, ref } from 'vue'
 import {
   SettingOutlined,
-  InfoCircleOutlined,
   SyncOutlined,
   UploadOutlined,
   PoweroffOutlined,
-  ProjectOutlined,
   AntDesignOutlined,
   ExportOutlined,
   GoldOutlined
@@ -187,11 +177,9 @@ export default defineComponent({
     LytProject,
     SvcTable,
     SettingOutlined,
-    InfoCircleOutlined,
     SyncOutlined,
     UploadOutlined,
     PoweroffOutlined,
-    ProjectOutlined,
     AntDesignOutlined,
     ExportOutlined,
     GoldOutlined

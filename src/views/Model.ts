@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BaseTypes, baseTypes, Cond } from '@/types/index'
 import Column from '@lib/types/column'
-import Mapper from '@lib/types/mapper'
+import Mapper, { getCopy } from '@lib/types/mapper'
 import Property from '@/types/property'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
@@ -69,25 +69,6 @@ export const propColumns = [
   new Column('备注', 'remark', { width: 300 })
 ]
 
-const dftMapper = {
-  LongStr: { type: 'Textarea' },
-  Object: {
-    type: 'CodeEditor',
-    lang: 'json'
-  },
-  Array: { type: 'EditList' },
-  Boolean: {
-    type: 'Select',
-    options: [
-      { label: 'TRUE', value: 'true' },
-      { label: 'FALSE', value: 'false' }
-    ]
-  },
-  DateTime: { type: 'DateTime' },
-  Number: { type: 'Number' },
-  String: { type: 'Input' }
-} as Record<BaseTypes, any>
-
 export const propMapper = new Mapper({
   name: {
     label: '字段名',
@@ -111,8 +92,21 @@ export const propMapper = new Mapper({
     })),
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
     onChange: (_prop: Property, toType: BaseTypes) => {
-      propEmitter.emit('update:mapper', { default: dftMapper[toType as BaseTypes] })
-      propEmitter.emit('update:data', { default: toType === 'Array' ? [] : null })
+      propEmitter.emit('update:data', {
+        default: {
+          LongStr: '',
+          Object: '{}',
+          Array: '[]',
+          Boolean: 'true',
+          DateTime: 'new Date()',
+          Number: '0',
+          String: '',
+          Unknown: '',
+          Id: '',
+          Function: "return ''",
+          Any: ''
+        }[toType]
+      })
     }
   },
   index: {

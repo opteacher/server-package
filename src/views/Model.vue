@@ -1,12 +1,7 @@
 <template>
   <LytProject :active="`project/${pid}/model/${mid}`">
-    <div class="flex justify-between">
-      <p class="mb-0 text-xl font-bold">
-        <appstore-outlined />
-        &nbsp;{{ model.name }}
-        <span v-if="model.label">&nbsp;({{ model.label }})</span>
-      </p>
-      <a-space>
+    <a-page-header class="p-0 mb-5" :title="model.name" :sub-title="model.label">
+      <template #extra>
         <a-tooltip>
           <template #title>需要所在项目启动后才可以查看数据集！</template>
           <a-button
@@ -43,8 +38,8 @@
           <template #icon><FormOutlined /></template>
           &nbsp;表单/表项设计
         </a-button>
-      </a-space>
-    </div>
+      </template>
+    </a-page-header>
     <EditableTable
       class="mt-6"
       title="字段"
@@ -129,7 +124,6 @@ import {
   DatabaseOutlined,
   ExportOutlined,
   FormOutlined,
-  AppstoreOutlined,
   PartitionOutlined
 } from '@ant-design/icons-vue'
 import { mdlAPI, propAPI, svcAPI } from '../apis'
@@ -147,7 +141,6 @@ export default defineComponent({
     DatabaseOutlined,
     ExportOutlined,
     FormOutlined,
-    AppstoreOutlined,
     PartitionOutlined
   },
   setup() {

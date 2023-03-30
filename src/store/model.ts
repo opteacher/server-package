@@ -14,7 +14,7 @@ import Form from '@/types/form'
 import Field from '@lib/types/field'
 import Table from '@/types/table'
 import { methods } from '@/types/index'
-import { svcEmitter, svcMapper } from '@/views/Project'
+import { svcEmitter } from '@/views/Project'
 
 type ModelState = {
   emitter: Emitter
@@ -64,11 +64,11 @@ export default {
         false
       )
       svcEmitter.emit('update:mapper', {
-        method: Object.assign(svcMapper.method, {
+        method: {
           options: methods
             .concat(hasRelProp ? 'LINK' : [])
             .map(mthd => ({ label: mthd, value: mthd }))
-        })
+        }
       })
       state.dragOn = ''
       state.divider = ''

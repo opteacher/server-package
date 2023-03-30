@@ -185,7 +185,7 @@ export const svcMapper = new Mapper({
 export const svcColumns = [
   new Column('激活方式', 'emit'),
   new Column('路由/激发条件', 'pathCond'),
-  new Column('访问方式/控制', 'methodCtrl', { width: 80 }),
+  new Column('访问方式/控制', 'methodCtrl', { width: 120 }),
   new Column('文件/方法', 'fileFunc'),
   new Column('描述', 'desc'),
   new Column('流程', 'flow')
