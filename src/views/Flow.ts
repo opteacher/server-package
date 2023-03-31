@@ -149,6 +149,22 @@ const optEmitter = new Emitter()
 
 export const edtNdEmitter = new Emitter()
 
+edtNdEmitter.on('update:show', async (show: boolean) => {
+  if (!show) {
+    return
+  }
+  const deps = await depAPI.all()
+  edtNdEmitter.emit('update:mapper', {
+    advanced: {
+      items: {
+        deps: {
+          lblMapper: Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
+        }
+      }
+    }
+  })
+})
+
 const depEmitter = new Emitter()
 
 export const edtNdMapper = new Mapper({
@@ -272,15 +288,6 @@ export const edtNdMapper = new Mapper({
         },
         onAdded: async () => {
           const deps = await depAPI.all()
-          edtNdEmitter.emit('update:mapper', {
-            advanced: {
-              items: {
-                deps: {
-                  lblMapper: Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
-                }
-              }
-            }
-          })
           depEmitter.emit('update:mapper', {
             deps: {
               options: deps.map(dep =>

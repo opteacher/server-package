@@ -121,6 +121,16 @@ export const mapper = new Mapper({
       expPorts: {
         label: '暴露端口',
         type: 'EditList',
+        mapper: new Mapper({
+          value: {
+            type: 'Number'
+          }
+        }),
+        copy: (src: any, tgt?: any) => {
+          tgt = tgt || { value: '' }
+          tgt.value = src.value || tgt.value
+          return tgt
+        },
         desc: '尽量不要暴露过多端口，这里的端口以0.0.0.0映射进容器，所以不受nginx管理，不符合sp的规则！'
       }
     }
