@@ -1,24 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Modal } from 'ant-design-vue'
-import { createVNode } from 'vue'
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import { pjtAPI as api } from '@/apis'
 import router from '@/router'
 import store from '@/store'
-import { pjtAPI as api } from '@/apis'
-import Mapper from '@lib/types/mapper'
 import { Cond } from '@/types'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
+import Project from '@/types/project'
+import { setProp } from '@/utils'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
+import { Modal } from 'ant-design-vue'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { createVNode } from 'vue'
 
 export const emitter = new Emitter()
 
 export const columns = [
   new Column('名称', 'name'),
   new Column('说明', 'desc'),
-  new Column('占用端口', 'port'),
+  new Column('占用端口', 'port', { width: 100 }),
   new Column('数据库', 'database'),
-  new Column('独立', 'independ'),
+  new Column('独立部署', 'independ', { width: 80 }),
   new Column('状态', 'status', { width: 80 }),
   new Column('操作项目', 'operation', { width: 200 })
 ]
@@ -26,6 +29,19 @@ export const columns = [
 const evarsEmitter = new Emitter()
 
 export const mapper = new Mapper({
+  ptype: {
+    label: '项目类型',
+    type: 'Radio',
+    rules: [{ required: true, message: '请选择项目类型！', trigger: 'blur' }],
+    options: [
+      { label: '前端', value: 'frontend' },
+      { label: '后端', value: 'backend' }
+    ],
+    style: 'button',
+    disabled: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
+    onChange: (_pjt: Project, selected: 'frontend' | 'backend') =>
+      setProp(mapper, 'database.rules[0].required', selected === 'backend')
+  },
   name: {
     label: '项目名称',
     type: 'Input',
@@ -45,11 +61,13 @@ export const mapper = new Mapper({
     label: '数据库',
     type: 'Cascader',
     options: [],
-    rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }]
+    rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }],
+    display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
   dropDbs: {
     label: '启动时清空数据库',
-    type: 'Checkbox'
+    type: 'Checkbox',
+    display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
   commands: {
     label: '高级',
@@ -62,7 +80,8 @@ export const mapper = new Mapper({
       independ: {
         label: '独立部署',
         type: 'Checkbox',
-        desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存'
+        desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存',
+        display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
       },
       volumes: {
         label: '共享文件/夹',

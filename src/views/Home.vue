@@ -11,14 +11,28 @@
       sclHeight="h-full"
     >
       <template #name="{ record: project }">
-        <a :href="`/server-package/project/${project.key}`" @click.stop="">{{ project.name }}</a>
+        <a
+          :href="`/server-package/project/${project.key}`"
+          @click.stop
+        >
+          {{ project.name }}
+        </a>
       </template>
       <template #database="{ record: project }">
-        <a-tooltip v-if="project.dropDbs">
-          <template #title>启动时清空</template>
-          <clear-outlined />
-        </a-tooltip>
-        &nbsp;{{ project.database[0] }} / {{ project.database[1] }}
+        <template v-if="project.database.length">
+          <a-tooltip v-if="project.dropDbs">
+            <template #title>启动时清空</template>
+            <clear-outlined />
+          </a-tooltip>
+          &nbsp;{{ project.database.join(' / ') }}
+        </template>
+        <template v-else>
+          <html5-outlined />
+          &nbsp;前端
+        </template>
+      </template>
+      <template #independ="{ record: project }">
+        {{ project.independ ? '是' : '否' }}
       </template>
       <template #status="{ record: project }">
         <template v-if="project.thread === 0">
@@ -62,18 +76,20 @@
 
 <script lang="ts">
 import Project from '@/types/project'
-import { defineComponent, onMounted, ref, watch } from 'vue'
-import { mapper, emitter, columns } from './Home'
-import LytMain from '../layouts/LytMain.vue'
 import {
-  SyncOutlined,
-  PoweroffOutlined,
   ClearOutlined,
-  LoadingOutlined
+  Html5Outlined,
+  LoadingOutlined,
+  PoweroffOutlined,
+  SyncOutlined
 } from '@ant-design/icons-vue'
-import Database from '../types/database'
-import { pjtAPI as api } from '../apis'
+import { defineComponent, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
+
+import { pjtAPI as api } from '../apis'
+import LytMain from '../layouts/LytMain.vue'
+import Database from '../types/database'
+import { columns, emitter, mapper } from './Home'
 
 export default defineComponent({
   name: 'Home',
@@ -82,7 +98,8 @@ export default defineComponent({
     SyncOutlined,
     PoweroffOutlined,
     ClearOutlined,
-    LoadingOutlined
+    LoadingOutlined,
+    Html5Outlined
   },
   setup() {
     const store = useStore()

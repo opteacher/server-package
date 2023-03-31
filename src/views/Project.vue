@@ -16,52 +16,15 @@
         </a-tooltip>
       </template>
       <template #extra>
-        <a-dropdown>
-          <a-button class="w-28" @click.prevent>
-            <template #icon><ant-design-outlined /></template>
-            &nbsp;前端
-          </a-button>
-          <template #overlay>
-            <a-menu @click="onFrtMuClick">
-              <a-menu-item key="export">
-                <template #icon>
-                  <export-outlined />
-                </template>
-                <span>导出</span>
-              </a-menu-item>
-              <a-menu-item key="deploy" v-if="project.thread">
-                <template #icon>
-                  <gold-outlined />
-                </template>
-                <span>部署</span>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-        <FormDialog
-          title="导出前端"
-          :lblWid="3"
-          :emitter="frontend.expEmitter"
-          :mapper="frontend.expMapper"
-          :copy="Export.copy"
-        >
-          <template #name="{ formState }">
-            <a-input v-model:value="formState.name">
-              <template #suffix>
-                <a-checkbox />
-              </template>
-            </a-input>
-          </template>
-        </FormDialog>
-        <a-button @click="showProj = true">
+        <a-button @click="cfgVsb = true">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
         </a-button>
         <FormDialog
           title="配置项目"
           :copy="Project.copy"
-          v-model:show="showProj"
-          :mapper="projMapper"
+          v-model:show="cfgVsb"
+          :mapper="pjtMapper"
           :object="project"
           @submit="onConfig"
         />
@@ -79,7 +42,7 @@
           <a-button
             :disabled="project.status.stat === 'loading'"
             :loading="project.status.stat === 'loading'"
-            @click="showTsfm = true"
+            @click="tsfVsb = true"
           >
             <template #icon><UploadOutlined /></template>
             &nbsp;传输文件
@@ -88,7 +51,7 @@
         <FormDialog
           title="投放文件"
           :copy="Transfer.copy"
-          v-model:show="showTsfm"
+          v-model:show="tsfVsb"
           :mapper="tsMapper"
           :emitter="tsEmitter"
           @submit="onTransfer"
@@ -104,22 +67,24 @@
       </template>
       <a-descriptions size="small" :column="4">
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
-        <a-descriptions-item label="数据库">
-          {{ project.database[0] }}/{{ project.database[1] }}
-        </a-descriptions-item>
-        <a-descriptions-item label="启动时清空数据库">
-          {{ project.dropDbs ? '是' : '否' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="独立部署（不依赖server-package）">
-          {{ project.independ ? '是' : '否' }}
-        </a-descriptions-item>
-        <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
-          <a-typography-paragraph
-            class="whitespace-pre-line"
-            :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-            :content="project.commands"
-          />
-        </a-descriptions-item>
+        <template v-if="!isFront">
+          <a-descriptions-item label="数据库">
+            {{ project.database[0] }}/{{ project.database[1] }}
+          </a-descriptions-item>
+          <a-descriptions-item label="启动时清空数据库">
+            {{ project.dropDbs ? '是' : '否' }}
+          </a-descriptions-item>
+          <a-descriptions-item label="独立部署（不依赖server-package）">
+            {{ project.independ ? '是' : '否' }}
+          </a-descriptions-item>
+          <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
+            <a-typography-paragraph
+              class="whitespace-pre-line"
+              :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+              :content="project.commands"
+            />
+          </a-descriptions-item>
+        </template>
       </a-descriptions>
     </a-page-header>
     <EditableTable
@@ -134,7 +99,7 @@
       @delete="refresh"
     >
       <template #name="{ record: model }">
-        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop="">
+        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
           {{ model.name }}
         </a>
       </template>
@@ -145,31 +110,29 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref } from 'vue'
-import {
-  SettingOutlined,
-  SyncOutlined,
-  UploadOutlined,
-  PoweroffOutlined,
-  AntDesignOutlined,
-  ExportOutlined,
-  GoldOutlined
-} from '@ant-design/icons-vue'
-import { useRoute, useRouter } from 'vue-router'
-import LytProject from '../layouts/LytProject.vue'
-import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns, frontend } from './Project'
-import { columns as mdlColumns, mapper as mdlMapper } from './Model'
-import { mapper as projMapper } from './Home'
-import { useStore } from 'vuex'
-import Project from '@/types/project'
+import SvcTable from '@/components/SvcTable.vue'
+import ExpCls from '@/types/expCls'
+import { Export } from '@/types/frontend'
 import Model from '@/types/model'
+import Project from '@/types/project'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
-import ExpCls from '@/types/expCls'
+import {
+  PoweroffOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  UploadOutlined
+} from '@ant-design/icons-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { computed, defineComponent, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
-import SvcTable from '@/components/SvcTable.vue'
-import { Export } from '@/types/frontend'
+import LytProject from '../layouts/LytProject.vue'
+import { mapper as pjtMapper } from './Home'
+import { columns as mdlColumns, mapper as mdlMapper } from './Model'
+import { frontend, svcColumns, svcEmitter, svcMapper, tsEmitter, tsMapper } from './Project'
 
 export default defineComponent({
   name: 'Project',
@@ -179,19 +142,17 @@ export default defineComponent({
     SettingOutlined,
     SyncOutlined,
     UploadOutlined,
-    PoweroffOutlined,
-    AntDesignOutlined,
-    ExportOutlined,
-    GoldOutlined
+    PoweroffOutlined
   },
   setup() {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
     const pid = route.params.pid as string
-    const project = computed(() => store.getters['project/ins'] as Project)
-    const showProj = ref(false)
-    const showTsfm = ref(false)
+    const project = computed<Project>(() => store.getters['project/ins'] as Project)
+    const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+    const cfgVsb = ref(false)
+    const tsfVsb = ref(false)
     const mdlEmitter = new Emitter()
 
     async function refresh() {
@@ -202,12 +163,12 @@ export default defineComponent({
     async function onConfig(pjt: Project) {
       await api.update(pjt)
       await store.dispatch('project/refresh')
-      showProj.value = false
+      cfgVsb.value = false
     }
     async function onTransfer(info: Transfer) {
       await api.transfer(info)
       await store.dispatch('project/refresh')
-      showTsfm.value = false
+      tsfVsb.value = false
     }
     function onFrtMuClick({ key }: { key: 'export' | 'deploy' }) {
       frontend[`${key.slice(0, 3)}Emitter` as 'expEmitter' | 'depEmitter'].emit('update:show', true)
@@ -233,10 +194,11 @@ export default defineComponent({
       api,
       store,
       router,
-      projMapper,
+      isFront,
+      pjtMapper,
       project,
-      showProj,
-      showTsfm,
+      cfgVsb,
+      tsfVsb,
       tsMapper,
       tsEmitter,
 

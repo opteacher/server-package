@@ -1,12 +1,13 @@
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
-import EditableTable from '@lib/components/EditableTable.vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Service, { EmitType, emitMapper } from '@/types/service'
-import store from '@/store'
 import { svcAPI as api } from '@/apis'
+import store from '@/store'
+import Model from '@/types/model'
+import Service, { EmitType, emitMapper } from '@/types/service'
 import { EditOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import EditableTable from '@lib/components/EditableTable.vue'
 import Mapper from '@lib/types/mapper'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { computed, defineComponent } from 'vue'
 
 export default defineComponent({
   components: {
@@ -27,6 +28,14 @@ export default defineComponent({
 
     function onAddSvcClicked() {
       props.emitter.emit('update:data', { name: props.model })
+      const options = store.getters['project/ins'].models.map((model: Model) => ({
+        label: model.name,
+        value: model.name
+      }))
+      props.emitter.emit('update:mapper', {
+        name: { options },
+        model: { options }
+      })
     }
     function onBefSave(svc: Service) {
       if (svc.emit === 'timeout' || svc.emit === 'interval') {
@@ -61,8 +70,8 @@ export default defineComponent({
     :emitter="emitter"
     @add="onAddSvcClicked"
     @before-save="onBefSave"
-    @save="emitter.emit('refresh')"
-    @delete="emitter.emit('refresh')"
+    @save="() => emitter.emit('refresh')"
+    @delete="() => emitter.emit('refresh')"
   >
     <template #emit="{ record: svc }">
       {{ emitMapper[svc.emit as EmitType] }}

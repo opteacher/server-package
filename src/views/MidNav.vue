@@ -86,16 +86,17 @@
 </template>
 
 <script lang="ts">
+import MidNav from '@/types/midNav'
+import { fixStartsWith } from '@/utils'
+import { PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+
+import { mdlAPI, pjtAPI } from '../apis'
+import ModelMenu from '../components/mid/ModelMenu.vue'
 import LytMiddle from '../layouts/LytMiddle.vue'
 import Model from '../types/model'
-import MidNav from '@/types/midNav'
-import { pjtAPI, mdlAPI } from '../apis'
-import { fixStartsWith } from '@/utils'
-import ModelMenu from '../components/mid/ModelMenu.vue'
-import { PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
 
 export default defineComponent({
   name: 'MiddleNavigate',

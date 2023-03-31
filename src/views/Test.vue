@@ -42,8 +42,9 @@
   </a-table>
 </template>
 <script lang="ts">
-import { SmileOutlined, DownOutlined } from '@ant-design/icons-vue'
+import { DownOutlined, SmileOutlined } from '@ant-design/icons-vue'
 import { defineComponent } from 'vue'
+
 const columns = [
   {
     title: 'Name',
