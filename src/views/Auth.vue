@@ -1,65 +1,20 @@
 <template>
   <LytProject :active="`project/${pid}/auth`">
-    <div class="flex justify-between mb-2.5">
-      <p class="mb-0 text-lg font-bold">
-        <audit-outlined />
-        &nbsp;权限系统
-      </p>
-      <a-button v-if="!bindMdl" type="primary" @click="onAuthShow(true)">
-        <template #icon><unlock-outlined /></template>
-        绑定
-      </a-button>
-      <a-button v-else @click="onAuthShow(true)">
-        <template #icon><lock-outlined /></template>
-        已绑定
-      </a-button>
-    </div>
-    <FormDialog
-      title="配置"
-      :show="authVsb"
-      :copy="Auth.copy"
-      :mapper="mapper"
-      :emitter="emitter"
-      :object="auth"
-      @update:show="onAuthShow"
-      @submit="onBindModel"
-    />
-    <EditableTable
-      title="接口"
-      size="small"
-      :api="apiAPI"
-      :columns="apiColumn"
-      :mapper="apiMapper"
-      :copy="API.copy"
-      :emitter="apiEmitter"
-      @add="apiMapper['path'].prefix = `/${pjtName}`"
-      @edit="apiMapper['path'].prefix = `/${pjtName}`"
-      @save="refresh"
-      @delete="refresh"
-    >
-      <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
-      <template #sign="{ record }">
-        <a-button
-          v-if="record.name === 'auth' && record.func === 'sign'"
-          size="small"
-          :type="!record.flow ? 'primary' : 'default'"
-          @click.stop="onSignShow(true)"
-        >
-          <template #icon><AuditOutlined /></template>
-          签发配置
+    <div class="space-y-5">
+      <div class="flex justify-between mb-2.5">
+        <p class="mb-0 text-lg font-bold">
+          <audit-outlined />
+          &nbsp;权限系统
+        </p>
+        <a-button v-if="!bindMdl" type="primary" @click="onAuthShow(true)">
+          <template #icon><unlock-outlined /></template>
+          绑定
         </a-button>
-      </template>
-    </EditableTable>
-    <FormDialog
-      title="配置签发逻辑"
-      :show="showSgn"
-      :copy="Sign.copy"
-      :mapper="signMapper"
-      :emitter="signEmitter"
-      @update:show="onSignShow"
-      @submit="onSignCfg"
-    />
-    <div class="mt-6">
+        <a-button v-else @click="onAuthShow(true)">
+          <template #icon><lock-outlined /></template>
+          已绑定
+        </a-button>
+      </div>
       <EditableTable
         title="角色"
         size="small"
@@ -73,6 +28,7 @@
         :addable="auth.model !== ''"
         @save="refresh"
         @delete="refresh"
+        https
       >
         <template #nameHD="{ column }">
           {{ column.title }}
@@ -115,7 +71,53 @@
           </EditableTable>
         </template>
       </EditableTable>
+      <EditableTable
+        title="接口"
+        size="small"
+        :api="{
+          all: () => project.services
+        }"
+        :columns="apiColumn"
+        :mapper="apiMapper"
+        :copy="API.copy"
+        :emitter="apiEmitter"
+        :addable="false"
+        :editable="false"
+        :delable="false"
+      >
+        <template #path="{ record }">/{{ pjtName }}{{ record.path }}</template>
+        <template #sign="{ record }">
+          <a-button
+            v-if="record.name === 'auth' && record.func === 'sign'"
+            size="small"
+            :type="!record.flow ? 'primary' : 'default'"
+            @click.stop="onSignShow(true)"
+          >
+            <template #icon><AuditOutlined /></template>
+            签发配置
+          </a-button>
+        </template>
+      </EditableTable>
     </div>
+    <FormDialog
+      title="配置"
+      :show="authVsb"
+      :copy="Auth.copy"
+      :mapper="mapper"
+      :emitter="emitter"
+      :object="auth"
+      @update:show="onAuthShow"
+      @submit="onBindModel"
+    />
+    <FormDialog
+      title="配置签发逻辑"
+      :show="showSgn"
+      :copy="Sign.copy"
+      :mapper="signMapper"
+      :emitter="signEmitter"
+      @update:show="onSignShow"
+      @submit="onSignCfg"
+    />
   </LytProject>
 </template>
 
@@ -165,6 +167,7 @@ export default defineComponent({
     const store = useStore()
     const route = useRoute()
     const pid = route.params.pid
+    const project = computed(() => store.getters['project/ins'])
     const auth = computed(() => store.getters['project/ins'].auth)
     const pjtName = computed(() => store.getters['project/ins'].name)
     const bindMdl = computed(() => store.getters['project/ins'].auth.model)
@@ -241,6 +244,7 @@ export default defineComponent({
       auth,
       mapper,
       emitter,
+      project,
       pjtName,
       bindMdl,
       apiAPI,
