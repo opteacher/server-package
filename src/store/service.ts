@@ -2,12 +2,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Node, { ndTpOpns, NodeTypeMapper } from '@/types/node'
 import Service from '@/types/service'
-import Dep from '@/types/dep'
-import { LstOpnType } from '@lib/types/mapper'
 import { edtNdEmitter, edtNdMapper, buildNodes, fixWidth, fillPlaceholder } from '@/views/Flow'
 import router from '@/router'
 import NodeInPnl from '@/types/ndInPnl'
-import { depAPI, ndAPI, svcAPI } from '@/apis'
+import { ndAPI, svcAPI } from '@/apis'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -86,21 +84,6 @@ export default {
         return
       }
       const sid = router.currentRoute.value.params.sid
-      const deps = await depAPI.all()
-      edtNdMapper.advanced.items.deps.lvMapper = Object.fromEntries(
-        deps.map((dep: Dep) => [dep.key, dep.name])
-      )
-      edtNdMapper.advanced.items.deps.mapper.deps.options = deps.map((dep: Dep) =>
-        LstOpnType.copy({
-          key: dep.key,
-          title: dep.name,
-          subTitle: [
-            'import ',
-            dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
-            ` from '${dep.from}'`
-          ].join('')
-        })
-      )
       state.service = await svcAPI.detail(sid)
       if (state.service.flow) {
         const rootKey = state.service.flow.key

@@ -6,13 +6,13 @@ import { Modal } from 'ant-design-vue'
 import { createVNode, ref } from 'vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Moment } from 'moment'
-import Mapper from '@lib/types/mapper'
+import Mapper, { LstOpnType } from '@lib/types/mapper'
 import { baseTypes, bsTpOpns, Cond } from '@/types'
 import Variable from '@/types/variable'
 import Node, { NodeType } from '@/types/node'
 import Column from '@lib/types/column'
-import { ndAPI as api } from '../apis'
-import { until } from '@/utils'
+import { ndAPI as api, depAPI } from '../apis'
+import { setProp, until } from '@/utils'
 import NodeInPnl from '@/types/ndInPnl'
 import { NodesInPnl } from '@/store/service'
 
@@ -256,7 +256,6 @@ export const edtNdMapper = new Mapper({
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
           Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
-        lblProp: 'name',
         mapper: new Mapper({
           deps: {
             label: '依赖',
@@ -271,9 +270,32 @@ export const edtNdMapper = new Mapper({
           tgt.deps = src || tgt.deps
           return tgt
         },
-        onSaved: async (record: any) => {
-          await api.deps.save(record.deps)
-          depEmitter.emit('update:show', false)
+        onAdded: async () => {
+          const deps = await depAPI.all()
+          edtNdEmitter.emit('update:mapper', {
+            advanced: {
+              items: {
+                deps: {
+                  lblMapper: Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
+                }
+              }
+            }
+          })
+          depEmitter.emit('update:mapper', {
+            deps: {
+              options: deps.map(dep =>
+                LstOpnType.copy({
+                  key: dep.key,
+                  title: dep.name,
+                  subTitle: [
+                    'import ',
+                    dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
+                    ` from '${dep.from}'`
+                  ].join('')
+                })
+              )
+            }
+          })
         }
       },
       code: {

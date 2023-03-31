@@ -12,10 +12,10 @@ export async function bindPtCdNodes(parent, child) {
 }
 
 export async function save(node, sid) {
-  // 不保存依赖
+  // 保存依赖
   if (node.key) {
     // 更新节点
-    return db.saveOne(Node, node.key, pickOrIgnore(node, ['key', 'previous', 'nexts', 'deps']))
+    return db.saveOne(Node, node.key, pickOrIgnore(node, ['key', 'previous', 'nexts']))
   }
   //新增节点
   node = await db.save(Node, pickOrIgnore(node, ['key']))
