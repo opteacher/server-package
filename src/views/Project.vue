@@ -16,43 +16,6 @@
         </a-tooltip>
       </template>
       <template #extra>
-        <a-dropdown>
-          <a-button class="w-28" @click.prevent>
-            <template #icon><ant-design-outlined /></template>
-            &nbsp;前端
-          </a-button>
-          <template #overlay>
-            <a-menu @click="onFrtMuClick">
-              <a-menu-item key="export">
-                <template #icon>
-                  <export-outlined />
-                </template>
-                <span>导出</span>
-              </a-menu-item>
-              <a-menu-item key="deploy" v-if="project.thread">
-                <template #icon>
-                  <gold-outlined />
-                </template>
-                <span>部署</span>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-        <FormDialog
-          title="导出前端"
-          :lblWid="3"
-          :emitter="frontend.expEmitter"
-          :mapper="frontend.expMapper"
-          :copy="Export.copy"
-        >
-          <template #name="{ formState }">
-            <a-input v-model:value="formState.name">
-              <template #suffix>
-                <a-checkbox />
-              </template>
-            </a-input>
-          </template>
-        </FormDialog>
         <a-button @click="showProj = true">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
@@ -134,31 +97,160 @@
       @delete="refresh"
     >
       <template #name="{ record: model }">
-        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop="">
+        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
           {{ model.name }}
         </a>
       </template>
+      <template #svcs="{ record: model }">
+        <a-tooltip v-for="svc in mSvcMapper[model.name]" :key="svc.key">
+          <template #title>{{ svc.path }}</template>
+          <a-tag class="cursor-pointer" :color="mhdClrs[svc.method]">
+            {{ svc.method }}
+          </a-tag>
+        </a-tooltip>
+      </template>
+      <template #form="{ record: model }">
+        <a-space>
+          <!-- <a-tooltip>
+            <template #title>需要所在项目启动后才可以查看数据集！</template>
+            <a-button
+              size="small"
+              :disabled="project.status.stat !== 'running'"
+              @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+            >
+              <template #icon><DatabaseOutlined /></template>
+              &nbsp;浏览数据
+            </a-button>
+          </a-tooltip> -->
+          <a-button
+            size="small"
+            @click.stop="
+              () => {
+                expClsObj.update(model)
+                expClsVsb = true
+              }
+            "
+          >
+            <template #icon><ExportOutlined /></template>
+            &nbsp;导出类
+          </a-button>
+          <a-button
+            type="primary"
+            size="small"
+            @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+          >
+            <template #icon><FormOutlined /></template>
+            &nbsp;表单/表项设计
+          </a-button>
+        </a-space>
+      </template>
+      <template #expandedRowRender="{ record: model }">
+        <EditableTable
+          class="mt-6"
+          title="字段"
+          size="small"
+          :api="{
+            all: () => model.props,
+            add: (data: any) =>
+              reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
+            remove: (prop: any) =>
+              reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
+            update: (data: any) =>
+              reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
+          }"
+          :columns="propColumns"
+          :mapper="propMapper"
+          :copy="Property.copy"
+          :emitter="propEmitter"
+          @save="refresh"
+          @delete="refresh"
+        >
+          <template #relative="{ record }">
+            <partition-outlined
+              v-if="record.relative.isArray"
+              :rotate="record.relative.belong ? 180 : 0"
+            />
+            {{ record.relative.model }}
+          </template>
+          <template #relativeEDT="{ editing }">
+            <a-input-group>
+              <a-row :gutter="8" type="flex" justify="space-around" align="middle">
+                <a-col :span="4">
+                  <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
+                    <a-select
+                      class="w-full"
+                      :disabled="mdlOpns.length === 1"
+                      :value="editing.relative.belong ? 'belong' : 'has'"
+                      @change="(val: string) => { editing.relative.belong = val === 'belong' }"
+                    >
+                      <a-select-option value="belong">属于</a-select-option>
+                      <a-select-option value="has">拥有</a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+                <a-col :span="4" class="text-center">
+                  <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
+                    <a-checkbox
+                      :disabled="mdlOpns.length === 1"
+                      v-model:checked="editing.relative.isArray"
+                      @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
+                    >
+                      {{ editing.relative.isArray ? '多个' : '一个' }}
+                    </a-checkbox>
+                  </a-form-item>
+                </a-col>
+                <a-col :span="16">
+                  <a-form-item class="mb-0" ref="relative.model" name="relative.model">
+                    <a-select
+                      class="w-full"
+                      :disabled="mdlOpns.length === 1"
+                      v-model:value="editing.relative.model"
+                      :options="mdlOpns"
+                      @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
+                    />
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </a-input-group>
+          </template>
+        </EditableTable>
+      </template>
     </EditableTable>
+    <FormDialog
+      title="导出类"
+      v-model:show="expClsVsb"
+      :object="expClsObj"
+      :copy="ExpCls.copy"
+      :mapper="expMapper"
+      @submit="(formData: any) => mdlAPI.export(formData)"
+    />
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
   </LytProject>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, reactive, ref } from 'vue'
 import {
   SettingOutlined,
   SyncOutlined,
   UploadOutlined,
   PoweroffOutlined,
-  AntDesignOutlined,
   ExportOutlined,
-  GoldOutlined
+  FormOutlined,
+  PartitionOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
 import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns, frontend } from './Project'
-import { columns as mdlColumns, mapper as mdlMapper } from './Model'
+import {
+  expMapper,
+  columns as mdlColumns,
+  mapper as mdlMapper,
+  propColumns,
+  propEmitter,
+  propMapper
+} from './Model'
 import { mapper as projMapper } from './Home'
 import { useStore } from 'vuex'
 import Project from '@/types/project'
@@ -170,6 +262,9 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
 import SvcTable from '@/components/SvcTable.vue'
 import { Export } from '@/types/frontend'
+import Property from '@/types/property'
+import { OpnType } from '@/types'
+import { reqDelete, reqPost, reqPut } from '@/utils'
 
 export default defineComponent({
   name: 'Project',
@@ -180,19 +275,48 @@ export default defineComponent({
     SyncOutlined,
     UploadOutlined,
     PoweroffOutlined,
-    AntDesignOutlined,
     ExportOutlined,
-    GoldOutlined
+    FormOutlined,
+    PartitionOutlined
   },
   setup() {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
     const pid = route.params.pid as string
-    const project = computed(() => store.getters['project/ins'] as Project)
+    const project = computed<Project>(() => store.getters['project/ins'])
     const showProj = ref(false)
     const showTsfm = ref(false)
     const mdlEmitter = new Emitter()
+    const mSvcMapper = computed<Record<string, Service[]>>(() => {
+      const ret: Record<string, Service[]> = {}
+      const pjt = store.getters['project/ins'] as Project
+      for (const svc of pjt.services.filter(svc => svc.model)) {
+        if (svc.model in ret) {
+          ret[svc.model].push(svc)
+        } else {
+          ret[svc.model] = [svc]
+        }
+      }
+      return ret
+    })
+    const expClsVsb = ref<boolean>(false)
+    const expClsObj = reactive<ExpCls>(new ExpCls())
+    const mdlOpns = computed<OpnType[]>(() =>
+      [{ label: '无', value: '' }].concat(
+        store.getters['project/models'].map((mdl: Model) => ({
+          label: mdl.label || mdl.name,
+          value: mdl.name
+        }))
+      )
+    )
+    const mhdClrs = {
+      POST: 'orange',
+      DELETE: 'red',
+      PUT: 'cyan',
+      GET: 'green',
+      LINK: 'purple'
+    }
 
     async function refresh() {
       await store.dispatch('project/refresh')
@@ -209,8 +333,17 @@ export default defineComponent({
       await store.dispatch('project/refresh')
       showTsfm.value = false
     }
-    function onFrtMuClick({ key }: { key: 'export' | 'deploy' }) {
-      frontend[`${key.slice(0, 3)}Emitter` as 'expEmitter' | 'depEmitter'].emit('update:show', true)
+    function onRelMdlChange(prop: Property, mname: string) {
+      if (!mname) {
+        return prop.reset()
+      }
+      const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
+      prop.name = model.name + 's'
+      prop.label = model.label || ''
+      prop.ptype = 'Id'
+      prop.index = false
+      prop.unique = false
+      prop.visible = true
     }
     return {
       Project,
@@ -219,6 +352,7 @@ export default defineComponent({
       Service,
       ExpCls,
       Export,
+      Property,
 
       mdlAPI,
       mdlEmitter,
@@ -239,11 +373,23 @@ export default defineComponent({
       showTsfm,
       tsMapper,
       tsEmitter,
+      mSvcMapper,
+      expClsVsb,
+      expClsObj,
+      expMapper,
+      mdlOpns,
+      mhdClrs,
+      propColumns,
+      propMapper,
+      propEmitter,
 
       refresh,
       onConfig,
       onTransfer,
-      onFrtMuClick
+      onRelMdlChange,
+      reqPost,
+      reqPut,
+      reqDelete
     }
   }
 })

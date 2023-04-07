@@ -1,3 +1,4 @@
+import { gnlCpy } from '@/utils'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 
@@ -15,7 +16,14 @@ export const mapper = new Mapper({
   },
   dbs: {
     label: '数据库',
-    type: 'EditList'
+    type: 'EditList',
+    mapper: new Mapper({
+      value: {
+        type: 'Input',
+        placeholder: '输入数据库'
+      }
+    }),
+    copy: (src: any, tgt?: { value: string }) => gnlCpy(() => ({ value: '' }), src, tgt)
   },
   host: {
     label: '主机地址',

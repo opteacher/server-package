@@ -7,10 +7,6 @@
           <project-outlined />
           <span>项目</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/model/${mid}`" disabled>
-          <appstore-outlined />
-          <span>模型</span>
-        </a-menu-item>
         <a-menu-item :key="`project/${pid}/auth`">
           <audit-outlined />
           <span>权限</span>
@@ -80,7 +76,6 @@ import {
   ProjectOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  AppstoreOutlined,
   AuditOutlined,
   HomeOutlined,
   LayoutOutlined,
@@ -96,7 +91,6 @@ export default defineComponent({
     ProjectOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
-    AppstoreOutlined,
     AuditOutlined,
     HomeOutlined,
     LayoutOutlined,
