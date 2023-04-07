@@ -122,28 +122,29 @@
 </template>
 
 <script lang="ts">
-import { computed, createVNode, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import LytMiddle from '../layouts/LytMiddle.vue'
+import { cmpAPI, pjtAPI } from '@/apis'
+import { CompoType, cmpLblMap } from '@/types'
+import CmpIns from '@/types/cmpIns'
+import MidDsb from '@/types/midDsb'
 import {
   CaretLeftOutlined,
   CaretRightOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons-vue'
-import { cmpAPI, pjtAPI } from '@/apis'
-import CmpIns from '@/types/cmpIns'
-import MidDsb from '@/types/midDsb'
-import { useStore } from 'vuex'
-import { Modal } from 'ant-design-vue'
 import Compo from '@lib/types/compo'
-import { cmpLblMap, CompoType } from '@/types'
+import Field from '@lib/types/field'
+import { Modal } from 'ant-design-vue'
+import { pid } from 'process'
+import { v4 as uuidv4 } from 'uuid'
+import { computed, createVNode, defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+
+import ExtraProps from '../components/form/ExtraProps.vue'
 import CompoCard from '../components/mid/CompoCard.vue'
 import DsbProps from '../components/mid/DsbProps.vue'
-import ExtraProps from '../components/form/ExtraProps.vue'
-import Field from '@lib/types/field'
-import { v4 as uuidv4 } from 'uuid'
-import { pid } from 'process'
+import LytMiddle from '../layouts/LytMiddle.vue'
 import { refresh } from './Auth'
 
 export default defineComponent({

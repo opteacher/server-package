@@ -9,6 +9,7 @@ import Service from './service'
 
 export default class Project {
   key: string
+  ptype: 'frontend' | 'backend'
   name: string
   desc: string
   port: number
@@ -28,6 +29,7 @@ export default class Project {
 
   constructor() {
     this.key = ''
+    this.ptype = 'backend'
     this.name = ''
     this.desc = ''
     this.port = 0
@@ -48,6 +50,7 @@ export default class Project {
 
   reset() {
     this.key = ''
+    this.ptype = 'backend'
     this.name = ''
     this.desc = ''
     this.port = 0
@@ -69,6 +72,7 @@ export default class Project {
   static copy(src: any, tgt?: Project, force = false): Project {
     tgt = tgt || new Project()
     tgt.key = src.key || src._id || tgt.key
+    tgt.ptype = src.database && src.database.length ? 'backend' : 'frontend'
     tgt.name = src.name || tgt.name
     tgt.desc = src.desc || tgt.desc
     tgt.port = src.port || tgt.port

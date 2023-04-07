@@ -112,26 +112,27 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
-import { useStore } from 'vuex'
-import { useRoute, useRouter } from 'vue-router'
-import LytProject from '../layouts/LytProject.vue'
-import { expMapper, propColumns, propMapper, propEmitter } from './Model'
+import SvcTable from '@/components/SvcTable.vue'
+import { OpnType } from '@/types'
 import ExpCls from '@/types/expCls'
+import Model from '@/types/model'
 import Property from '@/types/property'
 import Service, { emitMapper } from '@/types/service'
+import { Stat } from '@/types/status'
 import {
   DatabaseOutlined,
   ExportOutlined,
   FormOutlined,
   PartitionOutlined
 } from '@ant-design/icons-vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+
 import { mdlAPI, propAPI, svcAPI } from '../apis'
-import Model from '@/types/model'
-import { Stat } from '@/types/status'
-import { OpnType } from '@/types'
+import LytProject from '../layouts/LytProject.vue'
+import { expMapper, propColumns, propEmitter, propMapper } from './Model'
 import { svcColumns, svcEmitter, svcMapper } from './Project'
-import SvcTable from '@/components/SvcTable.vue'
 
 export default defineComponent({
   name: 'Model',

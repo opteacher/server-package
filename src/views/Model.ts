@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BaseTypes, baseTypes, Cond } from '@/types/index'
-import Column from '@lib/types/column'
-import Mapper, { getCopy } from '@lib/types/mapper'
+import { BaseTypes, Cond, baseTypes } from '@/types/index'
 import Property from '@/types/property'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
 export const columns = [

@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import router from '@/router'
+import API from '@/types/api'
+import Auth from '@/types/auth'
+import Middle from '@/types/middle'
 import Model from '@/types/model'
 import Project from '@/types/project'
-import router from '@/router'
-import { Dispatch } from 'vuex'
-import { pjtAPI } from '../apis'
-import Auth from '@/types/auth'
-import API from '@/types/api'
-import Middle from '@/types/middle'
 import Status from '@/types/status'
 import { intervalCheck } from '@/utils'
-import { svcEmitter } from '@/views/Project'
+import { Dispatch } from 'vuex'
+
+import { pjtAPI } from '../apis'
 
 type PjtState = { project: Project; apis: API[] }
 
@@ -35,14 +36,6 @@ export default {
       }
       const pid = router.currentRoute.value.params.pid as string
       Project.copy(await pjtAPI.detail(pid), state.project)
-      svcEmitter.emit('update:mapper', {
-        model: {
-          options: state.project.models.map((mdl: Model) => ({
-            label: mdl.label,
-            value: mdl.name
-          }))
-        }
-      })
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
     },

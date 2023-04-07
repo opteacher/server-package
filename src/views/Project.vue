@@ -16,15 +16,15 @@
         </a-tooltip>
       </template>
       <template #extra>
-        <a-button @click="showProj = true">
+        <a-button @click="cfgVsb = true">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
         </a-button>
         <FormDialog
           title="配置项目"
           :copy="Project.copy"
-          v-model:show="showProj"
-          :mapper="projMapper"
+          v-model:show="cfgVsb"
+          :mapper="pjtMapper"
           :object="project"
           @submit="onConfig"
         />
@@ -42,7 +42,7 @@
           <a-button
             :disabled="project.status.stat === 'loading'"
             :loading="project.status.stat === 'loading'"
-            @click="showTsfm = true"
+            @click="tsfVsb = true"
           >
             <template #icon><UploadOutlined /></template>
             &nbsp;传输文件
@@ -51,7 +51,7 @@
         <FormDialog
           title="投放文件"
           :copy="Transfer.copy"
-          v-model:show="showTsfm"
+          v-model:show="tsfVsb"
           :mapper="tsMapper"
           :emitter="tsEmitter"
           @submit="onTransfer"
@@ -67,22 +67,24 @@
       </template>
       <a-descriptions size="small" :column="4">
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
-        <a-descriptions-item label="数据库">
-          {{ project.database[0] }}/{{ project.database[1] }}
-        </a-descriptions-item>
-        <a-descriptions-item label="启动时清空数据库">
-          {{ project.dropDbs ? '是' : '否' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="独立部署（不依赖server-package）">
-          {{ project.independ ? '是' : '否' }}
-        </a-descriptions-item>
-        <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
-          <a-typography-paragraph
-            class="whitespace-pre-line"
-            :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-            :content="project.commands"
-          />
-        </a-descriptions-item>
+        <template v-if="!isFront">
+          <a-descriptions-item label="数据库">
+            {{ project.database[0] }}/{{ project.database[1] }}
+          </a-descriptions-item>
+          <a-descriptions-item label="启动时清空数据库">
+            {{ project.dropDbs ? '是' : '否' }}
+          </a-descriptions-item>
+          <a-descriptions-item label="独立部署（不依赖server-package）">
+            {{ project.independ ? '是' : '否' }}
+          </a-descriptions-item>
+          <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
+            <a-typography-paragraph
+              class="whitespace-pre-line"
+              :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+              :content="project.commands"
+            />
+          </a-descriptions-item>
+        </template>
       </a-descriptions>
     </a-page-header>
     <EditableTable
@@ -251,13 +253,12 @@ import {
   propEmitter,
   propMapper
 } from './Model'
-import { mapper as projMapper } from './Home'
+import { mapper as pjtMapper } from './Home'
 import { useStore } from 'vuex'
 import Project from '@/types/project'
 import Model from '@/types/model'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
-import ExpCls from '@/types/expCls'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
 import SvcTable from '@/components/SvcTable.vue'
@@ -265,6 +266,7 @@ import { Export } from '@/types/frontend'
 import Property from '@/types/property'
 import { OpnType } from '@/types'
 import { reqDelete, reqPost, reqPut } from '@/utils'
+import ExpCls from '@/types/expCls'
 
 export default defineComponent({
   name: 'Project',
@@ -285,8 +287,9 @@ export default defineComponent({
     const store = useStore()
     const pid = route.params.pid as string
     const project = computed<Project>(() => store.getters['project/ins'])
-    const showProj = ref(false)
-    const showTsfm = ref(false)
+    const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+    const cfgVsb = ref(false)
+    const tsfVsb = ref(false)
     const mdlEmitter = new Emitter()
     const mSvcMapper = computed<Record<string, Service[]>>(() => {
       const ret: Record<string, Service[]> = {}
@@ -326,12 +329,12 @@ export default defineComponent({
     async function onConfig(pjt: Project) {
       await api.update(pjt)
       await store.dispatch('project/refresh')
-      showProj.value = false
+      cfgVsb.value = false
     }
     async function onTransfer(info: Transfer) {
       await api.transfer(info)
       await store.dispatch('project/refresh')
-      showTsfm.value = false
+      tsfVsb.value = false
     }
     function onRelMdlChange(prop: Property, mname: string) {
       if (!mname) {
@@ -367,10 +370,11 @@ export default defineComponent({
       api,
       store,
       router,
-      projMapper,
+      isFront,
+      pjtMapper,
       project,
-      showProj,
-      showTsfm,
+      cfgVsb,
+      tsfVsb,
       tsMapper,
       tsEmitter,
       mSvcMapper,

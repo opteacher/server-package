@@ -196,19 +196,20 @@
 </template>
 
 <script lang="ts">
+import { mdlAPI } from '@/apis'
+import { pjtAPI } from '@/apis'
+import Form from '@/types/form'
+import MidLgn from '@/types/midLgn'
+import { fixStartsWith, waitFor } from '@/utils'
+import { PercentageOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import Field from '@lib/types/field'
+import { createByField } from '@lib/types/mapper'
 import { computed, defineComponent, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import LytMiddle from '../layouts/LytMiddle.vue'
-import { UploadOutlined, PercentageOutlined } from '@ant-design/icons-vue'
+
 import ColorField from '../components/table/ColorField.vue'
-import MidLgn from '@/types/midLgn'
-import { fixStartsWith, waitFor } from '@/utils'
-import Form from '@/types/form'
-import { mdlAPI } from '@/apis'
-import Field from '@lib/types/field'
-import { pjtAPI } from '@/apis'
-import { createByField } from '@lib/types/mapper'
+import LytMiddle from '../layouts/LytMiddle.vue'
 
 export default defineComponent({
   name: 'MiddleLogin',
