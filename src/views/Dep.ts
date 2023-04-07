@@ -16,7 +16,17 @@ export const mapper = new Mapper({
   },
   exports: {
     label: '导出',
-    type: 'EditList'
+    type: 'EditList',
+    mapper: new Mapper({
+      value: {
+        type: 'Input'
+      }
+    }),
+    copy: (src: any, tgt?: any) => {
+      tgt = tgt || { value: '' }
+      tgt.value = src.value || tgt.value
+      return tgt
+    }
   },
   from: {
     label: '导入',
@@ -26,7 +36,7 @@ export const mapper = new Mapper({
   default: {
     label: '默认导出',
     type: 'Checkbox',
-    desc: "[true]: import exports[0] from ''; [false]: import { ..exports } from ''"
+    desc: "[true]: import exports[0] from ''\n[false]: import { ..exports } from ''"
   },
   version: {
     label: '版本',

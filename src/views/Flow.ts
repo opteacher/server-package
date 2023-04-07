@@ -229,6 +229,14 @@ export const edtNdMapper = new Mapper({
           }
           iptEmitter.emit('update:mapper', iptMapper)
         },
+        onSaved: (src: Variable, ipts: Variable[]) => {
+          const tgt = ipts.find(v => v.key === src.key)
+          if (src.key && tgt) {
+            Variable.copy(src, tgt)
+          } else {
+            ipts.push(Variable.copy(src))
+          }
+        },
         addable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })],
         delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
@@ -263,6 +271,14 @@ export const edtNdMapper = new Mapper({
           }
         }),
         copy: Variable.copy,
+        onSaved: (src: Variable, opts: Variable[]) => {
+          const tgt = opts.find(v => v.key === src.key)
+          if (src.key && tgt) {
+            Variable.copy(src, tgt)
+          } else {
+            opts.push(Variable.copy(src))
+          }
+        },
         delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
       deps: {

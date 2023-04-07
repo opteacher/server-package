@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Model from './model'
 import { BaseTypes } from './index'
+import { gnlCpy } from '@/utils'
 
 export default class Variable {
   key: string
@@ -41,18 +42,7 @@ export default class Variable {
     this.remark = ''
   }
 
-  static copy(src: any, tgt?: Variable): Variable {
-    tgt = tgt || new Variable()
-    tgt.key = src.key || src._id || tgt.key
-    tgt.name = src.name || tgt.name
-    tgt.vtype = src.vtype || tgt.vtype
-    tgt.value = src.value || tgt.value
-    tgt.prop = src.prop || tgt.prop
-    tgt.index = src.index || tgt.index
-    tgt.idxType = src.idxType || tgt.idxType
-    tgt.default = src.default || tgt.default
-    tgt.required = src.required || tgt.required
-    tgt.remark = src.remark || tgt.remark
-    return tgt
+  static copy(src: any, tgt?: Variable, force = false): Variable {
+    return gnlCpy(Variable, src, tgt, { force })
   }
 }

@@ -11,9 +11,10 @@ export default {
       copy: Dep.copy,
       axiosConfig: { params: { belong: ['==', 'null'] } }
     })
+    await store.dispatch('project/refresh')
     const pjtName = store.getters['project/ins'].name
     if (pjtName) {
-      ret.concat(await reqAll('dependency', {
+      ret.push(...await reqAll('dependency', {
         copy: Dep.copy,
         axiosConfig: { params: { belong: ['==', pjtName] } }
       }))
