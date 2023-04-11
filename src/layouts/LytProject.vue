@@ -2,19 +2,51 @@
   <a-layout class="h-full">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="h-8 m-4 bg-gray-700" />
-      <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item :key="`project/${pid}`" class="mt-0">
-          <project-outlined />
-          <span>项目</span>
-        </a-menu-item>
-        <a-menu-item :key="`project/${pid}/auth`">
+      <a-menu
+        :selectedKeys="[active]"
+        theme="dark"
+        mode="inline"
+        @select="onItemSelected"
+        v-model:openKeys="expanded"
+      >
+        <a-sub-menu key="project" title="项目">
+          <template #icon>
+            <project-outlined />
+          </template>
+          <a-menu-item :key="`project/${pid}`">
+            <span>{{ pjtName }}</span>
+          </a-menu-item>
+          <a-menu-item-group key="models">
+            <template #icon>
+              <appstore-outlined />
+            </template>
+            <template #title>模型</template>
+            <a-menu-item v-for="model in models" :key="`project/${pid}/model/${model.key}`">
+              {{ model.name }}
+            </a-menu-item>
+          </a-menu-item-group>
+        </a-sub-menu>
+        <a-menu-item v-if="!isFront" :key="`project/${pid}/auth`">
           <audit-outlined />
           <span>权限</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/mid/login`">
-          <layout-outlined />
-          <span>中台</span>
-        </a-menu-item>
+        <a-sub-menu v-if="!isFront" key="middle" title="中台">
+          <template #icon>
+            <layout-outlined />
+          </template>
+          <a-menu-item :key="`project/${pid}/mid/login`">
+            <login-outlined />
+            <span>登录页</span>
+          </a-menu-item>
+          <a-menu-item :key="`project/${pid}/mid/navigate`">
+            <hdd-outlined />
+            <span>导航栏</span>
+          </a-menu-item>
+          <a-menu-item :key="`project/${pid}/mid/dashboard`">
+            <dashboard-outlined />
+            <span>首页</span>
+          </a-menu-item>
+        </a-sub-menu>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -61,6 +93,18 @@
               <a-breadcrumb-item>{{ mdlName }}</a-breadcrumb-item>
             </template>
             <a-breadcrumb-item v-else-if="active.endsWith('auth')">权限</a-breadcrumb-item>
+            <template v-else-if="active.endsWith('mid/login')">
+              <a-breadcrumb-item>中台</a-breadcrumb-item>
+              <a-breadcrumb-item>登录页</a-breadcrumb-item>
+            </template>
+            <template v-else-if="active.endsWith('mid/navigate')">
+              <a-breadcrumb-item>中台</a-breadcrumb-item>
+              <a-breadcrumb-item>导航栏</a-breadcrumb-item>
+            </template>
+            <template v-else-if="active.endsWith('mid/dashboard')">
+              <a-breadcrumb-item>中台</a-breadcrumb-item>
+              <a-breadcrumb-item>首页</a-breadcrumb-item>
+            </template>
           </a-breadcrumb>
         </a-space>
         <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
@@ -79,9 +123,13 @@ import {
   AuditOutlined,
   HomeOutlined,
   LayoutOutlined,
-  UserOutlined
+  UserOutlined,
+  LoginOutlined,
+  HddOutlined,
+  DashboardOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons-vue'
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -94,7 +142,11 @@ export default defineComponent({
     AuditOutlined,
     HomeOutlined,
     LayoutOutlined,
-    UserOutlined
+    UserOutlined,
+    LoginOutlined,
+    HddOutlined,
+    DashboardOutlined,
+    AppstoreOutlined
   },
   props: {
     active: { type: String, required: true }
@@ -108,6 +160,18 @@ export default defineComponent({
     const sid = route.params.sid
     const pjtName = computed(() => store.getters['project/ins'].name)
     const mdlName = computed(() => store.getters['model/ins'].name)
+    const models = computed(() => store.getters['project/ins'].models)
+    const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+    const expanded = reactive<string[]>([])
+
+    onMounted(() => {
+      if (route.fullPath.endsWith(`/project/${pid}`) || route.fullPath.includes('/model/')) {
+        expanded.push('project')
+      }
+      if (route.fullPath.includes('/mid/')) {
+        expanded.push('middle')
+      }
+    })
 
     function onItemSelected({ key }: { key: any }) {
       router.push(`/server-package/${key}`)
@@ -118,6 +182,9 @@ export default defineComponent({
       sid,
       pjtName,
       mdlName,
+      models,
+      isFront,
+      expanded,
       collapsed: ref<boolean>(false),
       onItemSelected
     }

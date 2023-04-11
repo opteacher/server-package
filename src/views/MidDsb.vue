@@ -1,5 +1,5 @@
 <template>
-  <LytMiddle :active="`project/${pid}/mid/dashboard`">
+  <LytProject :active="`project/${pid}/mid/dashboard`">
     <a-row type="flex" :gutter="16" :style="{ height: mainHeight }">
       <a-col v-show="tlbxExpand.left" flex="2" class="border mb-6 flex flex-col">
         <div class="my-2.5 flex justify-between">
@@ -118,7 +118,7 @@
         </ExtraProps>
       </a-col>
     </a-row>
-  </LytMiddle>
+  </LytProject>
 </template>
 
 <script lang="ts">
@@ -144,13 +144,13 @@ import { useStore } from 'vuex'
 import ExtraProps from '../components/form/ExtraProps.vue'
 import CompoCard from '../components/mid/CompoCard.vue'
 import DsbProps from '../components/mid/DsbProps.vue'
-import LytMiddle from '../layouts/LytMiddle.vue'
+import LytProject from '../layouts/LytProject.vue'
 import { refresh } from './Auth'
 
 export default defineComponent({
   name: 'MiddleDashboard',
   components: {
-    LytMiddle,
+    LytProject,
     CompoCard,
     DsbProps,
     ExtraProps,

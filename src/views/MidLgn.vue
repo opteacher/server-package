@@ -1,5 +1,5 @@
 <template>
-  <LytMiddle :active="`project/${pid}/mid/login`">
+  <LytProject :active="`project/${pid}/mid/login`">
     <div class="relative">
       <div
         v-if="!hasAuth"
@@ -192,7 +192,7 @@
         </div>
       </div>
     </div>
-  </LytMiddle>
+  </LytProject>
 </template>
 
 <script lang="ts">
@@ -209,12 +209,12 @@ import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
 import ColorField from '../components/table/ColorField.vue'
-import LytMiddle from '../layouts/LytMiddle.vue'
+import LytProject from '../layouts/LytProject.vue'
 
 export default defineComponent({
   name: 'MiddleLogin',
   components: {
-    LytMiddle,
+    LytProject,
     ColorField,
     UploadOutlined,
     PercentageOutlined

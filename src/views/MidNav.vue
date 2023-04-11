@@ -1,5 +1,5 @@
 <template>
-  <LytMiddle :active="`project/${pid}/mid/navigate`">
+  <LytProject :active="`project/${pid}/mid/navigate`">
     <a-row :gutter="24" class="h-full">
       <a-col :span="16" class="bg-gray-500" @click="selMuKey = ''">
         <div class="w-1/3 h-full mx-auto my-0 flex flex-col">
@@ -82,7 +82,7 @@
         </a-descriptions>
       </a-col>
     </a-row>
-  </LytMiddle>
+  </LytProject>
 </template>
 
 <script lang="ts">
@@ -95,13 +95,13 @@ import { useStore } from 'vuex'
 
 import { mdlAPI, pjtAPI } from '../apis'
 import ModelMenu from '../components/mid/ModelMenu.vue'
-import LytMiddle from '../layouts/LytMiddle.vue'
+import LytProject from '../layouts/LytProject.vue'
 import Model from '../types/model'
 
 export default defineComponent({
   name: 'MiddleNavigate',
   components: {
-    LytMiddle,
+    LytProject,
     ModelMenu,
 
     PictureOutlined,

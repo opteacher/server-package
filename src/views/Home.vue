@@ -11,10 +11,7 @@
       sclHeight="h-full"
     >
       <template #name="{ record: project }">
-        <a
-          :href="`/server-package/project/${project.key}`"
-          @click.stop
-        >
+        <a :href="`/server-package/project/${project.key}`" @click.stop>
           {{ project.name }}
         </a>
       </template>
@@ -27,7 +24,10 @@
           &nbsp;{{ project.database.join(' / ') }}
         </template>
         <template v-else>
-          <html5-outlined />
+          <a-tooltip>
+            <template #title>前端项目</template>
+            <html5-outlined />
+          </a-tooltip>
           &nbsp;前端
         </template>
       </template>
@@ -69,6 +69,17 @@
           <template #icon><PoweroffOutlined /></template>
           &nbsp;停止
         </a-button>
+      </template>
+      <template #layoutEDT>
+        <a-layout>
+          <a-layout-header class="bg-gray-200">Header</a-layout-header>
+          <a-layout class="h-16">
+            <a-layout-sider theme="light" class="text-center">Sider</a-layout-sider>
+            <a-layout-content class="text-center">Content</a-layout-content>
+            <a-layout-sider theme="light" class="text-center">Sider</a-layout-sider>
+          </a-layout>
+          <a-layout-footer>Footer</a-layout-footer>
+        </a-layout>
       </template>
     </EditableTable>
   </LytMain>

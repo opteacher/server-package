@@ -16,23 +16,23 @@
         </a-tooltip>
       </template>
       <template #extra>
-        <a-button @click="cfgVsb = true">
+        <a-button @click="onConfigClk">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
         </a-button>
         <FormDialog
           title="配置项目"
           :copy="Project.copy"
-          v-model:show="cfgVsb"
+          :emitter="pjtEmitter"
           :mapper="pjtMapper"
           :object="project"
-          @submit="onConfig"
+          @submit="onConfigSbt"
         />
         <a-button
           type="primary"
           :disabled="project.status.stat === 'loading'"
           :loading="project.status.stat === 'loading'"
-          @click="api.sync(pid)"
+          @click="() => api.sync(pid)"
         >
           <template #icon><SyncOutlined /></template>
           &nbsp;同步
@@ -42,7 +42,11 @@
           <a-button
             :disabled="project.status.stat === 'loading'"
             :loading="project.status.stat === 'loading'"
-            @click="tsfVsb = true"
+            @click="
+              () => {
+                tsfVsb = true
+              }
+            "
           >
             <template #icon><UploadOutlined /></template>
             &nbsp;传输文件
@@ -59,7 +63,7 @@
         <a-button
           v-if="project.thread || project.status.stat === 'loading'"
           danger
-          @click="api.stop(pid)"
+          @click="() => api.stop(pid)"
         >
           <template #icon><PoweroffOutlined /></template>
           &nbsp;停止
@@ -89,6 +93,7 @@
     </a-page-header>
     <EditableTable
       title="模型"
+      :description="`定义在项目${isFront ? 'types' : 'models'}文件夹下`"
       size="small"
       :api="mdlAPI"
       :columns="mdlColumns"
@@ -134,15 +139,15 @@
             "
           >
             <template #icon><ExportOutlined /></template>
-            &nbsp;导出类
+            导出类
           </a-button>
           <a-button
             type="primary"
             size="small"
-            @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+            @click="() => router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
           >
             <template #icon><FormOutlined /></template>
-            &nbsp;表单/表项设计
+            表单/表项设计
           </a-button>
         </a-space>
       </template>
@@ -267,6 +272,7 @@ import Property from '@/types/property'
 import { OpnType } from '@/types'
 import { reqDelete, reqPost, reqPut } from '@/utils'
 import ExpCls from '@/types/expCls'
+import { emitter as pjtEmitter } from './Home'
 
 export default defineComponent({
   name: 'Project',
@@ -288,7 +294,6 @@ export default defineComponent({
     const pid = route.params.pid as string
     const project = computed<Project>(() => store.getters['project/ins'])
     const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
-    const cfgVsb = ref(false)
     const tsfVsb = ref(false)
     const mdlEmitter = new Emitter()
     const mSvcMapper = computed<Record<string, Service[]>>(() => {
@@ -326,10 +331,16 @@ export default defineComponent({
       mdlEmitter.emit('refresh', project.value.models)
       svcEmitter.emit('refresh', project.value.services)
     }
-    async function onConfig(pjt: Project) {
+    async function onConfigSbt(pjt: Project) {
       await api.update(pjt)
       await store.dispatch('project/refresh')
-      cfgVsb.value = false
+      pjtEmitter.emit('update:show', false)
+    }
+    function onConfigClk() {
+      pjtEmitter.emit('update:show', {
+        show: true,
+        cpyRcd: (form: any) => Project.copy(project, form, true)
+      })
     }
     async function onTransfer(info: Transfer) {
       await api.transfer(info)
@@ -347,6 +358,9 @@ export default defineComponent({
       prop.index = false
       prop.unique = false
       prop.visible = true
+    }
+    function onImpMdlBack() {
+      console.log()
     }
     return {
       Project,
@@ -372,8 +386,8 @@ export default defineComponent({
       router,
       isFront,
       pjtMapper,
+      pjtEmitter,
       project,
-      cfgVsb,
       tsfVsb,
       tsMapper,
       tsEmitter,
@@ -388,12 +402,14 @@ export default defineComponent({
       propEmitter,
 
       refresh,
-      onConfig,
+      onConfigSbt,
+      onConfigClk,
       onTransfer,
       onRelMdlChange,
       reqPost,
       reqPut,
-      reqDelete
+      reqDelete,
+      onImpMdlBack
     }
   }
 })

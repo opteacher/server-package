@@ -69,6 +69,17 @@ export const mapper = new Mapper({
     type: 'Checkbox',
     display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
+  backend: {
+    label: '绑定后台',
+    desc: '会导入所有后台项目所有模型和服务',
+    type: 'Select',
+    display: [Cond.copy({ key: 'ptype', cmp: '==', val: 'frontend' })]
+  },
+  layout: {
+    label: '布局',
+    type: 'Unknown',
+    display: [Cond.copy({ key: 'ptype', cmp: '==', val: 'frontend' })]
+  },
   commands: {
     label: '高级',
     type: 'FormGroup',
@@ -97,7 +108,7 @@ export const mapper = new Mapper({
           }
         },
         copy: (src: any, tgt?: any): any => {
-          ;(tgt = tgt || { dest: '/', src: 'test:/' }), (tgt.dest = src.dest || tgt.dest)
+          ;(tgt = tgt || { dest: '/', src: '/' }), (tgt.dest = src.dest || tgt.dest)
           tgt.src = src.src || tgt.src
           return tgt
         }
