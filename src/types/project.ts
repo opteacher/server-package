@@ -6,6 +6,9 @@ import Status from './status'
 import Middle from './middle'
 import Model from './model'
 import Service from './service'
+import Frontend from './frontend'
+import Variable from './variable'
+import { gnlCpy } from '@/utils'
 
 export default class Project {
   key: string
@@ -18,13 +21,14 @@ export default class Project {
   dropDbs: boolean
   commands: string
   independ: boolean
-  envVars: { name: string; value: string }[]
+  envVars: Variable[]
   expPorts: number[]
   volumes: any[]
   models: Model[]
   services: Service[]
   auth: Auth
   middle: Middle
+  frontend: Frontend
   status: Status
 
   constructor() {
@@ -45,6 +49,7 @@ export default class Project {
     this.services = []
     this.auth = new Auth()
     this.middle = new Middle()
+    this.frontend = new Frontend()
     this.status = new Status()
   }
 
@@ -66,43 +71,25 @@ export default class Project {
     this.services = []
     this.auth = new Auth()
     this.middle = new Middle()
+    this.frontend = new Frontend()
     this.status = new Status()
   }
 
   static copy(src: any, tgt?: Project, force = false): Project {
-    tgt = tgt || new Project()
-    tgt.key = src.key || src._id || tgt.key
+    tgt = gnlCpy(Project, src, tgt, {
+      force,
+      ignProps: ['ptype'],
+      cpyMapper: {
+        envVars: Variable.copy,
+        models: Model.copy,
+        services: Service.copy,
+        auth: Auth.copy,
+        middle: Middle.copy,
+        frontend: Frontend.copy,
+        status: Status.copy
+      }
+    })
     tgt.ptype = src.database && src.database.length ? 'backend' : 'frontend'
-    tgt.name = src.name || tgt.name
-    tgt.desc = src.desc || tgt.desc
-    tgt.port = src.port || tgt.port
-    tgt.thread = src.thread || 0
-    tgt.database = src.database || tgt.database
-    tgt.dropDbs = typeof src.dropDbs !== 'undefined' ? src.dropDbs : tgt.dropDbs
-    tgt.commands = src.commands || tgt.commands
-    tgt.independ = typeof src.independ !== 'undefined' ? src.independ : tgt.independ
-    tgt.envVars = src.envVars
-      ? src.envVars.map((evar: any) => ({
-          key: evar.key || evar._id || undefined,
-          name: evar.name,
-          value: evar.value
-        }))
-      : tgt.envVars
-    tgt.expPorts = src.expPorts || tgt.expPorts
-    tgt.volumes = src.volumes || tgt.volumes
-    if (src.models) {
-      tgt.models.splice(0, tgt.models.length, ...src.models.map((mdl: any) => Model.copy(mdl)))
-    }
-    if (src.services) {
-      tgt.services.splice(
-        0,
-        tgt.services.length,
-        ...src.services.map((svc: any) => Service.copy(svc))
-      )
-    }
-    tgt.auth = src.auth ? Auth.copy(src.auth) : tgt.auth
-    tgt.middle = src.middle ? Middle.copy(src.middle) : tgt.middle
-    tgt.status = src.status ? Status.copy(src.status) : tgt.status
     return tgt
   }
 }

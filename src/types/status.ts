@@ -1,3 +1,5 @@
+import { gnlCpy } from '@/utils'
+
 export type Stat = 'loading' | 'running' | 'stopped'
 
 export default class Status {
@@ -40,16 +42,12 @@ export default class Status {
     this.io.block = ''
   }
 
-  static copy(src: any, tgt?: Status): Status {
-    tgt = tgt || new Status()
-    tgt.stat = src.stat || tgt.stat
-    tgt.name = src.name || tgt.name
-    tgt.pid = src.pid || tgt.pid
+  static copy(src: any, tgt?: Status, force = false): Status {
+    tgt = gnlCpy(Status, src, tgt, { force, ignProps: ['memory', 'io'] })
     if (src.memory) {
       tgt.memory.raw = src.memory.raw || tgt.memory.raw
       tgt.memory.percent = src.memory.percent || tgt.memory.percent
     }
-    tgt.cpu = src.cpu || tgt.cpu
     if (src.io) {
       tgt.io.net = src.io.net || tgt.io.net
       tgt.io.block = src.io.block || tgt.io.block

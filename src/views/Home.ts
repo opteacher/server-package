@@ -6,7 +6,7 @@ import router from '@/router'
 import store from '@/store'
 import { Cond } from '@/types'
 import Project from '@/types/project'
-import { setProp } from '@/utils'
+import { reqAll, setProp } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
@@ -39,8 +39,22 @@ export const mapper = new Mapper({
     ],
     style: 'button',
     disabled: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
-    onChange: (_pjt: Project, selected: 'frontend' | 'backend') =>
+    onChange: async (_pjt: Project, selected: 'frontend' | 'backend') => {
       setProp(mapper, 'database.rules[0].required', selected === 'backend')
+      console.log(selected)
+      if (selected === 'frontend') {
+        emitter.emit('update:mapper', {
+          backend: {
+            options: await reqAll('project', {
+              messages: { notShow: true },
+              copy: Project.copy
+            }).then(projects =>
+              projects.map((project: Project) => ({ label: project.name, value: project.key }))
+            )
+          }
+        })
+      }
+    }
   },
   name: {
     label: '项目名称',

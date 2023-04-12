@@ -42,3 +42,24 @@ export class Export {
     })
   }
 }
+
+export type FrtLyt = 'header' | 'lSider' | 'content' | 'rSider' | 'footer'
+
+export default class Frontend {
+  backend: string
+  layout: Array<FrtLyt>
+
+  constructor() {
+    this.backend = ''
+    this.layout = []
+  }
+
+  reset() {
+    this.backend = ''
+    this.layout = []
+  }
+
+  static copy(src: any, tgt?: Frontend, force = false): Frontend {
+    return gnlCpy(Frontend, src, tgt, { force })
+  }
+}

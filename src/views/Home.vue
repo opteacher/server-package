@@ -70,16 +70,8 @@
           &nbsp;停止
         </a-button>
       </template>
-      <template #layoutEDT>
-        <a-layout>
-          <a-layout-header class="bg-gray-200">Header</a-layout-header>
-          <a-layout class="h-16">
-            <a-layout-sider theme="light" class="text-center">Sider</a-layout-sider>
-            <a-layout-content class="text-center">Content</a-layout-content>
-            <a-layout-sider theme="light" class="text-center">Sider</a-layout-sider>
-          </a-layout>
-          <a-layout-footer>Footer</a-layout-footer>
-        </a-layout>
+      <template #layoutEDT="{ editing: project }">
+        <LytDsgn v-model:layout="project.frontend.layout" />
       </template>
     </EditableTable>
   </LytMain>
@@ -101,11 +93,13 @@ import { pjtAPI as api } from '../apis'
 import LytMain from '../layouts/LytMain.vue'
 import Database from '../types/database'
 import { columns, emitter, mapper } from './Home'
+import LytDsgn from '@/components/LytDsgn.vue'
 
 export default defineComponent({
   name: 'Home',
   components: {
     LytMain,
+    LytDsgn,
     SyncOutlined,
     PoweroffOutlined,
     ClearOutlined,

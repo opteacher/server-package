@@ -12,6 +12,9 @@ module.exports = {
       ...base.theme.extend,
       backgroundImage: {
         login: 'url(/assets/background.png)'
+      },
+      lineHeight: {
+        '16': '4rem'
       }
     },
     textColor: theme => ({

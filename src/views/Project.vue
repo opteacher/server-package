@@ -25,7 +25,6 @@
           :copy="Project.copy"
           :emitter="pjtEmitter"
           :mapper="pjtMapper"
-          :object="project"
           @submit="onConfigSbt"
         />
         <a-button
@@ -339,7 +338,7 @@ export default defineComponent({
     function onConfigClk() {
       pjtEmitter.emit('update:show', {
         show: true,
-        cpyRcd: (form: any) => Project.copy(project, form, true)
+        cpyRcd: (form: any) => Project.copy(project.value, form, true)
       })
     }
     async function onTransfer(info: Transfer) {
