@@ -3,7 +3,13 @@
 import fs from 'fs'
 import Path from 'path'
 import { db, pickOrIgnore } from '../utils/index.js'
-import { readConfig, copyDir, rmvStartsOf } from '../lib/backend-library/utils/index.js'
+import {
+  readConfig,
+  copyDir,
+  rmvStartsOf,
+  fixStartsWith,
+  fixEndsWith
+} from '../lib/backend-library/utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import DataBase from '../models/database.js'
@@ -31,9 +37,11 @@ function formatToStr(value, vtype) {
         ? 'Date.now'
         : `new Date(${typeof value === 'string' ? "'" + value + "'" : value})`
     case 'Array':
-      return `[${value.map(val => "'" + val + "'").join(', ')}]`
+      return Array.isArray(value)
+        ? `[${value.map(val => "'" + val + "'").join(', ')}]`
+        : fixStartsWith(fixEndsWith(value, ']'), '[')
     case 'Object':
-      return JSON.stringify(value)
+      return typeof value !== 'string' ? JSON.stringify(value) : value
     case 'Boolean':
       return value ? 'true' : 'false'
     case 'Any':

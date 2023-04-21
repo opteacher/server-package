@@ -41,7 +41,6 @@ export const mapper = new Mapper({
     disabled: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
     onChange: async (_pjt: Project, selected: 'frontend' | 'backend') => {
       setProp(mapper, 'database.rules[0].required', selected === 'backend')
-      console.log(selected)
       if (selected === 'frontend') {
         emitter.emit('update:mapper', {
           backend: {
