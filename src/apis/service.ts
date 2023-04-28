@@ -9,10 +9,10 @@ export default {
     const svc = Service.copy(await reqPost('service', data))
     return reqPut(`project/${pid}`, `services/${svc.key}`)
   },
-  remove: async (key: any) => {
+  remove: async (data: any) => {
     const pid = store.getters['project/ins'].key
-    await reqDelete(`project/${pid}`, `services/${key}`)
-    return reqDelete('service', key, { type: 'api' })
+    await reqDelete(`project/${pid}`, `services/${data.key}`)
+    return reqDelete('service', data.key, { type: 'api' })
   },
   update: (data: any) => {
     if (data.cdValue) {
