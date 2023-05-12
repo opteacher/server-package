@@ -29,7 +29,17 @@ export const tmUntMapper = {
 
 export const timeUnits = Object.entries(tmUntMapper).map(([value, label]) => ({ label, value }))
 
+export const methods: Method[] = ['GET', 'POST', 'DELETE', 'PUT', 'LINK']
+
 export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'LINK'
+
+export const mthdClrs: Record<Method, string> = {
+  POST: 'orange',
+  DELETE: 'red',
+  PUT: 'cyan',
+  GET: 'green',
+  LINK: 'purple'
+}
 
 export default class Service {
   key: string

@@ -5,7 +5,7 @@ import Auth from './auth'
 import Status from './status'
 import Middle from './middle'
 import Model from './model'
-import Service from './service'
+import Service, { Method } from './service'
 import Frontend from './frontend'
 import Variable from './variable'
 import { gnlCpy } from '@/utils'
@@ -78,10 +78,9 @@ export default class Project {
   static copy(src: any, tgt?: Project, force = false): Project {
     tgt = gnlCpy(Project, src, tgt, {
       force,
-      ignProps: ['ptype'],
+      ignProps: ['ptype', 'models'],
       cpyMapper: {
         envVars: Variable.copy,
-        models: Model.copy,
         services: Service.copy,
         auth: Auth.copy,
         middle: Middle.copy,
@@ -89,6 +88,22 @@ export default class Project {
         status: Status.copy
       }
     })
+    const mdlMthd: { [model: string]: Method[] } = {}
+    for (const service of tgt.services) {
+      if (service.model) {
+        if (mdlMthd[service.model]) {
+          mdlMthd[service.model].push(service.method)
+        } else {
+          mdlMthd[service.model] = [service.method]
+        }
+      }
+    }
+    console.log(JSON.stringify(mdlMthd))
+    tgt.models.splice(
+      0,
+      tgt.models.length,
+      ...(src.models || []).map((mdl: any) => Model.copy({ ...mdl, methods: mdlMthd[mdl.name] || [] }))
+    )
     tgt.ptype = src.database && src.database.length ? 'backend' : 'frontend'
     return tgt
   }

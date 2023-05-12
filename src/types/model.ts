@@ -3,7 +3,8 @@
 import Table from './table'
 import Form from '@/types/form'
 import Property from './property'
-import Service from './service'
+import Service, { Method } from './service'
+import { gnlCpy } from '@/utils'
 
 export default class Model {
   key: string
@@ -12,6 +13,7 @@ export default class Model {
   icon: string
   desc: string
   logTime: boolean
+  methods: Method[]
   props: Property[]
   form: Form
   table: Table
@@ -23,6 +25,7 @@ export default class Model {
     this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true
+    this.methods = ['POST', 'DELETE', 'PUT', 'GET']
     this.props = []
     this.form = new Form()
     this.table = new Table()
@@ -35,46 +38,16 @@ export default class Model {
     this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true
+    this.methods = ['POST', 'DELETE', 'PUT', 'GET']
     this.props = []
     this.form = new Form()
     this.table = new Table()
   }
 
   static copy(src: any, tgt?: Model, force = false): Model {
-    tgt = tgt || new Model()
-    if (typeof src === 'string') {
-      tgt.key = src
-      return tgt
-    }
-    const srcId = src.key || src._id
-    tgt.key = force ? srcId : srcId || tgt.key
-    tgt.name = force ? src.name : src.name || tgt.name
-    tgt.label = force ? src.label : src.label || tgt.label
-    tgt.icon = force ? src.icon : src.icon || tgt.icon
-    tgt.desc = force ? src.desc : src.desc || tgt.desc
-    tgt.logTime = force
-      ? src.logTime
-      : typeof src.logTime !== 'undefined'
-      ? src.logTime
-      : tgt.logTime
-    if (src.props) {
-      tgt.props = []
-      for (const prop of src.props) {
-        tgt.props.push(Property.copy(prop))
-      }
-    } else if (force) {
-      tgt.props = []
-    }
-    if (src.form) {
-      Form.copy(src.form, tgt.form)
-    } else {
-      tgt.form = new Form()
-    }
-    if (src.table) {
-      Table.copy(src.table, tgt.table)
-    } else {
-      tgt.table = new Table()
-    }
-    return tgt
+    return gnlCpy(Model, src, tgt, {
+      force,
+      cpyMapper: { props: Property.copy, form: Form.copy, table: Table.copy }
+    })
   }
 }

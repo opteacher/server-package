@@ -12,7 +12,7 @@ export const columns = [
   new Column('标签', 'label'),
   new Column('描述', 'desc'),
   new Column('记录时间', 'logTime', { width: 80 }),
-  new Column('模型接口', 'svcs'),
+  new Column('模型接口', 'methods'),
   new Column('表单设计', 'form')
 ]
 
@@ -33,6 +33,10 @@ export const mapper = new Mapper({
   logTime: {
     label: '记录操作时间',
     type: 'Checkbox'
+  },
+  methods: {
+    label: '模型接口',
+    type: 'Unknown'
   }
 })
 

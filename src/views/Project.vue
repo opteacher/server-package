@@ -107,13 +107,19 @@
           {{ model.name }}
         </a>
       </template>
-      <template #svcs="{ record: model }">
-        <a-tooltip v-for="svc in mSvcMapper[model.name]" :key="svc.key">
+      <template #methods="{ record: model }">
+        <a-tooltip v-for="svc in mSvcMapper[model.key]" :key="svc.key">
           <template #title>{{ svc.path }}</template>
-          <a-tag class="cursor-pointer" :color="mhdClrs[svc.method]">
+          <a-tag class="cursor-pointer" :color="mthdClrs[svc.method]">
             {{ svc.method }}
           </a-tag>
         </a-tooltip>
+      </template>
+      <template #methodsEDT="{ editing: model }">
+        <MsvcSelect
+          :methods="project.models.find((mdl: Model) => mdl.name === model.name)?.methods"
+          @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
+        />
       </template>
       <template #form="{ record: model }">
         <a-space>
@@ -261,7 +267,7 @@ import { mapper as pjtMapper } from './Home'
 import { useStore } from 'vuex'
 import Project from '@/types/project'
 import Model from '@/types/model'
-import Service from '@/types/service'
+import Service, { methods, mthdClrs, Method } from '@/types/service'
 import Transfer from '@/types/transfer'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
@@ -269,15 +275,17 @@ import SvcTable from '@/components/SvcTable.vue'
 import { Export } from '@/types/frontend'
 import Property from '@/types/property'
 import { OpnType } from '@/types'
-import { reqDelete, reqPost, reqPut } from '@/utils'
+import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import ExpCls from '@/types/expCls'
 import { emitter as pjtEmitter } from './Home'
+import MsvcSelect from '@/components/MsvcSelect.vue'
 
 export default defineComponent({
   name: 'Project',
   components: {
     LytProject,
     SvcTable,
+    MsvcSelect,
     SettingOutlined,
     SyncOutlined,
     UploadOutlined,
@@ -317,13 +325,6 @@ export default defineComponent({
         }))
       )
     )
-    const mhdClrs = {
-      POST: 'orange',
-      DELETE: 'red',
-      PUT: 'cyan',
-      GET: 'green',
-      LINK: 'purple'
-    }
 
     async function refresh() {
       await store.dispatch('project/refresh')
@@ -395,7 +396,8 @@ export default defineComponent({
       expClsObj,
       expMapper,
       mdlOpns,
-      mhdClrs,
+      methods,
+      mthdClrs,
       propColumns,
       propMapper,
       propEmitter,
@@ -408,6 +410,7 @@ export default defineComponent({
       reqPost,
       reqPut,
       reqDelete,
+      setProp,
       onImpMdlBack
     }
   }

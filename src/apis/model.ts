@@ -3,6 +3,8 @@ import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
 import Model from '@/types/model'
 import ExpCls from '@/types/expCls'
 import Cell from '@/types/cell'
+import { Method, methods as Methods } from '@/types/service'
+import Project from '@/types/project'
 
 const expDft = {
   add: async (data: any) => {
@@ -10,6 +12,17 @@ const expDft = {
       await reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
         type: 'api'
       })
+    )
+    const project = store.getters['project/ins'] as Project
+    await Promise.all(
+      data.methods.map((method: Method) =>
+        reqPost('service', {
+          emit: 'api',
+          model: model.name,
+          method,
+          path: `/${project.name}/mdl/v1/${model.name}${method !== 'POST' ? '/:index' : ''}`
+        })
+      )
     )
     await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
     return model
@@ -19,7 +32,28 @@ const expDft = {
     return reqDelete('model', key, { type: 'api' })
   },
   update: async (data: any, next?: () => Promise<any>) => {
-    await reqPut('model', data.key, data)
+    const project = store.getters['project/ins'] as Project
+    const model = await reqPut('model', data.key, data)
+    const orgMdl = project.models.find(mdl => mdl.key === data.key) as Model
+    for (const method of Methods) {
+      if (orgMdl.methods.includes(method) && !data.methods.includes(method)) {
+        // 删除该模型接口
+        const service = project.services.find(
+          svc => svc.model === orgMdl.name && svc.method === method
+        )
+        if (service) {
+          await reqDelete('service', service.key)
+        }
+      } else if (!orgMdl.methods.includes(method) && data.methods.includes(method)) {
+        // 新增该模型接口
+        await reqPost('service', {
+          emit: 'api',
+          model: model.name,
+          method,
+          path: `/${project.name}/mdl/v1/${model.name}${method !== 'POST' ? '/:index' : ''}`
+        })
+      }
+    }
     if (next) {
       await next()
     }

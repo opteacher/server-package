@@ -38,9 +38,11 @@ export default {
     reqPost('project', Object.assign(data, { auth: { roles: [{ name: 'guest', rules: [{}] }] } })),
   remove: (key: any) => reqDelete('project', key, { type: 'api' }),
   update: (data: any) =>
-    reqPut('project', data.key, data, { ignores: ['models', 'auth', 'middle', 'status', 'services'] }),
+    reqPut('project', data.key, data, {
+      ignores: ['models', 'auth', 'middle', 'status', 'services']
+    }),
   all: (options: RequestOptions) =>
-    reqAll('project', Object.assign(options, { copy: Project.copy })),
+    reqAll('project', { ...options, copy: Project.copy, axiosConfig: { params: { _ext: true } } }),
   detail: (key: any) => reqGet('project', key, { copy: Project.copy }),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
@@ -175,7 +177,7 @@ export default {
             return
           }
           let childKey = `children[{key:${cmpIns.key}}]`
-          while(cmpIns.parent) {
+          while (cmpIns.parent) {
             cmpIns = cmpIns.parent
             childKey = `children[{key:${cmpIns.key}}].` + childKey
           }
@@ -190,12 +192,13 @@ export default {
             await next()
           }
         },
-        save: async (key: string, data: any) => reqPut(
-          'project',
-          store.getters['project/ins'].key,
-          { [`middle.dashboard.children[{_id:${key}}]`]: data },
-          { axiosConfig: { params: { updMode: 'merge' } } }
-        ),
+        save: async (key: string, data: any) =>
+          reqPut(
+            'project',
+            store.getters['project/ins'].key,
+            { [`middle.dashboard.children[{_id:${key}}]`]: data },
+            { axiosConfig: { params: { updMode: 'merge' } } }
+          ),
         child: {
           opera: async (
             pkey: string,

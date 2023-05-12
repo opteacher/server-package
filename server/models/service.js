@@ -8,7 +8,7 @@ export default db.defineModel(
     // api / timeout / interval / app_start / app_end / none
     emit: db.PropTypes.String,
     flow: { type: db.PropTypes.Id, ref: 'node' },
-    model: db.PropTypes.String,
+    model: { type: db.PropTypes.Id, ref: 'model' },
     method: db.PropTypes.String,
     path: db.PropTypes.String,
     jobId: db.PropTypes.Number,
