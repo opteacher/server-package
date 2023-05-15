@@ -39,7 +39,7 @@ const expDft = {
       if (orgMdl.methods.includes(method) && !data.methods.includes(method)) {
         // 删除该模型接口
         const service = project.services.find(
-          svc => svc.model === orgMdl.name && svc.method === method
+          svc => svc.model === orgMdl.key && svc.method === method
         )
         if (service) {
           await reqDelete('service', service.key)

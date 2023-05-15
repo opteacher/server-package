@@ -15,7 +15,7 @@ import Transfer from '@/types/transfer'
 import DataBase from '@/types/database'
 import { Modal } from 'ant-design-vue'
 import { createVNode } from 'vue'
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import { ExclamationCircleOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import axios from 'axios'
 import { pjtAPI } from '.'
 import CmpIns from '@/types/cmpIns'
@@ -64,6 +64,18 @@ export default {
           }
         })
         setTimeout(() => store.dispatch('project/refresh'), 10)
+      }
+    })
+  },
+  syncFrt: (key: string) => {
+    Modal.confirm({
+      title: 'Do you Want to delete these items?',
+      icon: createVNode(ExclamationCircleOutlined),
+      content: createVNode('a-upload', undefined, [
+        createVNode('a-button', { class: 'w-full' }, '上传dist文件夹')
+      ]),
+      onOk() {
+        console.log('OK')
       }
     })
   },

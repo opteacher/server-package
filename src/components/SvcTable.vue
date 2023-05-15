@@ -28,13 +28,20 @@ export default defineComponent({
 
     function onAddSvcClicked() {
       props.emitter.emit('update:data', { name: props.model })
-      const options = store.getters['project/ins'].models.map((model: Model) => ({
-        label: model.name,
-        value: model.name
-      }))
+      const models = store.getters['project/ins'].models
       props.emitter.emit('update:mapper', {
-        name: { options },
-        model: { options }
+        name: {
+          options: models.map((model: Model) => ({
+            label: model.name,
+            value: model.name
+          }))
+        },
+        model: {
+          options: models.map((model: Model) => ({
+            label: model.name,
+            value: model.key
+          }))
+        }
       })
     }
     function onBefSave(svc: Service) {

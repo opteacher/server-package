@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Method, methods as Methods } from '@/types/service'
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, onMounted, reactive, watch } from 'vue'
 
 export default defineComponent({
   name: 'ModelServiceSelect',
@@ -14,6 +14,12 @@ export default defineComponent({
   setup(props, { emit }) {
     const methodState = reactive<Method[]>(props.methods as Method[])
 
+    onMounted(refresh)
+    watch(() => props.methods, refresh)
+
+    function refresh() {
+      methodState.splice(0, methodState.length, ...(props.methods as Method[]))
+    }
     async function onSvcAddOrDel(checked: boolean, method: Method) {
       if (checked) {
         methodState.push(method)

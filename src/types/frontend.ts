@@ -1,20 +1,12 @@
 import { gnlCpy } from '@/utils'
 
-export const lytMapper = {
-  none: '空布局'
-}
-
-export type Layout = keyof typeof lytMapper
-
-export const lytOpns = Object.entries(lytMapper).map(([value, label]) => ({ label, value }))
-
 export class Page {
   path: string
-  layout: Layout
+  layout: Array<FrtLyt>
 
   constructor() {
     this.path = ''
-    this.layout = 'none'
+    this.layout = []
   }
 
   static copy(src: any, tgt?: Page, force = false) {
@@ -22,44 +14,23 @@ export class Page {
   }
 }
 
-export class Export {
-  name: string
-  pages: Page[]
-  withLib: boolean
-  modules: string[]
-
-  constructor() {
-    this.name = ''
-    this.pages = []
-    this.withLib = true
-    this.modules = []
-  }
-
-  static copy(src: any, tgt?: Export, force = false): Export {
-    return gnlCpy(Export, src, tgt, {
-      force,
-      cpyMapper: { pages: Page.copy }
-    })
-  }
-}
-
 export type FrtLyt = 'header' | 'lSider' | 'content' | 'rSider' | 'footer'
 
 export default class Frontend {
   backend: string
-  layout: Array<FrtLyt>
+  pages: Array<Page>
 
   constructor() {
     this.backend = ''
-    this.layout = []
+    this.pages = []
   }
 
   reset() {
     this.backend = ''
-    this.layout = []
+    this.pages = []
   }
 
   static copy(src: any, tgt?: Frontend, force = false): Frontend {
-    return gnlCpy(Frontend, src, tgt, { force })
+    return gnlCpy(Frontend, src, tgt, { force, cpyMapper: { pages: Page.copy } })
   }
 }

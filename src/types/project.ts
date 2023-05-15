@@ -98,12 +98,15 @@ export default class Project {
         }
       }
     }
-    console.log(JSON.stringify(mdlMthd))
-    tgt.models.splice(
-      0,
-      tgt.models.length,
-      ...(src.models || []).map((mdl: any) => Model.copy({ ...mdl, methods: mdlMthd[mdl.name] || [] }))
-    )
+    if (src.models || force) {
+      tgt.models.splice(
+        0,
+        tgt.models.length,
+        ...(src.models || []).map((mdl: any) =>
+          Model.copy({ ...mdl, methods: mdlMthd[mdl._id || mdl.key] || [] })
+        )
+      )
+    }
     tgt.ptype = src.database && src.database.length ? 'backend' : 'frontend'
     return tgt
   }

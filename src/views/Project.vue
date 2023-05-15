@@ -16,6 +16,21 @@
         </a-tooltip>
       </template>
       <template #extra>
+        <a-button v-if="isFront" @click="() => frtEmitter.emit('update:show', true)">
+          <template #icon><Html5Outlined /></template>
+          &nbsp;前端配置
+        </a-button>
+        <FormDialog
+          title="配置前端"
+          :copy="Frontend.copy"
+          :emitter="frtEmitter"
+          :mapper="frtMapper"
+          @submit="onConfigSbt"
+        >
+          <template #layout>
+            <a-button>水电费水电费水电</a-button>
+          </template>
+        </FormDialog>
         <a-button @click="onConfigClk">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
@@ -31,11 +46,29 @@
           type="primary"
           :disabled="project.status.stat === 'loading'"
           :loading="project.status.stat === 'loading'"
-          @click="() => api.sync(pid)"
+          @click="() => (isFront ? syncEmitter.emit('update:show', true) : api.sync(pid))"
         >
           <template #icon><SyncOutlined /></template>
           &nbsp;同步
         </a-button>
+        <FormDialog
+          title="同步前端"
+          width="30vw"
+          :mapper="{
+            dir: {
+              label: 'dist',
+              type: 'UploadFile',
+              directory: true
+            }
+          }"
+          :copy="(src: any, tgt?: any) => gnlCpy(() => ({ dir: [] }), src, tgt)"
+          :emitter="syncEmitter"
+        >
+          <template #top>
+            <info-circle-outlined class="text-lg text-primary" />
+            &nbsp;如果选择上传dist文件夹，则不会构建项目，直接把dist内的文件复制到web容器的public目录下
+          </template>
+        </FormDialog>
         <a-tooltip v-if="project.thread">
           <template #title>传输本地文件到项目实例中</template>
           <a-button
@@ -117,7 +150,7 @@
       </template>
       <template #methodsEDT="{ editing: model }">
         <MsvcSelect
-          :methods="project.models.find((mdl: Model) => mdl.name === model.name)?.methods"
+          :methods="model.methods"
           @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
         />
       </template>
@@ -250,11 +283,21 @@ import {
   PoweroffOutlined,
   ExportOutlined,
   FormOutlined,
-  PartitionOutlined
+  PartitionOutlined,
+  Html5Outlined,
+  InfoCircleOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
-import { tsMapper, tsEmitter, svcEmitter, svcMapper, svcColumns, frontend } from './Project'
+import {
+  tsMapper,
+  tsEmitter,
+  svcEmitter,
+  svcMapper,
+  svcColumns,
+  frtEmitter,
+  frtMapper
+} from './Project'
 import {
   expMapper,
   columns as mdlColumns,
@@ -272,13 +315,13 @@ import Transfer from '@/types/transfer'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
 import SvcTable from '@/components/SvcTable.vue'
-import { Export } from '@/types/frontend'
 import Property from '@/types/property'
 import { OpnType } from '@/types'
-import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { gnlCpy, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import ExpCls from '@/types/expCls'
 import { emitter as pjtEmitter } from './Home'
 import MsvcSelect from '@/components/MsvcSelect.vue'
+import Frontend from '@/types/frontend'
 
 export default defineComponent({
   name: 'Project',
@@ -292,7 +335,9 @@ export default defineComponent({
     PoweroffOutlined,
     ExportOutlined,
     FormOutlined,
-    PartitionOutlined
+    PartitionOutlined,
+    Html5Outlined,
+    InfoCircleOutlined
   },
   setup() {
     const route = useRoute()
@@ -325,6 +370,7 @@ export default defineComponent({
         }))
       )
     )
+    const syncEmitter = new Emitter()
 
     async function refresh() {
       await store.dispatch('project/refresh')
@@ -368,8 +414,8 @@ export default defineComponent({
       Model,
       Service,
       ExpCls,
-      Export,
       Property,
+      Frontend,
 
       mdlAPI,
       mdlEmitter,
@@ -379,7 +425,6 @@ export default defineComponent({
       svcEmitter,
       svcMapper,
       svcColumns,
-      frontend,
       pid,
       api,
       store,
@@ -401,6 +446,10 @@ export default defineComponent({
       propColumns,
       propMapper,
       propEmitter,
+      frtEmitter,
+      frtMapper,
+      syncEmitter,
+      gnlCpy,
 
       refresh,
       onConfigSbt,

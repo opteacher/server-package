@@ -70,9 +70,6 @@
           &nbsp;停止
         </a-button>
       </template>
-      <template #layoutEDT="{ editing: project }">
-        <LytDsgn v-model:layout="project.frontend.layout" />
-      </template>
     </EditableTable>
   </LytMain>
 </template>
@@ -93,13 +90,11 @@ import { pjtAPI as api } from '../apis'
 import LytMain from '../layouts/LytMain.vue'
 import Database from '../types/database'
 import { columns, emitter, mapper } from './Home'
-import LytDsgn from '@/components/LytDsgn.vue'
 
 export default defineComponent({
   name: 'Home',
   components: {
     LytMain,
-    LytDsgn,
     SyncOutlined,
     PoweroffOutlined,
     ClearOutlined,

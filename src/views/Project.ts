@@ -2,13 +2,13 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
-import { Page, lytOpns } from '@/types/frontend'
+import { Page } from '@/types/frontend'
 import Model from '@/types/model'
 import Property from '@/types/property'
 import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
-import { Cond, methods } from '@lib/types'
+import { Cond, OpnType, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
@@ -113,7 +113,9 @@ export const svcMapper = new Mapper({
     disabled: [Cond.copy({ key: 'method', cmp: '=', val: 'LINK' })],
     onChange: (svcState: Service, to: string) => {
       if (to) {
-        svcState.name = to
+        svcState.name = (svcMapper['model'].options as OpnType[]).find(
+          (opn: OpnType) => opn.value === to
+        )?.label as string
       }
     }
   },
@@ -126,7 +128,7 @@ export const svcMapper = new Mapper({
     })),
     onChange: (svc: Service, to: Method) => {
       if (to === 'LINK') {
-        svc.model = store.getters['model/ins'].name
+        svc.model = store.getters['model/ins'].key
       }
       if (svc.model) {
         svc.path = genMdlPath(svc)
@@ -192,39 +194,28 @@ export const svcColumns = [
   new Column('流程', 'flow')
 ]
 
-export const frontend = {
-  expEmitter: new Emitter(),
-  expMapper: new Mapper({
-    name: {
-      label: '名称',
-      desc: '不能与所属项目同名！',
-      type: 'Input'
+export const frtEmitter = new Emitter()
+
+export const frtMapper = new Mapper({
+  backend: {
+    label: '绑定后台',
+    type: 'Select'
+  },
+  pages: {
+    label: '页面',
+    type: 'EditList',
+    lblProp: 'path',
+    inline: false,
+    mapper: {
+      path: {
+        label: '路由',
+        type: 'Input'
+      },
+      layout: {
+        label: '布局',
+        type: 'Unknown'
+      }
     },
-    pages: {
-      label: '页面',
-      type: 'Table',
-      columns: [new Column('路由', 'path'), new Column('布局', 'layout')],
-      mapper: new Mapper({
-        path: {
-          label: '路由',
-          type: 'Input'
-        },
-        layout: {
-          label: '布局',
-          type: 'Select',
-          options: lytOpns
-        }
-      }),
-      copy: Page.copy
-    },
-    withLib: {
-      label: '前端库',
-      type: 'Checkbox'
-    },
-    modules: {
-      label: '模组',
-      type: 'EditList'
-    }
-  }),
-  depEmitter: new Emitter()
-}
+    copy: Page.copy
+  }
+})

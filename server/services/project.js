@@ -254,6 +254,14 @@ export async function generate(pid) {
   if (project.thread) {
     await stopSync(project)
   }
+  const genPath = Path.resolve(svrCfg.apps, project.name)
+  console.log(`生成项目到目录：${genPath}`)
+  fs.rmSync(genPath, { recursive: true, force: true })
+  fs.mkdirSync(genPath, { recursive: true })
+  if (!project.database.length) {
+    console.log('检测为前端项目，进行前端项目的生成逻辑……')
+    return genFront(project)
+  }
   console.log('从数据库获取项目模型……')
   for (const index in project.models) {
     const mid = project.models[index]
@@ -264,11 +272,6 @@ export async function generate(pid) {
   }
   console.log('从数据库获取项目持久化源配置……')
   const database = (await db.select(DataBase, { name: project.database[0] }))[0]
-
-  const genPath = Path.resolve(svrCfg.apps, project.name)
-  console.log(`生成项目到目录：${genPath}`)
-  fs.rmSync(genPath, { recursive: true, force: true })
-  fs.mkdirSync(genPath, { recursive: true })
 
   fs.mkdirSync(Path.join(genPath, 'configs'))
   const dbCfgTmp = Path.join(tmpPath, 'configs', 'db.toml')
@@ -1012,4 +1015,9 @@ export async function chkMiddle(pid) {
 
 export async function expFrtend(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
+}
+
+export async function genFront(project) {
+
+  return project
 }
