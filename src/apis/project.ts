@@ -67,16 +67,10 @@ export default {
       }
     })
   },
-  syncFrt: (key: string) => {
-    Modal.confirm({
-      title: 'Do you Want to delete these items?',
-      icon: createVNode(ExclamationCircleOutlined),
-      content: createVNode('a-upload', undefined, [
-        createVNode('a-button', { class: 'w-full' }, '上传dist文件夹')
-      ]),
-      onOk() {
-        console.log('OK')
-      }
+  syncFrt: async (key: string, form: any) => {
+    await reqPut('project', key, { 'front.dist': form.dir })
+    return reqPut('project', `${key}/sync`, undefined, { type: 'api' }).then(() => {
+      setTimeout(() => store.dispatch('project/refresh'), 10)
     })
   },
   stop: (key: string) => {

@@ -31,6 +31,10 @@
             <a-button>水电费水电费水电</a-button>
           </template>
         </FormDialog>
+        <a-button v-if="isFront" type="primary" @click="() => frtEmitter.emit('update:show', true)">
+          <template #icon><ant-design-outlined /></template>
+          &nbsp;前端设计
+        </a-button>
         <a-button @click="onConfigClk">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
@@ -54,15 +58,20 @@
         <FormDialog
           title="同步前端"
           width="30vw"
-          :mapper="{
-            dir: {
-              label: 'dist',
-              type: 'UploadFile',
-              directory: true
-            }
-          }"
+          :mapper="
+            new Mapper({
+              dir: {
+                label: 'dist',
+                type: 'UploadFile',
+                directory: true,
+                params: { keepName: true },
+                path: '/server-package/api/v1/temp/file'
+              }
+            })
+          "
           :copy="(src: any, tgt?: any) => gnlCpy(() => ({ dir: [] }), src, tgt)"
           :emitter="syncEmitter"
+          @submit="(form: any) => api.syncFrt(pid, form)"
         >
           <template #top>
             <info-circle-outlined class="text-lg text-primary" />
@@ -270,6 +279,15 @@
       @submit="(formData: any) => mdlAPI.export(formData)"
     />
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
+    <EditableTable
+      title="自定义组件"
+      size="small"
+      :api="mdlAPI"
+      :columns="mdlColumns"
+      :mapper="mdlMapper"
+      :copy="Model.copy"
+      :emitter="mdlEmitter"
+    />
   </LytProject>
 </template>
 
@@ -285,7 +303,8 @@ import {
   FormOutlined,
   PartitionOutlined,
   Html5Outlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  AntDesignOutlined
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import LytProject from '../layouts/LytProject.vue'
@@ -322,6 +341,7 @@ import ExpCls from '@/types/expCls'
 import { emitter as pjtEmitter } from './Home'
 import MsvcSelect from '@/components/MsvcSelect.vue'
 import Frontend from '@/types/frontend'
+import Mapper from '@lib/types/mapper'
 
 export default defineComponent({
   name: 'Project',
@@ -337,7 +357,8 @@ export default defineComponent({
     FormOutlined,
     PartitionOutlined,
     Html5Outlined,
-    InfoCircleOutlined
+    InfoCircleOutlined,
+    AntDesignOutlined
   },
   setup() {
     const route = useRoute()
@@ -416,6 +437,7 @@ export default defineComponent({
       ExpCls,
       Property,
       Frontend,
+      Mapper,
 
       mdlAPI,
       mdlEmitter,

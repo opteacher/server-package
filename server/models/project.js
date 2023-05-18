@@ -77,6 +77,9 @@ export default db.defineModel(
           children: db.PropTypes.Array
         }]
       }
+    },
+    front: {
+      dist: db.PropTypes.String
     }
   },
   {
