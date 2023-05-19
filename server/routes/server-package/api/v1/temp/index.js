@@ -1,5 +1,6 @@
 import Router from 'koa-router'
 import Path from 'path'
+import { renameSync } from 'fs'
 import { uploadImage } from '../../../../../services/cdn.js'
 
 const router = new Router()
