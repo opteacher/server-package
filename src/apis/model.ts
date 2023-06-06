@@ -1,9 +1,9 @@
 import store from '@/store'
-import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore } from '@/utils'
+import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore, reqLink } from '@/utils'
 import Model from '@/types/model'
 import ExpCls from '@/types/expCls'
 import Cell from '@/types/cell'
-import { Method, methods as Methods } from '@/types/service'
+import Service, { Method, methods as Methods } from '@/types/service'
 import Project from '@/types/project'
 
 const expDft = {
@@ -43,14 +43,29 @@ const expDft = {
         )
         if (service) {
           await reqDelete('service', service.key)
+          await reqLink(
+            {
+              parent: ['project', project.key],
+              child: ['services', service.key]
+            },
+            false
+          )
         }
       } else if (!orgMdl.methods.includes(method) && data.methods.includes(method)) {
         // 新增该模型接口
-        await reqPost('service', {
-          emit: 'api',
-          model: model.name,
-          method,
-          path: `/${project.name}/mdl/v1/${model.name}${method !== 'POST' ? '/:index' : ''}`
+        const service = await reqPost(
+          'service',
+          {
+            emit: 'api',
+            model: data.key,
+            method,
+            path: `/mdl/v1/${model.name}${method !== 'POST' ? '/:index' : ''}`
+          },
+          { copy: Service.copy }
+        )
+        await reqLink({
+          parent: ['project', project.key],
+          child: ['services', service.key]
         })
       }
     }

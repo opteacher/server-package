@@ -65,7 +65,8 @@
                 type: 'UploadFile',
                 directory: true,
                 params: { keepName: true },
-                path: '/server-package/api/v1/temp/file'
+                path: '/server-package/api/v1/temp/file',
+                onChange: () => {}
               }
             })
           "
@@ -280,6 +281,8 @@
     />
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
     <EditableTable
+      v-if="isFront"
+      class="mt-10"
       title="自定义组件"
       size="small"
       :api="mdlAPI"
@@ -471,8 +474,8 @@ export default defineComponent({
       frtEmitter,
       frtMapper,
       syncEmitter,
-      gnlCpy,
 
+      gnlCpy,
       refresh,
       onConfigSbt,
       onConfigClk,
