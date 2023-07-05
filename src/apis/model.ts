@@ -7,11 +7,14 @@ import Service, { Method, methods as Methods } from '@/types/service'
 import { pickOrIgnore, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 
 const expDft = {
-  add: (data: any) =>
-    reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
+  add: async (data: any) => {
+    const model = await reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
       type: 'api',
       copy: Model.copy
-    }),
+    })
+    await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
+    return model
+  },
   remove: async (key: any) => {
     await reqDelete(`project/${store.getters['project/ins'].key}`, `models/${key}`)
     return reqDelete('model', key, { type: 'api' })
