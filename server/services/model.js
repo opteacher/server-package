@@ -131,7 +131,7 @@ export async function create(data) {
     let service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      model: model.name,
+      model: model.id,
       method: 'POST',
       path: `/mdl/v1/${model.name}`,
       needRet: true
@@ -141,7 +141,7 @@ export async function create(data) {
     service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      model: model.name,
+      model: model.id,
       method: 'DELETE',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
@@ -151,7 +151,7 @@ export async function create(data) {
     service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      model: model.name,
+      model: model.id,
       method: 'PUT',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
@@ -161,7 +161,7 @@ export async function create(data) {
     service = await db.save(Service, {
       name: model.name,
       emit: 'api',
-      model: model.name,
+      model: model.id,
       method: 'GET',
       path: `/mdl/v1/${model.name}/:index`,
       needRet: true
