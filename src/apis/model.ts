@@ -1,32 +1,17 @@
 import store from '@/store'
-import { reqGet, reqDelete, reqPost, reqPut, pickOrIgnore, reqLink } from '@/utils'
-import Model from '@/types/model'
-import ExpCls from '@/types/expCls'
 import Cell from '@/types/cell'
-import Service, { Method, methods as Methods } from '@/types/service'
+import ExpCls from '@/types/expCls'
+import Model from '@/types/model'
 import Project from '@/types/project'
+import Service, { Method, methods as Methods } from '@/types/service'
+import { pickOrIgnore, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 
 const expDft = {
-  add: async (data: any) => {
-    const model = Model.copy(
-      await reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
-        type: 'api'
-      })
-    )
-    const project = store.getters['project/ins'] as Project
-    await Promise.all(
-      data.methods.map((method: Method) =>
-        reqPost('service', {
-          emit: 'api',
-          model: model.name,
-          method,
-          path: `/${project.name}/mdl/v1/${model.name}${method !== 'POST' ? '/:index' : ''}`
-        })
-      )
-    )
-    await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
-    return model
-  },
+  add: (data: any) =>
+    reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
+      type: 'api',
+      copy: Model.copy
+    }),
   remove: async (key: any) => {
     await reqDelete(`project/${store.getters['project/ins'].key}`, `models/${key}`)
     return reqDelete('model', key, { type: 'api' })
