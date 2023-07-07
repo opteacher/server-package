@@ -12,6 +12,7 @@ const expDft = {
       type: 'api',
       copy: Model.copy
     })
+    console.log(model)
     await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
     return model
   },

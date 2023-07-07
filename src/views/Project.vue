@@ -35,6 +35,10 @@
           <template #icon><ant-design-outlined /></template>
           &nbsp;前端设计
         </a-button>
+        <a-button @click="onExportClk">
+          <template #icon><export-outlined /></template>
+          &nbsp;导出
+        </a-button>
         <a-button @click="onConfigClk">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
@@ -268,6 +272,10 @@
               </a-row>
             </a-input-group>
           </template>
+          <template #remark="{ record: mdl }">
+            <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
+            <template v-else>-</template>
+          </template>
         </EditableTable>
       </template>
     </EditableTable>
@@ -421,6 +429,9 @@ export default defineComponent({
     function onImpMdlBack() {
       console.log()
     }
+    function onExportClk() {
+      console.log()
+    }
     return {
       Project,
       Transfer,
@@ -474,7 +485,8 @@ export default defineComponent({
       reqPut,
       reqDelete,
       setProp,
-      onImpMdlBack
+      onImpMdlBack,
+      onExportClk
     }
   }
 })

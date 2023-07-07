@@ -140,7 +140,7 @@ export default defineComponent({
       <template v-else>-</template>
     </template>
     <template #desc="{ record: svc }">
-      <pre v-if="svc.desc" class="w-48">{{ svc.desc }}</pre>
+      <pre v-if="svc.desc" class="max-w-xs">{{ svc.desc }}</pre>
       <template v-else>-</template>
     </template>
   </EditableTable>

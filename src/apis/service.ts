@@ -5,12 +5,18 @@ import { reqDelete, reqGet, reqPost, reqPut, intervalCheck } from '@/utils'
 export default {
   add: async (data: any) => {
     const pid = store.getters['project/ins'].key
+    if (!data.model) {
+      delete data.model
+    }
     data.condition = `${data.cdValue}${data.cdUnit}`
     const svc = Service.copy(await reqPost('service', data))
     return reqPut(`project/${pid}`, `services/${svc.key}`)
   },
   remove: async (data: any) => {
     const pid = store.getters['project/ins'].key
+    if (!data.model) {
+      delete data.model
+    }
     await reqDelete(`project/${pid}`, `services/${data.key}`)
     return reqDelete('service', data.key, { type: 'api' })
   },
