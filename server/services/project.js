@@ -776,7 +776,7 @@ export async function transfer(info) {
 export async function getAllAPIs(pid) {
   const ret = []
   const project = await db.select(Project, { _index: pid }, { ext: true })
-  for (const service of project.services) {
+  for (const service of project.services.map(svc => svc.toJSON())) {
     switch (service.emit) {
       case 'api':
         ret.push(

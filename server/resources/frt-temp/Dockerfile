@@ -1,9 +1,9 @@
 FROM node:latest
 WORKDIR /app
 COPY . /app
-RUN npm config set registry http://registry.npm.taobao.org \
-  && npm install --unsafe-perm=true --allow-root \
-  && npm run build
+RUN npm config set registry https://registry.npmmirror.com
+RUN npm install --unsafe-perm=true --allow-root
+RUN npm run build
 
 FROM mhart/alpine-node:latest
 RUN npm install -g npm@8.14.0 && npm i -g http-server
