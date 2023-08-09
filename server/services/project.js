@@ -924,12 +924,16 @@ export async function buildMid(project) {
   adjustFile(lytTmp, lytGen, { project })
 
   console.log('生成中台首页……')
+  const models = await Promise.all(project.models.map(model => db.select(Model, { _index: model._id })))
   const hmTmp = Path.join(tmpSrcPath, 'views', 'Home.vue')
   const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
   console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
-  adjustFile(hmTmp, hmGen, {
-    models: await Promise.all(project.models.map(model => db.select(Model, { _index: model._id })))
-  })
+  adjustFile(hmTmp, hmGen, { models })
+  
+  const jsonTmp = Path.join(tmpSrcPath, 'json')
+  const jsonGen = Path.join(genSrcPath, 'json')
+  console.log(`调整src/json文件夹：${jsonTmp} -> ${jsonGen}`)
+  adjustFile(astTmp, astGen, { models })
   return Promise.resolve(genPath)
 }
 
