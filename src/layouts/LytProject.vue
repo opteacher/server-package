@@ -108,7 +108,7 @@
           </a-breadcrumb>
         </a-space>
         <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
-          <a-row v-if="active.includes('/mid/')" class="mb-1">
+          <a-row v-if="active.includes('/mid/')" class="mb-2">
             <a-col :span="12">
               <a-space>
                 <a-button type="primary" :loading="middle.loading" @click="onMidPubShow(true)">
@@ -192,7 +192,10 @@ import {
   LoginOutlined,
   HddOutlined,
   DashboardOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CloudUploadOutlined,
+  BuildOutlined,
+  EyeOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -215,7 +218,10 @@ export default defineComponent({
     LoginOutlined,
     HddOutlined,
     DashboardOutlined,
-    AppstoreOutlined
+    AppstoreOutlined,
+    CloudUploadOutlined,
+    BuildOutlined,
+    EyeOutlined
   },
   props: {
     active: { type: String, required: true }

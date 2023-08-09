@@ -8,5 +8,12 @@ module.exports = {
         changeOrigin: true
       }
     }
+  },
+  configureWebpack: {
+    resolve: {
+      alias: {
+        '@lib': path.resolve('./lib/frontend-library/src')
+      }
+    }
   }
 }

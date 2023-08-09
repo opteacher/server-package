@@ -1,0 +1,4 @@
+
+[submodule "server/resources/mid-temp/lib/frontend-library"]
+	path = server/resources/mid-temp/lib/frontend-library
+	url = https://github.com/opteacher/frontend-library.git
