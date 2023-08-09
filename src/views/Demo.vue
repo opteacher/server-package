@@ -10,7 +10,7 @@
       &nbsp;数据
     </div>
     <a-divider />
-    <div class="mb-2.5 flex justify-between">
+    <!-- <div class="mb-2.5 flex justify-between">
       <a-space>
         <h3 class="mb-0">{{ table.title }}</h3>
         <span class="text-gray-400">{{ table.desc }}</span>
@@ -22,8 +22,22 @@
       class="mb-2.5"
       :tblRfsh="table.refresh"
       @click="onRefresh"
+    /> -->
+    <EditableTable
+      :api="{ all: () => records }"
+      sclHeight="h-full"
+      :columns="columns"
+      :mapper="formDialog.mapper"
+      :copy="copyRecord"
+      :emitter="formDialog.emitter"
+      :size="table.size"
+      :pagable="table.hasPages"
+      :refOptions="table.refresh"
+      :editable="table.operable.includes('可编辑')"
+      :addable="table.operable.includes('可添加')"
+      :delable="table.operable.includes('可删除')"
     />
-    <a-table
+    <!-- <a-table
       :columns="columns"
       :data-source="records"
       :size="table.size"
@@ -100,7 +114,7 @@
           <template v-else>+</template>
         </a-button>
       </template>
-    </a-table>
+    </a-table> -->
     <FormDialog
       :title="form.title"
       :copy="copyRecord"
@@ -123,8 +137,8 @@ import Table, { Cells } from '@/types/table'
 import Model from '@/types/model'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import LytDesign from '../layouts/LytDesign.vue'
-import RefreshBox from '../components/table/RefreshBox.vue'
-import CellCard from '../components/table/CellCard.vue'
+// import RefreshBox from '../components/table/RefreshBox.vue'
+// import CellCard from '../components/table/CellCard.vue'
 import Cell from '@/types/cell'
 import Form from '@/types/form'
 import Field from '@lib/types/field'
@@ -136,8 +150,8 @@ export default defineComponent({
   name: 'Demo',
   components: {
     LytDesign,
-    RefreshBox,
-    CellCard
+    // RefreshBox,
+    // CellCard
   },
   setup() {
     const store = useStore()
