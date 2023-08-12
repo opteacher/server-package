@@ -59,6 +59,7 @@ export default db.defineModel(
         {
           title: db.PropTypes.String,
           dataIndex: db.PropTypes.String,
+          group: db.PropTypes.Array,
           width: db.PropTypes.Number,
           align: db.PropTypes.String, // left | right | center
           sortable: db.PropTypes.Boolean,
