@@ -57,6 +57,13 @@
         @change="(defaultSort: string) => onPropChange({ key: colState.key, defaultSort })"
       />
     </a-descriptions-item>
+    <a-descriptions-item label="组">
+      <a-input
+        class="h-full"
+        :value="colState.group ? colState.group[0] : ''"
+        @blur="(e: any) => onPropChange({ key: colState.key, group: [e.target.value] })"
+      />
+    </a-descriptions-item>
   </a-descriptions>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <a-table :columns="columns" :data-source="data">
+  <a-table :columns="columns" :data-source="data" bordered>
     <template #headerCell="{ column }">
       <template v-if="column.key === 'name'">
         <span>
@@ -57,18 +57,26 @@ const columns = [
     key: 'age'
   },
   {
-    title: 'Address',
-    dataIndex: 'address',
-    key: 'address'
-  },
-  {
-    title: 'Tags',
-    key: 'tags',
-    dataIndex: 'tags'
-  },
-  {
-    title: 'Action',
-    key: 'action'
+    title: 'Group',
+    dataIndex: 'group',
+    key: 'group',
+    align: 'right',
+    children: [
+      {
+        title: 'Address',
+        dataIndex: 'address',
+        key: 'address'
+      },
+      {
+        title: 'Tags',
+        key: 'tags',
+        dataIndex: 'tags'
+      },
+      {
+        title: 'Action',
+        key: 'action'
+      }
+    ]
   }
 ]
 
