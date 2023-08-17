@@ -397,7 +397,8 @@ export async function generate(pid) {
   }
   console.log('生成模型实例……')
   for (const model of project.models) {
-    model.services = project.services.filter(svc => svc.model === model.name)
+    const mid = model.id.toString()
+    model.services = project.services.filter(svc => svc.model.toString() === mid)
 
     model.props = model.props.map(prop =>
       Object.assign(prop, { default: formatToStr(prop.default, prop.ptype) })
