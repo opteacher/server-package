@@ -80,12 +80,12 @@
         @change="(refresh: any) => api.table.save({ refresh })"
       />
     </a-descriptions-item>
-    <a-descriptions-item label="显示列">
+    <a-descriptions-item label="可选列">
       <a-switch
         v-model:checked="formState.colDspable"
         @change="(colDspable: boolean) => api.table.save({ colDspable })"
       />
-      &nbsp;{{ formState.colDspable ? '显示' : '不显示' }}
+      &nbsp;{{ formState.colDspable ? '可选' : '不可选' }}
     </a-descriptions-item>
     <a-descriptions-item label="导入导出">
       <a-checkbox-group

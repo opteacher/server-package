@@ -61,16 +61,18 @@
       <a-input
         class="h-full"
         :value="colState.group ? colState.group[0] : ''"
-        @blur="(e: any) => onPropChange({ key: colState.key, group: [e.target.value] })"
+        @blur="(e: any) => onPropChange({
+          key: colState.key, group: e.target.value ? [e.target.value] : []
+        })"
       />
     </a-descriptions-item>
   </a-descriptions>
 </template>
 
 <script lang="ts">
+import { mdlAPI as api } from '@/apis'
 import Column from '@lib/types/column'
 import { defineComponent, reactive } from 'vue'
-import { mdlAPI as api } from '@/apis'
 
 export default defineComponent({
   name: 'TableProps',
