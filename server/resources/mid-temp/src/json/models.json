@@ -1,1 +1,0 @@
-{} /*return '{\n' + models.map(model => `"${model.name}": ${JSON.stringify(model)}`).join(',\n  ') + '\n}'*/
