@@ -20,7 +20,7 @@ export default {
     await reqDelete(`project/${pid}`, `services/${data.key}`)
     return reqDelete('service', data.key, { type: 'api' })
   },
-  update: (data: any) => {
+  update: async (data: any) => {
     if (data.cdValue) {
       data.condition = `${data.cdValue}${data.cdUnit}`
     }
