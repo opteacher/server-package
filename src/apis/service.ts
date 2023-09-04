@@ -1,15 +1,15 @@
 import store from '@/store'
 import Service from '@/types/service'
-import { reqDelete, reqGet, reqPost, reqPut, intervalCheck } from '@/utils'
+import { reqDelete, reqGet, reqPost, reqPut, intervalCheck, pickOrIgnore } from '@/utils'
 
 export default {
   add: async (data: any) => {
     const pid = store.getters['project/ins'].key
-    if (!data.model) {
-      delete data.model
-    }
     data.condition = `${data.cdValue}${data.cdUnit}`
-    const svc = Service.copy(await reqPost('service', data))
+    const svc = Service.copy(await reqPost('service', data, { ignores: ['model'] }))
+    if (data.model) {
+      await reqPut(`service/${svc.key}`, `model/${data.model}`)
+    }
     return reqPut(`project/${pid}`, `services/${svc.key}`)
   },
   remove: async (data: any) => {
@@ -24,7 +24,10 @@ export default {
     if (data.cdValue) {
       data.condition = `${data.cdValue}${data.cdUnit}`
     }
-    return reqPut('service', data.key, data, { ignores: ['flow'] })
+    if (data.model) {
+      await reqPut(`service/${data.key}`, `model/${data.model}`)
+    }
+    return reqPut('service', data.key, data, { ignores: ['flow', 'model'] })
   },
   all: async () => {
     await store.dispatch('project/refresh')
