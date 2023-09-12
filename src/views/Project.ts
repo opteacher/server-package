@@ -97,7 +97,7 @@ export const svcMapper = new Mapper({
   },
   interface: {
     label: '方法',
-    desc: '指定函数',
+    desc: '指定函数，不可使用关键字：import',
     type: 'Input',
     disabled: [
       Cond.copy({ key: 'model', cmp: '!=', val: '' }),

@@ -13,6 +13,7 @@ import { genMdlRoutes } from './lib/backend-library/models/index.js'
 const router = await genApiRoutes(path.resolve('routes'))
 const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'))
 const app = new Koa()
+app.proxy = true
 // 跨域配置
 app.use(cors())
 // 日志输出

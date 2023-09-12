@@ -49,7 +49,9 @@
     <template #title>
       <a-space>
         <h3 class="text-white mb-0"># {{ node.title }}&nbsp;</h3>
-        <a-tag v-if="node.ntype === 'normal' && node.isFun" color="cyan">函数式</a-tag>
+        <a-tag v-if="node.ntype === 'normal' && node.isFun" color="cyan">
+          <template #icon><FunctionOutlined /></template>
+        </a-tag>
         <template v-else-if="node.ntype === 'traversal' && node.loop">
           <a-tag v-if="node.loop.isAwait" color="green">await</a-tag>
           <a-tag v-else-if="node.loop.isForIn" color="blue">for……in循环</a-tag>
@@ -177,7 +179,8 @@ import {
   LoginOutlined,
   LogoutOutlined,
   RightOutlined,
-  MoreOutlined
+  MoreOutlined,
+  FunctionOutlined
 } from '@ant-design/icons-vue'
 import Node from '@/types/node'
 import {
@@ -200,7 +203,8 @@ export default defineComponent({
     LoginOutlined,
     LogoutOutlined,
     RightOutlined,
-    MoreOutlined
+    MoreOutlined,
+    FunctionOutlined
   },
   props: {
     node: { type: NodeInPnl, default: new NodeInPnl() }
