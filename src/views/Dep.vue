@@ -13,29 +13,13 @@
   </LytMain>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue'
-import LytMain from '../layouts/LytMain.vue'
-import { columns, mapper } from './Dep'
-import Dep from '../types/dep'
-import { depAPI as api } from '../apis'
+<script lang="ts" setup name="Dependency">
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 
-export default defineComponent({
-  name: 'Dependency',
-  components: {
-    LytMain
-  },
-  setup() {
-    const emitter = new Emitter()
-    return {
-      Dep,
+import { depAPI as api } from '../apis'
+import LytMain from '../layouts/LytMain.vue'
+import Dep from '../types/dep'
+import { columns, mapper } from './Dep'
 
-      api,
-      columns,
-      mapper,
-      emitter
-    }
-  }
-})
+const emitter = new Emitter()
 </script>

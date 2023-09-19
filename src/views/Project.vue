@@ -196,7 +196,7 @@
           <a-button
             type="primary"
             size="small"
-            @click="() => router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+            @click.stop="() => router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
           >
             <template #icon><FormOutlined /></template>
             表单/表项设计
