@@ -1,25 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import fs from 'fs'
-import Path from 'path'
-import { db, pickOrIgnore } from '../utils/index.js'
-import {
-  readConfig,
-  copyDir,
-  rmvStartsOf,
-  fixStartsWith,
-  fixEndsWith
-} from '../lib/backend-library/utils/index.js'
-import Project from '../models/project.js'
-import Model from '../models/model.js'
-import DataBase from '../models/database.js'
-import Service from '../models/service.js'
-import Node from '../models/node.js'
-import Dep from '../models/dep.js'
-import { spawn, spawnSync } from 'child_process'
 import axios from 'axios'
-import { exportClass } from './model.js'
+import { spawn, spawnSync } from 'child_process'
+import fs from 'fs'
 import sendfile from 'koa-sendfile'
+import Path from 'path'
+
+import {
+  copyDir,
+  fixEndsWith,
+  fixStartsWith,
+  readConfig,
+  rmvStartsOf
+} from '../lib/backend-library/utils/index.js'
+import DataBase from '../models/database.js'
+import Dep from '../models/dep.js'
+import Model from '../models/model.js'
+import Node from '../models/node.js'
+import Project from '../models/project.js'
+import Service from '../models/service.js'
+import { db, pickOrIgnore } from '../utils/index.js'
+import { exportClass } from './model.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const tmpPath = Path.resolve('resources', 'app-temp')
@@ -182,9 +184,16 @@ async function recuNode(key, indent, callback, endKey) {
     }
     case 'condition': {
       const ret = [genAnnotation(node, indents)]
-      const nxtNds = await Promise.all(node.nexts.map(nxtNode => db.select(Node, { _index: nxtNode.id })))
+      const nxtNds = await Promise.all(
+        node.nexts.map(nxtNode => db.select(Node, { _index: nxtNode.id }))
+      )
       // 把code为空的条件节点移到数组最后
-      nxtNds.push(...nxtNds.splice(nxtNds.findIndex(nd => !nd.code), 1))
+      nxtNds.push(
+        ...nxtNds.splice(
+          nxtNds.findIndex(nd => !nd.code),
+          1
+        )
+      )
       for (let i = 0; i < nxtNds.length; ++i) {
         const nxtNode = nxtNds[i]
         ret.push(
@@ -306,7 +315,7 @@ export async function generate(pid) {
   const libTmp = Path.resolve('lib')
   const libGen = Path.join(genPath, 'lib')
   console.log(`复制库文件夹：${libTmp} -> ${libGen}`)
-  copyDir(libTmp, libGen, { ignores: ['node_modules'] })
+  copyDir(libTmp, libGen, { ignores: [Path.resolve(libTmp, 'node_modules')] })
 
   fs.mkdirSync(Path.join(genPath, 'utils'))
   const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
@@ -810,123 +819,56 @@ export async function getAllAPIs(pid) {
 }
 
 export async function buildMid(project) {
-  const hasAuth = project.auth.model
-
   const svrCfg = await readConfig(Path.resolve('configs', 'server'))
   const tmpPath = Path.resolve('resources', 'mid-temp')
   const genPath = Path.resolve(svrCfg.apps, `${project.name}-mid`)
   console.log('初始化中台项目……')
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
-
-  const pkgTmp = Path.join(tmpPath, 'package.json')
-  const pkgGen = Path.join(genPath, 'package.json')
-  console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
-  adjustFile(pkgTmp, pkgGen, { project })
-  const vueTmp = Path.join(tmpPath, 'vue.config.js')
-  const vueGen = Path.join(genPath, 'vue.config.js')
-  console.log(`调整vue配置文件：${vueTmp} -> ${vueGen}`)
-  adjustFile(vueTmp, vueGen, { project })
-  const tsTmp = Path.join(tmpPath, 'tsconfig.json')
-  const tsGen = Path.join(genPath, 'tsconfig.json')
-  console.log(`复制ts配置文件：${tsTmp} -> ${tsGen}`)
-  fs.copyFileSync(tsTmp, tsGen)
-  const bblTmp = Path.join(tmpPath, 'babel.config.js')
-  const bblGen = Path.join(genPath, 'babel.config.js')
-  console.log(`复制babel配置文件：${bblTmp} -> ${bblGen}`)
-  fs.copyFileSync(bblTmp, bblGen)
-  fs.mkdirSync(Path.join(genPath, 'public'), { recursive: true })
-  const idxTmp = Path.join(tmpPath, 'public', 'index.html')
-  const idxGen = Path.join(genPath, 'public', 'index.html')
-  console.log(`复制html原始文件：${idxTmp} -> ${idxGen}`)
-  fs.copyFileSync(idxTmp, idxGen)
-  const icoTmp = Path.join(tmpPath, 'public', 'favicon.ico')
-  const icoGen = Path.join(genPath, 'public', 'favicon.ico')
-  console.log(`复制html原始文件：${icoTmp} -> ${icoGen}`)
-  fs.copyFileSync(icoTmp, icoGen)
-
   const tmpSrcPath = Path.join(tmpPath, 'src')
   const genSrcPath = Path.join(genPath, 'src')
-  fs.mkdirSync(genSrcPath, { recursive: true })
-  const mnTmp = Path.join(tmpSrcPath, 'main.ts')
-  const mnGen = Path.join(genSrcPath, 'main.ts')
-  console.log(`复制src/main文件：${mnTmp} -> ${mnGen}`)
-  fs.copyFileSync(mnTmp, mnGen)
-  const appTmp = Path.join(tmpSrcPath, 'App.vue')
-  const appGen = Path.join(genSrcPath, 'App.vue')
-  console.log(`复制src/App.vue文件：${appTmp} -> ${appGen}`)
-  fs.copyFileSync(appTmp, appGen)
-  const svueTmp = Path.join(tmpSrcPath, 'shims-vue.d.ts')
-  const svueGen = Path.join(genSrcPath, 'shims-vue.d.ts')
-  console.log(`复制src/shims-vue.d.ts文件：${svueTmp} -> ${svueGen}`)
-  fs.copyFileSync(svueTmp, svueGen)
-  const typTmp = Path.join(tmpSrcPath, 'types')
-  const typGen = Path.join(genSrcPath, 'types')
-  console.log(`复制src/types文件夹：${typTmp} -> ${typGen}`)
-  copyDir(typTmp, typGen)
-  for (const model of project.models) {
-    const result = await exportClass(model._id, { name: model.name })
-    const flPath = Path.join(typGen, result.fileName)
-    fs.writeFileSync(flPath, result.content)
-  }
-  const cmpTmp = Path.join(tmpSrcPath, 'components')
-  const cmpGen = Path.join(genSrcPath, 'components')
-  console.log(`复制src/components文件夹：${cmpTmp} -> ${cmpGen}`)
-  copyDir(cmpTmp, cmpGen)
-  const astTmp = Path.join(tmpSrcPath, 'assets')
-  const astGen = Path.join(genSrcPath, 'assets')
-  console.log(`复制src/assets文件夹：${astTmp} -> ${astGen}`)
-  copyDir(astTmp, astGen)
-
+  copyDir(tmpPath, genPath, {
+    ignores: [
+      Path.join(tmpPath, '.git'),
+      Path.join(tmpSrcPath, 'apis/login.ts'),
+      Path.join(tmpSrcPath, 'router/index.ts'),
+      Path.join(tmpSrcPath, 'views/login.vue')
+    ]
+  })
+  fs.mkdirSync(Path.join(genSrcPath, 'json'), { recursive: true })
+  fs.writeFileSync(
+    Path.join(genSrcPath, 'json/project.json'),
+    JSON.stringify(pickOrIgnore(project, ['models']))
+  )
+  fs.writeFileSync(
+    Path.join(genSrcPath, 'json/models.json'),
+    JSON.stringify(Object.fromEntries(project.models.map(model => [model.name, model])))
+  )
   console.log('根据权限生成登录页面，并配置路由……')
   fs.mkdirSync(Path.join(genSrcPath, 'router'), { recursive: true })
   const rtTmp = Path.join(tmpSrcPath, 'router', 'index.ts')
   const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
-  fs.mkdirSync(Path.join(genSrcPath, 'views'), { recursive: true })
-  if (hasAuth) {
+  if (project.auth.model) {
     const auth = (await db.select(Model, { _index: project.auth.model })).toObject()
-    const apiTmp = Path.join(tmpSrcPath, 'api.ts')
-    const apiGen = Path.join(genSrcPath, 'api.ts')
-    console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
-    adjustFile(apiTmp, apiGen, { project, auth })
+    const apiTmp = Path.join(tmpSrcPath, 'apis/login.ts')
+    const apiGen = Path.join(genSrcPath, 'apis/login.ts')
+    console.log(`复制src/apis/login.ts文件：${apiTmp} -> ${apiGen}`)
+    adjustFile(apiTmp, apiGen, { auth })
     console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
-    adjustFile(rtTmp, rtGen, { auth, project })
-    const lgnTmp = Path.join(tmpSrcPath, 'views', 'Login.vue')
-    const lgnGen = Path.join(genSrcPath, 'views', 'Login.vue')
-    console.log(`复制src/views/Login.vue文件：${lgnTmp} -> ${lgnGen}`)
+    adjustFile(rtTmp, rtGen, { auth })
+    const lgnTmp = Path.join(tmpSrcPath, 'views/login.vue')
+    const lgnGen = Path.join(genSrcPath, 'views/login.vue')
+    console.log(`复制src/views/login.vue文件：${lgnTmp} -> ${lgnGen}`)
     const fields = project.auth.props
       .map(prop => auth.form.fields.find(field => field.refer === prop.name))
       .filter(field => field)
       .map(field => Object.assign(pickOrIgnore(field, ['_id']), { key: field._id }))
     project.middle.login = pickOrIgnore(project.middle.login, ['_id'])
-    adjustFile(lgnTmp, lgnGen, { project, fields })
+    adjustFile(lgnTmp, lgnGen, { fields })
   } else {
-    const apiTmp = Path.join(tmpSrcPath, 'api.ts')
-    const apiGen = Path.join(genSrcPath, 'api.ts')
-    console.log(`复制src/api.ts文件：${apiTmp} -> ${apiGen}`)
-    fs.copyFileSync(apiTmp, apiGen)
     console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
     adjustFile(rtTmp, rtGen, { auth: null, project })
   }
-
-  console.log('根据导航栏信息，生成布局……')
-  fs.mkdirSync(Path.join(genSrcPath, 'layout'), { recursive: true })
-  const lytTmp = Path.join(tmpSrcPath, 'layout', 'index.vue')
-  const lytGen = Path.join(genSrcPath, 'layout', 'index.vue')
-  console.log(`调整src/layout/index.vue文件：${lytTmp} -> ${lytGen}`)
-  adjustFile(lytTmp, lytGen, { project })
-
-  console.log('生成中台首页……')
-  const models = await Promise.all(project.models.map(model => db.select(Model, { _index: model._id })))
-  const hmTmp = Path.join(tmpSrcPath, 'views', 'Home.vue')
-  const hmGen = Path.join(genSrcPath, 'views', 'Home.vue')
-  console.log(`复制src/views/Home.vue文件：${hmTmp} -> ${hmGen}`)
-  adjustFile(hmTmp, hmGen, { models })
-  
-  const jsonTmp = Path.join(tmpSrcPath, 'json')
-  const jsonGen = Path.join(genSrcPath, 'json')
-  console.log(`调整src/json文件夹：${jsonTmp} -> ${jsonGen}`)
-  adjustFile(astTmp, astGen, { models })
   return Promise.resolve(genPath)
 }
 
@@ -1015,6 +957,5 @@ export async function expFrtend(ctx) {
 }
 
 export async function genFront(project) {
-
   return project
 }

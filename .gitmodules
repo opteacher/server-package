@@ -4,3 +4,6 @@
 [submodule "src/lib/frontend-library"]
 	path = src/lib/frontend-library
 	url = https://github.com/opteacher/frontend-library.git
+[submodule "server/resources/mid-temp"]
+	path = server/resources/mid-temp
+	url = https://github.com/opteacher/mid-temp.git
