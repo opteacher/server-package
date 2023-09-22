@@ -5,7 +5,7 @@
         v-model:checked="useRealData"
         checked-children="真实"
         un-checked-children="模板"
-        @change="onRefresh"
+        @change="refresh"
       />
       &nbsp;数据
     </div>
@@ -20,17 +20,10 @@
       :size="table.size"
       :pagable="table.hasPages"
       :refOptions="table.refresh"
+      :dspCols="table.colDspable"
       :editable="table.operable.includes('可编辑')"
-      :addable="table.operable.includes('可添加')"
+      :addable="table.operable.includes('可增加')"
       :delable="table.operable.includes('可删除')"
-    />
-    <FormDialog
-      :title="form.title"
-      :copy="copyRecord"
-      :width="`${form.width}vw`"
-      v-model:show="formDialog.visible"
-      :emitter="formDialog.emitter"
-      :mapper="formDialog.mapper"
     />
   </LytDesign>
 </template>
@@ -74,9 +67,9 @@ const formDialog = reactive({
   mapper: new Mapper({})
 })
 
-onMounted(onRefresh)
+onMounted(refresh)
 
-async function onRefresh() {
+async function refresh() {
   await store.dispatch('model/refresh', { reqDataset: useRealData.value })
   formDialog.emitter.emit('update:mapper', createByFields(fields.value))
 }

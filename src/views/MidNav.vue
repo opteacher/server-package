@@ -96,7 +96,7 @@
             <a-descriptions-item label="显示">
               <a-switch
                 v-model:checked="nvItmProps.disp"
-                @change="(disp: boolean) => mdlAPI.update(Object.assign(nvItmProps, { disp }))"
+                @change="(disp: boolean) => mdlAPI.update(Object.assign(nvItmProps, { disp }), refresh)"
                 checked-children="显示"
                 un-checked-children="不显示"
               />

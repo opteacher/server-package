@@ -51,7 +51,7 @@ import Column from '@lib/types/column'
 import Field from '@lib/types/field'
 import Mapper, { createByFields } from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
