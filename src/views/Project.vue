@@ -35,11 +35,11 @@
           <template #icon><ant-design-outlined /></template>
           &nbsp;前端设计
         </a-button>
-        <a-button @click="onExportClk">
+        <a-button @click="onExportClick">
           <template #icon><export-outlined /></template>
           &nbsp;导出
         </a-button>
-        <a-button @click="onConfigClk">
+        <a-button @click="onConfigClick">
           <template #icon><SettingOutlined /></template>
           &nbsp;配置
         </a-button>
@@ -170,17 +170,6 @@
       </template>
       <template #form="{ record: model }">
         <a-space>
-          <!-- <a-tooltip>
-            <template #title>需要所在项目启动后才可以查看数据集！</template>
-            <a-button
-              size="small"
-              :disabled="project.status.stat !== 'running'"
-              @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
-            >
-              <template #icon><DatabaseOutlined /></template>
-              &nbsp;浏览数据
-            </a-button>
-          </a-tooltip> -->
           <a-button
             size="small"
             @click.stop="
@@ -196,7 +185,9 @@
           <a-button
             type="primary"
             size="small"
-            @click.stop="() => router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+            @click.stop="
+              () => router.push(`/server-package/project/${pid}/model/${model.key}/form`)
+            "
           >
             <template #icon><FormOutlined /></template>
             表单/表项设计
@@ -220,7 +211,6 @@
           :columns="propColumns"
           :mapper="propMapper"
           :copy="Property.copy"
-          :emitter="propEmitter"
           @save="refresh"
           @delete="refresh"
         >
@@ -291,203 +281,124 @@
   </LytProject>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="Project">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, reactive, ref } from 'vue'
+import MsvcSelect from '@/components/MsvcSelect.vue'
+import SvcTable from '@/components/SvcTable.vue'
+import { OpnType } from '@/types'
+import ExpCls from '@/types/expCls'
+import Frontend from '@/types/frontend'
+import Model from '@/types/model'
+import Project from '@/types/project'
+import Property from '@/types/property'
+import Service, { Method, mthdClrs } from '@/types/service'
+import Transfer from '@/types/transfer'
+import { gnlCpy, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
-  SettingOutlined,
-  SyncOutlined,
-  UploadOutlined,
-  PoweroffOutlined,
+  AntDesignOutlined,
   ExportOutlined,
   FormOutlined,
-  PartitionOutlined,
   Html5Outlined,
   InfoCircleOutlined,
-  AntDesignOutlined
+  PartitionOutlined,
+  PoweroffOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  UploadOutlined
 } from '@ant-design/icons-vue'
+import Mapper from '@lib/types/mapper'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+
+import { pjtAPI as api, mdlAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
-import {
-  tsMapper,
-  tsEmitter,
-  svcEmitter,
-  svcMapper,
-  svcColumns,
-  frtEmitter,
-  frtMapper
-} from './Project'
+import { mapper as pjtMapper } from './Home'
+import { emitter as pjtEmitter } from './Home'
 import {
   expMapper,
   columns as mdlColumns,
   mapper as mdlMapper,
   propColumns,
-  propEmitter,
   propMapper
 } from './Model'
-import { mapper as pjtMapper } from './Home'
-import { useStore } from 'vuex'
-import Project from '@/types/project'
-import Model from '@/types/model'
-import Service, { methods, mthdClrs, Method } from '@/types/service'
-import Transfer from '@/types/transfer'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { pjtAPI as api, mdlAPI, svcAPI } from '../apis'
-import SvcTable from '@/components/SvcTable.vue'
-import Property from '@/types/property'
-import { OpnType } from '@/types'
-import { gnlCpy, reqDelete, reqPost, reqPut, setProp } from '@/utils'
-import ExpCls from '@/types/expCls'
-import { emitter as pjtEmitter } from './Home'
-import MsvcSelect from '@/components/MsvcSelect.vue'
-import Frontend from '@/types/frontend'
-import Mapper from '@lib/types/mapper'
+import {
+  frtEmitter,
+  frtMapper,
+  svcColumns,
+  svcEmitter,
+  svcMapper,
+  tsEmitter,
+  tsMapper
+} from './Project'
 
-export default defineComponent({
-  name: 'Project',
-  components: {
-    LytProject,
-    SvcTable,
-    MsvcSelect,
-    SettingOutlined,
-    SyncOutlined,
-    UploadOutlined,
-    PoweroffOutlined,
-    ExportOutlined,
-    FormOutlined,
-    PartitionOutlined,
-    Html5Outlined,
-    InfoCircleOutlined,
-    AntDesignOutlined
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const store = useStore()
-    const pid = route.params.pid as string
-    const project = computed<Project>(() => store.getters['project/ins'])
-    const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
-    const tsfVsb = ref(false)
-    const mdlEmitter = new Emitter()
-    const mSvcMapper = computed<Record<string, Service[]>>(() => {
-      const ret: Record<string, Service[]> = {}
-      const pjt = store.getters['project/ins'] as Project
-      for (const svc of pjt.services.filter(svc => svc.model)) {
-        if (svc.model in ret) {
-          ret[svc.model].push(svc)
-        } else {
-          ret[svc.model] = [svc]
-        }
-      }
-      return ret
-    })
-    const expClsVsb = ref<boolean>(false)
-    const expClsObj = reactive<ExpCls>(new ExpCls())
-    const mdlOpns = computed<OpnType[]>(() =>
-      [{ label: '无', value: '' }].concat(
-        store.getters['project/models'].map((mdl: Model) => ({
-          label: mdl.label || mdl.name,
-          value: mdl.name
-        }))
-      )
-    )
-    const syncEmitter = new Emitter()
-
-    async function refresh() {
-      await store.dispatch('project/refresh')
-      mdlEmitter.emit('refresh', project.value.models)
-      svcEmitter.emit('refresh', project.value.services)
-    }
-    async function onConfigSbt(pjt: Project) {
-      await api.update(pjt)
-      await store.dispatch('project/refresh')
-      pjtEmitter.emit('update:show', false)
-    }
-    function onConfigClk() {
-      pjtEmitter.emit('update:show', {
-        show: true,
-        cpyRcd: (form: any) => Project.copy(project.value, form, true)
-      })
-    }
-    async function onTransfer(info: Transfer) {
-      await api.transfer(info)
-      await store.dispatch('project/refresh')
-      tsfVsb.value = false
-    }
-    function onRelMdlChange(prop: Property, mname: string) {
-      if (!mname) {
-        return prop.reset()
-      }
-      const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
-      prop.name = model.name + 's'
-      prop.label = model.label || ''
-      prop.ptype = 'Id'
-      prop.index = false
-      prop.unique = false
-      prop.visible = true
-    }
-    function onImpMdlBack() {
-      console.log()
-    }
-    function onExportClk() {
-      console.log()
-    }
-    return {
-      Project,
-      Transfer,
-      Model,
-      Service,
-      ExpCls,
-      Property,
-      Frontend,
-      Mapper,
-
-      mdlAPI,
-      mdlEmitter,
-      mdlColumns,
-      mdlMapper,
-      svcAPI,
-      svcEmitter,
-      svcMapper,
-      svcColumns,
-      pid,
-      api,
-      store,
-      router,
-      isFront,
-      pjtMapper,
-      pjtEmitter,
-      project,
-      tsfVsb,
-      tsMapper,
-      tsEmitter,
-      mSvcMapper,
-      expClsVsb,
-      expClsObj,
-      expMapper,
-      mdlOpns,
-      methods,
-      mthdClrs,
-      propColumns,
-      propMapper,
-      propEmitter,
-      frtEmitter,
-      frtMapper,
-      syncEmitter,
-
-      gnlCpy,
-      refresh,
-      onConfigSbt,
-      onConfigClk,
-      onTransfer,
-      onRelMdlChange,
-      reqPost,
-      reqPut,
-      reqDelete,
-      setProp,
-      onImpMdlBack,
-      onExportClk
+const route = useRoute()
+const router = useRouter()
+const store = useStore()
+const pid = route.params.pid as string
+const project = computed<Project>(() => store.getters['project/ins'])
+const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+const tsfVsb = ref(false)
+const mdlEmitter = new Emitter()
+const mSvcMapper = computed<Record<string, Service[]>>(() => {
+  const ret: Record<string, Service[]> = {}
+  const pjt = store.getters['project/ins'] as Project
+  for (const svc of pjt.services.filter(svc => svc.model)) {
+    if (svc.model in ret) {
+      ret[svc.model].push(svc)
+    } else {
+      ret[svc.model] = [svc]
     }
   }
+  return ret
 })
+const expClsVsb = ref<boolean>(false)
+const expClsObj = reactive<ExpCls>(new ExpCls())
+const mdlOpns = computed<OpnType[]>(() =>
+  [{ label: '无', value: '' }].concat(
+    store.getters['project/models'].map((mdl: Model) => ({
+      label: mdl.label || mdl.name,
+      value: mdl.name
+    }))
+  )
+)
+const syncEmitter = new Emitter()
+
+async function refresh() {
+  await store.dispatch('project/refresh')
+  mdlEmitter.emit('refresh', project.value.models)
+  svcEmitter.emit('refresh', project.value.services)
+}
+async function onConfigSbt(pjt: Project) {
+  await api.update(pjt)
+  await store.dispatch('project/refresh')
+  pjtEmitter.emit('update:show', false)
+}
+function onConfigClick() {
+  pjtEmitter.emit('update:show', {
+    show: true,
+    cpyRcd: (form: any) => Project.copy(project.value, form, true)
+  })
+}
+async function onTransfer(info: Transfer) {
+  await api.transfer(info)
+  await store.dispatch('project/refresh')
+  tsfVsb.value = false
+}
+function onRelMdlChange(prop: Property, mname: string) {
+  if (!mname) {
+    return prop.reset()
+  }
+  const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
+  prop.name = model.name + 's'
+  prop.label = model.label || ''
+  prop.ptype = 'Id'
+  prop.index = false
+  prop.unique = false
+  prop.visible = true
+}
+function onExportClick() {
+  console.log()
+}
 </script>

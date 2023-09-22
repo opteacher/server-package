@@ -111,7 +111,7 @@
   </LytProject>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="Model">
 import SvcTable from '@/components/SvcTable.vue'
 import { OpnType } from '@/types'
 import ExpCls from '@/types/expCls'
@@ -125,94 +125,50 @@ import {
   FormOutlined,
   PartitionOutlined
 } from '@ant-design/icons-vue'
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { mdlAPI, propAPI, svcAPI } from '../apis'
+import { mdlAPI, propAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { expMapper, propColumns, propEmitter, propMapper } from './Model'
 import { svcColumns, svcEmitter, svcMapper } from './Project'
 
-export default defineComponent({
-  name: 'Model',
-  components: {
-    LytProject,
-    SvcTable,
-    DatabaseOutlined,
-    ExportOutlined,
-    FormOutlined,
-    PartitionOutlined
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const store = useStore()
-    const pid = route.params.pid as string
-    const mid = route.params.mid as string
-    const model = computed<Model>(() => store.getters['model/ins'])
-    const mdlOpns = computed<OpnType[]>(() =>
-      [{ label: '无', value: '' }].concat(
-        store.getters['project/models'].map((mdl: Model) => ({
-          label: mdl.label || mdl.name,
-          value: mdl.name
-        }))
-      )
-    )
-    const pjtName = computed<string>(() => store.getters['project/ins'].name)
-    const pstatus = computed<Stat>(() => store.getters['project/ins'].status.stat)
-    const showExpCls = ref(false)
-    const expCls = reactive(new ExpCls())
+const route = useRoute()
+const router = useRouter()
+const store = useStore()
+const pid = route.params.pid as string
+const mid = route.params.mid as string
+const model = computed<Model>(() => store.getters['model/ins'])
+const mdlOpns = computed<OpnType[]>(() =>
+  [{ label: '无', value: '' }].concat(
+    store.getters['project/models'].map((mdl: Model) => ({
+      label: mdl.label || mdl.name,
+      value: mdl.name
+    }))
+  )
+)
+const pstatus = computed<Stat>(() => store.getters['project/ins'].status.stat)
+const showExpCls = ref(false)
+const expCls = reactive(new ExpCls())
 
-    onMounted(refresh)
+onMounted(refresh)
 
-    async function refresh() {
-      await store.dispatch('model/refresh')
-      propEmitter.emit('refresh', model.value.props)
-      svcEmitter.emit('refresh')
-    }
-    function onRelMdlChange(prop: Property, mname: string) {
-      if (!mname) {
-        return prop.reset()
-      }
-      const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
-      prop.name = model.name + 's'
-      prop.label = model.label || ''
-      prop.ptype = 'Id'
-      prop.index = false
-      prop.unique = false
-      prop.visible = true
-    }
-    return {
-      ExpCls,
-      Property,
-      Service,
-
-      store,
-      router,
-      pid,
-      mid,
-      model,
-      mdlOpns,
-      pjtName,
-      mdlAPI,
-      pstatus,
-      expMapper,
-      showExpCls,
-      expCls,
-      propAPI,
-      propColumns,
-      propMapper,
-      propEmitter,
-      svcAPI,
-      svcMapper,
-      svcColumns,
-      svcEmitter,
-      emitMapper,
-
-      refresh,
-      onRelMdlChange
-    }
+async function refresh() {
+  await store.dispatch('model/refresh')
+  propEmitter.emit('refresh', model.value.props)
+  svcEmitter.emit('refresh')
+}
+function onRelMdlChange(prop: Property, mname: string) {
+  if (!mname) {
+    return prop.reset()
   }
-})
+  const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
+  prop.name = model.name + 's'
+  prop.label = model.label || ''
+  prop.ptype = 'Id'
+  prop.index = false
+  prop.unique = false
+  prop.visible = true
+}
 </script>

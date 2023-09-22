@@ -6,6 +6,7 @@ export default db.defineModel(
     name: db.PropTypes.String,
     label: db.PropTypes.String,
     icon: db.PropTypes.String,
+    disp: db.PropTypes.Boolean, // 是否在导航栏显示
     desc: db.PropTypes.String,
     logTime: db.PropTypes.Boolean,
     props: [

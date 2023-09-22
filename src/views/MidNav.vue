@@ -24,12 +24,24 @@
             :theme="navProps.theme"
             @select="onMuItemSelect"
           >
-            <ModelMenu v-for="mdl of models" :key="mdl.key" :mkey="mdl.key" :model="mdl" />
+            <ModelMenu
+              v-for="mdl of models.filter(model => model.disp || showHide)"
+              :key="mdl.key"
+              :mkey="mdl.key"
+              :model="mdl"
+            />
           </a-menu>
         </div>
       </a-col>
       <a-col :span="8">
         <a-descriptions class="mb-1.5" title="菜单参数" :column="1" size="small" bordered>
+          <template #extra>
+            <a-switch
+              v-model:checked="showHide"
+              checked-children="显示隐藏"
+              un-checked-children="不显示隐藏"
+            />
+          </template>
           <a-descriptions-item label="主路由">
             <a-input
               v-model:value="navProps.path"
@@ -66,30 +78,41 @@
             </a-upload>
           </a-descriptions-item>
         </a-descriptions>
-        <a-descriptions v-else-if="selMuKey" title="菜单项参数" :column="1" size="small" bordered>
-          <a-descriptions-item label="菜单图标">
-            <IconField
-              :icon="nvItmProps.icon"
-              @select="(icon: string) => mdlAPI.update(Object.assign(nvItmProps, { icon }), refresh)"
-            />
-          </a-descriptions-item>
-          <a-descriptions-item label="标签名">
-            <a-input
-              v-model:value="nvItmProps.label"
-              @blur="(e: any) => mdlAPI.update(Object.assign(nvItmProps, { label: e.target.value }), refresh)"
-            />
-          </a-descriptions-item>
-        </a-descriptions>
+        <template v-else-if="selMuKey">
+          <a-divider />
+          <a-descriptions title="菜单项参数" :column="1" size="small" bordered>
+            <a-descriptions-item label="菜单图标">
+              <IconField
+                :icon="nvItmProps.icon"
+                @select="(icon: string) => mdlAPI.update(Object.assign(nvItmProps, { icon }), refresh)"
+              />
+            </a-descriptions-item>
+            <a-descriptions-item label="标签名">
+              <a-input
+                v-model:value="nvItmProps.label"
+                @blur="(e: any) => mdlAPI.update(Object.assign(nvItmProps, { label: e.target.value }), refresh)"
+              />
+            </a-descriptions-item>
+            <a-descriptions-item label="显示">
+              <a-switch
+                v-model:checked="nvItmProps.disp"
+                @change="(disp: boolean) => mdlAPI.update(Object.assign(nvItmProps, { disp }))"
+                checked-children="显示"
+                un-checked-children="不显示"
+              />
+            </a-descriptions-item>
+          </a-descriptions>
+        </template>
       </a-col>
     </a-row>
   </LytProject>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="MiddleNavigate">
 import MidNav from '@/types/midNav'
 import { fixStartsWith } from '@/utils'
 import { PictureOutlined, UploadOutlined } from '@ant-design/icons-vue'
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -98,74 +121,40 @@ import ModelMenu from '../components/mid/ModelMenu.vue'
 import LytProject from '../layouts/LytProject.vue'
 import Model from '../types/model'
 
-export default defineComponent({
-  name: 'MiddleNavigate',
-  components: {
-    LytProject,
-    ModelMenu,
+const store = useStore()
+const route = useRoute()
+const pid = route.params.pid as string
+const selMuKey = ref('')
+const models = computed<Model[]>(() => store.getters['project/ins'].models)
+const showHide = ref(false)
+const navProps = reactive(new MidNav())
+const nvItmProps = reactive(new Model())
 
-    PictureOutlined,
-    UploadOutlined
-  },
-  setup() {
-    const store = useStore()
-    const route = useRoute()
-    const pid = route.params.pid as string
-    const selMuKey = ref('')
-    const selModel = computed(() => store.getters['project/model'](selMuKey.value))
-    const models = computed(() => store.getters['project/ins'].models)
-    const midNav = computed(() => store.getters['project/ins'].middle.navigate)
-    const navProps = reactive(new MidNav())
-    const nvItmProps = reactive(new Model())
+onMounted(refresh)
 
-    onMounted(refresh)
-
-    async function refresh() {
-      selMuKey.value = ''
-      await store.dispatch('project/refresh')
-      MidNav.copy(store.getters['project/ins'].middle.navigate, navProps)
-    }
-    function onMuItemSelect({ key }: { key: string }) {
-      selMuKey.value = key
-      Model.copy(
-        models.value.find((model: Model) => model.key === key),
-        nvItmProps,
-        true
-      )
-    }
-    function onUpldImgChange() {
-      console.log()
-    }
-    function mdlEqual(
-      mdl1: { icon: string; label: string },
-      mdl2: { icon: string; label: string }
-    ) {
-      return mdl1.icon === mdl2.icon && mdl1.label === mdl2.label
-    }
-    function onUploadLogoImg(e: any) {
-      if (e.file && e.file.status === 'done') {
-        navProps.logo = e.file.response.result
-        pjtAPI.middle.navigate.save(pid, { logo: e.file.response.result }, refresh)
-      }
-    }
-    return {
-      pid,
-      pjtAPI,
-      mdlAPI,
-      models,
-      selMuKey,
-      midNav,
-      navProps,
-      nvItmProps,
-      selModel,
-
-      refresh,
-      fixStartsWith,
-      onMuItemSelect,
-      onUpldImgChange,
-      mdlEqual,
-      onUploadLogoImg
-    }
+async function refresh() {
+  selMuKey.value = ''
+  await store.dispatch('project/refresh')
+  MidNav.copy(store.getters['project/ins'].middle.navigate, navProps)
+}
+function onMuItemSelect({ key }: { key: string }) {
+  selMuKey.value = key
+  Model.copy(
+    models.value.find((model: Model) => model.key === key),
+    nvItmProps,
+    true
+  )
+}
+function onUpldImgChange() {
+  console.log()
+}
+function mdlEqual(mdl1: { icon: string; label: string }, mdl2: { icon: string; label: string }) {
+  return mdl1.icon === mdl2.icon && mdl1.label === mdl2.label
+}
+function onUploadLogoImg(e: any) {
+  if (e.file && e.file.status === 'done') {
+    navProps.logo = e.file.response.result
+    pjtAPI.middle.navigate.save(pid, { logo: e.file.response.result }, refresh)
   }
-})
+}
 </script>

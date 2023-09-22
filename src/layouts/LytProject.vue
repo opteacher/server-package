@@ -1,8 +1,9 @@
 <template>
   <a-layout class="h-full">
-    <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
+    <a-layout-sider class="relative" v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu
+        class="absolute top-12 left-0 bottom-0 right-0 overflow-y-auto"
         :selectedKeys="[active]"
         theme="dark"
         mode="inline"

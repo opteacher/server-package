@@ -23,7 +23,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.ptype = 'Unknown'
+    this.ptype = 'String'
     this.index = false
     this.unique = false
     this.visible = true
@@ -40,7 +40,7 @@ export default class Property {
     this.key = ''
     this.name = ''
     this.label = ''
-    this.ptype = 'Unknown'
+    this.ptype = 'String'
     this.index = false
     this.unique = false
     this.visible = true

@@ -246,7 +246,6 @@ const expDft = {
             { axiosConfig: { params: { updMode: 'append' } }, messages: { notShow: true } }
           )
         }
-        await store.dispatch('model/refresh')
       }
     },
     cells: {
@@ -259,7 +258,6 @@ const expDft = {
           },
           { axiosConfig: { params: { updMode: 'merge' } }, messages: { notShow: true } }
         )
-        await store.dispatch('model/refresh')
       },
       saveFmt: async (refer: string, format: any, cond?: string) => {
         await reqPut(

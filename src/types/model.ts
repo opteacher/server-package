@@ -10,6 +10,7 @@ export default class Model {
   key: string
   name: string
   label: string
+  disp: boolean
   icon: string
   desc: string
   logTime: boolean
@@ -22,6 +23,7 @@ export default class Model {
     this.key = ''
     this.name = ''
     this.label = ''
+    this.disp = true
     this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true
@@ -35,6 +37,7 @@ export default class Model {
     this.key = ''
     this.name = ''
     this.label = ''
+    this.disp = true
     this.icon = 'BorderlessTableOutlined'
     this.desc = ''
     this.logTime = true

@@ -2,19 +2,19 @@
   <a-descriptions class="mb-50" title="列" :column="1" bordered size="small">
     <a-descriptions-item label="是否显示">
       <a-switch
-        :checked="!colState.notDisplay"
-        @change="(display: boolean) => onPropChange({ key: colState.key, notDisplay: !display })"
+        :checked="!column.notDisplay"
+        @change="(display: boolean) => onPropChange({ key: column.key, notDisplay: !display })"
         checked-children="显示"
         un-checked-children="不显示"
       />
     </a-descriptions-item>
     <a-descriptions-item label="标题">
       <a-input
-        v-model:value="colState.title"
+        :value="column.title"
         @blur="
           (e: any) =>
             onPropChange({
-              key: colState.key,
+              key: column.key,
               title: e.target.value
             })
         "
@@ -23,8 +23,8 @@
     <a-descriptions-item label="宽度">
       <a-input-number
         class="w-full"
-        v-model:value="colState.width"
-        @blur="(width: number) => onPropChange({ key: colState.key, width })"
+        :value="column.width"
+        @blur="(width: number) => onPropChange({ key: column.key, width })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="对齐">
@@ -35,14 +35,14 @@
           { label: '居中对齐', value: 'center' },
           { label: '右对齐', value: 'right' }
         ]"
-        :value="colState.align || 'left'"
-        @change="(align: string) => onPropChange({ key: colState.key, align })"
+        :value="column.align || 'left'"
+        @change="(align: string) => onPropChange({ key: column.key, align })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="可排序">
       <a-switch
-        :checked="typeof colState.sorter !== 'undefined'"
-        @change="(sortable: boolean) => onPropChange({ key: colState.key, sortable })"
+        :checked="typeof column.sorter !== 'undefined'"
+        @change="(sortable: boolean) => onPropChange({ key: column.key, sortable })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="默认顺序">
@@ -53,45 +53,34 @@
           { label: '升序', value: 'ascend' },
           { label: '降序', value: 'descend' }
         ]"
-        :value="colState.defaultSortOrder"
-        @change="(defaultSort: string) => onPropChange({ key: colState.key, defaultSort })"
+        :value="column.defaultSortOrder"
+        @change="(defaultSort: string) => onPropChange({ key: column.key, defaultSort })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="组">
       <a-input
         class="h-full"
-        :value="colState.group ? colState.group[0] : ''"
+        :value="column.group ? column.group[0] : ''"
         @blur="(e: any) => onPropChange({
-          key: colState.key, group: e.target.value ? [e.target.value] : []
+          key: column.key, group: e.target.value ? [e.target.value] : []
         })"
       />
     </a-descriptions-item>
   </a-descriptions>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="TableProps">
 import { mdlAPI as api } from '@/apis'
 import Column from '@lib/types/column'
-import { defineComponent, reactive } from 'vue'
+import { defineEmits, defineProps } from 'vue'
 
-export default defineComponent({
-  name: 'TableProps',
-  emits: ['change'],
-  props: {
-    column: { type: Column, required: true }
-  },
-  setup(props, { emit }) {
-    const colState = reactive(props.column)
-
-    async function onPropChange(prop: any) {
-      await api.table.columns.save(prop)
-      emit('change')
-    }
-    return {
-      colState,
-
-      onPropChange
-    }
-  }
+const emit = defineEmits(['change'])
+defineProps({
+  column: { type: Column, required: true }
 })
+
+async function onPropChange(prop: any) {
+  await api.table.columns.save(prop)
+  emit('change')
+}
 </script>

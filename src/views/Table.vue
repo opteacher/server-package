@@ -44,7 +44,6 @@
 <script lang="ts" setup name="Table">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Cell from '@/types/cell'
-import Form from '@/types/form'
 import Table, { Cells } from '@/types/table'
 import { pickOrIgnore } from '@/utils'
 import { bsTpDefault } from '@lib/types'
@@ -71,17 +70,16 @@ const mdlProps = computed<{ label: string; value: string }[]>(() =>
   store.getters['model/ins'].props.map((prop: any) => ({ label: prop.label, value: prop.name }))
 )
 const columns = ref<Column[]>([])
-const mapper = reactive<Mapper>(new Mapper())
+const mapper = ref<Mapper>(new Mapper())
 const copy = ref<() => any>(() => ({}))
-const form = computed<Form>(() => store.getters['model/form'])
 const records = computed(() => store.getters['model/records'](false))
 const emitter = new Emitter()
 const selected = ref<string>('')
 const table = computed<Table>(() => store.getters['model/table'])
 const cells = computed<Cells[]>(() => store.getters['model/cells'])
-const selColumn = reactive<Column>(new Column('', ''))
+const selColumn = ref<Column>(new Column('', ''))
 const selCname = ref<string>('')
-const selCell = reactive<Cells>(new Cells())
+const selCell = ref<Cells>(new Cells())
 
 onMounted(refresh)
 watch(() => selected.value, onSelChange)
@@ -110,7 +108,7 @@ async function refresh() {
         }
       }))
   )
-  Mapper.copy(createByFields(store.getters['model/fields']), mapper, true)
+  mapper.value = createByFields(store.getters['model/fields'])
   emitter.emit('refresh')
 }
 function onHdCellClick(e: PointerEvent, colKey: string) {
@@ -125,25 +123,23 @@ async function onFormSubmit(formState: any, next: () => void) {
   await api.table.record.set(formState)
   next()
 }
-function onSelChange() {
+async function onSelChange() {
   if (selected.value.startsWith('head_')) {
-    Column.copy(
-      columns.value.find((column: any) => column.key === selected.value.substring('head_'.length)),
-      selColumn
-    )
+    selColumn.value =
+      columns.value.find(
+        (column: any) => column.key === selected.value.substring('head_'.length)
+      ) || new Column('', '')
   } else if (selected.value.startsWith('cell_')) {
     selCname.value = selected.value.substring('cell_'.length)
-    Cells.copy(
-      table.value.cells.find((cell: any) => cell.refer === selCname.value) || new Cells(),
-      selCell,
-      true
-    )
+    selCell.value =
+      table.value.cells.find((cell: any) => cell.refer === selCname.value) || new Cells()
   } else {
-    selColumn.reset()
-    const selCond = selCell.selCond
-    selCell.reset()
-    selCell.selCond = selCond
+    selColumn.value.reset()
+    const selCond = selCell.value.selCond
+    selCell.value.reset()
+    selCell.value.selCond = selCond
   }
+  await refresh()
 }
 function getCell(refProp: string): Cell {
   let ret = cells.value.find((cell: any) => cell.refer === refProp)

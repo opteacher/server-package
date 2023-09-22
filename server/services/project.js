@@ -825,16 +825,29 @@ export async function buildMid(project) {
   console.log('初始化中台项目……')
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
+  console.log('复制所有文件到目标目录')
   const tmpSrcPath = Path.join(tmpPath, 'src')
   const genSrcPath = Path.join(genPath, 'src')
   copyDir(tmpPath, genPath, {
     ignores: [
       Path.join(tmpPath, '.git'),
+      Path.join(tmpPath, '.env'),
+      Path.join(tmpPath, 'package.json'),
+      Path.join(tmpPath, 'package-lock.json'),
       Path.join(tmpSrcPath, 'apis/login.ts'),
       Path.join(tmpSrcPath, 'router/index.ts'),
       Path.join(tmpSrcPath, 'views/login.vue')
     ]
   })
+  const envTmp = Path.join(tmpPath, '.env')
+  const envGen = Path.join(genPath, '.env')
+  console.log(`复制.env文件：${envTmp} -> ${envGen}`)
+  adjustFile(envTmp, envGen, { project })
+  const pkgTmp = Path.join(tmpPath, 'package.json')
+  const pkgGen = Path.join(genPath, 'package.json')
+  console.log(`复制package.json文件：${pkgTmp} -> ${pkgGen}`)
+  adjustFile(pkgTmp, pkgGen, { project })
+  console.log('生成json数据：project.json和models.json')
   fs.mkdirSync(Path.join(genSrcPath, 'json'), { recursive: true })
   fs.writeFileSync(
     Path.join(genSrcPath, 'json/project.json'),
