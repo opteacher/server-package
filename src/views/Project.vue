@@ -378,7 +378,7 @@ async function onConfigSbt(pjt: Project) {
 function onConfigClick() {
   pjtEmitter.emit('update:show', {
     show: true,
-    cpyRcd: (form: any) => Project.copy(project.value, form, true)
+    object: project.value
   })
 }
 async function onTransfer(info: Transfer) {

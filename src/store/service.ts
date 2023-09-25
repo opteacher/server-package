@@ -36,7 +36,7 @@ export default {
         edtNdEmitter.emit('update:mapper', edtNdMapper)
         edtNdEmitter.emit('update:show', {
           show: true,
-          cpyRcd: (node: Node) => node.reset()
+          object: {}
         })
         return
       }

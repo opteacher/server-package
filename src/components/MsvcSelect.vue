@@ -1,48 +1,37 @@
-<script lang="ts">
+<script lang="ts" setup name="ModelServiceSelect">
 import { Method, methods as Methods } from '@/types/service'
-import { defineComponent, onMounted, reactive, watch } from 'vue'
+import { defineEmits, defineProps, onMounted, ref, watch } from 'vue'
 
-export default defineComponent({
-  name: 'ModelServiceSelect',
-  emits: ['update:methods'],
-  props: {
-    methods: {
-      type: Array,
-      required: true
-    }
-  },
-  setup(props, { emit }) {
-    const methodState = reactive<Method[]>(props.methods as Method[])
-
-    onMounted(refresh)
-    watch(() => props.methods, refresh)
-
-    function refresh() {
-      methodState.splice(0, methodState.length, ...(props.methods as Method[]))
-    }
-    async function onSvcAddOrDel(checked: boolean, method: Method) {
-      if (checked) {
-        methodState.push(method)
-      } else {
-        methodState.splice(methodState.indexOf(method), 1)
-      }
-      emit('update:methods', methodState)
-    }
-    return {
-      Methods,
-      methodState,
-
-      onSvcAddOrDel
-    }
+const emit = defineEmits(['update:methods'])
+const props = defineProps({
+  methods: {
+    type: Array,
+    required: true
   }
 })
+const mstate = ref<Method[]>(props.methods as Method[])
+
+onMounted(refresh)
+watch(() => [...props.methods], refresh)
+
+function refresh() {
+  mstate.value = props.methods as Method[]
+}
+async function onSvcAddOrDel(checked: boolean, method: Method) {
+  if (checked) {
+    mstate.value.push(method)
+  } else {
+    mstate.value.splice(mstate.value.indexOf(method), 1)
+  }
+  emit('update:methods', mstate)
+}
 </script>
 
 <template>
   <a-checkable-tag
     v-for="method in Methods"
     :key="method"
-    :checked="methodState.includes(method)"
+    :checked="mstate.includes(method)"
     @change="(checked: boolean) => onSvcAddOrDel(checked, method)"
   >
     {{ method }}

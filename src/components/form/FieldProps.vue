@@ -43,36 +43,25 @@
   </a-descriptions>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="FieldProps">
 import { compoOpns } from '@/types'
 import Field from '@lib/types/field'
 import Model from '@/types/model'
-import { computed, defineComponent, reactive, watch } from 'vue'
+import { defineProps, computed, reactive, watch } from 'vue'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '@/apis'
 
-export default defineComponent({
-  name: 'TableProps',
-  props: {
-    field: { type: Field, required: true }
-  },
-  setup(props) {
-    const store = useStore()
-    const edtField = reactive(props.field)
-    const mdlProps = computed(() => (store.getters['model/ins'] as Model).props)
-
-    watch(
-      () => props.field.key,
-      () => {
-        Field.copy(props.field, edtField, true)
-      }
-    )
-    return {
-      api,
-      edtField,
-      mdlProps,
-      compoOpns
-    }
-  }
+const props = defineProps({
+  field: { type: Field, required: true }
 })
+const store = useStore()
+const edtField = reactive(props.field)
+const mdlProps = computed(() => (store.getters['model/ins'] as Model).props)
+
+watch(
+  () => props.field.key,
+  () => {
+    Field.copy(props.field, edtField, true)
+  }
+)
 </script>

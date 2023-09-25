@@ -64,45 +64,35 @@
   </a-descriptions>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import Field from '@lib/types/field'
-import { computed, defineComponent, onMounted, reactive, watch } from 'vue'
+import { computed, defineProps, onMounted, reactive, watch } from 'vue'
 import { pickOrIgnore } from '@/utils'
 import { cmpAPI } from '@/apis'
 import Compo from '@lib/types/compo'
 
-export default defineComponent({
-  props: {
-    field: { type: Field, required: true },
-    save: { type: Function, required: true },
-    compo: { type: Compo, default: new Compo() }
-  },
-  setup(props) {
-    const edtField = reactive(props.field)
-    const cmpState = reactive(props.compo)
-    const cmpExtra = computed(() => (cmpState.key ? cmpState.props : []))
-
-    watch(() => props.field.key, refresh)
-    onMounted(refresh)
-
-    async function refresh() {
-      let compo = props.compo
-      if (!props.compo.key) {
-        const result = await cmpAPI.all({ name: props.field.ftype })
-        if (!result.length) {
-          cmpState.reset()
-          return
-        }
-        compo = result[0]
-      }
-      Compo.copy(compo, cmpState)
-    }
-    return {
-      edtField,
-      cmpExtra,
-
-      pickOrIgnore
-    }
-  }
+const props = defineProps({
+  field: { type: Field, required: true },
+  save: { type: Function, required: true },
+  compo: { type: Compo, default: new Compo() }
 })
+const edtField = reactive(props.field)
+const cmpState = reactive(props.compo)
+const cmpExtra = computed(() => (cmpState.key ? cmpState.props : []))
+
+watch(() => props.field.key, refresh)
+onMounted(refresh)
+
+async function refresh() {
+  let compo = props.compo
+  if (!props.compo.key) {
+    const result = await cmpAPI.all({ name: props.field.ftype })
+    if (!result.length) {
+      cmpState.reset()
+      return
+    }
+    compo = result[0]
+  }
+  Compo.copy(compo, cmpState)
+}
 </script>

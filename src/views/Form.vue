@@ -51,9 +51,9 @@
   </LytDesign>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="Form">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import LytDesign from '../layouts/LytDesign.vue'
 import CompoCard from '../components/form/CompoCard.vue'
 import FieldCard from '../components/form/FieldCard.vue'
@@ -69,58 +69,27 @@ import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
 import { onFieldDropDown } from '../views/Form'
 
-export default defineComponent({
-  name: 'Form',
-  components: {
-    LytDesign,
-    CompoCard,
-    FieldCard,
-    FormProps,
-    FieldProps,
-    ExtraProps,
-    BuildOutlined
-  },
-  setup() {
-    const store = useStore()
-    const route = useRoute()
-    const pid = route.params.pid
-    const mid = route.params.mid
-    const compos = reactive([] as Compo[])
-    const form = computed(() => store.getters['model/form'] as Form)
-    const fields = computed(() => store.getters['model/fields'] as Field[])
-    const active = reactive(new Field())
-    const hdHeight = ref(0)
+const store = useStore()
+const route = useRoute()
+const pid = route.params.pid
+const mid = route.params.mid
+const compos = reactive([] as Compo[])
+const form = computed(() => store.getters['model/form'] as Form)
+const fields = computed(() => store.getters['model/fields'] as Field[])
+const active = reactive(new Field())
 
-    onMounted(async () => {
-      compos.splice(0, compos.length, ...(await cmpAPI.all()))
-      await store.dispatch('model/refresh')
-    })
-
-    async function onDropDownEmpty(e: DragEvent) {
-      if (!e.dataTransfer) {
-        return
-      }
-      const dragCompo = e.dataTransfer.getData('text/plain') as string
-      await api.form.fields.add({
-        compoType: dragCompo.substring('compo_'.length)
-      })
-    }
-    return {
-      Field,
-
-      store,
-      api,
-      pid,
-      mid,
-      compos,
-      fields,
-      active,
-      form,
-      hdHeight,
-
-      onDropDownEmpty,
-      onFieldDropDown
-    }
-  }
+onMounted(async () => {
+  compos.splice(0, compos.length, ...(await cmpAPI.all()))
+  await store.dispatch('model/refresh')
 })
+
+async function onDropDownEmpty(e: DragEvent) {
+  if (!e.dataTransfer) {
+    return
+  }
+  const dragCompo = e.dataTransfer.getData('text/plain') as string
+  await api.form.fields.add({
+    compoType: dragCompo.substring('compo_'.length)
+  })
+}
 </script>
