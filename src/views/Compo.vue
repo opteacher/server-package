@@ -9,6 +9,9 @@
       :copy="Compo.copy"
       sclHeight="h-full"
     >
+      <template #name="{ record: compo }">
+        {{ compo.name }}&nbsp;/&nbsp;{{ cmpLblMap[compo.name as CompoType] }}
+      </template>
       <template #expandedRowRender="{ record: compo }">
         <EditableTable
           title="额外配置"
@@ -29,4 +32,5 @@ import { columns, mapper, fldColumns, fldMapper } from './Compo'
 import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
 import { cmpAPI as api } from '../apis'
+import { cmpLblMap, CompoType } from '@lib/types'
 </script>

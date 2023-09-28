@@ -192,8 +192,8 @@ const mapper = new Mapper({
       }
     ],
     display: [
-      Cond.copy({ key: 'file.length', cmp: '!=', val: 0 }),
-      Cond.copy({ key: 'file[0].status', cmp: '!=', val: 'done' })
+      new Cond({ key: 'file.length', cmp: '!=', val: 0 }),
+      new Cond({ key: 'file[0].status', cmp: '!=', val: 'done' })
     ]
   },
   dtRowNo: {
@@ -207,24 +207,24 @@ const mapper = new Mapper({
       }
     ],
     display: [
-      Cond.copy({ key: 'file.length', cmp: '!=', val: 0 }),
-      Cond.copy({ key: 'file[0].status', cmp: '!=', val: 'done' })
+      new Cond({ key: 'file.length', cmp: '!=', val: 0 }),
+      new Cond({ key: 'file[0].status', cmp: '!=', val: 'done' })
     ]
   },
   itfcTable: {
     label: '对接表',
     type: 'Unknown',
     display: [
-      Cond.copy({ key: 'file.length', cmp: '!=', val: 0 }),
-      Cond.copy({ key: 'file[0].status', cmp: '!=', val: 'done' })
+      new Cond({ key: 'file.length', cmp: '!=', val: 0 }),
+      new Cond({ key: 'file[0].status', cmp: '!=', val: 'done' })
     ]
   },
   advanced: {
     label: '高级',
     type: 'FormGroup',
     display: [
-      Cond.copy({ key: 'file.length', cmp: '!=', val: 0 }),
-      Cond.copy({ key: 'file[0].status', cmp: '!=', val: 'done' })
+      new Cond({ key: 'file.length', cmp: '!=', val: 0 }),
+      new Cond({ key: 'file[0].status', cmp: '!=', val: 'done' })
     ],
     items: {
       boolMapper: {

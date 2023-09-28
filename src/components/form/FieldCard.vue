@@ -21,7 +21,7 @@
     class="p-2.5 m-0 relative"
     :form="form"
     :skey="field.refer"
-    :value="mapper"
+    :mapper="mapper"
   />
   <div
     class="px-2.5 py-0"

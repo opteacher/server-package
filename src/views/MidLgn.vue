@@ -173,7 +173,7 @@
                 :key="field.key"
                 :form="{}"
                 :skey="field.refer"
-                :value="createByField(field)"
+                :mapper="createByField(field)"
               />
 
               <a-form-item v-if="lgnProps.logAccount" name="remember">

@@ -331,7 +331,7 @@
           "key": "22220060-39f6-4356-9e1d-2e144e26fa60",
           "label": "事件激活器",
           "refer": "emitter",
-          "vtype": "Object",
+          "vtype": "Function",
           "default": "return new Emitter()",
           "ftype": "Input",
           "disabled": true

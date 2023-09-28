@@ -22,11 +22,7 @@ export const mapper = new Mapper({
         type: 'Input'
       }
     }),
-    copy: (src: any, tgt?: any) => {
-      tgt = tgt || { value: '' }
-      tgt.value = src.value || tgt.value
-      return tgt
-    }
+    newFun: () => ({ value: '' })
   },
   from: {
     label: '导入',

@@ -34,10 +34,7 @@ export default {
           item => item.value !== 'endNode' && item.value !== 'condNode'
         )
         edtNdEmitter.emit('update:mapper', edtNdMapper)
-        edtNdEmitter.emit('update:show', {
-          show: true,
-          object: {}
-        })
+        edtNdEmitter.emit('update:show', true)
         return
       }
       const edtNode = Node.copy(
@@ -68,7 +65,8 @@ export default {
       edtNdEmitter.emit('update:mapper', edtNdMapper)
       edtNdEmitter.emit('update:show', {
         show: true,
-        viewOnly: payload.viewOnly
+        viewOnly: payload.viewOnly,
+        object: edtNode
       })
     },
     RESET_STATE(state: SvcState) {

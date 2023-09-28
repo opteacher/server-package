@@ -1,4 +1,3 @@
-import { gnlCpy } from '@/utils'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 
@@ -23,7 +22,7 @@ export const mapper = new Mapper({
         placeholder: '输入数据库'
       }
     }),
-    copy: (src: any, tgt?: { value: string }) => gnlCpy(() => ({ value: '' }), src, tgt)
+    newFun: () => ({ value: '' })
   },
   host: {
     label: '主机地址',

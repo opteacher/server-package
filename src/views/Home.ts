@@ -11,6 +11,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
+import { cloneDeep } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode } from 'vue'
 
@@ -38,20 +39,23 @@ export const mapper = new Mapper({
       { label: '后端', value: 'backend' }
     ],
     style: 'button',
-    disabled: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
+    disabled: [new Cond({ key: 'key', cmp: '!=', val: '' })],
     onChange: async (_pjt: Project, selected: 'frontend' | 'backend') => {
       setProp(mapper, 'database.rules[0].required', selected === 'backend')
       if (selected === 'frontend') {
-        emitter.emit('update:mapper', {
-          backend: {
-            options: await reqAll('project', {
+        emitter.emit(
+          'update:mapper',
+          setProp(
+            cloneDeep(mapper),
+            'backend.options',
+            await reqAll('project', {
               messages: { notShow: true },
               copy: Project.copy
             }).then(projects =>
               projects.map((project: Project) => ({ label: project.name, value: project.key }))
             )
-          }
-        })
+          )
+        )
       }
     }
   },
@@ -75,12 +79,12 @@ export const mapper = new Mapper({
     type: 'Cascader',
     options: [],
     rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }],
-    display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+    display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
   dropDbs: {
     label: '启动时清空数据库',
     type: 'Checkbox',
-    display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+    display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
   commands: {
     label: '高级',
@@ -94,7 +98,7 @@ export const mapper = new Mapper({
         label: '独立部署',
         type: 'Checkbox',
         desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存',
-        display: [Cond.copy({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+        display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
       },
       volumes: {
         label: '共享文件/夹',
@@ -109,11 +113,7 @@ export const mapper = new Mapper({
             placeholder: '容器内……'
           }
         },
-        copy: (src: any, tgt?: any): any => {
-          ;(tgt = tgt || { dest: '/', src: '/' }), (tgt.dest = src.dest || tgt.dest)
-          tgt.src = src.src || tgt.src
-          return tgt
-        }
+        newFun: () => ({ dest: '/', src: '/' })
       },
       envVars: {
         label: '环境变量',
@@ -130,13 +130,7 @@ export const mapper = new Mapper({
         }),
         columns: [new Column('变量名', 'name'), new Column('变量值', 'value')],
         emitter: evarsEmitter,
-        copy: (src: any, tgt?: { key: string; name: string; value: string }) => {
-          tgt = tgt || { key: '', name: '', value: '' }
-          tgt.key = src.key || src._id || tgt.key
-          tgt.name = src.name || tgt.name
-          tgt.value = src.value || tgt.value
-          return tgt
-        },
+        newFun: () => ({ key: '', name: '', value: '' }),
         onSaved: (evar: { key: string; name: string; value: string }, extra?: any) => {
           extra.push({ name: evar.name, value: evar.value })
           evarsEmitter.emit('update:show', false)
@@ -158,18 +152,14 @@ export const mapper = new Mapper({
             type: 'Number'
           }
         }),
-        copy: (src: any, tgt?: any) => {
-          tgt = tgt || { value: '' }
-          tgt.value = src.value || tgt.value
-          return tgt
-        },
+        newFun: () => ({ value: '' }),
         desc: '尽量不要暴露过多端口，这里的端口以0.0.0.0映射进容器，所以不受nginx管理，不符合sp的规则！'
       }
     }
   },
   operation: {
     label: '操作项目',
-    display: [Cond.copy({ key: 'key', cmp: '!=', val: '' })],
+    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
     type: 'Button',
     inner: '删除项目',
     danger: true,

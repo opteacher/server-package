@@ -1,68 +1,52 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
 import Service, { EmitType, emitMapper } from '@/types/service'
+import { setProp } from '@/utils'
 import { EditOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import EditableTable from '@lib/components/EditableTable.vue'
 import Mapper from '@lib/types/mapper'
+import { cloneDeep } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, defineComponent } from 'vue'
+import { computed, defineProps } from 'vue'
 
-export default defineComponent({
-  components: {
-    EditableTable,
-    EditOutlined,
-    InfoCircleOutlined
-  },
-  props: {
-    emitter: { type: Emitter, required: true },
-    mapper: { type: Mapper, required: true },
-    columns: { type: Array, required: true },
-    model: { type: String, default: '' }
-  },
-  setup(props) {
-    const pid = computed(() => store.getters['project/ins'].key)
-    const project = computed(() => store.getters['project/ins'])
-    const pstatus = computed(() => store.getters['project/ins'].status.stat)
-
-    function onAddSvcClicked() {
-      props.emitter.emit('update:data', { name: props.model })
-      const models = store.getters['project/ins'].models
-      props.emitter.emit('update:mapper', {
-        name: {
-          options: models.map((model: Model) => ({
-            label: model.name,
-            value: model.name
-          }))
-        },
-        model: {
-          options: models.map((model: Model) => ({
-            label: model.name,
-            value: model.key
-          }))
-        }
-      })
-    }
-    function onBefSave(svc: Service) {
-      if (svc.emit === 'timeout' || svc.emit === 'interval') {
-        svc.path = `/job/v1/${props.model}/${svc.interface}`
-      }
-    }
-    return {
-      Service,
-
-      api,
-      pid,
-      project,
-      pstatus,
-      emitMapper,
-
-      onAddSvcClicked,
-      onBefSave
-    }
-  }
+const props = defineProps({
+  emitter: { type: Emitter, required: true },
+  mapper: { type: Mapper, required: true },
+  columns: { type: Array, required: true },
+  model: { type: String, default: '' }
 })
+const pid = computed(() => store.getters['project/ins'].key)
+const pstatus = computed(() => store.getters['project/ins'].status.stat)
+
+function onAddSvcClicked() {
+  props.emitter.emit('update:data', Service.copy({ name: props.model }))
+  const models = store.getters['project/ins'].models
+  const mapper = cloneDeep(props.mapper)
+  setProp(
+    mapper,
+    'name.options',
+    models.map((model: Model) => ({
+      label: model.name,
+      value: model.name
+    }))
+  )
+  setProp(
+    mapper,
+    'model.options',
+    models.map((model: Model) => ({
+      label: model.name,
+      value: model.name
+    }))
+  )
+  props.emitter.emit('update:mapper', mapper)
+}
+function onBefSave(svc: Service) {
+  if (svc.emit === 'timeout' || svc.emit === 'interval') {
+    svc.path = `/job/v1/${props.model}/${svc.interface}`
+  }
+}
 </script>
 
 <template>
@@ -73,7 +57,7 @@ export default defineComponent({
     :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
     :mapper="mapper"
     :columns="columns"
-    :copy="Service.copy"
+    :new-fun="() => new Service()"
     :emitter="emitter"
     @add="onAddSvcClicked"
     @before-save="onBefSave"

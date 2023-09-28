@@ -171,127 +171,88 @@
   </svg>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="NodeCard">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, defineComponent, ref } from 'vue'
+import NodeInPnl from '@/types/ndInPnl'
+import Node from '@/types/node'
+import { AddBtnHlfWH, ArrowHlfHgt, CardHlfWid, CardWidth, StokeColor } from '@/views/Flow'
 import {
-  PlusOutlined,
+  FunctionOutlined,
   LoginOutlined,
   LogoutOutlined,
-  RightOutlined,
   MoreOutlined,
-  FunctionOutlined
+  PlusOutlined,
+  RightOutlined
 } from '@ant-design/icons-vue'
-import Node from '@/types/node'
-import {
-  CardMinHgt,
-  AddBtnHlfWH,
-  ArrowHeight,
-  ArrowHlfHgt,
-  CardWidth,
-  CardHlfWid,
-  StokeColor
-} from '@/views/Flow'
+import { computed, defineEmits, defineProps, ref } from 'vue'
 import { useStore } from 'vuex'
-import NodeInPnl from '@/types/ndInPnl'
 
-export default defineComponent({
-  name: 'NodeCard',
-  emits: ['click:card', 'click:addBtn', 'mouseenter', 'mouseleave'],
-  components: {
-    PlusOutlined,
-    LoginOutlined,
-    LogoutOutlined,
-    RightOutlined,
-    MoreOutlined,
-    FunctionOutlined
-  },
-  props: {
-    node: { type: NodeInPnl, default: new NodeInPnl() }
-  },
-  setup(props) {
-    const store = useStore()
-    const nodeRef = ref()
-    const addBtnPosLT = computed(() =>
-      props.node.key
-        ? [
-            props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
-            props.node.posLT[1] + props.node.size[1] + ArrowHlfHgt - AddBtnHlfWH
-          ]
-        : [(store.getters['service/width'] >> 1) - AddBtnHlfWH, 0]
-    )
-    const arwBtmSvgPosLT = computed(() => [
-      props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
-      props.node.posLT[1] + props.node.size[1]
-    ])
-    const arwTopSvgPosLT = computed(() => [
-      props.node.posLT[0] - (arwTopSvgSizeW.value >> 1) + CardHlfWid,
-      props.node.posLT[1] - ArrowHlfHgt
-    ])
-    const arwTopSvgSizeW = computed(() => {
-      if (props.node.ntype === 'endNode') {
-        return getWidByNexts(store.getters['service/node'](props.node.relative))
-      } else {
-        return CardWidth
-      }
-    })
-    const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node))
-    const color = computed(() => {
-      switch (props.node.ntype) {
-        case 'normal':
-          return '#FF9900'
-        case 'condition':
-          return '#00AA72'
-        case 'condNode':
-          return '#FF5600'
-        case 'traversal':
-          return '#0D58A6'
-        default:
-          return 'grey'
-      }
-    })
-    const multiCond = computed(() => {
-      const relative = store.getters['service/node'](props.node.relative)
-      return props.node.ntype === 'endNode' && relative.nexts.length > 1
-    })
-
-    function getWidByNexts(node: Node): number {
-      if (!node.nexts || !node.nexts.length) {
-        return CardWidth
-      }
-      const lstIdx = node.nexts.length - 1
-      const fstKey = node.nexts[0]
-      const lstKey = node.nexts[lstIdx]
-      const first = store.getters['service/node'](fstKey)
-      const last = store.getters['service/node'](lstKey)
-      if (!first || !first.posLT || !last || !last.posLT || last.posLT[0] <= first.posLT[0]) {
-        return CardWidth
-      }
-      return last.posLT[0] - first.posLT[0]
-    }
-    function fmtCode(code: string): string {
-      return code.replaceAll('\n', '&#10;')
-    }
-    return {
-      CardWidth,
-      CardHlfWid,
-      CardMinHgt,
-      ArrowHeight,
-      ArrowHlfHgt,
-      StokeColor,
-      color,
-      nodeRef,
-      multiCond,
-      addBtnPosLT,
-      arwBtmSvgPosLT,
-      arwBtmSvgSizeW,
-      arwTopSvgPosLT,
-      arwTopSvgSizeW,
-
-      fmtCode
-    }
+defineEmits(['click:card', 'click:addBtn', 'mouseenter', 'mouseleave'])
+const props = defineProps({
+  node: { type: NodeInPnl, default: new NodeInPnl() }
+})
+const store = useStore()
+const nodeRef = ref()
+const addBtnPosLT = computed(() =>
+  props.node.key
+    ? [
+        props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
+        props.node.posLT[1] + props.node.size[1] + ArrowHlfHgt - AddBtnHlfWH
+      ]
+    : [(store.getters['service/width'] >> 1) - AddBtnHlfWH, 0]
+)
+const arwBtmSvgPosLT = computed(() => [
+  props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
+  props.node.posLT[1] + props.node.size[1]
+])
+const arwTopSvgPosLT = computed(() => [
+  props.node.posLT[0] - (arwTopSvgSizeW.value >> 1) + CardHlfWid,
+  props.node.posLT[1] - ArrowHlfHgt
+])
+const arwTopSvgSizeW = computed(() => {
+  if (props.node.ntype === 'endNode') {
+    return getWidByNexts(store.getters['service/node'](props.node.relative))
+  } else {
+    return CardWidth
   }
 })
+const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node))
+const color = computed(() => {
+  switch (props.node.ntype) {
+    case 'normal':
+      return '#FF9900'
+    case 'condition':
+      return '#00AA72'
+    case 'condNode':
+      return '#FF5600'
+    case 'traversal':
+      return '#0D58A6'
+    default:
+      return 'grey'
+  }
+})
+const multiCond = computed(() => {
+  const relative = store.getters['service/node'](props.node.relative)
+  return props.node.ntype === 'endNode' && relative.nexts.length > 1
+})
+
+function getWidByNexts(node: Node): number {
+  if (!node.nexts || !node.nexts.length) {
+    return CardWidth
+  }
+  const lstIdx = node.nexts.length - 1
+  const fstKey = node.nexts[0]
+  const lstKey = node.nexts[lstIdx]
+  const first = store.getters['service/node'](fstKey)
+  const last = store.getters['service/node'](lstKey)
+  if (!first || !first.posLT || !last || !last.posLT || last.posLT[0] <= first.posLT[0]) {
+    return CardWidth
+  }
+  return last.posLT[0] - first.posLT[0]
+}
+function fmtCode(code: string): string {
+  return code.replaceAll('\n', '&#10;')
+}
 </script>
 
 <style>

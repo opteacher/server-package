@@ -1,20 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Model from '@/types/model'
-import Property from '@/types/property'
 import router from '@/router'
-import { reqPut } from '@/utils'
-import { Dispatch } from 'vuex'
-import Column from '@lib/types/column'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import Project from '@/types/project'
-import { Modal } from 'ant-design-vue'
-import { mdlAPI } from '../apis'
 import Form from '@/types/form'
-import Field from '@lib/types/field'
-import Table from '@/types/table'
 import { methods } from '@/types/index'
-import { svcEmitter } from '@/views/Project'
+import Model from '@/types/model'
+import Project from '@/types/project'
+import Property from '@/types/property'
+import Table from '@/types/table'
+import { reqPut, setProp } from '@/utils'
+import { svcEmitter, svcMapper } from '@/views/Project'
+import Column from '@lib/types/column'
+import Field from '@lib/types/field'
+import { Modal } from 'ant-design-vue'
+import { cloneDeep } from 'lodash'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { Dispatch } from 'vuex'
+
+import { mdlAPI } from '../apis'
 
 type ModelState = {
   emitter: Emitter
@@ -63,13 +66,14 @@ export default {
             prop.relative.model !== ''),
         false
       )
-      svcEmitter.emit('update:mapper', {
-        method: {
-          options: methods
-            .concat(hasRelProp ? 'LINK' : [])
-            .map(mthd => ({ label: mthd, value: mthd }))
-        }
-      })
+      svcEmitter.emit(
+        'update:mapper',
+        setProp(
+          cloneDeep(svcMapper),
+          'method.options',
+          methods.concat(hasRelProp ? 'LINK' : []).map(mthd => ({ label: mthd, value: mthd }))
+        )
+      )
       state.dragOn = ''
       state.divider = ''
       state.emitter.emit('refresh')

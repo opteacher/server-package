@@ -1,6 +1,5 @@
 **/*.svg
 package.json
-lib/
 es/
 dist/
 _site/

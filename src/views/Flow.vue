@@ -40,17 +40,16 @@
       :title="editTitle"
       width="70vw"
       :lblWid="2"
-      :copy="Node.copy"
+      :newFun="() => new Node()"
       :mapper="edtNdMapper"
       :emitter="edtNdEmitter"
-      :object="store.getters['service/editNode']"
       @submit="onNodeSaved"
     />
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
+<script lang="ts" setup name="Flow">
+import { computed, onBeforeMount, onMounted, ref } from 'vue'
 import NodeCard from '../components/flow/NodeCard.vue'
 import Node from '../types/node'
 import { edtNdEmitter, edtNdMapper } from './Flow'
@@ -63,68 +62,38 @@ import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import NodeInPnl from '@/types/ndInPnl'
 import Service from '@/types/service'
 
-export default defineComponent({
-  name: 'Flow',
-  components: {
-    NodeCard,
-    VarsPanel,
+const store = useStore()
+const route = useRoute()
+const pid = route.params.pid
+const panelRef = ref()
+const pname = ref('')
+const service = computed<Service>(() => store.getters['service/ins'])
+const editTitle = computed<string>(() =>
+  store.getters['service/edtNdKey'] ? '编辑节点' : '添加节点'
+)
+const nodes = computed<NodeInPnl[]>(() =>
+  Object.values(store.getters['service/nodes'] as NodesInPnl)
+)
+const rszObs = new ResizeObserver(refresh)
 
-    ArrowLeftOutlined
-  },
-  setup() {
-    const store = useStore()
-    const route = useRoute()
-    const pid = route.params.pid
-    const sid = route.params.sid
-    const panelRef = ref()
-    const pname = ref('')
-    const service = computed<Service>(() => store.getters['service/ins'])
-    const editTitle = computed<string>(() =>
-      store.getters['service/edtNdKey'] ? '编辑节点' : '添加节点'
-    )
-    const nodes = computed<NodeInPnl[]>(() =>
-      Object.values(store.getters['service/nodes'] as NodesInPnl)
-    )
-    const rszObs = new ResizeObserver(refresh)
-
-    onBeforeMount(() => {
-      store.commit('service/RESET_STATE')
-    })
-    onMounted(async () => {
-      rszObs.observe(panelRef.value)
-      await refresh()
-    })
-
-    async function refresh() {
-      pname.value = (await pjtAPI.detail(route.params.pid)).name
-      store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
-      await store.dispatch('service/refresh')
-    }
-    async function onNodeSaved(node: Node, next: () => void) {
-      await api.save(node)
-      next()
-    }
-    function onEdtNodeClick(node?: any) {
-      store.commit('service/SET_NODE', node)
-    }
-    return {
-      Node,
-
-      pid,
-      sid,
-      api,
-      store,
-      nodes,
-      pname,
-      service,
-      panelRef,
-      editTitle,
-      edtNdEmitter,
-      edtNdMapper,
-
-      onNodeSaved,
-      onEdtNodeClick
-    }
-  }
+onBeforeMount(() => {
+  store.commit('service/RESET_STATE')
 })
+onMounted(async () => {
+  rszObs.observe(panelRef.value)
+  await refresh()
+})
+
+async function refresh() {
+  pname.value = (await pjtAPI.detail(route.params.pid)).name
+  store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
+  await store.dispatch('service/refresh')
+}
+async function onNodeSaved(node: Node, next: () => void) {
+  await api.save(node)
+  next()
+}
+function onEdtNodeClick(node?: any) {
+  store.commit('service/SET_NODE', node)
+}
 </script>

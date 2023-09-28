@@ -22,7 +22,7 @@
         </a-button>
         <FormDialog
           title="配置前端"
-          :copy="Frontend.copy"
+          :new-fun="() => new Frontend()"
           :emitter="frtEmitter"
           :mapper="frtMapper"
           @submit="onConfigSbt"
@@ -45,7 +45,7 @@
         </a-button>
         <FormDialog
           title="配置项目"
-          :copy="Project.copy"
+          :new-fun="() => new Project()"
           :emitter="pjtEmitter"
           :mapper="pjtMapper"
           @submit="onConfigSbt"
@@ -74,7 +74,7 @@
               }
             })
           "
-          :copy="(src: any, tgt?: any) => gnlCpy(() => ({ dir: [] }), src, tgt)"
+          :new-fun="() => ({ dir: [] })"
           :emitter="syncEmitter"
           @submit="(form: any) => api.syncFrt(pid, form)"
         >
@@ -100,7 +100,7 @@
         </a-tooltip>
         <FormDialog
           title="投放文件"
-          :copy="Transfer.copy"
+          :new-fun="() => new Transfer()"
           v-model:show="tsfVsb"
           :mapper="tsMapper"
           :emitter="tsEmitter"
@@ -144,7 +144,7 @@
       :api="mdlAPI"
       :columns="mdlColumns"
       :mapper="mdlMapper"
-      :copy="Model.copy"
+      :new-fun="() => new Model()"
       :emitter="mdlEmitter"
       @save="refresh"
       @delete="refresh"
@@ -210,7 +210,7 @@
           }"
           :columns="propColumns"
           :mapper="propMapper"
-          :copy="Property.copy"
+          :new-fun="() => new Property()"
           @save="refresh"
           @delete="refresh"
         >
@@ -273,7 +273,7 @@
       title="导出类"
       v-model:show="expClsVsb"
       :object="expClsObj"
-      :copy="ExpCls.copy"
+      :new-fun="() => new ExpCls()"
       :mapper="expMapper"
       @submit="(formData: any) => mdlAPI.export(formData)"
     />
@@ -293,7 +293,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Transfer from '@/types/transfer'
-import { gnlCpy, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,

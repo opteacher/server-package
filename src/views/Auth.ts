@@ -58,7 +58,7 @@ export const mapper = new Mapper({
         }
       })
     },
-    display: [Cond.copy({ key: 'model', cmp: '!=', val: '' })]
+    display: [new Cond({ key: 'model', cmp: '!=', val: '' })]
   }
 })
 

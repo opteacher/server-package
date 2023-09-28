@@ -6,7 +6,7 @@
       :api="api"
       :columns="columns"
       :mapper="mapper"
-      :copy="Project.copy"
+      :new-fun="() => new Project()"
       :emitter="emitter"
       sclHeight="h-full"
     >
@@ -74,7 +74,7 @@
   </LytMain>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="Home">
 import Project from '@/types/project'
 import {
   ClearOutlined,
@@ -83,7 +83,7 @@ import {
   PoweroffOutlined,
   SyncOutlined
 } from '@ant-design/icons-vue'
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 
 import { pjtAPI as api } from '../apis'
@@ -91,47 +91,24 @@ import LytMain from '../layouts/LytMain.vue'
 import Database from '../types/database'
 import { columns, emitter, mapper } from './Home'
 
-export default defineComponent({
-  name: 'Home',
-  components: {
-    LytMain,
-    SyncOutlined,
-    PoweroffOutlined,
-    ClearOutlined,
-    LoadingOutlined,
-    Html5Outlined
-  },
-  setup() {
-    const store = useStore()
-    const projects = ref([])
-    const loading = ref(false)
+const store = useStore()
+const projects = ref([])
+const loading = ref(false)
 
-    watch(
-      () => store.getters['project/ins'].status.stat,
-      () => {
-        emitter.emit('refresh')
-      }
-    )
-    onMounted(async () => {
-      mapper.database.options = (await api.databases()).map((database: Database) => ({
-        value: database.name,
-        label: database.name,
-        children: database.dbs.map((db: string) => ({
-          value: db,
-          label: db
-        }))
-      }))
-    })
-    return {
-      Project,
-
-      loading,
-      projects,
-      api,
-      mapper,
-      emitter,
-      columns
-    }
+watch(
+  () => store.getters['project/ins'].status.stat,
+  () => {
+    emitter.emit('refresh')
   }
+)
+onMounted(async () => {
+  mapper.database.options = (await api.databases()).map((database: Database) => ({
+    value: database.name,
+    label: database.name,
+    children: database.dbs.map((db: string) => ({
+      value: db,
+      label: db
+    }))
+  }))
 })
 </script>

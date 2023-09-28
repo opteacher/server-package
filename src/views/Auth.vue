@@ -123,37 +123,40 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defineComponent, computed, ref, onMounted, watch } from 'vue'
+import LytProject from '@/layouts/LytProject.vue'
+import { methods } from '@/types'
+import API from '@/types/api'
+import Auth from '@/types/auth'
+import Sign from '@/types/cfgSign'
+import Role from '@/types/role'
+import Rule from '@/types/rule'
+import { setProp } from '@/utils'
+import { AuditOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons-vue'
+import { cloneDeep } from 'lodash'
+import { computed, defineComponent, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+
+import { authAPI as api, apiAPI, genRuleAPI, roleAPI } from '../apis'
 import {
   apiColumn,
-  apiMapper,
-  ruleColumns,
-  ruleEmitter,
-  ruleMapper,
   apiEmitter,
+  apiMapper,
+  authVsb,
+  emitter,
+  mapper,
+  onAuthShow,
+  recuAPIs,
+  refresh,
   roleColumns,
   roleEmitter,
   roleMapper,
-  mapper,
-  emitter,
-  onAuthShow,
-  signMapper,
+  ruleColumns,
+  ruleEmitter,
+  ruleMapper,
   signEmitter,
-  authVsb,
-  refresh,
-  recuAPIs
+  signMapper
 } from './Auth'
-import { useStore } from 'vuex'
-import { AuditOutlined, UnlockOutlined, LockOutlined } from '@ant-design/icons-vue'
-import API from '@/types/api'
-import Role from '@/types/role'
-import Rule from '@/types/rule'
-import { methods } from '@/types'
-import Auth from '@/types/auth'
-import LytProject from '@/layouts/LytProject.vue'
-import { useRoute } from 'vue-router'
-import { authAPI as api, apiAPI, roleAPI, genRuleAPI } from '../apis'
-import Sign from '@/types/cfgSign'
 
 export default defineComponent({
   name: 'Authorization',
@@ -192,13 +195,14 @@ export default defineComponent({
       if (!ret.includes(edtAPI.method)) {
         edtAPI.method = ret[0]
       }
-      ruleEmitter.emit('update:mapper', {
-        method: {
+      ruleEmitter.emit(
+        'update:mapper',
+        setProp(cloneDeep(ruleMapper), 'method', {
           label: '访问方式',
           type: 'Select',
           options: ['ALL'].concat(ret).map((mthd: string) => ({ label: mthd, value: mthd }))
-        }
-      })
+        })
+      )
     }
     async function onBindModel(form: any) {
       await api.bind(form)

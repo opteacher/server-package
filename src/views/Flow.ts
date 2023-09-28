@@ -1,20 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
-import { Modal } from 'ant-design-vue'
-import { createVNode, ref } from 'vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { Moment } from 'moment'
-import Mapper, { LstOpnType } from '@lib/types/mapper'
-import { baseTypes, bsTpOpns, Cond } from '@/types'
-import Variable from '@/types/variable'
-import Node, { NodeType } from '@/types/node'
-import Column from '@lib/types/column'
-import { ndAPI as api, depAPI } from '../apis'
-import { setProp, until } from '@/utils'
-import NodeInPnl from '@/types/ndInPnl'
 import { NodesInPnl } from '@/store/service'
+import { Cond, baseTypes, bsTpOpns } from '@/types'
+import NodeInPnl from '@/types/ndInPnl'
+import Node, { NodeType } from '@/types/node'
+import Variable from '@/types/variable'
+import { setProp, until } from '@/utils'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+import Column from '@lib/types/column'
+import Mapper from '@lib/types/mapper'
+import { Modal } from 'ant-design-vue'
+import { cloneDeep } from 'lodash'
+import { Moment } from 'moment'
+import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { createVNode, ref } from 'vue'
+
+import { ndAPI as api, depAPI } from '../apis'
 
 function scanLocVars(ndKey: string): Variable[] {
   const nodes = store.getters['service/nodes']
@@ -113,15 +116,15 @@ const iptMapper = new Mapper({
     label: '对象值分量',
     desc: '如果还定义索引，则默认索引在前，分量在后（e.g: object[index].prop）',
     type: 'Input',
-    display: [Cond.copy({ key: 'vtype', cmp: '==', val: 'Object' })]
+    display: [new Cond({ key: 'vtype', cmp: '=', val: 'Object' })]
   },
   index: {
     label: '索引',
     type: 'Input',
     display: {
       OR: [
-        Cond.copy({ key: 'vtype', cmp: '==', val: 'Object' }),
-        Cond.copy({ key: 'vtype', cmp: '==', val: 'Array' })
+        new Cond({ key: 'vtype', cmp: '=', val: 'Object' }),
+        new Cond({ key: 'vtype', cmp: '=', val: 'Array' })
       ]
     }
   },
@@ -134,8 +137,8 @@ const iptMapper = new Mapper({
     })),
     display: {
       OR: [
-        Cond.copy({ key: 'vtype', cmp: '==', val: 'Object' }),
-        Cond.copy({ key: 'vtype', cmp: '==', val: 'Array' })
+        new Cond({ key: 'vtype', cmp: '=', val: 'Object' }),
+        new Cond({ key: 'vtype', cmp: '=', val: 'Array' })
       ]
     }
   },
@@ -154,15 +157,14 @@ edtNdEmitter.on('update:show', async (show: boolean) => {
     return
   }
   const deps = await depAPI.all()
-  edtNdEmitter.emit('update:mapper', {
-    advanced: {
-      items: {
-        deps: {
-          lblMapper: Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
-        }
-      }
-    }
-  })
+  edtNdEmitter.emit(
+    'update:mapper',
+    setProp(
+      cloneDeep(edtNdMapper),
+      'advanced.items.deps.lblMapper',
+      Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
+    )
+  )
 })
 
 const depEmitter = new Emitter()
@@ -171,13 +173,13 @@ export const edtNdMapper = new Mapper({
   title: {
     label: '标题',
     type: 'Input',
-    display: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })],
+    display: [new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })],
     rules: [{ required: true, message: '标题不能为空！' }]
   },
   desc: {
     label: '描述',
     type: 'Textarea',
-    display: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })],
+    display: [new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })],
     maxRows: 2
   },
   ntype: {
@@ -193,8 +195,8 @@ export const edtNdMapper = new Mapper({
     label: '开发者配置',
     type: 'FormGroup',
     display: [
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+      new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+      new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
     ],
     items: {
       inputs: {
@@ -203,8 +205,8 @@ export const edtNdMapper = new Mapper({
         show: false,
         emitter: iptEmitter,
         display: [
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
         columns: [
           new Column('参数名', 'name'),
@@ -214,7 +216,7 @@ export const edtNdMapper = new Mapper({
           new Column('备注', 'remark')
         ],
         mapper: iptMapper,
-        copy: Variable.copy,
+        newFun: () => new Variable(),
         onEdit: (node: any) => {
           if (node.previous) {
             const pvsNode = store.getters['service/node'](node.previous)
@@ -237,8 +239,8 @@ export const edtNdMapper = new Mapper({
             ipts.push(Variable.copy(src))
           }
         },
-        addable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })],
-        delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
+        addable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
       outputs: {
         label: '输出',
@@ -246,9 +248,9 @@ export const edtNdMapper = new Mapper({
         show: false,
         emitter: optEmitter,
         display: [
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
         columns: [
           new Column('返回名', 'name'),
@@ -270,7 +272,7 @@ export const edtNdMapper = new Mapper({
             type: 'Input'
           }
         }),
-        copy: Variable.copy,
+        newFun: () => new Variable(),
         onSaved: (src: Variable, opts: Variable[]) => {
           const tgt = opts.find(v => v.key === src.key)
           if (src.key && tgt) {
@@ -279,14 +281,14 @@ export const edtNdMapper = new Mapper({
             opts.push(Variable.copy(src))
           }
         },
-        delable: [Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' })]
+        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },
       deps: {
         label: '依赖',
         type: 'TagList',
         display: [
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
         mapper: new Mapper({
           deps: {
@@ -297,37 +299,32 @@ export const edtNdMapper = new Mapper({
           }
         }),
         emitter: depEmitter,
-        copy: (src: any, tgt?: any) => {
-          tgt = tgt || {}
-          tgt.deps = src || tgt.deps
-          return tgt
-        },
         onAdded: async () => {
-          const deps = await depAPI.all()
-          depEmitter.emit('update:mapper', {
-            deps: {
-              options: deps.map(dep =>
-                LstOpnType.copy({
-                  key: dep.key,
-                  title: dep.name,
-                  subTitle: [
-                    'import ',
-                    dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
-                    ` from '${dep.from}'`
-                  ].join('')
-                })
-              )
-            }
-          })
+          depEmitter.emit(
+            'update:mapper',
+            setProp(
+              edtNdMapper,
+              'advanced.items.deps.mapper.deps.options',
+              (await depAPI.all()).map(dep => ({
+                key: dep.key,
+                title: dep.name,
+                subTitle: [
+                  'import ',
+                  dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
+                  ` from '${dep.from}'`
+                ].join('')
+              }))
+            )
+          )
         }
       },
       code: {
         label: '代码',
         type: 'CodeEditor',
         display: [
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
         maxRows: 6
       },
@@ -336,22 +333,22 @@ export const edtNdMapper = new Mapper({
         desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
         display: [
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-          Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ]
       },
       'loop.isAwait': {
         label: '是否为await',
         type: 'Checkbox',
-        display: [Cond.copy({ key: 'ntype', cmp: '==', val: 'traversal' })]
+        display: [new Cond({ key: 'ntype', cmp: '=', val: 'traversal' })]
       },
       'loop.isForIn': {
         label: '是否使用for……in循环',
         desc: '默认for……of循环',
         type: 'Checkbox',
-        display: [Cond.copy({ key: 'ntype', cmp: '==', val: 'traversal' })]
+        display: [new Cond({ key: 'ntype', cmp: '=', val: 'traversal' })]
       }
     }
   },
@@ -364,8 +361,8 @@ export const edtNdMapper = new Mapper({
     label: '操作',
     type: 'Button',
     display: [
-      Cond.copy({ key: 'key', cmp: '!=', val: '' }),
-      Cond.copy({ key: 'ntype', cmp: '!=', val: 'endNode' })
+      new Cond({ key: 'key', cmp: '!=', val: '' }),
+      new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
     ],
     inner: '删除节点',
     danger: true,
