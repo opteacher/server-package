@@ -48,11 +48,12 @@
   >
     <template #title>
       <a-space>
-        <h3 class="text-white mb-0"># {{ node.title }}&nbsp;</h3>
-        <a-tag v-if="node.ntype === 'normal' && node.isFun" color="cyan">
-          <template #icon><FunctionOutlined /></template>
-        </a-tag>
-        <template v-else-if="node.ntype === 'traversal' && node.loop">
+        <h3 class="text-white mb-0">
+          <FunctionOutlined v-if="node.ntype === 'normal' && node.isFun" />
+          <BorderlessTableOutlined v-else />
+          &nbsp;{{ node.title }}&nbsp;
+        </h3>
+        <template v-if="node.ntype === 'traversal' && node.loop">
           <a-tag v-if="node.loop.isAwait" color="green">await</a-tag>
           <a-tag v-else-if="node.loop.isForIn" color="blue">for……in循环</a-tag>
         </template>
@@ -182,7 +183,8 @@ import {
   LogoutOutlined,
   MoreOutlined,
   PlusOutlined,
-  RightOutlined
+  RightOutlined,
+  BorderlessTableOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineEmits, defineProps, ref } from 'vue'
 import { useStore } from 'vuex'

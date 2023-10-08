@@ -157,14 +157,25 @@ edtNdEmitter.on('update:show', async (show: boolean) => {
     return
   }
   const deps = await depAPI.all()
-  edtNdEmitter.emit(
-    'update:mapper',
-    setProp(
-      cloneDeep(edtNdMapper),
-      'advanced.items.deps.lblMapper',
-      Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
-    )
+  setProp(
+    edtNdMapper,
+    'advanced.items.deps.lblMapper',
+    Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
   )
+  setProp(
+    edtNdMapper,
+    'advanced.items.deps.mapper.data.options',
+    deps.map(dep => ({
+      key: dep.key,
+      title: dep.name,
+      subTitle: [
+        'import ',
+        dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
+        ` from '${dep.from}'`
+      ].join('')
+    }))
+  )
+  edtNdEmitter.emit('update:mapper', edtNdMapper)
 })
 
 const depEmitter = new Emitter()
@@ -202,7 +213,6 @@ export const edtNdMapper = new Mapper({
       inputs: {
         label: '输入',
         type: 'Table',
-        show: false,
         emitter: iptEmitter,
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
@@ -218,18 +228,19 @@ export const edtNdMapper = new Mapper({
         mapper: iptMapper,
         newFun: () => new Variable(),
         onEdit: (node: any) => {
+          let options = []
           if (node.previous) {
             const pvsNode = store.getters['service/node'](node.previous)
-            iptMapper['value'].options = getLocVars(pvsNode, pvsNode.nexts.length).map(
-              (locVar: Variable) => ({
-                label: locVar.value || locVar.name,
-                value: locVar.value || locVar.name
-              })
-            )
+            options = getLocVars(pvsNode, pvsNode.nexts.length).map((locVar: Variable) => ({
+              label: locVar.value || locVar.name,
+              value: locVar.value || locVar.name
+            }))
           } else {
-            iptMapper['value'].options = [{ label: 'ctx', value: 'ctx' }]
+            options = [{ label: 'ctx', value: 'ctx' }]
           }
-          iptEmitter.emit('update:mapper', iptMapper)
+          edtNdEmitter.emit('update:mprop', {
+            'advanced.items.inputs.mapper.value.options': options
+          })
         },
         onSaved: (src: Variable, ipts: Variable[]) => {
           const tgt = ipts.find(v => v.key === src.key)
@@ -245,7 +256,6 @@ export const edtNdMapper = new Mapper({
       outputs: {
         label: '输出',
         type: 'Table',
-        show: false,
         emitter: optEmitter,
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
@@ -290,31 +300,21 @@ export const edtNdMapper = new Mapper({
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
+        subProp: 'subTitle',
         mapper: new Mapper({
-          deps: {
-            label: '依赖',
+          data: {
+            label: '可用模组',
             type: 'ListSelect',
-            height: 500,
+            height: 300,
             options: []
           }
         }),
         emitter: depEmitter,
-        onAdded: async () => {
-          depEmitter.emit(
-            'update:mapper',
-            setProp(
-              edtNdMapper,
-              'advanced.items.deps.mapper.deps.options',
-              (await depAPI.all()).map(dep => ({
-                key: dep.key,
-                title: dep.name,
-                subTitle: [
-                  'import ',
-                  dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`,
-                  ` from '${dep.from}'`
-                ].join('')
-              }))
-            )
+        newFun: () => ({ data: [] }),
+        onSaved: (form: any) => {
+          edtNdEmitter.emit(
+            'update:data',
+            setProp(store.getters['service/editNode'], 'deps', form.data)
           )
         }
       },
