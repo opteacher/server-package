@@ -1,6 +1,6 @@
 <template>
   <a-layout class="h-full">
-    <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible>
+    <a-layout-sider width="300" v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
         <a-menu-item key="home" class="mt-0">
