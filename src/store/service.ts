@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import Node, { ndTpOpns, NodeTypeMapper } from '@/types/node'
-import Service from '@/types/service'
-import { edtNdEmitter, edtNdMapper, buildNodes, fixWidth, fillPlaceholder } from '@/views/Flow'
+import { ndAPI, svcAPI } from '@/apis'
 import router from '@/router'
 import NodeInPnl from '@/types/ndInPnl'
-import { ndAPI, svcAPI } from '@/apis'
+import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
+import Service from '@/types/service'
+import { buildNodes, edtNdEmitter, edtNdMapper, fillPlaceholder, fixWidth } from '@/views/Flow'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -30,10 +31,11 @@ export default {
     },
     SET_NODE(state: SvcState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       if (!payload || (!payload.key && !payload.previous)) {
-        edtNdMapper.ntype.options = ndTpOpns.filter(
-          item => item.value !== 'endNode' && item.value !== 'condNode'
-        )
-        edtNdEmitter.emit('update:mapper', edtNdMapper)
+        edtNdEmitter.emit('update:mprop', {
+          'ntype.options': ndTpOpns.filter(
+            item => item.value !== 'endNode' && item.value !== 'condNode'
+          )
+        })
         edtNdEmitter.emit('update:show', true)
         return
       }
@@ -62,7 +64,9 @@ export default {
           item => item.value !== 'endNode' && item.value !== 'condNode'
         )
       }
-      edtNdEmitter.emit('update:mapper', edtNdMapper)
+      edtNdEmitter.emit('update:mprop', {
+        'ntype.options': edtNdMapper.ntype.options
+      })
       edtNdEmitter.emit('update:show', {
         show: true,
         viewOnly: payload.viewOnly,

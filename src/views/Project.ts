@@ -71,17 +71,19 @@ export const svcMapper = new Mapper({
       const mapper = cloneDeep(svcMapper)
       switch (to) {
         case 'api':
-          mapper.method.rules = [{ required: true, message: '必须选择一种访问方式' }]
-          mapper.path.rules = [{ required: true, message: '必须填入访问路由！' }]
-          svcEmitter.emit('update:mapper', mapper)
+          svcEmitter.emit('update:mprop', {
+            'method.rules': [{ required: true, message: '必须选择一种访问方式' }],
+            'path.rule': [{ required: true, message: '必须填入访问路由！' }]
+          })
           break
         case 'timeout':
         case 'interval':
-          mapper.method.rules = []
-          mapper.path.rules = []
-          mapper.cdValue.rules = [{ required: true, message: '必须填入时间值！' }]
-          mapper.cdUnit.rules = [{ required: true, message: '必须选择时间类型！' }]
-          svcEmitter.emit('update:mapper', mapper)
+          svcEmitter.emit('update:mprop', {
+            'method.rules': [],
+            'path.rules': [],
+            'cdValue.rules': [{ required: true, message: '必须填入时间值！' }],
+            'cdUnit.rules': [{ required: true, message: '必须选择时间类型！' }]
+          })
           break
       }
     }

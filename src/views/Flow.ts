@@ -7,7 +7,7 @@ import { Cond, baseTypes, bsTpOpns } from '@/types'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeType } from '@/types/node'
 import Variable from '@/types/variable'
-import { setProp, until } from '@/utils'
+import { getProp, setProp, until } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
@@ -81,15 +81,19 @@ const iptMapper = new Mapper({
           break
         case 'Object':
           iptMapper['value'].type = 'Select'
-          iptMapper['value'].options = getLocVars().map((locVar: Variable) => ({
-            label: locVar.value || locVar.name,
-            value: locVar.value || locVar.name
-          }))
+          iptEmitter.emit('update:mprop', {
+            'value.options': getLocVars().map((locVar: Variable) => ({
+              label: locVar.value || locVar.name,
+              value: locVar.value || locVar.name
+            }))
+          })
           input.value = ''
           input.prop = ''
           break
       }
-      iptEmitter.emit('update:mapper', iptMapper)
+      iptEmitter.emit('update:mprop', {
+        'value.type': iptMapper['value'].type
+      })
     }
   },
   value: {
@@ -157,15 +161,9 @@ edtNdEmitter.on('update:show', async (show: boolean) => {
     return
   }
   const deps = await depAPI.all()
-  setProp(
-    edtNdMapper,
-    'advanced.items.deps.lblMapper',
-    Object.fromEntries(deps.map(dep => [dep.key, dep.name]))
-  )
-  setProp(
-    edtNdMapper,
-    'advanced.items.deps.mapper.data.options',
-    deps.map(dep => ({
+  edtNdEmitter.emit('update:mprop', {
+    'advanced.items.deps.lblMapper': Object.fromEntries(deps.map(dep => [dep.key, dep.name])),
+    'advanced.items.deps.mapper.data.options': deps.map(dep => ({
       key: dep.key,
       title: dep.name,
       subTitle: [
@@ -174,8 +172,7 @@ edtNdEmitter.on('update:show', async (show: boolean) => {
         ` from '${dep.from}'`
       ].join('')
     }))
-  )
-  edtNdEmitter.emit('update:mapper', edtNdMapper)
+  })
 })
 
 const depEmitter = new Emitter()
@@ -303,7 +300,6 @@ export const edtNdMapper = new Mapper({
         subProp: 'subTitle',
         mapper: new Mapper({
           data: {
-            label: '可用模组',
             type: 'ListSelect',
             height: 300,
             options: []
@@ -316,6 +312,9 @@ export const edtNdMapper = new Mapper({
             'update:data',
             setProp(store.getters['service/editNode'], 'deps', form.data)
           )
+        },
+        onAdded: (form: any) => {
+          form.data = getProp(store.getters['service/editNode'], 'deps')
         }
       },
       code: {

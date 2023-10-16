@@ -64,18 +64,19 @@ export const mapper = new Mapper({
 
 export async function onAuthShow(show: boolean) {
   if (show) {
-    mapper['model'].loading = true
     await store.dispatch('project/refresh')
     const project = store.getters['project/ins']
-    mapper['model'].options = project.models.map((mdl: Model) => ({
-      label: mdl.name,
-      value: mdl.key
-    }))
-    mapper['skips'].options = (await pjtAPI.apis(project.key)).map((svc: any) => ({
-      label: svc.path,
-      value: svc.path
-    }))
-    emitter.emit('update:mapper', mapper)
+    emitter.emit('update:mprop', {
+      'model.loading': true,
+      'model.options': project.models.map((mdl: Model) => ({
+        label: mdl.name,
+        value: mdl.key
+      })),
+      'skips.options': (await pjtAPI.apis(project.key)).map((svc: any) => ({
+        label: svc.path,
+        value: svc.path
+      }))
+    })
     mapper['model'].loading = false
   }
   authVsb.value = show

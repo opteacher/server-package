@@ -36,7 +36,7 @@ function searchCmpIns(cmpIns: { key: string; children: CmpIns[] }, skey: string)
 export default {
   add: (data: any) =>
     reqPost('project', Object.assign(data, { auth: { roles: [{ name: 'guest', rules: [{}] }] } })),
-  remove: (key: any) => reqDelete('project', key, { type: 'api' }),
+  remove: (data: any) => reqDelete('project', data.key, { type: 'api' }),
   update: (data: any) =>
     reqPut('project', data.key, data, {
       ignores: ['models', 'auth', 'middle', 'status', 'services']
