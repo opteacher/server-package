@@ -298,6 +298,7 @@ export const edtNdMapper = new Mapper({
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ],
         subProp: 'subTitle',
+        flatItem: true,
         mapper: new Mapper({
           data: {
             type: 'ListSelect',
@@ -307,14 +308,9 @@ export const edtNdMapper = new Mapper({
         }),
         emitter: depEmitter,
         newFun: () => ({ data: [] }),
-        onSaved: (form: any) => {
-          edtNdEmitter.emit(
-            'update:data',
-            setProp(store.getters['service/editNode'], 'deps', form.data)
-          )
-        },
-        onAdded: (form: any) => {
-          form.data = getProp(store.getters['service/editNode'], 'deps')
+        onSaved: (form: any) => form,
+        onAdded: (form: any, data: any) => {
+          form.data = data
         }
       },
       code: {
