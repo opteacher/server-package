@@ -6,7 +6,7 @@ import { spawn, spawnSync } from 'child_process'
 import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
-
+import { createClient } from 'redis'
 import {
   copyDir,
   fixEndsWith,
@@ -21,9 +21,9 @@ import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db, pickOrIgnore } from '../utils/index.js'
-import { exportClass } from './model.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
+const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const tmpPath = Path.resolve('resources', 'app-temp')
 
 function formatToStr(value, vtype) {
@@ -515,6 +515,16 @@ export async function run(pjt) {
     }
   ).on('error', err => {
     console.log(err)
+  }).on('exit', () => {
+    const client = createClient({
+      socket: {
+        host: dbCfg.redis.host,
+        port: dbCfg.redis.port
+      },
+      password: dbCfg.redis.password
+    })
+    client.set('key', 1)
+    client.disconnect()
   })
   const thread = childPcs.pid
   console.log('持久化进程id……')
