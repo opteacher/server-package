@@ -25,6 +25,16 @@ services:
       - /data/server-package/mongo/db:/data/db
       - /data/server-package/mongo/config:/data/config
 
+  redis:
+    container_name: redis
+    image: redis
+    restart: unless-stopped
+    command: --requirepass abcd
+    ports:
+      - 6379:6379
+    expose:
+      - 6379
+
   default:
     container_name: server-package
     build:

@@ -4,3 +4,9 @@ username="root"
 password="12345"
 host="192.168.1.11"
 port=27017
+
+[redis]
+database="server-package"
+password="abcd"
+host="192.168.1.11"
+port=6379
