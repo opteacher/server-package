@@ -6,7 +6,6 @@ import { spawn, spawnSync } from 'child_process'
 import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
-import { createClient } from 'redis'
 import {
   copyDir,
   fixEndsWith,
@@ -351,6 +350,7 @@ export async function generate(pid) {
   const rotData = fs.readFileSync(rotTmp)
   const svcRts = {}
   const svcMap = {}
+  const varMap = {}
   console.log('收集非模型服务实例……')
   for (const service of project.services.filter(svc => !svc.model)) {
     if (service.path) {
@@ -392,6 +392,12 @@ export async function generate(pid) {
     } else {
       svcMap[service.name].push(svcExt)
     }
+    if (!(service.name in varMap)) {
+      varMap[service.name] = svcExt.stcVars
+    } else {
+      const vnames = new Set(varMap[service.name].map(v => v.name))
+      varMap[service.name].push(svcExt.stcVars.filter(v => !vnames.has(v.name)))
+    }
   }
   console.log('生成非模型服务的路由……')
   for (const [rotGen, services] of Object.entries(svcRts)) {
@@ -402,7 +408,7 @@ export async function generate(pid) {
   for (const [aname, services] of Object.entries(svcMap)) {
     const svcGen = Path.join(svcPath, aname + '.js')
     console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-    adjustFile(svcData, svcGen, { services })
+    adjustFile(svcData, svcGen, { services, stcVars: varMap[aname] })
   }
   console.log('生成模型实例……')
   for (const model of project.models) {
@@ -515,16 +521,6 @@ export async function run(pjt) {
     }
   ).on('error', err => {
     console.log(err)
-  }).on('exit', () => {
-    const client = createClient({
-      socket: {
-        host: dbCfg.redis.host,
-        port: dbCfg.redis.port
-      },
-      password: dbCfg.redis.password
-    })
-    client.set('key', 1)
-    client.disconnect()
   })
   const thread = childPcs.pid
   console.log('持久化进程id……')

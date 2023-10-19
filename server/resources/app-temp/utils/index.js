@@ -27,3 +27,23 @@ export async function makeRequest(method, path) {
 export function pickOrIgnore(obj, attrs, ignore = true) {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))
 }
+
+export function genDefault(type, dftVal) {
+  switch (type) {
+    case 'Any':
+      return dftVal || 'null'
+    case 'String':
+    case 'LongStr':
+      return `'${dftVal || ''}'`
+    case 'Number':
+      return dftVal || '0'
+    case 'Boolean':
+      return typeof dftVal === 'undefined' ? 'false' : dftVal ? 'true' : 'false'
+    case 'DateTime':
+      return dftVal ? new Date(dftVal) : 'new Date()'
+    case 'Array':
+      return dftVal || '[]'
+    case 'Object':
+      return dftVal || '{}'
+  }
+}

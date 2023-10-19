@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gnlCpy } from '../utils'
 import Node from './node'
+import Variable from './variable'
 
 export const emitMapper = {
   api: '网络接口',
@@ -55,6 +56,7 @@ export default class Service {
   cdValue: number
   cdUnit: string
   needRet: boolean
+  stcVars: Variable[]
   desc: string
 
   constructor() {
@@ -71,6 +73,7 @@ export default class Service {
     this.cdValue = 1
     this.cdUnit = 's'
     this.needRet = true
+    this.stcVars = []
     this.desc = ''
   }
 
@@ -88,6 +91,7 @@ export default class Service {
     this.cdValue = 1
     this.cdUnit = 's'
     this.needRet = true
+    this.stcVars = []
     this.desc = ''
   }
 
@@ -95,7 +99,7 @@ export default class Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
       ignProps: ['name', 'interface', 'cdValue', 'cdUnit'],
-      cpyMapper: { flow: Node.copy }
+      cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
     })
     if (src.service && src.service.length === 2) {
       tgt.name = src.service[0]

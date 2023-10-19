@@ -39,23 +39,26 @@ export default {
         edtNdEmitter.emit('update:show', true)
         return
       }
-      const edtNode = Node.copy(
-        payload.key ? state.nodes[payload.key] : { previous: payload.previous },
-        state.editing
-      )
-      if (edtNode.previous && state.nodes[edtNode.previous].ntype === 'condition') {
+      if (payload.key) {
+        state.editing = state.nodes[payload.key]
+      } else {
+        console.log(payload.previous)
+        state.editing = new Node()
+        state.editing.previous = payload.previous as string
+      }
+      if (state.editing.previous && state.nodes[state.editing.previous].ntype === 'condition') {
         // 添加修改条件节点
-        edtNode.ntype = 'condNode'
+        state.editing.ntype = 'condNode'
         edtNdMapper.ntype.options = [{ label: '条件节点', value: 'condNode' }]
-      } else if (edtNode.ntype === 'endNode') {
+      } else if (state.editing.ntype === 'endNode') {
         // 修改循环结束节点
         edtNdMapper.ntype.options = [{ label: '循环结束节点', value: 'endNode' }]
-      } else if (edtNode.key) {
+      } else if (state.editing.key) {
         // 修改结束节点
         edtNdMapper.ntype.options = [
           {
-            label: NodeTypeMapper[edtNode.ntype],
-            value: edtNode.ntype
+            label: NodeTypeMapper[state.editing.ntype],
+            value: state.editing.ntype
           }
         ]
       } else {
@@ -70,7 +73,7 @@ export default {
       edtNdEmitter.emit('update:show', {
         show: true,
         viewOnly: payload.viewOnly,
-        object: edtNode
+        object: state.editing
       })
     },
     RESET_STATE(state: SvcState) {

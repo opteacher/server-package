@@ -195,14 +195,13 @@ export default defineComponent({
       if (!ret.includes(edtAPI.method)) {
         edtAPI.method = ret[0]
       }
-      ruleEmitter.emit(
-        'update:mapper',
-        setProp(cloneDeep(ruleMapper), 'method', {
+      ruleEmitter.emit('update:mprop', {
+        method: {
           label: '访问方式',
           type: 'Select',
           options: ['ALL'].concat(ret).map((mthd: string) => ({ label: mthd, value: mthd }))
-        })
-      )
+        }
+      })
     }
     async function onBindModel(form: any) {
       await api.bind(form)
@@ -233,8 +232,9 @@ export default defineComponent({
           obj = obj[ptPath]
         }
       }
-      ruleMapper['path'].options = recuAPIs(ret)
-      ruleEmitter.emit('update:mapper', ruleMapper)
+      ruleEmitter.emit('update:mprop', {
+        'path.options': recuAPIs(ret)
+      })
     }
     return {
       Auth,

@@ -6,13 +6,13 @@ import { NodesInPnl } from '@/store/service'
 import { Cond, baseTypes, bsTpOpns } from '@/types'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeType } from '@/types/node'
+import Service from '@/types/service'
 import Variable from '@/types/variable'
-import { getProp, setProp, until } from '@/utils'
+import { until } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
-import { cloneDeep } from 'lodash'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode, ref } from 'vue'
@@ -36,7 +36,9 @@ export function getLocVars(node?: Node, incSelf = false): Variable[] {
   if (!node) {
     node = store.getters['service/node'] as Node
   }
+  const service = store.getters['service/ins'] as Service
   return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })]
+    .concat(service.stcVars)
     .concat(incSelf ? node.outputs : [])
     .concat(node.previous ? scanLocVars(node.previous) : [])
 }
@@ -233,7 +235,10 @@ export const edtNdMapper = new Mapper({
               value: locVar.value || locVar.name
             }))
           } else {
-            options = [{ label: 'ctx', value: 'ctx' }]
+            const service = store.getters['service/ins'] as Service
+            options = [{ label: 'ctx', value: 'ctx' }].concat(
+              service.stcVars.map(v => ({ label: v.name, value: v.name }))
+            )
           }
           edtNdEmitter.emit('update:mprop', {
             'advanced.items.inputs.mapper.value.options': options

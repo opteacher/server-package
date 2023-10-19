@@ -66,14 +66,11 @@ export default {
             prop.relative.model !== ''),
         false
       )
-      svcEmitter.emit(
-        'update:mapper',
-        setProp(
-          cloneDeep(svcMapper),
-          'method.options',
-          methods.concat(hasRelProp ? 'LINK' : []).map(mthd => ({ label: mthd, value: mthd }))
-        )
-      )
+      svcEmitter.emit('update:mprop', {
+        'method.options': methods
+          .concat(hasRelProp ? 'LINK' : [])
+          .map(mthd => ({ label: mthd, value: mthd }))
+      })
       state.dragOn = ''
       state.divider = ''
       state.emitter.emit('refresh')

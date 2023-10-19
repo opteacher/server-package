@@ -3,11 +3,9 @@ import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
 import Service, { EmitType, emitMapper } from '@/types/service'
-import { setProp } from '@/utils'
 import { EditOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import EditableTable from '@lib/components/EditableTable.vue'
 import Mapper from '@lib/types/mapper'
-import { cloneDeep } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, defineProps } from 'vue'
 
@@ -23,24 +21,16 @@ const pstatus = computed(() => store.getters['project/ins'].status.stat)
 function onAddSvcClicked() {
   props.emitter.emit('update:data', Service.copy({ name: props.model }))
   const models = store.getters['project/ins'].models
-  const mapper = cloneDeep(props.mapper)
-  setProp(
-    mapper,
-    'name.options',
-    models.map((model: Model) => ({
+  props.emitter.emit('update:mprop', {
+    'name.options': models.map((model: Model) => ({
+      label: model.name,
+      value: model.name
+    })),
+    'model.options': models.map((model: Model) => ({
       label: model.name,
       value: model.name
     }))
-  )
-  setProp(
-    mapper,
-    'model.options',
-    models.map((model: Model) => ({
-      label: model.name,
-      value: model.name
-    }))
-  )
-  props.emitter.emit('update:mapper', mapper)
+  })
 }
 function onBefSave(svc: Service) {
   if (svc.emit === 'timeout' || svc.emit === 'interval') {

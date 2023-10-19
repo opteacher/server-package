@@ -1,15 +1,14 @@
-import Path from 'path'
 import Koa from 'koa'
+import cors from 'koa2-cors'
 import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
 import statc from 'koa-static'
 import views from 'koa-views'
-import cors from 'koa2-cors'
+import Path from 'path'
 
-import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
-
+import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { runAll } from './services/project.js'
 
 export default async db => {

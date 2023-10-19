@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import store from '@/store'
+import { Cond, methods } from '@/types'
 import API from '@/types/api'
+import Model from '@/types/model'
 import { authValues } from '@/types/rule'
+import Service from '@/types/service'
+import SgnProp from '@/types/sgnProp'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
-import { Cond, methods } from '@/types'
-import Model from '@/types/model'
-import Service from '@/types/service'
-import store from '@/store'
+import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode, ref } from 'vue'
-import { Modal } from 'ant-design-vue'
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
-import SgnProp from '@/types/sgnProp'
+
 import { authAPI, pjtAPI } from '../apis'
 
 export async function refresh() {
@@ -186,13 +188,14 @@ export const signMapper = new Mapper({
                 (mdl: Model) => mdl.key === store.getters['project/auth'].model
               )
             )
-            signMapper['cmpProps'].mapper['name'].options = model.props
-              .filter(prop => prop.name !== 'role')
-              .map(prop => ({
-                label: prop.name,
-                value: prop.name
-              }))
-            signMapper['cmpProps'].emitter.emit('update:mapper', signMapper['cmpProps'].mapper)
+            signMapper['cmpProps'].emitter.emit('update:mprop', {
+              'name.options': model.props
+                .filter(prop => prop.name !== 'role')
+                .map(prop => ({
+                  label: prop.name,
+                  value: prop.name
+                }))
+            })
           }
         }
       },

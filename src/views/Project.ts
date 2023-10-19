@@ -8,13 +8,16 @@ import Property from '@/types/property'
 import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
+import Variable from '@/types/variable'
 import { setProp } from '@/utils'
-import { Cond, OpnType, methods } from '@lib/types'
+import { Cond, OpnType, baseTypes, bsTpOpns, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { cloneDeep } from 'lodash'
+import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { ref } from 'vue'
 
 export const tsEmitter = new Emitter()
 
@@ -60,6 +63,79 @@ function genMdlPath(svc: Service): string {
 }
 
 export const svcEmitter = new Emitter()
+
+export const varEmitter = new Emitter()
+
+export const varMapper = new Mapper({
+  name: {
+    label: '参数名',
+    type: 'Input'
+  },
+  vtype: {
+    label: '类型',
+    type: 'Select',
+    options: bsTpOpns,
+    onChange: (variable: Variable, to: string) => {
+      let vtype = 'Input'
+      switch (to) {
+        case 'Any':
+        case 'String':
+          vtype = 'Input'
+          variable.value = ''
+          break
+        case 'Number':
+          vtype = 'Number'
+          variable.value = 0
+          break
+        case 'Boolean':
+          vtype = 'Checkbox'
+          variable.value = false
+          break
+        case 'DateTime':
+          vtype = 'DateTime'
+          variable.value = ref<Moment>()
+          break
+        case 'Array':
+          vtype = 'EditList'
+          variable.value = []
+          break
+        case 'Unknown':
+          vtype = 'Input'
+          variable.value = ''
+          break
+        case 'Object':
+          vtype = 'Input'
+          variable.value = ''
+          variable.prop = ''
+          break
+      }
+      varEmitter.emit('update:mprop', {
+        'value.type': vtype
+      })
+    }
+  },
+  value: {
+    label: '值',
+    type: 'Input',
+    options: [],
+    onChange: (variable: Variable, to: string) => {
+      console.log(variable, to)
+      // if (variable.vtype !== 'Object' && variable.vtype !== 'Unknown') {
+      //   return
+      // }
+      // const edtNode = store.getters['service/editNode']
+      // const pvsNode = store.getters['service/node'](edtNode.previous)
+      // const selVar = pvsNode
+      //   ? getLocVars(pvsNode, pvsNode.nexts.length).find(
+      //       (v: any) => v.value === to || v.name === to
+      //     )
+      //   : variable
+      // if (selVar) {
+      //   variable.name = selVar.value || selVar.name
+      // }
+    }
+  }
+})
 
 export const svcMapper = new Mapper({
   emit: {
@@ -181,6 +257,32 @@ export const svcMapper = new Mapper({
         new Cond({ key: 'emit', cmp: '=', val: 'interval' })
       ]
     }
+  },
+  stcVars: {
+    label: '全局变量',
+    type: 'Table',
+    desc: '会定义在文件中，所以同一文件只能定义相同的变量名，该变量也会出现在流程设计中局部变量选择中',
+    emitter: varEmitter,
+    columns: [
+      new Column('参数名', 'name'),
+      new Column('参数类型', 'vtype'),
+      new Column('传入变量', 'value'),
+      new Column('变量分量', 'prop'),
+      new Column('备注', 'remark')
+    ],
+    mapper: varMapper,
+    newFun: () => new Variable(),
+    onSaved: (src: Variable, vars: Variable[]) => {
+      console.log(src, vars)
+      const tgt = vars.find(v => v.key === src.key)
+      if (src.key && tgt) {
+        Variable.copy(src, tgt)
+      } else {
+        vars.push(Variable.copy(src))
+      }
+    },
+    addable: true,
+    delable: true
   },
   desc: {
     label: '描述',

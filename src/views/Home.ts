@@ -41,21 +41,18 @@ export const mapper = new Mapper({
     style: 'button',
     disabled: [new Cond({ key: 'key', cmp: '!=', val: '' })],
     onChange: async (_pjt: Project, selected: 'frontend' | 'backend') => {
-      setProp(mapper, 'database.rules[0].required', selected === 'backend')
+      emitter.emit('update:mprop', {
+        'database.rules[0].required': selected === 'backend'
+      })
       if (selected === 'frontend') {
-        emitter.emit(
-          'update:mapper',
-          setProp(
-            cloneDeep(mapper),
-            'backend.options',
-            await reqAll('project', {
-              messages: { notShow: true },
-              copy: Project.copy
-            }).then(projects =>
-              projects.map((project: Project) => ({ label: project.name, value: project.key }))
-            )
+        emitter.emit('update:mprop', {
+          'backend.options': await reqAll('project', {
+            messages: { notShow: true },
+            copy: Project.copy
+          }).then(projects =>
+            projects.map((project: Project) => ({ label: project.name, value: project.key }))
           )
-        )
+        })
       }
     }
   },

@@ -17,7 +17,20 @@ export default db.defineModel(
     // 除此以外，如果是--/--/00T00:00:00格式存储，则在该时间执行，激发方式随意
     condition: db.PropTypes.String,
     needRet: db.PropTypes.Boolean,
-    desc: db.PropTypes.LongStr
+    desc: db.PropTypes.LongStr,
+    stcVars: [
+      {
+        name: db.PropTypes.String,
+        vtype: db.PropTypes.String,
+        value: db.PropTypes.Any,
+        prop: db.PropTypes.String,
+        index: db.PropTypes.String,
+        idxType: db.PropTypes.String,
+        default: db.PropTypes.Any,
+        required: db.PropTypes.Boolean,
+        remark: db.PropTypes.String
+      }
+    ]
   },
   {
     router: {
