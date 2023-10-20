@@ -8,13 +8,14 @@ import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
 import Variable from '@/types/variable'
-import { until } from '@/utils'
+import { setProp, until } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
+import { uuid } from 'uuidv4'
 import { createVNode, ref } from 'vue'
 
 import { ndAPI as api, depAPI } from '../apis'
@@ -109,9 +110,7 @@ const iptMapper = new Mapper({
       const edtNode = store.getters['service/editNode']
       const pvsNode = store.getters['service/node'](edtNode.previous)
       const selVar = pvsNode
-        ? getLocVars(pvsNode, pvsNode.nexts.length).find(
-            (v: any) => v.value === to || v.name === to
-          )
+        ? getLocVars(pvsNode, true).find((v: any) => v.value === to || v.name === to)
         : input
       if (selVar) {
         input.name = selVar.value || selVar.name
@@ -150,7 +149,7 @@ const iptMapper = new Mapper({
   },
   remark: {
     label: '备注',
-    type: 'Input'
+    type: 'Textarea'
   }
 })
 
@@ -230,7 +229,7 @@ export const edtNdMapper = new Mapper({
           let options = []
           if (node.previous) {
             const pvsNode = store.getters['service/node'](node.previous)
-            options = getLocVars(pvsNode, pvsNode.nexts.length).map((locVar: Variable) => ({
+            options = getLocVars(pvsNode, true).map((locVar: Variable) => ({
               label: locVar.value || locVar.name,
               value: locVar.value || locVar.name
             }))
@@ -249,8 +248,14 @@ export const edtNdMapper = new Mapper({
           if (src.key && tgt) {
             Variable.copy(src, tgt)
           } else {
-            ipts.push(Variable.copy(src))
+            ipts.push(setProp(Variable.copy(src), 'key', uuid()))
           }
+        },
+        onDeleted: (key: any, ipts: Variable[]) => {
+          ipts.splice(
+            ipts.findIndex(ipt => ipt.key === key),
+            1
+          )
         },
         addable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
         delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
@@ -292,6 +297,12 @@ export const edtNdMapper = new Mapper({
           } else {
             opts.push(Variable.copy(src))
           }
+        },
+        onDeleted: (key: any, ipts: Variable[]) => {
+          ipts.splice(
+            ipts.findIndex(ipt => ipt.key === key),
+            1
+          )
         },
         delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
       },

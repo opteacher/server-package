@@ -1,9 +1,9 @@
-[submodule "server/lib/backend-library"]
-	path = server/lib/backend-library
-	url = https://github.com/opteacher/backend-library.git
 [submodule "src/lib/frontend-library"]
 	path = src/lib/frontend-library
-	url = https://github.com/opteacher/frontend-library.git
+	url = git@github.com:opteacher/frontend-library.git
+[submodule "server/lib/backend-library"]
+	path = server/lib/backend-library
+	url = git@github.com:opteacher/backend-library.git
 [submodule "server/resources/mid-temp"]
 	path = server/resources/mid-temp
-	url = https://github.com/opteacher/mid-temp.git
+	url = git@github.com:opteacher/mid-temp.git

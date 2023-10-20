@@ -2,7 +2,7 @@
 import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
-import Service, { EmitType, emitMapper } from '@/types/service'
+import Service, { EmitType, emitMapper, mthdClrs, Method } from '@/types/service'
 import { EditOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import EditableTable from '@lib/components/EditableTable.vue'
 import Mapper from '@lib/types/mapper'
@@ -84,7 +84,9 @@ function onBefSave(svc: Service) {
     </template>
     <template #methodCtrl="{ record: svc }">
       <template v-if="svc.emit === 'api'">
-        {{ svc.method }}
+        <a-tag :color="mthdClrs[svc.method as Method]">
+          {{ svc.method }}
+        </a-tag>
       </template>
       <template v-else-if="svc.emit === 'timeout' || svc.emit === 'interval'">
         <a-space align="center">
@@ -112,6 +114,11 @@ function onBefSave(svc: Service) {
         </a-space>
       </template>
       <template v-else>-</template>
+    </template>
+    <template #stcVars="{ record: svc }">
+      <ul class="list-none mb-0 pl-0">
+        <li v-for="v of svc.stcVars" :key="v.key">{{ v.name }}</li>
+      </ul>
     </template>
     <template #desc="{ record: svc }">
       <pre v-if="svc.desc" class="max-w-xs">{{ svc.desc }}</pre>

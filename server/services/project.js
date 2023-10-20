@@ -19,7 +19,7 @@ import Model from '../models/model.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
-import { db, pickOrIgnore } from '../utils/index.js'
+import { db, pickOrIgnore, genDefault } from '../utils/index.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
@@ -171,7 +171,7 @@ function fmtInput(variable) {
   }
 }
 
-async function recuNode(key, indent, callback, endKey) {
+export async function recuNode(key, indent, callback, endKey) {
   const node = await db.select(Node, { _index: key }, { ext: true })
   callback(node)
   const indents = ''.padStart(indent, ' ')
@@ -408,7 +408,7 @@ export async function generate(pid) {
   for (const [aname, services] of Object.entries(svcMap)) {
     const svcGen = Path.join(svcPath, aname + '.js')
     console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
-    adjustFile(svcData, svcGen, { services, stcVars: varMap[aname] })
+    adjustFile(svcData, svcGen, { services, stcVars: varMap[aname], genDefault })
   }
   console.log('生成模型实例……')
   for (const model of project.models) {
@@ -584,7 +584,7 @@ export async function runAll() {
  * @param {*} args ?{ [name: string]: any }
  * @returns
  */
-function adjustFile(src, dest, args) {
+export function adjustFile(src, dest, args) {
   if (!args) {
     args = {}
   }

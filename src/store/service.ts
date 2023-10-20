@@ -42,7 +42,6 @@ export default {
       if (payload.key) {
         state.editing = state.nodes[payload.key]
       } else {
-        console.log(payload.previous)
         state.editing = new Node()
         state.editing.previous = payload.previous as string
       }

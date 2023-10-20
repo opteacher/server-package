@@ -4,6 +4,10 @@ import Service from '../models/service.js'
 import Project from '../models/project.js'
 import axios from 'axios'
 import { scanNextss, del as delNode } from './node.js'
+import { recuNode, adjustFile } from './project.js'
+import { readFileSync } from 'fs'
+import Path from 'path'
+import { genDefault } from '../utils/index.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
@@ -106,4 +110,27 @@ export async function del(sid) {
     await delNode(service.flow.id, service.id)
   }
   return db.remove(Service, { _index: sid })
+}
+
+export async function genSvcCode(sid) {
+  const service = await db.select(Service, { _index: sid }, { ext: true })
+  if (service.model) {
+    return { error: '模型服务无法生成代码！' }
+  }
+  service.deps = []
+  service.nodes = service.flow
+    ? await recuNode(service.flow.id, 4, node => {
+        if (node.deps) {
+          for (const dep of node.deps) {
+            service.deps.push(dep)
+          }
+        }
+      })
+    : []
+  const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
+  return adjustFile(readFileSync(svcTmp), undefined, {
+    services: [service],
+    stcVars: service.stcVars,
+    genDefault
+  })
 }

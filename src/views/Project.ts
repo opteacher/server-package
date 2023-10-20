@@ -81,32 +81,31 @@ export const varMapper = new Mapper({
         case 'Any':
         case 'String':
           vtype = 'Input'
-          variable.value = ''
+          variable.default = ''
           break
         case 'Number':
           vtype = 'Number'
-          variable.value = 0
+          variable.default = 0
           break
         case 'Boolean':
           vtype = 'Checkbox'
-          variable.value = false
+          variable.default = false
           break
         case 'DateTime':
           vtype = 'DateTime'
-          variable.value = ref<Moment>()
+          variable.default = ref<Moment>()
           break
         case 'Array':
           vtype = 'EditList'
-          variable.value = []
+          variable.default = []
           break
         case 'Unknown':
           vtype = 'Input'
-          variable.value = ''
+          variable.default = ''
           break
         case 'Object':
           vtype = 'Input'
-          variable.value = ''
-          variable.prop = ''
+          variable.default = 'null'
           break
       }
       varEmitter.emit('update:mprop', {
@@ -114,26 +113,13 @@ export const varMapper = new Mapper({
       })
     }
   },
-  value: {
-    label: '值',
-    type: 'Input',
-    options: [],
-    onChange: (variable: Variable, to: string) => {
-      console.log(variable, to)
-      // if (variable.vtype !== 'Object' && variable.vtype !== 'Unknown') {
-      //   return
-      // }
-      // const edtNode = store.getters['service/editNode']
-      // const pvsNode = store.getters['service/node'](edtNode.previous)
-      // const selVar = pvsNode
-      //   ? getLocVars(pvsNode, pvsNode.nexts.length).find(
-      //       (v: any) => v.value === to || v.name === to
-      //     )
-      //   : variable
-      // if (selVar) {
-      //   variable.name = selVar.value || selVar.name
-      // }
-    }
+  default: {
+    label: '默认值',
+    type: 'Input'
+  },
+  remark: {
+    label: '备注',
+    type: 'Textarea'
   }
 })
 
@@ -266,8 +252,7 @@ export const svcMapper = new Mapper({
     columns: [
       new Column('参数名', 'name'),
       new Column('参数类型', 'vtype'),
-      new Column('传入变量', 'value'),
-      new Column('变量分量', 'prop'),
+      new Column('初始值', 'default'),
       new Column('备注', 'remark')
     ],
     mapper: varMapper,
@@ -280,6 +265,12 @@ export const svcMapper = new Mapper({
       } else {
         vars.push(Variable.copy(src))
       }
+    },
+    onDeleted: (key: any, ipts: Variable[]) => {
+      ipts.splice(
+        ipts.findIndex(ipt => ipt.key === key),
+        1
+      )
     },
     addable: true,
     delable: true
@@ -295,6 +286,7 @@ export const svcColumns = [
   new Column('路由/激发条件', 'pathCond'),
   new Column('访问方式/控制', 'methodCtrl', { width: 120 }),
   new Column('文件/方法', 'fileFunc'),
+  new Column('全局变量', 'stcVars'),
   new Column('描述', 'desc'),
   new Column('流程', 'flow')
 ]

@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { restart, stop, del } from '../../../../../services/service.js'
+import { restart, stop, del, genSvcCode } from '../../../../../services/service.js'
 import { save as saveNode, del as delNode } from '../../../../../services/node.js'
 
 const router = new Router()
@@ -57,6 +57,12 @@ router.post('/:sid/node/:nid', async ctx => {
 router.delete('/:sid/node/:nid', async ctx => {
   ctx.body = {
     result: await delNode(ctx.params.nid, ctx.params.sid)
+  }
+})
+
+router.get('/:sid/flow/codes', async ctx => {
+  ctx.body = {
+    result: await genSvcCode(ctx.params.sid)
   }
 })
 

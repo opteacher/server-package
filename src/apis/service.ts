@@ -34,6 +34,7 @@ export default {
     return store.getters['project/ins'].services
   },
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
+  codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
   job: {
     restart: async (key: any) => {
       await reqPost(`service/${key}/job/restart`, undefined, {

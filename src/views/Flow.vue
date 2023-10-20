@@ -1,39 +1,45 @@
 <template>
-  <a-space class="mx-6 my-4">
-    <a-button @click="$router.go(-1)">
-      <template #icon><arrow-left-outlined /></template>
-    </a-button>
-    <a-breadcrumb>
-      <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
-      <a-breadcrumb-item>
-        <a :href="`/server-package/project/${pid}`">
-          {{ pname }}
-        </a>
-      </a-breadcrumb-item>
-      <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
-      <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
-      <a-breadcrumb-item>
-        <a :href="`/server-package/project/${pid}`">
-          {{ service.name }}.{{ service.interface || service.method }}
-        </a>
-      </a-breadcrumb-item>
-      <a-breadcrumb-item>设计流程</a-breadcrumb-item>
-    </a-breadcrumb>
-  </a-space>
+  <div class="flex justify-between mx-6 my-4">
+    <a-space>
+      <a-button @click="$router.go(-1)">
+        <template #icon><arrow-left-outlined /></template>
+      </a-button>
+      <a-breadcrumb>
+        <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
+        <a-breadcrumb-item>
+          <a :href="`/server-package/project/${pid}`">
+            {{ pname }}
+          </a>
+        </a-breadcrumb-item>
+        <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
+        <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
+        <a-breadcrumb-item>
+          <a :href="`/server-package/project/${pid}`">
+            {{ service.name }}.{{ service.interface || service.method }}
+          </a>
+        </a-breadcrumb-item>
+        <a-breadcrumb-item>设计流程</a-breadcrumb-item>
+      </a-breadcrumb>
+    </a-space>
+    <a-button @click="onShowCodesClick">{{ codes ? '流程设计' : '显示代码' }}</a-button>
+  </div>
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
-        <VarsPanel />
-        <NodeCard v-if="nodes.length === 0" @click:addBtn="() => onEdtNodeClick()" />
-        <template v-else>
-          <NodeCard
-            v-for="node in nodes"
-            :key="node.key"
-            :node="node"
-            @click:card="() => onEdtNodeClick(node)"
-            @click:addBtn="(previous: string) => onEdtNodeClick({ previous })"
-          />
+        <template v-if="!codes">
+          <VarsPanel />
+          <NodeCard v-if="nodes.length === 0" @click:addBtn="() => onEdtNodeClick()" />
+          <template v-else>
+            <NodeCard
+              v-for="node in nodes"
+              :key="node.key"
+              :node="node"
+              @click:card="() => onEdtNodeClick(node)"
+              @click:addBtn="(previous: string) => onEdtNodeClick({ previous })"
+            />
+          </template>
         </template>
+        <pre v-else>{{ codes }}</pre>
       </div>
     </div>
     <FormDialog
@@ -61,6 +67,7 @@ import { NodesInPnl } from '@/store/service'
 import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import NodeInPnl from '@/types/ndInPnl'
 import Service from '@/types/service'
+import svcAPI from '@/apis/service'
 
 const store = useStore()
 const route = useRoute()
@@ -75,6 +82,7 @@ const nodes = computed<NodeInPnl[]>(() =>
   Object.values(store.getters['service/nodes'] as NodesInPnl)
 )
 const rszObs = new ResizeObserver(refresh)
+const codes = ref('')
 
 onBeforeMount(() => {
   store.commit('service/RESET_STATE')
@@ -95,5 +103,12 @@ async function onNodeSaved(node: Node, next: () => void) {
 }
 function onEdtNodeClick(node?: any) {
   store.commit('service/SET_NODE', node)
+}
+async function onShowCodesClick() {
+  if (codes.value) {
+    codes.value = ''
+  } else {
+    codes.value = await svcAPI.codes(route.params.sid)
+  }
 }
 </script>
