@@ -26,7 +26,6 @@
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
-        <a-spin v-if="loading" class="w-full h-full" />
         <template v-if="!codes">
           <VarsPanel />
           <NodeCard v-if="nodes.length === 0" @click:addBtn="() => onEdtNodeClick()" />

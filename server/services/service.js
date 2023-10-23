@@ -137,7 +137,6 @@ export async function genSvcCode(sid) {
   })
 }
 
-const CardMinHgt = 86
 const CardWidth = 300
 const CardHlfWid = CardWidth >> 1
 const ArrowHeight = 80
@@ -146,7 +145,6 @@ const AddBtnWH = 32
 const AddBtnHlfWH = AddBtnWH >> 1
 const CardGutter = 50
 const CardHlfGutter = CardGutter >> 1
-const StokeColor = '#f0f0f0'
 
 export async function buildNodes(flowKey, { width, szMap }) {
   const ndMapper = Object.fromEntries(
@@ -162,7 +160,10 @@ export async function buildNodes(flowKey, { width, szMap }) {
             key,
             {
               key,
-              ...node.toJSON(),
+              ntype: node.ntype,
+              relative: node.relative || '',
+              previous: node.previous ? node.previous.toString() : null,
+              nexts: (node.nexts || []).map(nxt => nxt.toString()),
               size: [w, h],
               posLT: [0, 0],
               btmSvgHgt: ArrowHlfHgt
@@ -171,6 +172,7 @@ export async function buildNodes(flowKey, { width, szMap }) {
       )
     )
   )
+  console.log(ndMapper)
 
   const calcPsSz = async (ndKey, height) => {
     const node = ndMapper[ndKey]
@@ -244,6 +246,6 @@ export async function buildNodes(flowKey, { width, szMap }) {
 
   await calcPsSz(flowKey, 0)
   await fillPlaceholder(flowKey)
-  await fixWidth()
+  // await fixWidth()
   return Object.values(ndMapper)
 }
