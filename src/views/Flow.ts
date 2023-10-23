@@ -405,85 +405,21 @@ export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
 export const StokeColor = '#f0f0f0'
 
-export async function buildNodes(ndKey: string, height: number) {
-  const ndMapper = store.getters['service/nodes'] as NodesInPnl
-  const node = ndMapper[ndKey]
-  let domEle: null | HTMLElement = document.getElementById(ndKey)
-  await until(() => {
-    if (!domEle) {
-      domEle = document.getElementById(ndKey)
-    }
-    return Promise.resolve(domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0)
-  })
-  if (domEle) {
-    node.size[0] = domEle.clientWidth
-    node.size[1] = domEle.clientHeight
-    if (!node.previous) {
-      node.posLT[0] = (store.getters['service/width'] >> 1) - CardHlfWid
-      node.posLT[1] = height
-    } else if (node.ntype === 'endNode') {
-      const relNode = ndMapper[node.relative]
-      node.posLT[0] = relNode.posLT[0]
-      let maxHeight = 0
-      const traverse = (node: NodeInPnl) => {
-        if (node.key === ndKey) {
-          return
-        }
-        const height = node.posLT[1] + node.size[1] + ArrowHeight
-        maxHeight = height > maxHeight ? height : maxHeight
-        for (const nxtKey of node.nexts) {
-          traverse(ndMapper[nxtKey])
-        }
+export async function colcNodes(ndKeys: string[]) {
+  const nodes: Record<string, { w: number; h: number }> = {}
+  for (const ndKey of ndKeys) {
+    let domEle: null | HTMLElement = document.getElementById(ndKey)
+    await until(() => {
+      if (!domEle) {
+        domEle = document.getElementById(ndKey)
       }
-      traverse(relNode)
-      node.posLT[1] = maxHeight
-    } else {
-      const pvsNode = ndMapper[node.previous]
-      const nexts = pvsNode.nexts
-      const oddLen = nexts.length % 2
-      const pvsLft = ndMapper[pvsNode.key].posLT[0] + (oddLen ? 0 : CardHlfWid + CardHlfGutter)
-      const index = nexts.indexOf(node.key)
-      const midIdx = (nexts.length - (oddLen ? 1 : 0)) >> 1
-      const idxDif = index - midIdx
-      node.posLT[0] =
-        pvsLft +
-        // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
-        idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
-      // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
-      node.posLT[1] = height
+      return Promise.resolve(
+        domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0
+      )
+    })
+    if (domEle) {
+      nodes[ndKey] = { w: domEle?.clientWidth || 0, h: domEle?.clientHeight || 0 }
     }
   }
-  for (const nxtKey of node.nexts) {
-    await buildNodes(nxtKey, node.posLT[1] + node.size[1] + ArrowHeight)
-  }
-}
-
-export async function fixWidth() {
-  let left = 0
-  let right = 0
-  for (const node of Object.values(store.getters['service/nodes'] as NodesInPnl)) {
-    if (node.posLT[0] < left) {
-      left = node.posLT[0]
-    }
-    if (node.posLT[0] + node.size[0] > right) {
-      right = node.posLT[0] + node.size[0]
-    }
-  }
-  if (store.getters['service/width'] < right - left) {
-    store.commit('service/SET_WIDTH', right - left)
-    await store.dispatch('service/refresh')
-  }
-}
-
-export async function fillPlaceholder(key: string) {
-  const ndMapper = store.getters['service/nodes']
-  const node = ndMapper[key]
-  for (const nxtKey of node.nexts) {
-    const nxtNode = ndMapper[nxtKey]
-    const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
-    if (height > ArrowHeight) {
-      node.btmSvgHgt = height - ArrowHlfHgt
-    }
-    await fillPlaceholder(nxtKey)
-  }
+  return nodes
 }

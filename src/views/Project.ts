@@ -9,12 +9,10 @@ import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Variable from '@/types/variable'
-import { setProp } from '@/utils'
-import { Cond, OpnType, baseTypes, bsTpOpns, methods } from '@lib/types'
+import { Cond, OpnType, bsTpOpns, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import { cloneDeep } from 'lodash'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ref } from 'vue'
@@ -130,7 +128,6 @@ export const svcMapper = new Mapper({
     options: emitTypeOpns,
     rules: [{ required: true, message: '必须选择一种激活方式！' }],
     onChange: (_svc: Service, to: EmitType) => {
-      const mapper = cloneDeep(svcMapper)
       switch (to) {
         case 'api':
           svcEmitter.emit('update:mprop', {

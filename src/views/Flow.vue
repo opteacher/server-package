@@ -26,6 +26,7 @@
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
+        <a-spin v-if="loading" class="w-full h-full" />
         <template v-if="!codes">
           <VarsPanel />
           <NodeCard v-if="nodes.length === 0" @click:addBtn="() => onEdtNodeClick()" />
@@ -68,6 +69,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import NodeInPnl from '@/types/ndInPnl'
 import Service from '@/types/service'
 import svcAPI from '@/apis/service'
+import { until } from '@/utils'
 
 const store = useStore()
 const route = useRoute()
@@ -83,6 +85,7 @@ const nodes = computed<NodeInPnl[]>(() =>
 )
 const rszObs = new ResizeObserver(refresh)
 const codes = ref('')
+const loading = ref(false)
 
 onBeforeMount(() => {
   store.commit('service/RESET_STATE')
@@ -93,9 +96,11 @@ onMounted(async () => {
 })
 
 async function refresh() {
+  loading.value = true
   pname.value = (await pjtAPI.detail(route.params.pid)).name
-  store.commit('service/SET_WIDTH', panelRef.value.clientWidth)
-  await store.dispatch('service/refresh')
+  await until(() => panelRef.value)
+  await store.dispatch('service/refresh', panelRef.value.clientWidth)
+  loading.value = false
 }
 async function onNodeSaved(node: Node, next: () => void) {
   await api.save(node)

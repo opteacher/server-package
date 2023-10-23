@@ -6,7 +6,7 @@ import router from '@/router'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
-import { buildNodes, edtNdEmitter, edtNdMapper, fillPlaceholder, fixWidth } from '@/views/Flow'
+import { colcNodes, edtNdEmitter, edtNdMapper } from '@/views/Flow'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -26,9 +26,6 @@ export default {
       editing: new Node()
     } as SvcState),
   mutations: {
-    SET_WIDTH(state: SvcState, width: number) {
-      state.width = width
-    },
     SET_NODE(state: SvcState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       if (!payload || (!payload.key && !payload.previous)) {
         edtNdEmitter.emit('update:mprop', {
@@ -83,7 +80,7 @@ export default {
     }
   },
   actions: {
-    async refresh({ state }: { state: SvcState }) {
+    async refresh({ state }: { state: SvcState }, width?: number) {
       if (!router.currentRoute.value.params.sid) {
         return
       }
@@ -94,9 +91,13 @@ export default {
         state.nodes = Object.fromEntries(
           (await ndAPI.all(rootKey)).map(node => [node.key, NodeInPnl.copy(node)])
         )
-        await buildNodes(rootKey, 0)
-        await fillPlaceholder(rootKey)
-        await fixWidth()
+        const szMap = await colcNodes(Object.keys(state.nodes))
+        for (const ndInPnl of await svcAPI.node.build(rootKey, width || 0, szMap)) {
+          const node = state.nodes[ndInPnl.key]
+          node.posLT = ndInPnl.posLT
+          node.size = ndInPnl.size
+          node.btmSvgHgt = ndInPnl.btmSvgHgt
+        }
       } else {
         state.nodes = {}
         state.editing.reset()

@@ -1,6 +1,6 @@
 import store from '@/store'
 import Service from '@/types/service'
-import { reqDelete, reqGet, reqPost, reqPut, intervalCheck, pickOrIgnore } from '@/utils'
+import { intervalCheck, pickOrIgnore, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 
 export default {
   add: async (data: any) => {
@@ -35,6 +35,10 @@ export default {
   },
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
+  node: {
+    build: (key: any, width: number, szMap: Record<string, { w: number; h: number }>) =>
+      reqPost(`service/${key}/node/s/build`, { width, szMap }, { type: 'api' })
+  },
   job: {
     restart: async (key: any) => {
       await reqPost(`service/${key}/job/restart`, undefined, {

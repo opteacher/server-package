@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { db } from '../utils/index.js'
-import Service from '../models/service.js'
-import Project from '../models/project.js'
 import axios from 'axios'
-import { scanNextss, del as delNode } from './node.js'
-import { recuNode, adjustFile } from './project.js'
 import { readFileSync } from 'fs'
 import Path from 'path'
+
+import Node from '../models/node.js'
+import Project from '../models/project.js'
+import Service from '../models/service.js'
+import { db } from '../utils/index.js'
 import { genDefault } from '../utils/index.js'
+import { del as delNode, scanNextss } from './node.js'
+import { adjustFile, recuNode } from './project.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
@@ -133,4 +135,115 @@ export async function genSvcCode(sid) {
     stcVars: service.stcVars,
     genDefault
   })
+}
+
+const CardMinHgt = 86
+const CardWidth = 300
+const CardHlfWid = CardWidth >> 1
+const ArrowHeight = 80
+const ArrowHlfHgt = ArrowHeight >> 1
+const AddBtnWH = 32
+const AddBtnHlfWH = AddBtnWH >> 1
+const CardGutter = 50
+const CardHlfGutter = CardGutter >> 1
+const StokeColor = '#f0f0f0'
+
+export async function buildNodes(flowKey, { width, szMap }) {
+  const ndMapper = Object.fromEntries(
+    await Promise.all(
+      Object.entries(szMap).map(([key, { w, h }]) =>
+        db
+          .select(
+            Node,
+            { _index: flowKey },
+            { ext: false, rawQuery: true, selCols: ['ntype', 'relative', 'previous', 'nexts'] }
+          )
+          .then(node => [
+            key,
+            {
+              key,
+              ...node.toJSON(),
+              size: [w, h],
+              posLT: [0, 0],
+              btmSvgHgt: ArrowHlfHgt
+            }
+          ])
+      )
+    )
+  )
+
+  const calcPsSz = async (ndKey, height) => {
+    const node = ndMapper[ndKey]
+    if (!node.previous) {
+      node.posLT[0] = (width >> 1) - CardHlfWid
+      node.posLT[1] = height
+    } else if (node.ntype === 'endNode') {
+      const relNode = ndMapper[node.relative]
+      node.posLT[0] = relNode.posLT[0]
+      let maxHeight = 0
+      const traverse = node => {
+        if (node.key === ndKey) {
+          return
+        }
+        height = node.posLT[1] + node.size[1] + ArrowHeight
+        maxHeight = height > maxHeight ? height : maxHeight
+        for (const nxtKey of node.nexts) {
+          traverse(ndMapper[nxtKey])
+        }
+      }
+      traverse(relNode)
+      node.posLT[1] = maxHeight
+    } else {
+      const pvsNode = ndMapper[node.previous]
+      const nexts = pvsNode.nexts
+      const oddLen = nexts.length % 2
+      const pvsLft = ndMapper[pvsNode.key].posLT[0] + (oddLen ? 0 : CardHlfWid + CardHlfGutter)
+      const index = nexts.indexOf(node.key)
+      const midIdx = (nexts.length - (oddLen ? 1 : 0)) >> 1
+      const idxDif = index - midIdx
+      node.posLT[0] =
+        pvsLft +
+        // + (idxDif > 0 ? CardWidth : 0) //初始定位在中间节点的左边
+        idxDif * (CardWidth + CardGutter) // 加上当前节点与中间节点的距离
+      // - (idxDif > 0 ? CardWidth : 0) // 如果是右边的节点，则此时定位在节点的右边，调整到左边
+      node.posLT[1] = height
+    }
+    for (const nxtKey of node.nexts) {
+      await calcPsSz(nxtKey, node.posLT[1] + node.size[1] + ArrowHeight)
+    }
+  }
+
+  const fillPlaceholder = async key => {
+    const node = ndMapper[key]
+    for (const nxtKey of node.nexts) {
+      const nxtNode = ndMapper[nxtKey]
+      const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
+      if (height > ArrowHeight) {
+        node.btmSvgHgt = height - ArrowHlfHgt
+      }
+      await fillPlaceholder(nxtKey)
+    }
+  }
+
+  const fixWidth = async () => {
+    let left = 0
+    let right = 0
+    for (const node of Object.values(ndMapper)) {
+      if (node.posLT[0] < left) {
+        left = node.posLT[0]
+      }
+      if (node.posLT[0] + node.size[0] > right) {
+        right = node.posLT[0] + node.size[0]
+      }
+    }
+    if (width < right - left) {
+      width = right - left
+      await buildNodes(flowKey, { width, szMap })
+    }
+  }
+
+  await calcPsSz(flowKey, 0)
+  await fillPlaceholder(flowKey)
+  await fixWidth()
+  return Object.values(ndMapper)
 }
