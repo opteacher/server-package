@@ -26,7 +26,8 @@
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
-        <template v-if="!codes">
+        <a-spin v-if="loading" class="w-full h-full" />
+        <template v-else-if="!codes">
           <VarsPanel />
           <NodeCard v-if="nodes.length === 0" @click:addBtn="() => onEdtNodeClick()" />
           <template v-else>
@@ -55,20 +56,21 @@
 </template>
 
 <script lang="ts" setup name="Flow">
-import { computed, onBeforeMount, onMounted, ref } from 'vue'
-import NodeCard from '../components/flow/NodeCard.vue'
-import Node from '../types/node'
-import { edtNdEmitter, edtNdMapper } from './Flow'
-import { useStore } from 'vuex'
-import VarsPanel from '../components/flow/VarsPanel.vue'
-import { useRoute } from 'vue-router'
-import { ndAPI as api, pjtAPI } from '../apis'
+import svcAPI from '@/apis/service'
 import { NodesInPnl } from '@/store/service'
-import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import NodeInPnl from '@/types/ndInPnl'
 import Service from '@/types/service'
-import svcAPI from '@/apis/service'
 import { until } from '@/utils'
+import { ArrowLeftOutlined } from '@ant-design/icons-vue'
+import { computed, onBeforeMount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+
+import { ndAPI as api, pjtAPI } from '../apis'
+import NodeCard from '../components/flow/NodeCard.vue'
+import VarsPanel from '../components/flow/VarsPanel.vue'
+import Node from '../types/node'
+import { edtNdEmitter, edtNdMapper } from './Flow'
 
 const store = useStore()
 const route = useRoute()
@@ -89,9 +91,8 @@ const loading = ref(false)
 onBeforeMount(() => {
   store.commit('service/RESET_STATE')
 })
-onMounted(async () => {
+onMounted(() => {
   rszObs.observe(panelRef.value)
-  await refresh()
 })
 
 async function refresh() {

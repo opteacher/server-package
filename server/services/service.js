@@ -138,6 +138,7 @@ export async function genSvcCode(sid) {
 }
 
 const CardWidth = 300
+const CardHeight = 128
 const CardHlfWid = CardWidth >> 1
 const ArrowHeight = 80
 const ArrowHlfHgt = ArrowHeight >> 1
@@ -146,35 +147,33 @@ const AddBtnHlfWH = AddBtnWH >> 1
 const CardGutter = 50
 const CardHlfGutter = CardGutter >> 1
 
-export async function buildNodes(flowKey, { width, szMap }) {
-  const ndMapper = Object.fromEntries(
-    await Promise.all(
-      Object.entries(szMap).map(([key, { w, h }]) =>
-        db
-          .select(
-            Node,
-            { _index: flowKey },
-            { ext: false, rawQuery: true, selCols: ['ntype', 'relative', 'previous', 'nexts'] }
-          )
-          .then(node => [
-            key,
-            {
-              key,
-              ntype: node.ntype,
-              relative: node.relative || '',
-              previous: node.previous ? node.previous.toString() : null,
-              nexts: (node.nexts || []).map(nxt => nxt.toString()),
-              size: [w, h],
-              posLT: [0, 0],
-              btmSvgHgt: ArrowHlfHgt
-            }
-          ])
-      )
-    )
-  )
-  console.log(ndMapper)
+export async function readAllNodes(svcKey) {
+  return colcNodes((await db.select(Service, { _index: svcKey }, { ext: false })).flow)
+}
 
-  const calcPsSz = async (ndKey, height) => {
+async function colcNodes(ndKey) {
+  const ret = []
+  const node = await db.select(Node, { _index: ndKey }, { ext: false }).then(node => ({
+    key: ndKey,
+    ...node.toJSON(),
+    posLT: [0, 0],
+    btmSvgHgt: ArrowHlfHgt
+  }))
+  ret.push(node)
+  for (const sbKey of node.nexts) {
+    ret.push(...(await colcNodes(sbKey)))
+  }
+  return ret
+}
+
+export async function buildNodes(svcKey, { width }) {
+  const service = await db.select(Service, { _index: svcKey }, { ext: false })
+  const flowKey = service.flow
+  const ndMapper = Object.fromEntries(
+    await colcNodes(flowKey).then(nodes => nodes.map(node => [node.key, node]))
+  )
+
+  const calcPos = async (ndKey, height) => {
     const node = ndMapper[ndKey]
     if (!node.previous) {
       node.posLT[0] = (width >> 1) - CardHlfWid
@@ -187,7 +186,7 @@ export async function buildNodes(flowKey, { width, szMap }) {
         if (node.key === ndKey) {
           return
         }
-        height = node.posLT[1] + node.size[1] + ArrowHeight
+        height = node.posLT[1] + CardHeight + ArrowHeight
         maxHeight = height > maxHeight ? height : maxHeight
         for (const nxtKey of node.nexts) {
           traverse(ndMapper[nxtKey])
@@ -211,7 +210,7 @@ export async function buildNodes(flowKey, { width, szMap }) {
       node.posLT[1] = height
     }
     for (const nxtKey of node.nexts) {
-      await calcPsSz(nxtKey, node.posLT[1] + node.size[1] + ArrowHeight)
+      await calcPos(nxtKey, node.posLT[1] + CardHeight + ArrowHeight)
     }
   }
 
@@ -219,7 +218,7 @@ export async function buildNodes(flowKey, { width, szMap }) {
     const node = ndMapper[key]
     for (const nxtKey of node.nexts) {
       const nxtNode = ndMapper[nxtKey]
-      const height = nxtNode.posLT[1] - (node.posLT[1] + node.size[1])
+      const height = nxtNode.posLT[1] - (node.posLT[1] + CardHeight)
       if (height > ArrowHeight) {
         node.btmSvgHgt = height - ArrowHlfHgt
       }
@@ -234,18 +233,19 @@ export async function buildNodes(flowKey, { width, szMap }) {
       if (node.posLT[0] < left) {
         left = node.posLT[0]
       }
-      if (node.posLT[0] + node.size[0] > right) {
-        right = node.posLT[0] + node.size[0]
+      if (node.posLT[0] + CardWidth > right) {
+        right = node.posLT[0] + CardWidth
       }
     }
     if (width < right - left) {
       width = right - left
-      await buildNodes(flowKey, { width, szMap })
+      await buildNodes(flowKey, { width })
     }
   }
 
-  await calcPsSz(flowKey, 0)
+  await colcNodes(flowKey)
+  await calcPos(flowKey, 0)
   await fillPlaceholder(flowKey)
-  // await fixWidth()
+  await fixWidth()
   return Object.values(ndMapper)
 }

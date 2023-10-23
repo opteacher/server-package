@@ -396,6 +396,7 @@ export const edtNdMapper = new Mapper({
 
 export const CardMinHgt = 86
 export const CardWidth = 300
+export const CardHeight = 128
 export const CardHlfWid = CardWidth >> 1
 export const ArrowHeight = 80
 export const ArrowHlfHgt = ArrowHeight >> 1
@@ -404,22 +405,3 @@ export const AddBtnHlfWH = AddBtnWH >> 1
 export const CardGutter = 50
 export const CardHlfGutter = CardGutter >> 1
 export const StokeColor = '#f0f0f0'
-
-export async function colcNodes(ndKeys: string[]) {
-  const nodes: Record<string, { w: number; h: number }> = {}
-  for (const ndKey of ndKeys) {
-    let domEle: null | HTMLElement = document.getElementById(ndKey)
-    await until(() => {
-      if (!domEle) {
-        domEle = document.getElementById(ndKey)
-      }
-      return Promise.resolve(
-        domEle !== null && domEle.clientWidth !== 0 && domEle.clientHeight !== 0
-      )
-    })
-    if (domEle) {
-      nodes[ndKey] = { w: domEle?.clientWidth || 0, h: domEle?.clientHeight || 0 }
-    }
-  }
-  return nodes
-}

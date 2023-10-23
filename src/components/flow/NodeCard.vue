@@ -39,6 +39,7 @@
     }"
     :bodyStyle="{
       position: 'relative',
+      height: '80px',
       border: `1px solid ${StokeColor}`
     }"
     hoverable
@@ -176,7 +177,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import NodeInPnl from '@/types/ndInPnl'
 import Node from '@/types/node'
-import { AddBtnHlfWH, ArrowHlfHgt, CardHlfWid, CardWidth, StokeColor } from '@/views/Flow'
+import { AddBtnHlfWH, ArrowHlfHgt, CardHeight, CardHlfWid, CardWidth, StokeColor } from '@/views/Flow'
 import {
   FunctionOutlined,
   LoginOutlined,
@@ -199,13 +200,13 @@ const addBtnPosLT = computed(() =>
   props.node.key
     ? [
         props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
-        props.node.posLT[1] + props.node.size[1] + ArrowHlfHgt - AddBtnHlfWH
+        props.node.posLT[1] + CardHeight + ArrowHlfHgt - AddBtnHlfWH
       ]
     : [(store.getters['service/width'] >> 1) - AddBtnHlfWH, 0]
 )
 const arwBtmSvgPosLT = computed(() => [
   props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
-  props.node.posLT[1] + props.node.size[1]
+  props.node.posLT[1] + CardHeight
 ])
 const arwTopSvgPosLT = computed(() => [
   props.node.posLT[0] - (arwTopSvgSizeW.value >> 1) + CardHlfWid,

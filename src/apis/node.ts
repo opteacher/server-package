@@ -1,6 +1,6 @@
 import store from '@/store'
-import { reqDelete, reqPost, reqPut, reqGet } from '@/utils'
 import Node from '@/types/node'
+import { reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 
 const exp = {
   save: async (data: any) => {
@@ -14,18 +14,8 @@ const exp = {
     await reqDelete(`service/${sid}`, `node/${key}`, { type: 'api' })
     await store.dispatch('service/refresh')
   },
-  all: async (rootKey: string): Promise<Node[]> => {
-    const res = await reqGet('node', rootKey, { messages: { notShow: true } })
-    if (!res) {
-      return []
-    }
-    const ret = Node.copy(res)
-    let nexts: Node[] = []
-    for (const nxtKey of ret.nexts) {
-      nexts = nexts.concat(await exp.all(nxtKey))
-    }
-    return [ret].concat(nexts)
-  },
+  all: async (sid: string): Promise<Node[]> =>
+    reqGet('service', `${sid}/flow/nodes`, { type: 'api' }),
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
     save: (deps: string[]) => reqPut('node', store.getters['service/edtNdKey'], { deps })

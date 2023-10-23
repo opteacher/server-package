@@ -6,7 +6,7 @@ import router from '@/router'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
-import { colcNodes, edtNdEmitter, edtNdMapper } from '@/views/Flow'
+import { edtNdEmitter, edtNdMapper } from '@/views/Flow'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -84,18 +84,16 @@ export default {
       if (!router.currentRoute.value.params.sid) {
         return
       }
-      const sid = router.currentRoute.value.params.sid
+      const sid = router.currentRoute.value.params.sid as string
       state.service = await svcAPI.detail(sid)
+      state.width = width || 0
       if (state.service.flow) {
-        const rootKey = state.service.flow.key
         state.nodes = Object.fromEntries(
-          (await ndAPI.all(rootKey)).map(node => [node.key, NodeInPnl.copy(node)])
+          (await ndAPI.all(sid)).map(node => [node.key, NodeInPnl.copy(node)])
         )
-        const szMap = await colcNodes(Object.keys(state.nodes))
-        for (const ndInPnl of await svcAPI.node.build(rootKey, width || 0, szMap)) {
+        for (const ndInPnl of await svcAPI.node.build(sid, state.width)) {
           const node = state.nodes[ndInPnl.key]
           node.posLT = ndInPnl.posLT
-          node.size = ndInPnl.size
           node.btmSvgHgt = ndInPnl.btmSvgHgt
         }
       } else {

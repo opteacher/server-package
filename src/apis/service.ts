@@ -36,8 +36,8 @@ export default {
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
   node: {
-    build: (key: any, width: number, szMap: Record<string, { w: number; h: number }>) =>
-      reqPost(`service/${key}/node/s/build`, { width, szMap }, { type: 'api' })
+    build: (key: any, width: number) =>
+      reqPost(`service/${key}/node/s/build`, { width }, { type: 'api' })
   },
   job: {
     restart: async (key: any) => {
