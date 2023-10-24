@@ -39,7 +39,7 @@
     }"
     :bodyStyle="{
       position: 'relative',
-      height: '80px',
+      minHeight: '60px',
       border: `1px solid ${StokeColor}`
     }"
     hoverable

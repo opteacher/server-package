@@ -293,7 +293,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Transfer from '@/types/transfer'
-import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { endsWith, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,
@@ -312,7 +312,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, pjtAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -332,6 +332,7 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
+import { Modal } from 'ant-design-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -399,6 +400,9 @@ function onRelMdlChange(prop: Property, mname: string) {
   prop.visible = true
 }
 function onExportClick() {
-  console.log()
+  Modal.confirm({
+    title: '确定生成并导出Docker镜像吗？',
+    onOk: () => pjtAPI.expDkrCtnr(pid)
+  })
 }
 </script>

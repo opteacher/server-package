@@ -6,6 +6,7 @@ import { spawn, spawnSync } from 'child_process'
 import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
+
 import {
   copyDir,
   fixEndsWith,
@@ -19,7 +20,7 @@ import Model from '../models/model.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
-import { db, pickOrIgnore, genDefault } from '../utils/index.js'
+import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
@@ -396,7 +397,7 @@ export async function generate(pid) {
       varMap[service.name] = svcExt.stcVars
     } else {
       const vnames = new Set(varMap[service.name].map(v => v.name))
-      varMap[service.name].push(svcExt.stcVars.filter(v => !vnames.has(v.name)))
+      varMap[service.name].push(...svcExt.stcVars.filter(v => !vnames.has(v.name)))
     }
   }
   console.log('生成非模型服务的路由……')
@@ -977,4 +978,20 @@ export async function expFrtend(ctx) {
 
 export async function genFront(project) {
   return project
+}
+
+export async function expDkrCtnr(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+  if (!project.thread) {
+    return { error: '项目未启动！' }
+  }
+  const genPath = Path.resolve(svrCfg.apps, project.name)
+  const genTar = genPath + '.tar'
+  spawnSync(`docker save -o ${genTar} ${project.name}`, {
+    cwd: Path.resolve(svrCfg.apps),
+    stdio: 'inherit',
+    shell: true
+  })
+  ctx.attachment(genTar)
+  await sendfile(ctx, genTar)
 }

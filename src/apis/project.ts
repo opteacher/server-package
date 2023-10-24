@@ -1,4 +1,8 @@
 import store from '@/store'
+import CmpIns from '@/types/cmpIns'
+import DataBase from '@/types/database'
+import Project from '@/types/project'
+import Transfer from '@/types/transfer'
 import {
   RequestOptions,
   endsWith,
@@ -10,15 +14,12 @@ import {
   reqPost,
   reqPut
 } from '@/utils'
-import Project from '@/types/project'
-import Transfer from '@/types/transfer'
-import DataBase from '@/types/database'
-import { Modal } from 'ant-design-vue'
-import { createVNode } from 'vue'
 import { ExclamationCircleOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import { Modal } from 'ant-design-vue'
 import axios from 'axios'
+import { createVNode } from 'vue'
+import { saveAs } from 'file-saver'
 import { pjtAPI } from '.'
-import CmpIns from '@/types/cmpIns'
 
 function searchCmpIns(cmpIns: { key: string; children: CmpIns[] }, skey: string): CmpIns | null {
   if (cmpIns.key === skey) {
@@ -135,6 +136,14 @@ export default {
       messages: { notShow: true }
     }),
   apis: (key: string) => reqGet('project', `${key}/apis`, { type: 'api' }),
+  expDkrCtnr: async (key: string) => {
+    const resp = await reqGet('project', `${key}/docker/container/export`, {
+      type: 'api',
+      orgRes: true,
+      axiosConfig: { timeout: 120000, responseType: 'blob' }
+    })
+    saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }))
+  },
   middle: {
     login: {
       save: async (key: string, data: any, next?: () => Promise<any>) => {

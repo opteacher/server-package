@@ -396,7 +396,7 @@ export const edtNdMapper = new Mapper({
 
 export const CardMinHgt = 86
 export const CardWidth = 300
-export const CardHeight = 128
+export const CardHeight = 108
 export const CardHlfWid = CardWidth >> 1
 export const ArrowHeight = 80
 export const ArrowHlfHgt = ArrowHeight >> 1

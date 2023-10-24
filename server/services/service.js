@@ -138,7 +138,7 @@ export async function genSvcCode(sid) {
 }
 
 const CardWidth = 300
-const CardHeight = 128
+const CardHeight = 108
 const CardHlfWid = CardWidth >> 1
 const ArrowHeight = 80
 const ArrowHlfHgt = ArrowHeight >> 1
@@ -239,7 +239,7 @@ export async function buildNodes(svcKey, { width }) {
     }
     if (width < right - left) {
       width = right - left
-      await buildNodes(flowKey, { width })
+      await buildNodes(svcKey, { width })
     }
   }
 

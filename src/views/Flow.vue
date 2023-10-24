@@ -84,7 +84,7 @@ const editTitle = computed<string>(() =>
 const nodes = computed<NodeInPnl[]>(() =>
   Object.values(store.getters['service/nodes'] as NodesInPnl)
 )
-const rszObs = new ResizeObserver(refresh)
+// const rszObs = new ResizeObserver(refresh)
 const codes = ref('')
 const loading = ref(false)
 
@@ -92,7 +92,8 @@ onBeforeMount(() => {
   store.commit('service/RESET_STATE')
 })
 onMounted(() => {
-  rszObs.observe(panelRef.value)
+  // rszObs.observe(panelRef.value)
+  refresh()
 })
 
 async function refresh() {
@@ -105,6 +106,7 @@ async function refresh() {
 async function onNodeSaved(node: Node, next: () => void) {
   await api.save(node)
   next()
+  refresh()
 }
 function onEdtNodeClick(node?: any) {
   store.commit('service/SET_NODE', node)

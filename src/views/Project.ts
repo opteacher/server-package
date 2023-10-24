@@ -255,7 +255,6 @@ export const svcMapper = new Mapper({
     mapper: varMapper,
     newFun: () => new Variable(),
     onSaved: (src: Variable, vars: Variable[]) => {
-      console.log(src, vars)
       const tgt = vars.find(v => v.key === src.key)
       if (src.key && tgt) {
         Variable.copy(src, tgt)
@@ -263,9 +262,9 @@ export const svcMapper = new Mapper({
         vars.push(Variable.copy(src))
       }
     },
-    onDeleted: (key: any, ipts: Variable[]) => {
-      ipts.splice(
-        ipts.findIndex(ipt => ipt.key === key),
+    onDeleted: (key: any, vars: Variable[]) => {
+      vars.splice(
+        vars.findIndex(v => v.key === key),
         1
       )
     },
@@ -284,8 +283,7 @@ export const svcColumns = [
   new Column('访问方式/控制', 'methodCtrl', { width: 120 }),
   new Column('文件/方法', 'fileFunc'),
   new Column('全局变量', 'stcVars'),
-  new Column('描述', 'desc'),
-  new Column('流程', 'flow')
+  new Column('描述', 'desc')
 ]
 
 export const frtEmitter = new Emitter()

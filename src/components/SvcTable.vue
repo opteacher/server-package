@@ -42,6 +42,7 @@ function onBefSave(svc: Service) {
 <template>
   <EditableTable
     title="服务"
+    description="定义在项目services文件夹下"
     size="small"
     :api="api"
     :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
@@ -67,7 +68,7 @@ function onBefSave(svc: Service) {
       <template v-if="!svc.model">{{ svc.name }}.{{ svc.interface }}()</template>
       <template v-else>-</template>
     </template>
-    <template #flow="{ record: svc }">
+    <template #opera="{ record: svc }">
       <a-button
         v-if="!svc.model"
         type="primary"

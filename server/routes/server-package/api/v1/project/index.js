@@ -11,7 +11,8 @@ import {
   chkMiddle,
   genMiddle,
   depMiddle,
-  pjtsWithStt
+  pjtsWithStt,
+  expDkrCtnr
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -102,9 +103,7 @@ router.post('/:pid/middle/publish', async ctx => {
   }
 })
 
-router.get('/:pid/middle/generate', async ctx => {
-  await genMiddle(ctx)
-})
+router.get('/:pid/middle/generate', genMiddle)
 
 router.put('/:pid/middle/deploy', async ctx => {
   ctx.body = {
@@ -117,5 +116,7 @@ router.get('/:pid/middle/status', async ctx => {
     result: await chkMiddle(ctx.params.pid)
   }
 })
+
+router.get('/:pid/docker/container/export', expDkrCtnr)
 
 export default router
