@@ -192,7 +192,7 @@ import { useStore } from 'vuex'
 
 defineEmits(['click:card', 'click:addBtn', 'mouseenter', 'mouseleave'])
 const props = defineProps({
-  node: { type: NodeInPnl, default: new NodeInPnl() }
+  node: { type: Object, default: new NodeInPnl() }
 })
 const store = useStore()
 const nodeRef = ref()
@@ -219,7 +219,7 @@ const arwTopSvgSizeW = computed(() => {
     return CardWidth
   }
 })
-const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node))
+const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node as Node))
 const color = computed(() => {
   switch (props.node.ntype) {
     case 'normal':

@@ -107,7 +107,7 @@ export default {
         return
       }
       const sid = router.currentRoute.value.params.sid as string
-      if (params.force) {
+      if (params.force || !state.service.flow) {
         state.service = await svcAPI.detail(sid)
         state.deps = await depAPI.all()
       }

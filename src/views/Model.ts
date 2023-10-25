@@ -12,8 +12,7 @@ export const columns = [
   new Column('标签', 'label'),
   new Column('描述', 'desc'),
   new Column('记录时间', 'logTime', { width: 80 }),
-  new Column('模型接口', 'methods'),
-  new Column('表单设计', 'form')
+  new Column('模型接口', 'methods')
 ]
 
 export const mapper = new Mapper({

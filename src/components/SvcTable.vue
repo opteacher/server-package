@@ -94,7 +94,6 @@ function onBefSave(svc: Service) {
           <a-tooltip>
             <template #title>需先启动项目后才能启动任务！</template>
             <a-button
-              class="mb-3"
               size="small"
               type="primary"
               :disabled="pstatus !== 'running'"

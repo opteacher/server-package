@@ -168,7 +168,7 @@
           @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
         />
       </template>
-      <template #form="{ record: model }">
+      <template #opera="{ record: model }">
         <a-space>
           <a-button
             size="small"
@@ -293,7 +293,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Transfer from '@/types/transfer'
-import { endsWith, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,

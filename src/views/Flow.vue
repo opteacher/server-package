@@ -113,7 +113,7 @@ async function refresh(param: [string, 'save' | 'delete'] | boolean = false) {
 async function onNodeSaved(node: Node, next: () => void) {
   const ret = await api.save(node)
   next()
-  refresh([ret.key, 'save'])
+  await refresh([ret.key, 'save'])
 }
 function onEdtNodeClick(node?: any) {
   store.commit('service/SET_NODE', node)
