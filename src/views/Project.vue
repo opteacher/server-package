@@ -307,6 +307,7 @@ import {
   UploadOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
+import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -332,7 +333,6 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
-import { Modal } from 'ant-design-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -402,7 +402,7 @@ function onRelMdlChange(prop: Property, mname: string) {
 function onExportClick() {
   Modal.confirm({
     title: '确定生成并导出Docker镜像吗？',
-    onOk: () => pjtAPI.expDkrCtnr(pid)
+    onOk: () => pjtAPI.expDkrImg(pid, `${project.value.name}.tar`)
   })
 }
 </script>

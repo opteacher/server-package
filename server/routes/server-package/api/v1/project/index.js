@@ -12,7 +12,7 @@ import {
   genMiddle,
   depMiddle,
   pjtsWithStt,
-  expDkrCtnr
+  expDkrImg
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -117,6 +117,6 @@ router.get('/:pid/middle/status', async ctx => {
   }
 })
 
-router.get('/:pid/docker/container/export', expDkrCtnr)
+router.get('/:pid/docker/image/export', expDkrImg)
 
 export default router

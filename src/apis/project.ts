@@ -136,13 +136,13 @@ export default {
       messages: { notShow: true }
     }),
   apis: (key: string) => reqGet('project', `${key}/apis`, { type: 'api' }),
-  expDkrCtnr: async (key: string) => {
-    const resp = await reqGet('project', `${key}/docker/container/export`, {
+  expDkrImg: async (key: string, name?: string) => {
+    const resp = await reqGet('project', `${key}/docker/image/export`, {
       type: 'api',
       orgRes: true,
       axiosConfig: { timeout: 120000, responseType: 'blob' }
     })
-    saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }))
+    saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
   },
   middle: {
     login: {

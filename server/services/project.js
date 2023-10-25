@@ -980,7 +980,7 @@ export async function genFront(project) {
   return project
 }
 
-export async function expDkrCtnr(ctx) {
+export async function expDkrImg(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
     return { error: '项目未启动！' }

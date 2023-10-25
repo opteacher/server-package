@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ndAPI, svcAPI } from '@/apis'
+import { depAPI, ndAPI, svcAPI } from '@/apis'
 import router from '@/router'
+import Dep from '@/types/dep'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
@@ -14,6 +15,7 @@ type SvcState = {
   nodes: NodesInPnl
   width: number
   editing: Node
+  deps: Dep[]
 }
 
 export default {
@@ -23,10 +25,24 @@ export default {
       service: new Service(),
       nodes: {} as NodesInPnl,
       width: 0,
-      editing: new Node()
+      editing: new Node(),
+      deps: []
     } as SvcState),
   mutations: {
     SET_NODE(state: SvcState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
+      // 更新依赖选项到表单
+      const depExp = (dep: Dep) => (dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`)
+      edtNdEmitter.emit('update:mprop', {
+        'advanced.items.deps.lblMapper': Object.fromEntries(
+          state.deps.map(dep => [dep.key, dep.name])
+        ),
+        'advanced.items.deps.mapper.data.options': state.deps.map(dep => ({
+          key: dep.key,
+          title: dep.name,
+          subTitle: `import ${depExp(dep)} from '${dep.from}'`
+        }))
+      })
+      // 新增节点
       if (!payload || (!payload.key && !payload.previous)) {
         edtNdEmitter.emit('update:mprop', {
           'ntype.options': ndTpOpns.filter(
@@ -80,17 +96,38 @@ export default {
     }
   },
   actions: {
-    async refresh({ state }: { state: SvcState }, width?: number) {
+    async refresh(
+      { state }: { state: SvcState },
+      params?: { force?: boolean; width?: number; updNodes?: [string, 'save' | 'delete'][] }
+    ) {
+      if (!params) {
+        params = { force: false, width: 0, updNodes: [] }
+      }
       if (!router.currentRoute.value.params.sid) {
         return
       }
       const sid = router.currentRoute.value.params.sid as string
-      state.service = await svcAPI.detail(sid)
-      state.width = width || 0
+      if (params.force) {
+        state.service = await svcAPI.detail(sid)
+        state.deps = await depAPI.all()
+      }
+      if (params.width) {
+        state.width = params.width
+      }
       if (state.service.flow) {
-        state.nodes = Object.fromEntries(
-          (await ndAPI.all(sid)).map(node => [node.key, NodeInPnl.copy(node)])
-        )
+        if (params.updNodes) {
+          for (const [ndKey, opera] of params.updNodes) {
+            if (opera === 'save') {
+              state.nodes[ndKey] = await ndAPI.detail(ndKey)
+            } else if (opera === 'delete') {
+              delete state.nodes[ndKey]
+            }
+          }
+        } else if (params.force) {
+          state.nodes = Object.fromEntries(
+            (await ndAPI.all(sid)).map(node => [node.key, NodeInPnl.copy(node)])
+          )
+        }
         for (const ndInPnl of await svcAPI.node.build(sid, state.width)) {
           const node = state.nodes[ndInPnl.key]
           node.posLT = ndInPnl.posLT
@@ -99,12 +136,6 @@ export default {
       } else {
         state.nodes = {}
         state.editing.reset()
-      }
-    },
-    async refreshNode({ state }: { state: SvcState }, key?: string) {
-      const nkey = key || state.editing.key
-      if (nkey) {
-        NodeInPnl.copy(await ndAPI.detail(nkey), state.nodes[nkey])
       }
     }
   },

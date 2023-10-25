@@ -169,6 +169,9 @@ async function colcNodes(ndKey) {
 export async function buildNodes(svcKey, { width }) {
   const service = await db.select(Service, { _index: svcKey }, { ext: false })
   const flowKey = service.flow
+  if (!flowKey) {
+    return []
+  }
   const ndMapper = Object.fromEntries(
     await colcNodes(flowKey).then(nodes => nodes.map(node => [node.key, node]))
   )

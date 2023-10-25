@@ -93,20 +93,27 @@ onBeforeMount(() => {
 })
 onMounted(() => {
   // rszObs.observe(panelRef.value)
-  refresh()
+  refresh(true)
 })
+edtNdEmitter.on('delNode', (ndKey: string) => refresh([ndKey, 'delete']))
 
-async function refresh() {
+async function refresh(param: [string, 'save' | 'delete'] | boolean = false) {
   loading.value = true
-  pname.value = (await pjtAPI.detail(route.params.pid)).name
+  if (typeof param === 'boolean' && param) {
+    pname.value = (await pjtAPI.detail(route.params.pid)).name
+  }
   await until(() => panelRef.value)
-  await store.dispatch('service/refresh', panelRef.value.clientWidth)
+  await store.dispatch('service/refresh', {
+    force: typeof param === 'boolean' ? param : undefined,
+    updNodes: Array.isArray(param) ? [param] : undefined,
+    width: panelRef.value.clientWidth
+  })
   loading.value = false
 }
 async function onNodeSaved(node: Node, next: () => void) {
-  await api.save(node)
+  const ret = await api.save(node)
   next()
-  refresh()
+  refresh([ret.key, 'save'])
 }
 function onEdtNodeClick(node?: any) {
   store.commit('service/SET_NODE', node)
