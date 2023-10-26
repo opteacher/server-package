@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import axios from 'axios'
-import { readFileSync } from 'fs'
+import fs from 'fs'
+import sendfile from 'koa-sendfile'
+import _ from 'lodash'
 import Path from 'path'
 
+import { readConfig, setProp } from '../lib/backend-library/utils/index.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db } from '../utils/index.js'
-import { genDefault } from '../utils/index.js'
+import { genDefault, pickOrIgnore } from '../utils/index.js'
 import { del as delNode, scanNextss } from './node.js'
 import { adjustFile, recuNode } from './project.js'
 
@@ -130,7 +133,7 @@ export async function genSvcCode(sid) {
       })
     : []
   const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
-  return adjustFile(readFileSync(svcTmp), undefined, {
+  return adjustFile(fs.readFileSync(svcTmp), undefined, {
     services: [service],
     stcVars: service.stcVars,
     genDefault
@@ -251,4 +254,74 @@ export async function buildNodes(svcKey, { width }) {
   await fillPlaceholder(flowKey)
   await fixWidth()
   return Object.values(ndMapper)
+}
+
+const svrCfg = readConfig(Path.resolve('configs', 'server'))
+
+export async function expSvcFlow(ctx) {
+  const svc = await db.select(Service, { _index: ctx.params.sid }, { ext: false })
+  const expPath = Path.resolve(svrCfg.apps, 'tmp')
+  try {
+    fs.mkdirSync(expPath, { recursive: true })
+  } catch (e) {}
+  const expFile = Path.join(expPath, `${svc.name}.json`)
+  const nodes = await colcNodes(svc.flow)
+  fs.writeFileSync(
+    expFile,
+    JSON.stringify({
+      flow: svc.flow,
+      ndMapper: Object.fromEntries(
+        nodes.map(node => {
+          const ret = _.cloneDeep(node)
+          setProp(ret, 'key', undefined)
+          setProp(ret, '_id', undefined)
+          setProp(ret, 'loop._id', undefined)
+          return [node.key, ret]
+        })
+      )
+    })
+  )
+  ctx.attachment(expFile)
+  await sendfile(ctx, expFile)
+  setTimeout(() => fs.rmSync(expFile), 5 * 60 * 1000)
+}
+
+async function scanAllNxts(key) {
+  const ret = [key]
+  const node = await db.select(Node, { _index: key }, { ext: false })
+  return ret.concat(...(await Promise.all(node.nexts.map(nxtKey => scanAllNxts(nxtKey)))))
+}
+
+export async function impSvcFlow(ctx) {
+  const svc = await db.select(Service, { _index: ctx.params.sid }, { ext: false })
+  if (svc.flow) {
+    console.log(`删除原来额flow树：${svc.flow}`)
+    const keys = Array.from(new Set(await scanAllNxts(svc.flow)))
+    await Promise.all(keys.map(key => db.remove(Node, { _index: key })))
+  }
+  console.log('读取JSON文件，根据根节点ID找到根节点并插入数据库')
+  const params = JSON.parse(fs.readFileSync(ctx.request.body.impFile).toString('utf8'))
+  console.log(params)
+  const ndMapper = params['ndMapper']
+  console.log('配置一个旧ID映射新ID的空表')
+  const o2nMapper = {}
+  const saveNode = async okey => {
+    const node = ndMapper[okey]
+    const newNd = await db.save(Node, pickOrIgnore(node, ['previous', 'nexts']))
+    o2nMapper[okey] = newNd.id.toString()
+    for (const nxtKey of node.nexts) {
+      const subNd = await saveNode(
+        okey,
+        nxtKey,
+        pickOrIgnore(ndMapper[nxtKey], ['previous', 'nexts'])
+      )
+      await db.saveOne(Node, newNd.id, { nexts: subNd.id }, { updMode: 'append' })
+      await db.saveOne(Node, subNd.id, { previous: newNd.id })
+    }
+    return o2nMapper[okey]
+  }
+  await saveNode(params['flow'])
+  ctx.body = {
+    result: await db.saveOne(Service, ctx.params.sid, { flow: o2nMapper[params['flow']] })
+  }
 }

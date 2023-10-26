@@ -1,5 +1,5 @@
 import Router from 'koa-router'
-import { restart, stop, del, genSvcCode, readAllNodes, buildNodes } from '../../../../../services/service.js'
+import { restart, stop, del, genSvcCode, readAllNodes, buildNodes, expSvcFlow, impSvcFlow } from '../../../../../services/service.js'
 import { save as saveNode, del as delNode } from '../../../../../services/node.js'
 
 const router = new Router()
@@ -77,5 +77,9 @@ router.post('/:sid/node/s/build', async ctx => {
     result: await buildNodes(ctx.params.sid, ctx.request.body)
   }
 })
+
+router.get('/:sid/flow/export', expSvcFlow)
+
+router.post('/:sid/flow/import', impSvcFlow)
 
 export default router

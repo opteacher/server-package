@@ -128,7 +128,7 @@ export default {
             (await ndAPI.all(sid)).map(node => [node.key, NodeInPnl.copy(node)])
           )
         }
-        for (const ndInPnl of await svcAPI.node.build(sid, state.width)) {
+        for (const ndInPnl of await svcAPI.flow.build(sid, state.width)) {
           const node = state.nodes[ndInPnl.key]
           node.posLT = ndInPnl.posLT
           node.btmSvgHgt = ndInPnl.btmSvgHgt

@@ -122,7 +122,7 @@ async function onShowCodesClick() {
   if (codes.value) {
     codes.value = ''
   } else {
-    codes.value = await svcAPI.codes(route.params.sid)
+    codes.value = await svcAPI.flow.codes(route.params.sid)
   }
 }
 </script>

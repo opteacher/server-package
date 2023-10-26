@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import { spawn, spawnSync } from 'child_process'
-import fs from 'fs'
+import fs, { rmSync } from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
 
@@ -994,4 +994,5 @@ export async function expDkrImg(ctx) {
   })
   ctx.attachment(genTar)
   await sendfile(ctx, genTar)
+  setTimeout(() => fs.rmSync(genTar), 5 * 60 * 1000)
 }
