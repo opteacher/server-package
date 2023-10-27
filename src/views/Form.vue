@@ -14,7 +14,7 @@
           </template>
         </a-list>
       </a-layout-sider>
-      <a-layout-content class="p-5 w-1/2" @click="actFld.reset()">
+      <a-layout-content class="p-5 w-1/2" @click="resetActKey">
         <div class="bg-white h-full px-7 overflow-y-auto">
           <a-empty
             v-if="!fields.length"
@@ -32,8 +32,8 @@
             <template v-for="(field, index) in fields" :key="field.key">
               <FieldCard
                 :index="index"
-                :field="field.key === actFld.key ? actFld : field"
-                :active="actFld.key"
+                :field="field.key === actKey ? actFld : field"
+                :active="actKey"
                 :onDropDown="onFieldDropDown"
                 @update:active="onActiveChange"
                 @drag="onActiveChange"
@@ -43,11 +43,11 @@
         </div>
       </a-layout-content>
       <a-layout-sider width="30%" class="bg-white overflow-y-auto pl-5">
-        <FormProps v-if="!actFld.key" :form="form" @update:form="api.form.save" />
+        <FormProps v-if="!actKey" :form="form" @update:form="api.form.save" />
         <FieldProps v-else :field="actFld" @update:field="api.form.fields.save" />
         <ExtraProps
-          v-if="actFld.key"
-          :fld-key="actFld.key"
+          v-if="actKey"
+          :fld-key="actKey"
           :extra="actFld.extra"
           :compo="actCmp"
           @update:extra="api.form.fields.extra.save"
@@ -63,7 +63,6 @@ import Form from '@/types/form'
 import { BuildOutlined } from '@ant-design/icons-vue'
 import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
-import { cloneDeep } from 'lodash'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
@@ -104,8 +103,11 @@ async function onDropDownEmpty(e: DragEvent) {
     compoType: dragCompo.substring('compo_'.length)
   })
 }
-function onActiveChange(act: any) {
-  actFld.value = cloneDeep(act)
+function onActiveChange(field: any) {
+  actKey.value = field.key
   actCmp.value = compos.find(cmp => cmp.name === actFld.value.ftype) || new Compo()
+}
+function resetActKey() {
+  actKey.value = ''
 }
 </script>

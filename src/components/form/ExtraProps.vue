@@ -56,13 +56,13 @@
         v-else-if="exField.ftype === 'EditList'"
         :value="extraState[exField.refer]"
         :mapper="
-          Object.assign(exField.extra, {
+          Object.assign(cloneDeep(exField.extra), {
             mapper: new Mapper(exField.extra.mapper),
-            newFun: code2Func(exField.extra.newFun)
+            newFun: callFunc(exField.extra.newFun)
           })
         "
         @update:value="
-          emit('update:extra', fldKey, pickOrIgnore(extraState, [exField.refer], false))
+          (value: any[]) => emit('update:extra', fldKey, { [exField.refer]: value })
         "
       >
         <template #formItem="{ form, elKey, value }">
@@ -80,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import { code2Func, pickOrIgnore, setProp } from '@/utils'
+import { callFunc, pickOrIgnore, setProp } from '@/utils'
 import Compo from '@lib/types/compo'
 import Mapper from '@lib/types/mapper'
 import { cloneDeep } from 'lodash'

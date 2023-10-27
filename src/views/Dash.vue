@@ -1,7 +1,5 @@
 <template>
-  <LytMain active="dash">
-    abcd
-  </LytMain>
+  <LytMain active="dash">abcd</LytMain>
 </template>
 
 <script setup lang="ts">
