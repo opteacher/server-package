@@ -1,7 +1,7 @@
 <template>
   <a-descriptions class="mb-12" title="组件基础参数" :column="1" bordered size="small">
     <a-descriptions-item label="关联">
-      <a-mentions v-model:value="edtField.refer">
+      <a-mentions v-model:value="fieldState.refer">
         <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
           {{ prop.name }}
         </a-mentions-option>
@@ -9,32 +9,32 @@
     </a-descriptions-item>
     <a-descriptions-item label="标签">
       <a-input
-        v-model:value="edtField.label"
-        @blur="(e: any) => api.form.fields.save({ key: edtField.key, label: e.target.value })"
+        v-model:value="fieldState.label"
+        @blur="(e: any) => emit('update:field', { key: fieldState.key, label: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="类型">
       <a-select
         class="w-full"
-        v-model:value="edtField.ftype"
+        v-model:value="fieldState.ftype"
         :options="compoOpns"
-        @change="(ftype: string) => api.form.fields.save({ key: edtField.key, ftype })"
+        @change="(ftype: string) => emit('update:field', { key: fieldState.key, ftype })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="描述">
       <a-textarea
-        v-model:value="edtField.desc"
+        v-model:value="fieldState.desc"
         :auto-size="{ minRows: 2 }"
-        @blur="(e: any) => api.form.fields.save({ key: edtField.key, desc: e.target.value })"
+        @blur="(e: any) => emit('update:field', { key: fieldState.key, desc: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="占位提示">
       <a-input
         class="w-full"
-        v-model:value="edtField.placeholder"
+        v-model:value="fieldState.placeholder"
         @blur="
-          (e: any) => api.form.fields.save({
-            key: edtField.key,
+          (e: any) => emit('update:field', {
+            key: fieldState.key,
             placeholder: e.target.value
           })
         "
@@ -45,23 +45,25 @@
 
 <script lang="ts" setup name="FieldProps">
 import { compoOpns } from '@/types'
-import Field from '@lib/types/field'
 import Model from '@/types/model'
-import { defineProps, computed, reactive, watch } from 'vue'
+import Property from '@/types/property'
+import Field from '@lib/types/field'
+import { cloneDeep } from 'lodash'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
-import { mdlAPI as api } from '@/apis'
 
 const props = defineProps({
   field: { type: Field, required: true }
 })
+const emit = defineEmits(['update:field'])
 const store = useStore()
-const edtField = reactive(props.field)
-const mdlProps = computed(() => (store.getters['model/ins'] as Model).props)
+const mdlProps = computed<Property[]>(() => (store.getters['model/ins'] as Model).props)
+const fieldState = ref(new Field())
 
-watch(
-  () => props.field.key,
-  () => {
-    Field.copy(props.field, edtField, true)
-  }
-)
+onMounted(refresh)
+watch(() => props.field, refresh)
+
+function refresh() {
+  fieldState.value = cloneDeep(props.field)
+}
 </script>

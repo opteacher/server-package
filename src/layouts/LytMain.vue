@@ -3,7 +3,11 @@
     <a-layout-sider width="300" v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item key="home" class="mt-0">
+        <a-menu-item key="dash" class="mt-0">
+          <DashboardOutlined />
+          <span>总览</span>
+        </a-menu-item>
+        <a-menu-item key="home">
           <project-outlined />
           <span>项目</span>
         </a-menu-item>
@@ -51,8 +55,9 @@
   </a-layout>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="MainLayout">
 import {
+  DashboardOutlined,
   UserOutlined,
   ProjectOutlined,
   DatabaseOutlined,
@@ -61,33 +66,16 @@ import {
   PartitionOutlined,
   BuildOutlined
 } from '@ant-design/icons-vue'
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-export default defineComponent({
-  name: 'MainLayout',
-  components: {
-    ProjectOutlined,
-    DatabaseOutlined,
-    MenuUnfoldOutlined,
-    MenuFoldOutlined,
-    PartitionOutlined,
-    BuildOutlined,
-    UserOutlined
-  },
-  props: {
-    active: { type: String, required: true }
-  },
-  setup() {
-    const router = useRouter()
-
-    function onItemSelected({ key }: { key: any }) {
-      router.push(`/server-package/${key}`)
-    }
-    return {
-      collapsed: ref<boolean>(false),
-      onItemSelected
-    }
-  }
+defineProps({
+  active: { type: String, required: true }
 })
+const router = useRouter()
+const collapsed = ref<boolean>(false)
+
+function onItemSelected({ key }: { key: any }) {
+  router.push(`/server-package/${key}`)
+}
 </script>

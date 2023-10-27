@@ -36,8 +36,7 @@
                 ]
               }
             },
-            "emitter": "return new Emitter()",
-            "copy": "return (src, tgt = undefined) => { tgt = tgt || { color: '#000000' }; tgt.color = src.color || tgt.color; return tgt }"
+            "newFun": "return () => ({ color: '#000000' })"
           }
         }
       ]
@@ -136,15 +135,14 @@
                 "onChange": "return () => undefined"
               }
             },
-            "emitter": "return new Emitter()",
-            "copy": "return (src, tgt = undefined) => { tgt = tgt || { refer: '', label: '', ftype: 'Input' }; tgt.refer = src.refer || tgt.refer; tgt.label = src.label || tgt.label; tgt.ftype = src.ftype || tgt.ftype; return tgt }",
+            "newFun": "return () => ({ refer: '', label: '', ftype: 'Input' })",
             "onChange": "return (state, array) => { state.field.mapper = createByFields(array) }"
           }
         },
         {
           "key": "d5a8d30a-35ba-4a1f-99da-2ba068a95328",
-          "label": "项/拷贝函数",
-          "refer": "field.copy",
+          "label": "项/新增函数",
+          "refer": "field.newFun",
           "ftype": "CodeEditor",
           "vtype": "Function"
         },
@@ -242,7 +240,7 @@
               }
             },
             "emitter": "return new Emitter()",
-            "copy": "return (src, tgt = undefined) => { tgt = tgt || { name: '', status: 'removed' }; tgt.name = src.name || tgt.name; tgt.status = src.status || tgt.status; return tgt }"
+            "newFun": "return () => ({ name: '', status: 'removed' })"
           }
         },
         {
@@ -338,8 +336,8 @@
         },
         {
           "key": "e373235e-f8a8-4029-98f0-a3f17d5437ae",
-          "label": "拷贝函数",
-          "refer": "copy",
+          "label": "新增函数",
+          "refer": "newFun",
           "vtype": "Function",
           "ftype": "CodeEditor"
         }
@@ -484,11 +482,11 @@
         },
         {
           "key": "979dfe0b-14f8-4177-9366-b35e7a6ae8d0",
-          "label": "拷贝函数",
-          "refer": "copy",
+          "label": "新增函数",
+          "refer": "newFun",
           "ftype": "CodeEditor",
           "vtype": "Function",
-          "default": "return (src, tgt) => { tgt = tgt || { input: '', password: '', number: 0, textarea: '', codeEditor: '', select: undefined, cascader: [], listSelect: [], tagList: [], datetime: dayjs(), checkbox: false, switch: false, table: [], delable: '', selOrIpt: '', upload: [] }; tgt.input = src.input || tgt.input; tgt.password = src.password || tgt.password; tgt.number = src.number || tgt.number; tgt.textarea = src.textarea || tgt.textarea; tgt.codeEditor = src.codeEditor || tgt.codeEditor; tgt.select = src.select || tgt.select; tgt.cascader = src.cascader || tgt.cascader; tgt.listSelect = src.listSelect || tgt.listSelect; tgt.tagList = src.tagList || tgt.tagList; tgt.datetime = src.datetime || tgt.datetime; tgt.checkbox = typeof src.checkbox !== 'undefined' ? src.checkbox : tgt.checkbox; tgt.switch = typeof src.switch !== 'undefined' ? src.switch : tgt.switch; tgt.table = src.table || tgt.table; tgt.delable = src.delable || tgt.delable; tgt.selOrIpt = src.selOrIpt || tgt.selOrIpt; tgt.upload = src.upload || tgt.upload; return tgt }",
+          "default": "return () => ({ input: '', password: '', number: 0, textarea: '', codeEditor: '', select: undefined, cascader: [], listSelect: [], tagList: [], datetime: dayjs(), checkbox: false, switch: false, table: [], delable: '', selOrIpt: '', upload: [] })",
           "extra": {
             "display": false
           }
@@ -563,8 +561,7 @@
               "type": "Table",
               "columns": [],
               "mapper": {},
-              "emitter": "return new Emitter()",
-              "copy": "return () => ({})",
+              "newFun": "return () => ({})",
               "addable": true,
               "edtable": true,
               "delable": true
@@ -635,8 +632,8 @@
         },
         {
           "key": "b7b6d20e-eb32-464c-9730-b7adfd379102",
-          "label": "拷贝函数",
-          "refer": "copy",
+          "label": "新增函数",
+          "refer": "newFun",
           "ftype": "CodeEditor",
           "vtype": "Function",
           "default": "return () => ({})",
@@ -678,6 +675,38 @@
           "refer": "mapper",
           "ftype": "CodeEditor",
           "vtype": "Object"
+        }
+      ],
+      "components": []
+    },
+
+    {
+      "name": "Select",
+      "ctype": "String",
+      "category": "field",
+      "props": [
+        {
+          "key": "e257d985-c3e3-455a-9471-9491daf3fea8",
+          "label": "选项",
+          "refer": "options",
+          "ftype": "EditList",
+          "vtype": "Array",
+          "default": [],
+          "extra": {
+            "lblProp": "label",
+            "inline": true,
+            "mapper": {
+              "label": {
+                "label": "标签名",
+                "type": "Input"
+              },
+              "value": {
+                "label": "选项值",
+                "type": "Input"
+              }
+            },
+            "newFun": "return () => ({ label: '', value: '' })"
+          }
         }
       ],
       "components": []

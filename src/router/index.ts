@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
+import Dash from '../views/Dash.vue'
 import Database from '../views/Database.vue'
 import Component from '../views/Compo.vue'
 import Dependency from '../views/Dep.vue'
@@ -23,6 +24,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/server-package/dash',
+    name: 'Dashboard',
+    component: Dash,
+    meta: { reqLogin: true }
   },
   {
     path: '/server-package/home',

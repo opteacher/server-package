@@ -7,7 +7,7 @@
     <a-descriptions-item label="标题">
       <a-input
         v-model:value="formState.title"
-        @blur="(e: any) => api.form.save({ title: e.target.value })"
+        @blur="(e: any) => emit('update:form', { title: e.target.value })"
       />
     </a-descriptions-item>
     <a-descriptions-item label="表单宽度">
@@ -16,7 +16,7 @@
         v-model:value="formState.width"
         :min="1"
         :max="100"
-        @blur="(e: any) => api.form.save({ width: e.target.value })"
+        @blur="(e: any) => emit('update:form', { width: e.target.value })"
       >
         <template #addonAfter><percentage-outlined /></template>
       </a-input-number>
@@ -27,7 +27,7 @@
         v-model:value="formState.labelWidth"
         :min="1"
         :max="23"
-        @blur="(e: any) => api.form.save({ labelWidth: e.target.value })"
+        @blur="(e: any) => emit('update:form', { labelWidth: e.target.value })"
       >
         <template #addonAfter>/ 24</template>
       </a-input-number>
@@ -35,27 +35,22 @@
   </a-descriptions>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="TableProps">
 import Form from '@/types/form'
-import { defineComponent, reactive } from 'vue'
-import { mdlAPI as api } from '@/apis'
 import { ControlOutlined, PercentageOutlined } from '@ant-design/icons-vue'
+import { cloneDeep } from 'lodash'
+import { onMounted, ref, watch } from 'vue'
 
-export default defineComponent({
-  name: 'TableProps',
-  components: {
-    ControlOutlined,
-    PercentageOutlined
-  },
-  props: {
-    form: { type: Form, required: true }
-  },
-  setup(props) {
-    const formState = reactive(props.form)
-    return {
-      api,
-      formState
-    }
-  }
+const props = defineProps({
+  form: { type: Form, required: true }
 })
+const emit = defineEmits(['update:form'])
+const formState = ref(new Form())
+
+onMounted(refresh)
+watch(() => props.form, refresh)
+
+function refresh() {
+  formState.value = cloneDeep(props.form)
+}
 </script>

@@ -14,7 +14,7 @@
           </template>
         </a-list>
       </a-layout-sider>
-      <a-layout-content class="p-5 w-1/2" @click="active.reset()">
+      <a-layout-content class="p-5 w-1/2" @click="actFld.reset()">
         <div class="bg-white h-full px-7 overflow-y-auto">
           <a-empty
             v-if="!fields.length"
@@ -32,20 +32,26 @@
             <template v-for="(field, index) in fields" :key="field.key">
               <FieldCard
                 :index="index"
-                :field="field.key === active.key ? active : field"
-                :active="active.key"
+                :field="field.key === actFld.key ? actFld : field"
+                :active="actFld.key"
                 :onDropDown="onFieldDropDown"
-                @update:active="(act: any) => Field.copy(act, active, true)"
-                @drag="(act: any) => Field.copy(act, active, true)"
+                @update:active="onActiveChange"
+                @drag="onActiveChange"
               />
             </template>
           </a-form>
         </div>
       </a-layout-content>
       <a-layout-sider width="30%" class="bg-white overflow-y-auto pl-5">
-        <FormProps v-if="!active.key" :form="form" />
-        <FieldProps v-else :field="active" />
-        <ExtraProps v-if="active.key" :field="active" :save="api.form.fields.extra.save" />
+        <FormProps v-if="!actFld.key" :form="form" @update:form="api.form.save" />
+        <FieldProps v-else :field="actFld" @update:field="api.form.fields.save" />
+        <ExtraProps
+          v-if="actFld.key"
+          :fld-key="actFld.key"
+          :extra="actFld.extra"
+          :compo="actCmp"
+          @update:extra="api.form.fields.extra.save"
+        />
       </a-layout-sider>
     </a-layout>
   </LytDesign>
@@ -53,30 +59,36 @@
 
 <script lang="ts" setup name="Form">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, onMounted, reactive } from 'vue'
-import LytDesign from '../layouts/LytDesign.vue'
-import CompoCard from '../components/form/CompoCard.vue'
-import FieldCard from '../components/form/FieldCard.vue'
-import { useStore } from 'vuex'
-import Field from '@lib/types/field'
-import Compo from '@lib/types/compo'
 import Form from '@/types/form'
-import FormProps from '../components/form/FormProps.vue'
-import FieldProps from '../components/form/FieldProps.vue'
-import ExtraProps from '../components/form/ExtraProps.vue'
-import { cmpAPI, mdlAPI as api } from '../apis'
-import { useRoute } from 'vue-router'
 import { BuildOutlined } from '@ant-design/icons-vue'
+import Compo from '@lib/types/compo'
+import Field from '@lib/types/field'
+import { cloneDeep } from 'lodash'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+
+import { mdlAPI as api, cmpAPI } from '../apis'
+import CompoCard from '../components/form/CompoCard.vue'
+import ExtraProps from '../components/form/ExtraProps.vue'
+import FieldCard from '../components/form/FieldCard.vue'
+import FieldProps from '../components/form/FieldProps.vue'
+import FormProps from '../components/form/FormProps.vue'
+import LytDesign from '../layouts/LytDesign.vue'
 import { onFieldDropDown } from '../views/Form'
 
 const store = useStore()
 const route = useRoute()
 const pid = route.params.pid
 const mid = route.params.mid
-const compos = reactive([] as Compo[])
-const form = computed(() => store.getters['model/form'] as Form)
-const fields = computed(() => store.getters['model/fields'] as Field[])
-const active = reactive(new Field())
+const compos = reactive<Compo[]>([])
+const form = computed<Form>(() => store.getters['model/form'])
+const fields = computed<Field[]>(() => store.getters['model/fields'])
+const actFld = computed<Field>(
+  () => store.getters['model/fields'].find((fld: Field) => fld.key === actKey.value) || new Field()
+)
+const actKey = ref('')
+const actCmp = ref(new Compo())
 
 onMounted(async () => {
   compos.splice(0, compos.length, ...(await cmpAPI.all()))
@@ -91,5 +103,9 @@ async function onDropDownEmpty(e: DragEvent) {
   await api.form.fields.add({
     compoType: dragCompo.substring('compo_'.length)
   })
+}
+function onActiveChange(act: any) {
+  actFld.value = cloneDeep(act)
+  actCmp.value = compos.find(cmp => cmp.name === actFld.value.ftype) || new Compo()
 }
 </script>

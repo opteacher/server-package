@@ -13,7 +13,6 @@ import { svcEmitter, svcMapper } from '@/views/Project'
 import Column from '@lib/types/column'
 import Field from '@lib/types/field'
 import { Modal } from 'ant-design-vue'
-import { cloneDeep } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { Dispatch } from 'vuex'
 

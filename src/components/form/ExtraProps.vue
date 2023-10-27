@@ -1,98 +1,103 @@
 <template>
   <a-descriptions class="my-0.5" title="组件附加参数" :column="1" bordered size="small">
-    <a-descriptions-item v-for="exField in cmpExtra" :key="exField.key" :label="exField.label">
+    <a-descriptions-item v-for="exField in compo.props" :key="exField.key" :label="exField.label">
       <a-input
         v-if="exField.ftype === 'Input'"
-        v-model:value="edtField.extra[exField.refer]"
+        :value="extraState[exField.refer]"
         :placeholder="exField.placeholder"
-        @blur="(e: any) => save(edtField.key, { [exField.refer]: e.target.value })"
+        @blur="(e: any) => emit('update:extra', fldKey, { [exField.refer]: e.target.value })"
       />
       <a-input-number
         v-else-if="exField.ftype === 'Number'"
         class="w-full"
-        v-model:value="edtField.extra[exField.refer]"
+        :value="extraState[exField.refer]"
         :placeholder="exField.placeholder"
-        @blur="(e: any) => save(edtField.key, { [exField.refer]: e.target.value })"
+        @blur="(e: any) => emit('update:extra', fldKey, { [exField.refer]: e.target.value })"
       />
       <a-textarea
         v-else-if="exField.ftype === 'Textarea'"
-        v-model:value="edtField.extra[exField.refer]"
+        :value="extraState[exField.refer]"
         :placeholder="exField.placeholder"
-        @blur="(e: any) => save(edtField.key, { [exField.refer]: e.target.value })"
+        @blur="(e: any) => emit('update:extra', fldKey, { [exField.refer]: e.target.value })"
       />
       <a-select
         v-else-if="exField.ftype === 'Select'"
         class="w-full"
-        v-model:value="edtField.extra[exField.refer]"
+        :value="extraState[exField.refer]"
         :placeholder="exField.placeholder"
         :options="exField.extra.options"
-        @change="(value: any) => save(edtField.key, { [exField.refer]: value })"
+        @change="(value: any) => emit('update:extra', fldKey, { [exField.refer]: value })"
       />
       <a-cascader
         v-else-if="exField.ftype === 'Cascader'"
         class="w-full"
-        v-model:value="edtField.extra[exField.refer]"
+        :value="extraState[exField.refer]"
         :placeholder="exField.placeholder"
         :options="exField.extra.options"
-        @change="(value: any) => save(edtField.key, { [exField.refer]: value })"
+        @change="(value: any) => emit('update:extra', fldKey, { [exField.refer]: value })"
       />
       <a-checkbox
         v-else-if="exField.ftype === 'Checkbox'"
-        v-model:checked="edtField.extra[exField.refer]"
-        @change="(e: any) => save(edtField.key, { [exField.refer]: e.target.checked })"
+        :checked="extraState[exField.refer]"
+        @change="(e: any) => emit('update:extra', fldKey, { [exField.refer]: e.target.checked })"
       />
       <a-switch
         v-else-if="exField.ftype === 'Switch'"
-        v-model:checked="edtField.extra[exField.refer]"
-        @change="(value: boolean) => save(edtField.key, { [exField.refer]: value })"
+        :checked="extraState[exField.refer]"
+        @change="(value: boolean) => emit('update:extra', fldKey, { [exField.refer]: value })"
       />
       <IconField
         v-else-if="exField.ftype === 'IconField'"
-        :icon="edtField.extra[exField.refer]"
+        :icon="extraState[exField.refer]"
         :placeholder="exField.placeholder"
-        @select="(icon: string) => save(edtField.key, { [exField.refer]: icon })"
+        @select="(icon: string) => emit('update:extra', fldKey, { [exField.refer]: icon })"
       />
       <EditList
         v-else-if="exField.ftype === 'EditList'"
-        :field="edtField"
-        :exField="exField"
-        @addItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
-        @rmvItem="save(edtField.key, pickOrIgnore(edtField.extra, [exField.refer], false))"
-      />
+        :value="extraState[exField.refer]"
+        :mapper="
+          Object.assign(exField.extra, {
+            mapper: new Mapper(exField.extra.mapper),
+            newFun: code2Func(exField.extra.newFun)
+          })
+        "
+        @update:value="
+          emit('update:extra', fldKey, pickOrIgnore(extraState, [exField.refer], false))
+        "
+      >
+        <template #formItem="{ form, elKey, value }">
+          <FormItem
+            :form="form"
+            :skey="elKey"
+            :mapper="value"
+            @update:fprop="(values: any) => Object.entries(values).map(([k, v]) => setProp(form, k, v))"
+          />
+        </template>
+      </EditList>
     </a-descriptions-item>
     <slot />
   </a-descriptions>
 </template>
 
 <script lang="ts" setup>
-import Field from '@lib/types/field'
-import { computed, defineProps, onMounted, reactive, watch } from 'vue'
-import { pickOrIgnore } from '@/utils'
-import { cmpAPI } from '@/apis'
+import { code2Func, pickOrIgnore, setProp } from '@/utils'
 import Compo from '@lib/types/compo'
+import Mapper from '@lib/types/mapper'
+import { cloneDeep } from 'lodash'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
-  field: { type: Field, required: true },
-  save: { type: Function, required: true },
+  fldKey: { type: String, required: true },
+  extra: { type: Object, required: true },
   compo: { type: Compo, default: new Compo() }
 })
-const edtField = reactive(props.field)
-const cmpState = reactive(props.compo)
-const cmpExtra = computed(() => (cmpState.key ? cmpState.props : []))
+const emit = defineEmits(['update:extra'])
+const extraState = ref<Record<string, any>>({})
 
-watch(() => props.field.key, refresh)
 onMounted(refresh)
+watch(() => props.extra, refresh)
 
-async function refresh() {
-  let compo = props.compo
-  if (!props.compo.key) {
-    const result = await cmpAPI.all({ name: props.field.ftype })
-    if (!result.length) {
-      cmpState.reset()
-      return
-    }
-    compo = result[0]
-  }
-  Compo.copy(compo, cmpState)
+function refresh() {
+  extraState.value = cloneDeep(props.extra)
 }
 </script>
