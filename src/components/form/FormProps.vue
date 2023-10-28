@@ -32,10 +32,21 @@
         <template #addonAfter>/ 24</template>
       </a-input-number>
     </a-descriptions-item>
+    <a-descriptions-item label="标签对齐">
+      <a-select
+        class="w-full"
+        v-model:value="formState.labelAlign"
+        :options="[
+          { label: '左对齐', value: 'left' },
+          { label: '右对齐', value: 'right' }
+        ]"
+        @change="(labelAlign: 'left' | 'right') => emit('update:form', { labelAlign })"
+      />
+    </a-descriptions-item>
   </a-descriptions>
 </template>
 
-<script lang="ts" setup name="TableProps">
+<script lang="ts" setup name="FormProps">
 import Form from '@/types/form'
 import { ControlOutlined, PercentageOutlined } from '@ant-design/icons-vue'
 import { cloneDeep } from 'lodash'
@@ -48,7 +59,7 @@ const emit = defineEmits(['update:form'])
 const formState = ref(new Form())
 
 onMounted(refresh)
-watch(() => props.form, refresh)
+watch(() => props.form, refresh, { deep: true })
 
 function refresh() {
   formState.value = cloneDeep(props.form)

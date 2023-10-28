@@ -30,6 +30,7 @@ export default db.defineModel(
       title: db.PropTypes.String,
       width: db.PropTypes.Number,
       labelWidth: db.PropTypes.Number,
+      labelAlign: db.PropTypes.String, // left | right
       fields: [
         {
           label: db.PropTypes.String,

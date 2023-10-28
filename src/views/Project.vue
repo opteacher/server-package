@@ -136,6 +136,16 @@
           </a-descriptions-item>
         </template>
       </a-descriptions>
+      <pre v-if="ctnrLogs.visible" class="border-1">{{ ctnrLogs.content }}</pre>
+      <a-divider>
+        <a-button type="link" @click="() => { ctnrLogs.visible = !ctnrLogs.visible }">
+          <template #icon>
+            <UpOutlined v-if="ctnrLogs.visible" />
+            <DownOutlined v-else />
+          </template>
+          容器日志
+        </a-button>
+      </a-divider>
     </a-page-header>
     <EditableTable
       title="模型"
@@ -296,6 +306,8 @@ import Transfer from '@/types/transfer'
 import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
+  DownOutlined,
+  UpOutlined,
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
@@ -365,6 +377,10 @@ const mdlOpns = computed<OpnType[]>(() =>
   )
 )
 const syncEmitter = new Emitter()
+const ctnrLogs = reactive({
+  visible: false,
+  content: ''
+})
 
 async function refresh() {
   await store.dispatch('project/refresh')

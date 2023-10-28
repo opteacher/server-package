@@ -6,6 +6,7 @@ import _ from 'lodash'
 import Path from 'path'
 
 import { readConfig, setProp } from '../lib/backend-library/utils/index.js'
+import Dep from '../models/dep.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
@@ -271,13 +272,22 @@ export async function expSvcFlow(ctx) {
     JSON.stringify({
       flow: svc.flow,
       ndMapper: Object.fromEntries(
-        nodes.map(node => {
-          const ret = _.cloneDeep(node)
-          setProp(ret, 'key', undefined)
-          setProp(ret, '_id', undefined)
-          setProp(ret, 'loop._id', undefined)
-          return [node.key, ret]
-        })
+        await Promise.all(
+          nodes.map(async node => {
+            const ret = _.cloneDeep(node)
+            setProp(ret, 'key', undefined)
+            setProp(ret, '_id', undefined)
+            setProp(ret, 'loop._id', undefined)
+            setProp(
+              ret,
+              'deps',
+              await Promise.all(
+                node.deps.map(did => db.select(Dep, { _index: did }).then(res => res.name))
+              )
+            )
+            return Promise.resolve([node.key, ret])
+          })
+        )
       )
     })
   )

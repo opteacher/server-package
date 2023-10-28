@@ -28,6 +28,7 @@
             class="mx-auto my-0 relative"
             :label-col="{ span: form.labelWidth + 2 }"
             :wrapper-col="{ span: 22 - form.labelWidth }"
+            :label-align="form.labelAlign"
           >
             <template v-for="(field, index) in fields" :key="field.key">
               <FieldCard
