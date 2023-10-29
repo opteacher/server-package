@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import { spawn, spawnSync } from 'child_process'
-import fs, { rmSync } from 'fs'
+import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
+import { createClient } from 'redis'
 
 import {
   copyDir,
@@ -996,3 +997,35 @@ export async function expDkrImg(ctx) {
   await sendfile(ctx, genTar)
   setTimeout(() => fs.rmSync(genTar), 5 * 60 * 1000)
 }
+
+export async function acsCtnrLogs(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+  if (!project.thread) {
+    return { error: '项目未启动！' }
+  }
+  const logs = spawn(`docker logs -f ${project.name}`, {
+    stdio: 'inherit',
+    shell: true
+  })
+  const client = await createClient({
+    socket: {
+      host: dbCfg.redis.host,
+      port: dbCfg.redis.port
+    },
+    password: dbCfg.redis.password
+  })
+    .on('error', err => (ctx.body = { error: `Redis Client Error ${err}` }))
+    .connect()
+  logs.stdout.on('data', async data => {
+    await client.publish(dbCfg.database, data)
+  })
+  logs.stderr.on('data', async data => {
+    await client.publish(dbCfg.database, `[ERROR] ${data}`)
+  })
+  logs.on('close', async () => {
+    await client.disconnect()
+  })
+  return dbCfg.database
+}
+
+export async function 
