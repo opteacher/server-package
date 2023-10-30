@@ -138,7 +138,7 @@
       </a-descriptions>
       <pre v-if="ctnrLogs.visible" class="border-1">{{ ctnrLogs.content }}</pre>
       <a-divider>
-        <a-button type="link" @click="() => { ctnrLogs.visible = !ctnrLogs.visible }">
+        <a-button type="link" @click="onCtnrLogsVsb">
           <template #icon>
             <UpOutlined v-if="ctnrLogs.visible" />
             <DownOutlined v-else />
@@ -160,7 +160,7 @@
       @delete="refresh"
     >
       <template #name="{ record: model }">
-        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
+        <a :href="`/project/${pid}/model/${model.key}`" @click.stop>
           {{ model.name }}
         </a>
       </template>
@@ -196,7 +196,7 @@
             type="primary"
             size="small"
             @click.stop="
-              () => router.push(`/server-package/project/${pid}/model/${model.key}/form`)
+              () => router.push(`/project/${pid}/model/${model.key}/form`)
             "
           >
             <template #icon><FormOutlined /></template>
@@ -345,6 +345,7 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
+import { RedisClientType } from 'redis'
 
 const route = useRoute()
 const router = useRouter()
@@ -420,5 +421,21 @@ function onExportClick() {
     title: '确定生成并导出Docker镜像吗？',
     onOk: () => pjtAPI.expDkrImg(pid, `${project.value.name}.tar`)
   })
+}
+async function onCtnrLogsVsb() {
+  ctnrLogs.visible = !ctnrLogs.visible
+  const rdsCli = store.getters['project/rdsCli'] as RedisClientType
+  if (ctnrLogs.visible) {
+    const topic = await pjtAPI.logs.access(pid)
+    await rdsCli.connect()
+    ctnrLogs.content = ''
+    console.log(topic)
+    // await rdsCli.subscribe(topic, (chunk) => {
+    //   ctnrLogs.content += chunk
+    // }, true)
+  } else {
+    // await rdsCli.unsubscribe()
+    await pjtAPI.logs.exit(pid)
+  }
 }
 </script>

@@ -17,8 +17,9 @@ import {
 import { ExclamationCircleOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 import axios from 'axios'
-import { createVNode } from 'vue'
 import { saveAs } from 'file-saver'
+import { createVNode } from 'vue'
+
 import { pjtAPI } from '.'
 
 function searchCmpIns(cmpIns: { key: string; children: CmpIns[] }, skey: string): CmpIns | null {
@@ -143,6 +144,10 @@ export default {
       axiosConfig: { timeout: 120000, responseType: 'blob' }
     })
     saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
+  },
+  logs: {
+    access: (key: string) => reqPost(`project/${key}/docker/log/access`, undefined, { type: 'api' }),
+    exit: (key: string) => reqDelete('project', `${key}/docker/log/exit`, { type: 'api' })
   },
   middle: {
     login: {

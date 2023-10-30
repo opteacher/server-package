@@ -11,7 +11,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": ["webpack-env", "jest", "resize-observer-browser", "node"],
+    "types": ["vite/client", "jest", "resize-observer-browser", "node"],
     "paths": {
       "@/*": ["src/*"],
       "@lib/*": ["src/lib/frontend-library/src/*"]

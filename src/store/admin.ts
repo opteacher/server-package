@@ -35,7 +35,7 @@ export default {
       Admin.copy(result.admin, state)
       localStorage.setItem('loginToken', result.token)
       message.success(result.message)
-      router.replace((router.currentRoute.value.query['redirect'] as string) || '/server-package/')
+      router.replace((router.currentRoute.value.query['redirect'] as string) || '/')
     }
   },
   getters: {

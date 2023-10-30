@@ -10,7 +10,7 @@
           <a-button
             type="primary"
             size="large"
-            @click="$router.push(`/server-package/project/${pid}/auth`)"
+            @click="$router.push(`/project/${pid}/auth`)"
           >
             配置权限
           </a-button>

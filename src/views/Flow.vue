@@ -5,16 +5,16 @@
         <template #icon><arrow-left-outlined /></template>
       </a-button>
       <a-breadcrumb>
-        <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
+        <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
         <a-breadcrumb-item>
-          <a :href="`/server-package/project/${pid}`">
+          <a :href="`/project/${pid}`">
             {{ pname }}
           </a>
         </a-breadcrumb-item>
         <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
         <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
         <a-breadcrumb-item>
-          <a :href="`/server-package/project/${pid}`">
+          <a :href="`/project/${pid}`">
             {{ service.name }}.{{ service.interface || service.method }}
           </a>
         </a-breadcrumb-item>

@@ -19,8 +19,8 @@ export default {
   namespaced: true,
   state: {
     project: new Project(),
-    apis: [] as API[]
-  } as PjtState,
+    apis: []
+  },
   mutations: {
     SET_STATUS(state: PjtState, payload: 'loading' | 'running' | 'stopped') {
       state.project.status.stat = payload

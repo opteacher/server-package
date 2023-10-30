@@ -22,105 +22,105 @@ import Test from '../views/Test.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/server-package/login',
+    path: '/login',
     name: 'Login',
     component: Login
   },
   {
-    path: '/server-package/dash',
+    path: '/dash',
     name: 'Dashboard',
     component: Dash,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/home',
-    redirect: '/server-package/'
+    path: '/',
+    redirect: '/home'
   },
   {
-    path: '/server-package',
+    path: '/home',
     name: 'Home',
     component: Home,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/database',
+    path: '/database',
     name: 'Database',
     component: Database,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/dependency',
+    path: '/dependency',
     name: 'Dependency',
     component: Dependency,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/component',
+    path: '/component',
     name: 'Component',
     component: Component,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/test',
+    path: '/test',
     name: 'Test',
     component: Test
   },
   {
-    path: '/server-package/project/:pid',
+    path: '/project/:pid',
     name: 'Project',
     component: Project,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/model/:mid',
+    path: '/project/:pid/model/:mid',
     name: 'Model',
     component: Model,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/flow/:sid',
+    path: '/project/:pid/flow/:sid',
     name: 'Flow',
     component: Flow,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/auth',
+    path: '/project/:pid/auth',
     name: 'Authorization',
     component: Auth,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/mid/login',
+    path: '/project/:pid/mid/login',
     name: 'MiddleLogin',
     component: MidLgn,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/mid/navigate',
+    path: '/project/:pid/mid/navigate',
     name: 'MiddleNavigate',
     component: MidNav,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/mid/dashboard',
+    path: '/project/:pid/mid/dashboard',
     name: 'MiddleDashboard',
     component: MidDsb,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/model/:mid/form',
+    path: '/project/:pid/model/:mid/form',
     name: 'Form',
     component: Form,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/model/:mid/table',
+    path: '/project/:pid/model/:mid/table',
     name: 'Table',
     component: Table,
     meta: { reqLogin: true }
   },
   {
-    path: '/server-package/project/:pid/model/:mid/demo',
+    path: '/project/:pid/model/:mid/demo',
     name: 'Demo',
     component: Demo,
     meta: { reqLogin: true }
@@ -128,7 +128,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('server-package'),
   routes
 })
 
@@ -146,7 +146,7 @@ router.beforeEach(async (to, _from, next) => {
       next()
     } catch (e) {
       next({
-        path: '/server-package/login',
+        path: '/login',
         query: {
           redirect: to.fullPath
         }

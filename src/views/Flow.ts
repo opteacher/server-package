@@ -15,7 +15,7 @@ import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { uuid } from 'uuidv4'
+import { v4 as uuid } from 'uuid'
 import { createVNode, ref } from 'vue'
 
 import { ndAPI as api, depAPI } from '../apis'

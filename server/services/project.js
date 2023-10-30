@@ -984,7 +984,10 @@ export async function genFront(project) {
 export async function expDkrImg(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
-    return { error: '项目未启动！' }
+    ctx.body = {
+      result: { error: '项目未启动！' }
+    }
+    return
   }
   const genPath = Path.resolve(svrCfg.apps, project.name)
   const genTar = genPath + '.tar'
@@ -1001,12 +1004,11 @@ export async function expDkrImg(ctx) {
 export async function acsCtnrLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
-    return { error: '项目未启动！' }
+    ctx.body = {
+      result: { error: '项目未启动！' }
+    }
+    return
   }
-  const logs = spawn(`docker logs -f ${project.name}`, {
-    stdio: 'inherit',
-    shell: true
-  })
   const client = await createClient({
     socket: {
       host: dbCfg.redis.host,
@@ -1016,16 +1018,33 @@ export async function acsCtnrLogs(ctx) {
   })
     .on('error', err => (ctx.body = { error: `Redis Client Error ${err}` }))
     .connect()
+  const logs = spawn(`docker logs -f ${project.name}`, { shell: true })
   logs.stdout.on('data', async data => {
-    await client.publish(dbCfg.database, data)
+    await client.publish(dbCfg.redis.database, data)
   })
   logs.stderr.on('data', async data => {
-    await client.publish(dbCfg.database, `[ERROR] ${data}`)
+    await client.publish(dbCfg.redis.database, `[ERROR] ${data}`)
   })
   logs.on('close', async () => {
     await client.disconnect()
   })
-  return dbCfg.database
+  await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
+  ctx.body = {
+    result: dbCfg.redis.database
+  }
 }
 
-export async function 
+export async function clsCtnrLogs(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+  if (!project.logPid) {
+    ctx.body = {
+      result: { error: '日志监控未启动！' }
+    }
+    return
+  }
+  process.kill(-project.logPid, 'SIGKILL')
+  await db.saveOne(Project, ctx.params.pid, { logPid: 0 })
+  ctx.body = {
+    result: { message: '监控进程停止' }
+  }
+}

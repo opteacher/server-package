@@ -175,7 +175,7 @@ export const mapper = new Mapper({
           emitter.emit('show', false)
           mapper.operation.disabled = false
           mapper.operation.loading = false
-          router.replace('/server-package')
+          router.replace('/')
         },
         onCancel() {
           console.log('Cancel')

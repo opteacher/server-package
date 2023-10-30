@@ -11,7 +11,7 @@
       sclHeight="h-full"
     >
       <template #name="{ record: project }">
-        <a :href="`/server-package/project/${project.key}`" @click.stop>
+        <a :href="`/project/${project.key}`" @click.stop>
           {{ project.name }}
         </a>
       </template>

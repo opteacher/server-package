@@ -76,6 +76,6 @@ const router = useRouter()
 const collapsed = ref<boolean>(false)
 
 function onItemSelected({ key }: { key: any }) {
-  router.push(`/server-package/${key}`)
+  router.push(key)
 }
 </script>

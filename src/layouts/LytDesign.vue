@@ -50,17 +50,17 @@
             <template #icon><arrow-left-outlined /></template>
           </a-button>
           <a-breadcrumb>
-            <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/server-package/project/${pid}`">
+              <a :href="`/project/${pid}`">
                 {{ pjtName }}
               </a>
             </a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/server-package/project/${pid}`">模型</a>
+              <a :href="`/project/${pid}`">模型</a>
             </a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/server-package/project/${pid}/model/${mid}`">{{ mdlName }}</a>
+              <a :href="`/project/${pid}/model/${mid}`">{{ mdlName }}</a>
             </a-breadcrumb-item>
             <a-breadcrumb-item v-if="active.slice(-4) === 'form'">表单</a-breadcrumb-item>
             <a-breadcrumb-item v-else-if="active.slice(-5) === 'table'">表项</a-breadcrumb-item>
@@ -75,7 +75,7 @@
   </a-layout>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup name="DesignLayout">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed, defineComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -91,41 +91,19 @@ import {
 } from '@ant-design/icons-vue'
 import { onFieldDropDown } from '../views/Form'
 
-export default defineComponent({
-  name: 'DesignLayout',
-  components: {
-    FormOutlined,
-    TableOutlined,
-    MenuUnfoldOutlined,
-    MenuFoldOutlined,
-    ArrowLeftOutlined,
-    DesktopOutlined,
-    UserOutlined
-  },
-  props: {
-    active: { type: String, required: true }
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const store = useStore()
-    const pid = route.params.pid
-    const mid = route.params.mid
-    const pjtName = computed(() => store.getters['project/ins'].name)
-    const mdlName = computed(() => store.getters['model/ins'].name)
 
-    function onItemSelected({ key }: { key: any }) {
-      router.push(`/server-package/${key}`)
-    }
-    return {
-      pid,
-      mid,
-      pjtName,
-      mdlName,
-      collapsed: ref<boolean>(false),
-      onItemSelected,
-      onFieldDropDown
-    }
-  }
+defineProps({
+  active: { type: String, required: true }
 })
+const router = useRouter()
+const route = useRoute()
+const store = useStore()
+const pid = route.params.pid
+const mid = route.params.mid
+const pjtName = computed(() => store.getters['project/ins'].name)
+const mdlName = computed(() => store.getters['model/ins'].name)
+
+function onItemSelected({ key }: { key: any }) {
+  router.push(key)
+}
 </script>

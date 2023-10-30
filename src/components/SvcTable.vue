@@ -49,7 +49,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
       impEmitter.emit('update:show', false)
-      router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
+      router.push(`/project/${pid.value}/flow/${params.svcId}`)
     }
   })
 }
@@ -108,7 +108,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
           <a-button
             type="primary"
             size="small"
-            @click.stop="$router.push(`/server-package/project/${pid}/flow/${svc.key}`)"
+            @click.stop="$router.push(`/project/${pid}/flow/${svc.key}`)"
           >
             <template #icon><edit-outlined /></template>
             设计流程

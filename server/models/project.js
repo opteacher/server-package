@@ -8,6 +8,7 @@ export default db.defineModel(
     port: db.PropTypes.Number,
     volumes: db.PropTypes.Array, // 共享文件|夹，冒号分隔
     thread: db.PropTypes.Number,
+    logPid: db.PropTypes.Number,
     database: db.PropTypes.Array, // [0]: 数据库类型; [1]: 数据库名
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     commands: db.PropTypes.String,

@@ -6,7 +6,7 @@
           <template #title>需要所在项目启动后才可以查看数据集！</template>
           <a-button
             :disabled="pstatus !== 'running'"
-            @click.stop="router.push(`/server-package/project/${pid}/dataset/${model.key}`)"
+            @click.stop="router.push(`/project/${pid}/dataset/${model.key}`)"
           >
             <template #icon><DatabaseOutlined /></template>
             &nbsp;浏览数据
@@ -33,7 +33,7 @@
         />
         <a-button
           type="primary"
-          @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
+          @click="router.push(`/project/${pid}/model/${model.key}/form`)"
         >
           <template #icon><FormOutlined /></template>
           &nbsp;表单/表项设计

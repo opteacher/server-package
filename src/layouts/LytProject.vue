@@ -1,6 +1,12 @@
 <template>
   <a-layout class="h-full">
-    <a-layout-sider class="relative" width="300" v-model:collapsed="collapsed" :trigger="null" collapsible>
+    <a-layout-sider
+      class="relative"
+      width="300"
+      v-model:collapsed="collapsed"
+      :trigger="null"
+      collapsible
+    >
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu
         class="absolute top-12 left-0 bottom-0 right-0 overflow-y-auto"
@@ -75,15 +81,15 @@
       </a-layout-header>
       <a-layout class="flex flex-col">
         <a-space class="mx-6 mt-4">
-          <a-button @click="$router.push('/server-package')">
+          <a-button @click="$router.push('/')">
             <template #icon><home-outlined /></template>
           </a-button>
           <a-breadcrumb>
-            <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
               <a
                 v-if="active.includes('/model/') || active.endsWith('auth')"
-                :href="`/server-package/project/${pid}`"
+                :href="`/project/${pid}`"
               >
                 {{ pjtName }}
               </a>
@@ -201,7 +207,6 @@ import { pjtAPI as api } from '../apis'
 defineProps({
   active: { type: String, required: true }
 })
-
 const router = useRouter()
 const route = useRoute()
 const store = useStore()
@@ -245,7 +250,7 @@ onMounted(() => {
 })
 
 function onItemSelected({ key }: { key: any }) {
-  router.push(`/server-package/${key}`)
+  router.push(key)
 }
 function onMidPubShow(show: boolean) {
   if (show) {
