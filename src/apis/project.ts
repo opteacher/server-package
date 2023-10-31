@@ -146,8 +146,7 @@ export default {
     saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
   },
   logs: {
-    access: (key: string) => reqPost(`project/${key}/docker/log/access`, undefined, { type: 'api' }),
-    exit: (key: string) => reqDelete('project', `${key}/docker/log/exit`, { type: 'api' })
+    exit: (key: string) => reqDelete('project', `${key}/docker/logs/exit`, { type: 'api' })
   },
   middle: {
     login: {

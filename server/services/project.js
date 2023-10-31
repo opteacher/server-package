@@ -6,7 +6,7 @@ import { spawn, spawnSync } from 'child_process'
 import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
-import { createClient } from 'redis'
+import { PassThrough } from 'stream'
 
 import {
   copyDir,
@@ -1009,32 +1009,46 @@ export async function acsCtnrLogs(ctx) {
     }
     return
   }
-  const client = await createClient({
-    socket: {
-      host: dbCfg.redis.host,
-      port: dbCfg.redis.port
-    },
-    password: dbCfg.redis.password
+
+  const stream = new PassThrough()
+  ctx.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
   })
-    .on('error', err => (ctx.body = { error: `Redis Client Error ${err}` }))
-    .connect()
-  const logs = spawn(`docker logs -f ${project.name}`, { shell: true })
-  logs.stdout.on('data', async data => {
-    await client.publish(dbCfg.redis.database, data)
+  ctx.status = 200
+  ctx.body = stream
+
+  const pname = project.name
+  const logs = spawn(`docker logs -f ${pname}`, { shell: true, detached: true })
+  logs.unref()
+  logs.stdout.on('data', data => {
+    console.log('DDDDDDDDDDDDDDDDD')
+    stream.write('event: message\n')
+    data.toString().split('\n').map(line => {
+      stream.write(`data: ${line}\n`)
+    })
+    stream.write('\n\n')
   })
-  logs.stderr.on('data', async data => {
-    await client.publish(dbCfg.redis.database, `[ERROR] ${data}`)
+  logs.stderr.on('data', data => {
+    console.log(data.toString())
+    stream.write('event: error\n')
+    data.toString().split('\n').map(line => {
+      stream.write(`data: ${line}\n`)
+    })
+    stream.write('\n\n')
   })
-  logs.on('close', async () => {
-    await client.disconnect()
+  logs.on('close', () => {
+    console.log('TTTTTTTTTTTTTT')
+    stream.destroy()
   })
   await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
-  ctx.body = {
-    result: dbCfg.redis.database
-  }
+  // ctx.res.on('close', async () => {
+  //   await extCtnrLogs(ctx)
+  // })
 }
 
-export async function clsCtnrLogs(ctx) {
+export async function extCtnrLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.logPid) {
     ctx.body = {

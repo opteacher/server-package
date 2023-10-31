@@ -195,9 +195,7 @@
           <a-button
             type="primary"
             size="small"
-            @click.stop="
-              () => router.push(`/project/${pid}/model/${model.key}/form`)
-            "
+            @click.stop="() => router.push(`/project/${pid}/model/${model.key}/form`)"
           >
             <template #icon><FormOutlined /></template>
             表单/表项设计
@@ -303,11 +301,10 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Transfer from '@/types/transfer'
-import { reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { getDftPjt, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   DownOutlined,
-  UpOutlined,
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
@@ -316,6 +313,7 @@ import {
   PoweroffOutlined,
   SettingOutlined,
   SyncOutlined,
+  UpOutlined,
   UploadOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
@@ -345,7 +343,6 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
-import { RedisClientType } from 'redis'
 
 const route = useRoute()
 const router = useRouter()
@@ -378,10 +375,14 @@ const mdlOpns = computed<OpnType[]>(() =>
   )
 )
 const syncEmitter = new Emitter()
-const ctnrLogs = reactive({
+const ctnrLogs = reactive<{
+  visible: boolean;
+  content: string;
+}>({
   visible: false,
   content: ''
 })
+const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -424,17 +425,17 @@ function onExportClick() {
 }
 async function onCtnrLogsVsb() {
   ctnrLogs.visible = !ctnrLogs.visible
-  const rdsCli = store.getters['project/rdsCli'] as RedisClientType
   if (ctnrLogs.visible) {
-    const topic = await pjtAPI.logs.access(pid)
-    await rdsCli.connect()
     ctnrLogs.content = ''
-    console.log(topic)
-    // await rdsCli.subscribe(topic, (chunk) => {
-    //   ctnrLogs.content += chunk
-    // }, true)
+    const es = new EventSource(esURL)
+    es.addEventListener('message', e => {
+      ctnrLogs.content += e.data
+    })
+    es.addEventListener('error', e => {
+      console.error(e)
+      es.close()
+    })
   } else {
-    // await rdsCli.unsubscribe()
     await pjtAPI.logs.exit(pid)
   }
 }
