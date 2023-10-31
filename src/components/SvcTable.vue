@@ -38,7 +38,7 @@ function onAddSvcClicked() {
 }
 function onBefSave(svc: Service) {
   if (svc.emit === 'timeout' || svc.emit === 'interval') {
-    svc.path = `/job/v1/${props.model}/${svc.interface}`
+    svc.path = `/job/v1/${svc.name}/${svc.interface}`
   }
 }
 function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {

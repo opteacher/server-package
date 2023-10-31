@@ -1043,9 +1043,6 @@ export async function acsCtnrLogs(ctx) {
     stream.destroy()
   })
   await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
-  // ctx.res.on('close', async () => {
-  //   await extCtnrLogs(ctx)
-  // })
 }
 
 export async function extCtnrLogs(ctx) {
@@ -1056,7 +1053,7 @@ export async function extCtnrLogs(ctx) {
     }
     return
   }
-  process.kill(-project.logPid, 'SIGKILL')
+  process.kill(-project.logPid, 'SIGINT')
   await db.saveOne(Project, ctx.params.pid, { logPid: 0 })
   ctx.body = {
     result: { message: '监控进程停止' }

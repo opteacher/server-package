@@ -136,16 +136,18 @@
           </a-descriptions-item>
         </template>
       </a-descriptions>
-      <pre v-if="ctnrLogs.visible" class="border-1">{{ ctnrLogs.content }}</pre>
-      <a-divider>
-        <a-button type="link" @click="onCtnrLogsVsb">
-          <template #icon>
-            <UpOutlined v-if="ctnrLogs.visible" />
-            <DownOutlined v-else />
-          </template>
-          容器日志
-        </a-button>
-      </a-divider>
+      <template v-if="project.status.stat === 'running'">
+        <pre v-if="ctnrLogs.visible" class="border-1">{{ ctnrLogs.content }}</pre>
+        <a-divider>
+          <a-button type="link" @click="onCtnrLogsVsb">
+            <template #icon>
+              <UpOutlined v-if="ctnrLogs.visible" />
+              <DownOutlined v-else />
+            </template>
+            容器日志
+          </a-button>
+        </a-divider>
+      </template>
     </a-page-header>
     <EditableTable
       title="模型"
@@ -376,8 +378,8 @@ const mdlOpns = computed<OpnType[]>(() =>
 )
 const syncEmitter = new Emitter()
 const ctnrLogs = reactive<{
-  visible: boolean;
-  content: string;
+  visible: boolean
+  content: string
 }>({
   visible: false,
   content: ''

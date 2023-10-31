@@ -41,20 +41,20 @@ export const tsMapper = new Mapper({
 })
 
 function genMdlPath(svc: Service): string {
-  const model = (store.getters['project/models'] as Model[]).find(model => model.name === svc.model)
+  const model = (store.getters['project/models'] as Model[]).find(model => model.key === svc.model)
   if (!model) {
     return ''
   }
   const relProp = model.props.find((prop: Property) => prop.relative && prop.relative.model)
   switch (svc.method) {
     case 'LINK':
-      return relProp ? `/mdl/v1/${svc.model}/:index/${relProp.name}/:propIdx` : ''
+      return relProp ? `/mdl/v1/${model.name}/:index/${relProp.name}/:propIdx` : ''
     case 'POST':
-      return `/mdl/v1/${svc.model}`
+      return `/mdl/v1/${model.name}`
     case 'DELETE':
     case 'PUT':
     case 'GET':
-      return `/mdl/v1/${svc.model}/:index`
+      return `/mdl/v1/${model.name}/:index`
     default:
       return ''
   }
