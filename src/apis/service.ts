@@ -67,8 +67,8 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            const svc = Service.copy(await reqGet('service', key, { messages: { notShow: true } }))
-            return svc.jobId !== 0
+            await store.dispatch('service/refresh', { onlySvc: true })
+            return store.getters['service/ins'].jobId !== 0
           } catch (e: any) {
             return false
           }
@@ -83,8 +83,8 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            const svc = Service.copy(await reqGet('service', key, { messages: { notShow: true } }))
-            return svc.jobId === 0
+            await store.dispatch('service/refresh', { onlySvc: true })
+            return store.getters['service/ins'].jobId === 0
           } catch (e: any) {
             return false
           }

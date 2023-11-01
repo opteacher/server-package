@@ -33,15 +33,15 @@
         </FormDialog>
         <a-button v-if="isFront" type="primary" @click="() => frtEmitter.emit('update:show', true)">
           <template #icon><ant-design-outlined /></template>
-          &nbsp;前端设计
+          前端设计
         </a-button>
         <a-button @click="onExportClick">
           <template #icon><export-outlined /></template>
-          &nbsp;导出
+          导出
         </a-button>
         <a-button @click="onConfigClick">
           <template #icon><SettingOutlined /></template>
-          &nbsp;配置
+          配置
         </a-button>
         <FormDialog
           title="配置项目"
@@ -50,39 +50,6 @@
           :mapper="pjtMapper"
           @submit="onConfigSbt"
         />
-        <a-button
-          type="primary"
-          :disabled="project.status.stat === 'loading'"
-          :loading="project.status.stat === 'loading'"
-          @click="() => (isFront ? syncEmitter.emit('update:show', true) : api.sync(pid))"
-        >
-          <template #icon><SyncOutlined /></template>
-          &nbsp;同步
-        </a-button>
-        <FormDialog
-          title="同步前端"
-          width="30vw"
-          :mapper="
-            new Mapper({
-              dir: {
-                label: 'dist',
-                type: 'UploadFile',
-                directory: true,
-                params: { keepName: true },
-                path: '/server-package/api/v1/temp/file',
-                onChange: () => {}
-              }
-            })
-          "
-          :new-fun="() => ({ dir: [] })"
-          :emitter="syncEmitter"
-          @submit="(form: any) => api.syncFrt(pid, form)"
-        >
-          <template #top>
-            <info-circle-outlined class="text-lg text-primary" />
-            &nbsp;如果选择上传dist文件夹，则不会构建项目，直接把dist内的文件复制到web容器的public目录下
-          </template>
-        </FormDialog>
         <a-tooltip v-if="project.thread">
           <template #title>传输本地文件到项目实例中</template>
           <a-button
@@ -95,7 +62,7 @@
             "
           >
             <template #icon><UploadOutlined /></template>
-            &nbsp;传输文件
+            传输文件
           </a-button>
         </a-tooltip>
         <FormDialog
@@ -106,14 +73,7 @@
           :emitter="tsEmitter"
           @submit="onTransfer"
         />
-        <a-button
-          v-if="project.thread || project.status.stat === 'loading'"
-          danger
-          @click="() => api.stop(pid)"
-        >
-          <template #icon><PoweroffOutlined /></template>
-          &nbsp;停止
-        </a-button>
+        <PjtCtrlBtns />
       </template>
       <a-descriptions size="small" :column="4">
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
@@ -164,7 +124,7 @@
       @delete="refresh"
     >
       <template #name="{ record: model }">
-        <a :href="`/project/${pid}/model/${model.key}`" @click.stop>
+        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
           {{ model.name }}
         </a>
       </template>
@@ -312,18 +272,14 @@ import {
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
-  InfoCircleOutlined,
   PartitionOutlined,
-  PoweroffOutlined,
   SettingOutlined,
-  SyncOutlined,
   UpOutlined,
   UploadOutlined
 } from '@ant-design/icons-vue'
-import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, reactive, ref } from 'vue'
+import { computed, createVNode, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -347,6 +303,7 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
+import PjtCtrlBtns from '@/components/PjtCtrlBtns.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -378,7 +335,6 @@ const mdlOpns = computed<OpnType[]>(() =>
     }))
   )
 )
-const syncEmitter = new Emitter()
 const ctnrLogs = reactive<{
   visible: boolean
   content: string

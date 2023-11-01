@@ -89,7 +89,7 @@
             <a-breadcrumb-item>
               <a
                 v-if="active.includes('/model/') || active.endsWith('auth')"
-                :href="`/project/${pid}`"
+                :href="`/server-package/project/${pid}`"
               >
                 {{ pjtName }}
               </a>

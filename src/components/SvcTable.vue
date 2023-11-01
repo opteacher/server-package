@@ -49,7 +49,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
       impEmitter.emit('update:show', false)
-      router.push(`/project/${pid.value}/flow/${params.svcId}`)
+      router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
     }
   })
 }

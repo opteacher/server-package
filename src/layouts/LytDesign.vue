@@ -52,15 +52,15 @@
           <a-breadcrumb>
             <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/project/${pid}`">
+              <a :href="`/server-package/project/${pid}`">
                 {{ pjtName }}
               </a>
             </a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/project/${pid}`">模型</a>
+              <a :href="`/server-package/project/${pid}`">模型</a>
             </a-breadcrumb-item>
             <a-breadcrumb-item>
-              <a :href="`/project/${pid}/model/${mid}`">{{ mdlName }}</a>
+              <a :href="`/server-package/project/${pid}/model/${mid}`">{{ mdlName }}</a>
             </a-breadcrumb-item>
             <a-breadcrumb-item v-if="active.endsWith('form')">表单</a-breadcrumb-item>
             <a-breadcrumb-item v-else-if="active.endsWith('table')">表项</a-breadcrumb-item>

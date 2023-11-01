@@ -98,7 +98,7 @@ export default {
   actions: {
     async refresh(
       { state }: { state: SvcState },
-      params?: { force?: boolean; width?: number; updNodes?: [string, 'save' | 'delete'][] }
+      params?: { force?: boolean; onlySvc?: boolean; width?: number; updNodes?: [string, 'save' | 'delete'][] }
     ) {
       if (!params) {
         params = { force: false, width: 0, updNodes: [] }
@@ -107,6 +107,10 @@ export default {
         return
       }
       const sid = router.currentRoute.value.params.sid as string
+      if (params.onlySvc) {
+        state.service = await svcAPI.detail(sid)
+        return
+      }
       if (params.force || !state.service.flow) {
         state.service = await svcAPI.detail(sid)
         state.deps = await depAPI.all()

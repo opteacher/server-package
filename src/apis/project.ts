@@ -48,27 +48,19 @@ export default {
   detail: (key: any) => reqGet('project', key, { copy: Project.copy }),
   databases: () =>
     reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
-  sync: (key: string) => {
-    Modal.confirm({
-      title: '确定（重）启动项目？',
-      icon: createVNode(ExclamationCircleOutlined),
-      onOk: async () => {
-        await reqPut('project', `${key}/sync`, undefined, {
-          type: 'api',
-          middles: {
-            before: () => {
-              store.commit('project/SET_STATUS', 'loading')
-            }
-          },
-          messages: {
-            loading: '同步中……',
-            succeed: '同步成功！'
-          }
-        })
-        setTimeout(() => store.dispatch('project/refresh'), 10)
+  sync: (key: string) =>
+    reqPut('project', `${key}/sync`, undefined, {
+      type: 'api',
+      middles: {
+        before: () => {
+          store.commit('project/SET_STATUS', 'loading')
+        }
+      },
+      messages: {
+        loading: '同步中……',
+        succeed: '同步成功！'
       }
-    })
-  },
+    }),
   syncFrt: async (key: string, form: any) => {
     await reqPut('project', key, { 'front.dist': form.dir })
     return reqPut('project', `${key}/sync`, undefined, { type: 'api' }).then(() => {

@@ -33,7 +33,7 @@
         />
         <a-button
           type="primary"
-          @click="router.push(`/project/${pid}/model/${model.key}/form`)"
+          @click="router.push(`/server-package/project/${pid}/model/${model.key}/form`)"
         >
           <template #icon><FormOutlined /></template>
           &nbsp;表单/表项设计
