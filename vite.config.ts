@@ -7,6 +7,10 @@ import istanbul from 'vite-plugin-istanbul'
 // https://vitejs.dev/config/
 export default ({ mode }) =>
   defineConfig({
+    base: '/server-package',
+    build: {
+      outDir: 'server/public/server-package'
+    },
     plugins: [
       vue(),
       vueJsx(),
