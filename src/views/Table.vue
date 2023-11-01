@@ -1,5 +1,5 @@
 <template>
-  <LytDesign :active="`project/${pid}/model/${mid}/table`">
+  <LytDesign active="table">
     <a-layout class="h-full">
       <a-layout-content class="p-5" width="70%" @click="selected = ''">
         <div class="bg-white p-2.5 h-full">
@@ -52,7 +52,6 @@ import Field from '@lib/types/field'
 import Mapper, { createByFields } from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
 import { mdlAPI as api } from '../apis'
@@ -63,9 +62,6 @@ import LytDesign from '../layouts/LytDesign.vue'
 import { dispHidCol } from './Table'
 
 const store = useStore()
-const route = useRoute()
-const pid = route.params.pid
-const mid = route.params.mid
 const mdlProps = computed<{ label: string; value: string }[]>(() =>
   store.getters['model/ins'].props.map((prop: any) => ({ label: prop.label, value: prop.name }))
 )

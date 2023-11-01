@@ -1,5 +1,5 @@
 <template>
-  <LytDesign :active="`project/${pid}/model/${mid}/form`">
+  <LytDesign active="form">
     <a-layout class="h-full">
       <a-layout-sider width="20%" class="bg-white overflow-y-auto pr-5">
         <div class="ant-descriptions-title mb-5">
@@ -65,7 +65,6 @@ import { BuildOutlined } from '@ant-design/icons-vue'
 import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
 import { mdlAPI as api, cmpAPI } from '../apis'
@@ -78,9 +77,6 @@ import LytDesign from '../layouts/LytDesign.vue'
 import { onFieldDropDown } from '../views/Form'
 
 const store = useStore()
-const route = useRoute()
-const pid = route.params.pid
-const mid = route.params.mid
 const compos = reactive<Compo[]>([])
 const form = computed<Form>(() => store.getters['model/form'])
 const fields = computed<Field[]>(() => store.getters['model/fields'])

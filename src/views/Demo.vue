@@ -1,5 +1,5 @@
 <template>
-  <LytDesign :active="`project/${pid}/model/${mid}/demo`">
+  <LytDesign active="demo">
     <div class="w-full text-right">
       <a-switch
         v-model:checked="useRealData"
@@ -41,15 +41,11 @@ import Mapper, { createByFields } from '@lib/types/mapper'
 import dayjs, { Dayjs } from 'dayjs'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
 import LytDesign from '../layouts/LytDesign.vue'
 
 const store = useStore()
-const route = useRoute()
-const pid = route.params.pid
-const mid = route.params.mid
 const model = computed<Model>(() => store.getters['model/ins'] as Model)
 const columns = computed<Column[]>(() =>
   store.getters['model/columns']

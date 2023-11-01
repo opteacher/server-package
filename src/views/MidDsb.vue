@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}/mid/dashboard`">
+  <LytProject :active="`/project/${pid}/mid/dashboard`">
     <a-row type="flex" :gutter="16" :style="{ height: mainHeight }">
       <a-col v-show="tlbxExpand.left" flex="2" class="border mb-6 flex flex-col">
         <div class="my-2.5 flex justify-between">

@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}`">
+  <LytProject :active="`/project/${pid}`">
     <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.desc">
       <template #tags>
         <a-tooltip>
@@ -137,8 +137,7 @@
         </template>
       </a-descriptions>
       <template v-if="project.status.stat === 'running'">
-        <pre v-if="ctnrLogs.visible" class="border-1">{{ ctnrLogs.content }}</pre>
-        <a-divider>
+        <a-divider class="m-0">
           <a-button type="link" @click="onCtnrLogsVsb">
             <template #icon>
               <UpOutlined v-if="ctnrLogs.visible" />
@@ -147,6 +146,9 @@
             容器日志
           </a-button>
         </a-divider>
+        <pre v-if="ctnrLogs.visible" class="bg-gray-100 p-2 h-64" ref="logPnl">{{
+          ctnrLogs.content
+        }}</pre>
       </template>
     </a-page-header>
     <EditableTable
@@ -384,6 +386,7 @@ const ctnrLogs = reactive<{
   visible: false,
   content: ''
 })
+const logPnl = ref<HTMLElement>()
 const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
 
 async function refresh() {
@@ -432,6 +435,14 @@ async function onCtnrLogsVsb() {
     const es = new EventSource(esURL)
     es.addEventListener('message', e => {
       ctnrLogs.content += e.data
+      const logOpt = logPnl.value
+      if (logOpt) {
+        if (logOpt.scrollHeight > logOpt.clientHeight) {
+          setTimeout(() => {
+            logOpt.scrollTop = logOpt.scrollHeight
+          }, 0)
+        }
+      }
     })
     es.addEventListener('error', e => {
       console.error(e)

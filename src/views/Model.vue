@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}/model/${mid}`">
+  <LytProject :active="`/project/${pid}/model/${mid}`">
     <a-page-header class="p-0 mb-5" :title="model.name" :sub-title="model.label">
       <template #extra>
         <a-tooltip>

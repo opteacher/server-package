@@ -1023,7 +1023,6 @@ export async function acsCtnrLogs(ctx) {
   const logs = spawn(`docker logs -f ${pname}`, { shell: true, detached: true })
   logs.unref()
   logs.stdout.on('data', data => {
-    console.log('DDDDDDDDDDDDDDDDD')
     stream.write('event: message\n')
     data.toString().split('\n').map(line => {
       stream.write(`data: ${line}\n`)
@@ -1031,7 +1030,6 @@ export async function acsCtnrLogs(ctx) {
     stream.write('\n\n')
   })
   logs.stderr.on('data', data => {
-    console.log(data.toString())
     stream.write('event: error\n')
     data.toString().split('\n').map(line => {
       stream.write(`data: ${line}\n`)
@@ -1039,7 +1037,6 @@ export async function acsCtnrLogs(ctx) {
     stream.write('\n\n')
   })
   logs.on('close', () => {
-    console.log('TTTTTTTTTTTTTT')
     stream.destroy()
   })
   await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })

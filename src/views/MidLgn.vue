@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}/mid/login`">
+  <LytProject :active="`/project/${pid}/mid/login`">
     <div class="relative">
       <div
         v-if="!hasAuth"

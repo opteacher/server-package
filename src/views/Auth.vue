@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}/auth`">
+  <LytProject :active="`/project/${pid}/auth`">
     <div class="space-y-5">
       <div class="flex justify-between mb-2.5">
         <p class="mb-0 text-lg font-bold">

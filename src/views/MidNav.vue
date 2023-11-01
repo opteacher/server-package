@@ -1,5 +1,5 @@
 <template>
-  <LytProject :active="`project/${pid}/mid/navigate`">
+  <LytProject :active="`/project/${pid}/mid/navigate`">
     <a-row :gutter="24" class="h-full mx-0">
       <a-col :span="16" class="bg-gray-500" @click="selMuKey = ''">
         <div class="w-1/3 h-full mx-auto my-0 flex flex-col">

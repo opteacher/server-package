@@ -7,15 +7,15 @@
     <a-layout-sider width="200" v-model:collapsed="collapsed" :trigger="null" collapsible>
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu :selectedKeys="[active]" theme="dark" mode="inline" @select="onItemSelected">
-        <a-menu-item :key="`project/${pid}/model/${mid}/form`" class="mt-0">
+        <a-menu-item :key="`/project/${pid}/model/${mid}/form`" class="mt-0">
           <form-outlined />
           <span>表单</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/model/${mid}/table`">
+        <a-menu-item :key="`/project/${pid}/model/${mid}/table`">
           <table-outlined />
           <span>表项</span>
         </a-menu-item>
-        <a-menu-item :key="`project/${pid}/model/${mid}/demo`">
+        <a-menu-item :key="`/project/${pid}/model/${mid}/demo`">
           <desktop-outlined />
           <span>演示</span>
         </a-menu-item>
@@ -62,9 +62,9 @@
             <a-breadcrumb-item>
               <a :href="`/project/${pid}/model/${mid}`">{{ mdlName }}</a>
             </a-breadcrumb-item>
-            <a-breadcrumb-item v-if="active.slice(-4) === 'form'">表单</a-breadcrumb-item>
-            <a-breadcrumb-item v-else-if="active.slice(-5) === 'table'">表项</a-breadcrumb-item>
-            <a-breadcrumb-item v-else-if="active.slice(-4) === 'demo'">中台演示</a-breadcrumb-item>
+            <a-breadcrumb-item v-if="active.endsWith('form')">表单</a-breadcrumb-item>
+            <a-breadcrumb-item v-else-if="active.endsWith('table')">表项</a-breadcrumb-item>
+            <a-breadcrumb-item v-else-if="active.endsWith('demo')">中台演示</a-breadcrumb-item>
           </a-breadcrumb>
         </a-space>
         <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
@@ -102,6 +102,7 @@ const pid = route.params.pid
 const mid = route.params.mid
 const pjtName = computed(() => store.getters['project/ins'].name)
 const mdlName = computed(() => store.getters['model/ins'].name)
+const collapsed = ref<boolean>(false)
 
 function onItemSelected({ key }: { key: any }) {
   router.push(key)

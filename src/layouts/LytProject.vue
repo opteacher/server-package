@@ -20,7 +20,7 @@
           <template #icon>
             <project-outlined />
           </template>
-          <a-menu-item :key="`project/${pid}`">
+          <a-menu-item :key="`/project/${pid}`">
             <span>{{ pjtName }}</span>
           </a-menu-item>
           <a-menu-item-group key="models">
@@ -28,12 +28,12 @@
               <appstore-outlined />
             </template>
             <template #title>模型</template>
-            <a-menu-item v-for="model in models" :key="`project/${pid}/model/${model.key}`">
+            <a-menu-item v-for="model in models" :key="`/project/${pid}/model/${model.key}`">
               {{ model.name }}
             </a-menu-item>
           </a-menu-item-group>
         </a-sub-menu>
-        <a-menu-item v-if="!isFront" :key="`project/${pid}/auth`">
+        <a-menu-item v-if="!isFront" :key="`/project/${pid}/auth`">
           <audit-outlined />
           <span>权限</span>
         </a-menu-item>
@@ -41,15 +41,15 @@
           <template #icon>
             <layout-outlined />
           </template>
-          <a-menu-item :key="`project/${pid}/mid/login`">
+          <a-menu-item :key="`/project/${pid}/mid/login`">
             <login-outlined />
             <span>登录页</span>
           </a-menu-item>
-          <a-menu-item :key="`project/${pid}/mid/navigate`">
+          <a-menu-item :key="`/project/${pid}/mid/navigate`">
             <hdd-outlined />
             <span>导航栏</span>
           </a-menu-item>
-          <a-menu-item :key="`project/${pid}/mid/dashboard`">
+          <a-menu-item :key="`/project/${pid}/mid/dashboard`">
             <dashboard-outlined />
             <span>首页</span>
           </a-menu-item>
@@ -211,8 +211,6 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore()
 const pid = route.params.pid
-const mid = route.params.mid
-const sid = route.params.sid
 const pjtName = computed(() => store.getters['project/ins'].name)
 const mdlName = computed(() => store.getters['model/ins'].name)
 const models = computed(() => store.getters['project/ins'].models)
