@@ -924,7 +924,9 @@ export async function pubMiddle(pid, pubInfo) {
 }
 
 export async function genMiddle(ctx) {
-  const project = (await db.select(Project, { _index: ctx.params.pid }, { ext: true })).toObject()
+  const project = await db
+    .select(Project, { _index: ctx.params.pid }, { ext: true })
+    .then(res => res.toJSON())
   await buildMid(project)
   console.log('打包中台……')
   const flName = `${project.name}-mid.tar`
@@ -1014,7 +1016,7 @@ export async function acsCtnrLogs(ctx) {
   ctx.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
+    Connection: 'keep-alive'
   })
   ctx.status = 200
   ctx.body = stream
@@ -1024,16 +1026,22 @@ export async function acsCtnrLogs(ctx) {
   logs.unref()
   logs.stdout.on('data', data => {
     stream.write('event: message\n')
-    data.toString().split('\n').map(line => {
-      stream.write(`data: ${line}\n`)
-    })
+    data
+      .toString()
+      .split('\n')
+      .map(line => {
+        stream.write(`data: ${line}\n`)
+      })
     stream.write('\n\n')
   })
   logs.stderr.on('data', data => {
     stream.write('event: error\n')
-    data.toString().split('\n').map(line => {
-      stream.write(`data: ${line}\n`)
-    })
+    data
+      .toString()
+      .split('\n')
+      .map(line => {
+        stream.write(`data: ${line}\n`)
+      })
     stream.write('\n\n')
   })
   logs.on('close', () => {

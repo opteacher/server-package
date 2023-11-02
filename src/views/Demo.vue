@@ -1,5 +1,5 @@
 <template>
-  <LytDesign active="demo">
+  <LytDesign :active="`/project/${pid}/model/${mid}/demo`">
     <div class="w-full text-right">
       <a-switch
         v-model:checked="useRealData"
@@ -44,8 +44,12 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 
 import LytDesign from '../layouts/LytDesign.vue'
+import { useRoute } from 'vue-router'
 
 const store = useStore()
+const route = useRoute()
+const pid = route.params.pid
+const mid = route.params.mid
 const model = computed<Model>(() => store.getters['model/ins'] as Model)
 const columns = computed<Column[]>(() =>
   store.getters['model/columns']

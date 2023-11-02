@@ -1,6 +1,15 @@
 import store from '@/store'
 import Service from '@/types/service'
-import { endsWith, intervalCheck, pickOrIgnore, reqDelete, reqGet, reqPost, reqPut } from '@/utils'
+import {
+  downloadFile,
+  endsWith,
+  intervalCheck,
+  pickOrIgnore,
+  reqDelete,
+  reqGet,
+  reqPost,
+  reqPut
+} from '@/utils'
 
 export default {
   add: async (data: any) => {
@@ -38,23 +47,8 @@ export default {
     codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
     build: (key: any, width: number) =>
       reqPost(`service/${key}/node/s/build`, { width }, { type: 'api' }),
-    export: async (key: any) => {
-      const resp = await reqGet('service', `/${key}/flow/export`, { type: 'api', orgRes: true })
-      // 创建对象url
-      const link = document.createElement('a')
-      link.href = window.URL.createObjectURL(
-        new Blob([JSON.stringify(resp.data)], { type: resp.headers['content-type'] })
-      )
-      const filename = window.decodeURI(resp.headers['content-disposition'].split('=')[1])
-      link.download = filename.substring(
-        filename.startsWith('"') ? 1 : 0,
-        endsWith(filename, '"') ? filename.length - 1 : 0
-      )
-      link.style.display = 'none'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-    },
+    export: async (key: any) =>
+      downloadFile(await reqGet('service', `/${key}/flow/export`, { type: 'api', orgRes: true })),
     import: (key: any, body: { impFile: string }) =>
       reqPost(`service/${key}/flow/import`, body, { type: 'api' })
   },

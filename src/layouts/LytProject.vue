@@ -115,63 +115,6 @@
           </a-breadcrumb>
         </a-space>
         <a-layout-content class="flex-auto mx-5 my-4 p-6 bg-white overflow-y-auto">
-          <a-row v-if="active.includes('/mid/')" class="mb-2">
-            <a-col :span="12">
-              <a-tooltip>
-                <template #title>
-                  在线编译可能导致服务器内存溢出，建议离线编译打包后在上传发布
-                </template>
-                <a-button type="primary" :loading="middle.loading" @click="onMidPubShow(true)">
-                  <template #icon><cloud-upload-outlined /></template>
-                  发布中台
-                </a-button>
-              </a-tooltip>
-              <FormDialog
-                title="配置中台"
-                :copy="Middle.copy"
-                v-model:show="midVsb"
-                :mapper="midMapper"
-                :emitter="midEmitter"
-                @submit="onMidPub"
-              >
-                <template #footer="pubInfo">
-                  <a-space>
-                    <a-button @click="onMidGen(pubInfo)">导出</a-button>
-                    <a-upload
-                      name="file"
-                      :multiple="false"
-                      :directory="true"
-                      :showUploadList="false"
-                      action="/server-package/api/v1/temp/file"
-                      @change="(info: any) => onMidDep(info, pubInfo)"
-                    >
-                      <a-tooltip>
-                        <template #title>选择build生成的dist文件夹</template>
-                        <a-button>导入</a-button>
-                      </a-tooltip>
-                    </a-upload>
-                    <a-divider type="vertical" />
-                    <a-tooltip>
-                      <template #title>
-                        在线编译可能导致服务器内存溢出，建议导出后编译后再上传
-                      </template>
-                      <a-button type="primary" @click="onMidPub(pubInfo)">确定</a-button>
-                    </a-tooltip>
-                  </a-space>
-                </template>
-              </FormDialog>
-            </a-col>
-            <a-col :span="12" class="text-right">
-              <a-button
-                :disabled="middle.loading || !middle.url"
-                :href="middle.url"
-                target="_blank"
-              >
-                <template #icon><eye-outlined /></template>
-                浏览中台
-              </a-button>
-            </a-col>
-          </a-row>
           <slot />
         </a-layout-content>
       </a-layout>
@@ -180,14 +123,10 @@
 </template>
 
 <script lang="ts" setup name="MainLayout">
-import Mapper from '@/lib/frontend-library/src/types/mapper'
-import Middle from '@/types/middle'
 import {
   AppstoreOutlined,
   AuditOutlined,
-  CloudUploadOutlined,
   DashboardOutlined,
-  EyeOutlined,
   HddOutlined,
   HomeOutlined,
   LayoutOutlined,
@@ -197,12 +136,9 @@ import {
   ProjectOutlined,
   UserOutlined
 } from '@ant-design/icons-vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, defineProps, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-
-import { pjtAPI as api } from '../apis'
 
 defineProps({
   active: { type: String, required: true }
@@ -216,26 +152,6 @@ const mdlName = computed(() => store.getters['model/ins'].name)
 const models = computed(() => store.getters['project/ins'].models)
 const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
 const expanded = reactive<string[]>([])
-const midVsb = ref(false)
-const midEmitter = new Emitter()
-const midMapper = new Mapper({
-  title: {
-    label: '标题',
-    desc: '登录页和首页的标题',
-    type: 'Input'
-  },
-  prefix: {
-    label: '路由前缀',
-    desc: '/项目名/中台前缀/(home|login)',
-    type: 'Input'
-  },
-  lclDep: {
-    label: '本地部署',
-    desc: '是否部署到项目实例，【非本地部署】相当于前后端分离',
-    type: 'Checkbox'
-  }
-})
-const middle = computed(() => store.getters['project/middle'])
 const collapsed = ref<boolean>(false)
 
 onMounted(() => {
@@ -249,37 +165,5 @@ onMounted(() => {
 
 function onItemSelected({ key }: { key: any }) {
   router.push(key)
-}
-function onMidPubShow(show: boolean) {
-  if (show) {
-    midEmitter.emit('update:data', store.getters['project/middle'])
-  }
-  midVsb.value = show
-}
-async function onMidPub(info: Middle) {
-  await api.middle.publish(pid, info)
-  store.dispatch('project/chkMidStatus')
-  midVsb.value = false
-}
-async function onMidGen(info: Middle) {
-  await api.middle.generate(pid)
-  midVsb.value = false
-}
-async function onMidDep(info: any, pubInfo: Middle) {
-  if (
-    info.file.status === 'done' &&
-    info.fileList
-      .map((file: any) => file.status)
-      .reduce((prev: any, curr: any) => prev && curr === 'done')
-  ) {
-    await api.middle.deploy(pid, {
-      fileList: info.fileList.map((file: any) => ({
-        name: file.name,
-        src: file.response.result,
-        dest: file.originFileObj.webkitRelativePath || file.name
-      }))
-    })
-    midVsb.value = false
-  }
 }
 </script>

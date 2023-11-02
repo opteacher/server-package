@@ -4,14 +4,18 @@ import ExpCls from '@/types/expCls'
 import Model from '@/types/model'
 import Project from '@/types/project'
 import Service, { Method, methods as Methods } from '@/types/service'
-import { pickOrIgnore, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import { downloadFile, pickOrIgnore, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 
 const expDft = {
   add: async (data: any) => {
-    const model = await reqPost('model', Object.assign(data, { pid: store.getters['project/ins'].key }), {
-      type: 'api',
-      copy: Model.copy
-    })
+    const model = await reqPost(
+      'model',
+      Object.assign(data, { pid: store.getters['project/ins'].key }),
+      {
+        type: 'api',
+        copy: Model.copy
+      }
+    )
     console.log(model)
     await reqPut(`project/${store.getters['project/ins'].key}`, `models/${model.key}`)
     return model
@@ -75,17 +79,12 @@ const expDft = {
         type: 'api'
       }
     )
-
-    const link = document.createElement('a')
-    const body = document.querySelector('body')
-
-    // 创建对象url
-    link.href = window.URL.createObjectURL(new Blob([result.content]))
-    link.download = result.fileName
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    downloadFile({
+      data: result.content,
+      headers: {
+        'content-disposition': '=' + window.encodeURI(result.fileName)
+      }
+    })
   },
   dataset: () =>
     reqGet(

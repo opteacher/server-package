@@ -1,5 +1,5 @@
 <template>
-  <LytDesign active="table">
+  <LytDesign :active="`/project/${pid}/model/${mid}/table`">
     <a-layout class="h-full">
       <a-layout-content class="p-5" width="70%" @click="selected = ''">
         <div class="bg-white p-2.5 h-full">
@@ -60,8 +60,12 @@ import ColumnProps from '../components/table/ColumnProps.vue'
 import TableProps from '../components/table/TableProps.vue'
 import LytDesign from '../layouts/LytDesign.vue'
 import { dispHidCol } from './Table'
+import { useRoute } from 'vue-router'
 
 const store = useStore()
+const route = useRoute()
+const pid = route.params.pid
+const mid = route.params.mid
 const mdlProps = computed<{ label: string; value: string }[]>(() =>
   store.getters['model/ins'].props.map((prop: any) => ({ label: prop.label, value: prop.name }))
 )

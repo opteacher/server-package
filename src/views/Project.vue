@@ -73,6 +73,48 @@
           :emitter="tsEmitter"
           @submit="onTransfer"
         />
+        <a-tooltip>
+          <template #title>在线编译可能导致服务器内存溢出，建议离线编译打包后在上传发布</template>
+          <a-button type="primary" :loading="middle.loading" @click="onMidPubShow(true)">
+            <template #icon><cloud-upload-outlined /></template>
+            发布中台
+          </a-button>
+        </a-tooltip>
+        <FormDialog
+          title="配置中台"
+          width="30vw"
+          :new-fun="() => new Middle()"
+          :mapper="midDlg.mapper"
+          :emitter="midDlg.emitter"
+        >
+          <template #footer="pubInfo">
+            <a-space>
+              <a-button @click="() => onMidGen(pubInfo)">导出</a-button>
+              <a-upload
+                name="file"
+                :multiple="false"
+                :directory="true"
+                :showUploadList="false"
+                action="/server-package/api/v1/temp/file"
+                @change="(info: any) => onMidDep(info, pubInfo)"
+              >
+                <a-tooltip>
+                  <template #title>选择build生成的dist文件夹</template>
+                  <a-button>导入</a-button>
+                </a-tooltip>
+              </a-upload>
+              <a-divider type="vertical" />
+              <a-tooltip>
+                <template #title>在线编译可能导致服务器内存溢出，建议导出后编译后再上传</template>
+                <a-button type="primary" @click="onMidPub(pubInfo)">确定</a-button>
+              </a-tooltip>
+            </a-space>
+          </template>
+        </FormDialog>
+        <a-button v-if="middle.url" :loading="middle.loading" :href="middle.url" target="_blank">
+          <template #icon><eye-outlined /></template>
+          浏览中台
+        </a-button>
         <PjtCtrlBtns />
       </template>
       <a-descriptions size="small" :column="4">
@@ -146,12 +188,7 @@
         <a-space>
           <a-button
             size="small"
-            @click.stop="
-              () => {
-                expClsObj.update(model)
-                expClsVsb = true
-              }
-            "
+            @click.stop="() => onExpClsClick(model)"
           >
             <template #icon><ExportOutlined /></template>
             导出类
@@ -247,7 +284,7 @@
       :object="expClsObj"
       :new-fun="() => new ExpCls()"
       :mapper="expMapper"
-      @submit="(formData: any) => mdlAPI.export(formData)"
+      @submit="onExpClsSbt"
     />
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
   </LytProject>
@@ -256,10 +293,12 @@
 <script lang="ts" setup name="Project">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import MsvcSelect from '@/components/MsvcSelect.vue'
+import PjtCtrlBtns from '@/components/PjtCtrlBtns.vue'
 import SvcTable from '@/components/SvcTable.vue'
 import { OpnType } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
+import Middle from '@/types/middle'
 import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
@@ -268,8 +307,10 @@ import Transfer from '@/types/transfer'
 import { getDftPjt, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
+  CloudUploadOutlined,
   DownOutlined,
   ExportOutlined,
+  EyeOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
@@ -277,9 +318,10 @@ import {
   UpOutlined,
   UploadOutlined
 } from '@ant-design/icons-vue'
+import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, createVNode, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -303,7 +345,6 @@ import {
   tsEmitter,
   tsMapper
 } from './Project'
-import PjtCtrlBtns from '@/components/PjtCtrlBtns.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -344,6 +385,27 @@ const ctnrLogs = reactive<{
 })
 const logPnl = ref<HTMLElement>()
 const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
+const midDlg = reactive({
+  emitter: new Emitter(),
+  mapper: new Mapper({
+    title: {
+      label: '标题',
+      desc: '登录页和首页的标题',
+      type: 'Input'
+    },
+    prefix: {
+      label: '路由前缀',
+      desc: '/项目名/中台前缀/(home|login)',
+      type: 'Input'
+    },
+    lclDep: {
+      label: '本地部署',
+      desc: '是否部署到项目实例，【非本地部署】相当于前后端分离',
+      type: 'Checkbox'
+    }
+  })
+})
+const middle = computed(() => store.getters['project/middle'])
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -407,5 +469,45 @@ async function onCtnrLogsVsb() {
   } else {
     await pjtAPI.logs.exit(pid)
   }
+}
+function onMidPubShow(show: boolean) {
+  if (show) {
+    midDlg.emitter.emit('update:data', store.getters['project/middle'])
+  }
+  midDlg.emitter.emit('update:show', show)
+}
+async function onMidPub(info: Middle) {
+  await api.middle.publish(pid, info)
+  store.dispatch('project/chkMidStatus')
+  midDlg.emitter.emit('update:show', false)
+}
+async function onMidGen(_info: Middle) {
+  await api.middle.generate(pid)
+  midDlg.emitter.emit('update:show', false)
+}
+async function onMidDep(info: any, _pubInfo: Middle) {
+  if (
+    info.file.status === 'done' &&
+    info.fileList
+      .map((file: any) => file.status)
+      .reduce((prev: any, curr: any) => prev && curr === 'done')
+  ) {
+    await api.middle.deploy(pid, {
+      fileList: info.fileList.map((file: any) => ({
+        name: file.name,
+        src: file.response.result,
+        dest: file.originFileObj.webkitRelativePath || file.name
+      }))
+    })
+    midDlg.emitter.emit('update:show', false)
+  }
+}
+function onExpClsClick(model: Model) {
+  expClsObj.update(model)
+  expClsVsb.value = true
+}
+async function onExpClsSbt(formData: any) {
+  await mdlAPI.export(formData)
+  expClsVsb.value = false
 }
 </script>
