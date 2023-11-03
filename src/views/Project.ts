@@ -35,7 +35,7 @@ export const tsMapper = new Mapper({
   },
   dest: {
     label: '投放位置',
-    desc: '基于容器/app位置（注意：文件名不能修改，所以这里只能填写目录！）',
+    placeholder: '基于容器/app位置（注意：文件名不能修改，所以这里只能填写目录！）',
     type: 'Input'
   }
 })

@@ -1,6 +1,5 @@
 import store from '@/store'
 import { reqPut, pickOrIgnore } from '@/utils'
-import pjtAPI from './project'
 
 export default {
   add: (data: any) =>

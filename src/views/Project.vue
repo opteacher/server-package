@@ -82,7 +82,7 @@
         </a-tooltip>
         <FormDialog
           title="配置中台"
-          width="30vw"
+          width="40vw"
           :new-fun="() => new Middle()"
           :mapper="midDlg.mapper"
           :emitter="midDlg.emitter"
@@ -390,17 +390,17 @@ const midDlg = reactive({
   mapper: new Mapper({
     title: {
       label: '标题',
-      desc: '登录页和首页的标题',
+      placeholder: '登录页和首页的标题',
       type: 'Input'
     },
     prefix: {
       label: '路由前缀',
-      desc: '/项目名/中台前缀/(home|login)',
+      placeholder: '/项目名/中台前缀/(home|login)',
       type: 'Input'
     },
     lclDep: {
       label: '本地部署',
-      desc: '是否部署到项目实例，【非本地部署】相当于前后端分离',
+      placeholder: '是否部署到项目实例，【非本地部署】相当于前后端分离',
       type: 'Checkbox'
     }
   })

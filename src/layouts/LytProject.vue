@@ -33,10 +33,17 @@
             </a-menu-item>
           </a-menu-item-group>
         </a-sub-menu>
-        <a-menu-item v-if="!isFront" :key="`/project/${pid}/auth`">
-          <audit-outlined />
-          <span>权限</span>
-        </a-menu-item>
+        <a-sub-menu v-if="!isFront" key="auth" title="权限">
+          <template #icon><audit-outlined /></template>
+          <a-menu-item :key="`/project/${pid}/auth/audit`">
+            <SolutionOutlined />
+            <span>授权</span>
+          </a-menu-item>
+          <a-menu-item :key="`/project/${pid}/auth/apis`">
+            <ApiOutlined />
+            <span>接口</span>
+          </a-menu-item>
+        </a-sub-menu>
         <a-sub-menu v-if="!isFront" key="middle" title="中台">
           <template #icon>
             <layout-outlined />
@@ -88,7 +95,7 @@
             <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
               <a
-                v-if="active.includes('/model/') || active.endsWith('auth')"
+                v-if="active.includes('/model/') || active.includes('/auth/')"
                 :href="`/server-package/project/${pid}`"
               >
                 {{ pjtName }}
@@ -124,6 +131,7 @@
 
 <script lang="ts" setup name="MainLayout">
 import {
+  ApiOutlined,
   AppstoreOutlined,
   AuditOutlined,
   DashboardOutlined,
@@ -134,6 +142,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ProjectOutlined,
+  SolutionOutlined,
   UserOutlined
 } from '@ant-design/icons-vue'
 import { computed, defineProps, onMounted, reactive, ref } from 'vue'
@@ -160,6 +169,9 @@ onMounted(() => {
   }
   if (route.fullPath.includes('/mid/')) {
     expanded.push('middle')
+  }
+  if (route.fullPath.includes('/auth/')) {
+    expanded.push('auth')
   }
 })
 

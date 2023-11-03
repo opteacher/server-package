@@ -19,6 +19,7 @@ import Model from '../views/Model.vue'
 import Project from '../views/Project.vue'
 import Table from '../views/Table.vue'
 import Test from '../views/Test.vue'
+import Apis from '../views/Apis.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -84,9 +85,15 @@ const routes: Array<RouteRecordRaw> = [
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/auth',
+    path: '/project/:pid/auth/audit',
     name: 'Authorization',
     component: Auth,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/project/:pid/auth/apis',
+    name: 'AuthAPIs',
+    component: Apis,
     meta: { reqLogin: true }
   },
   {

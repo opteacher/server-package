@@ -32,13 +32,22 @@ export const mapper = new Mapper({
   model: {
     label: '账户模型',
     type: 'Select',
+    rules: [{ required: true, message: '必须选择账户模型' }],
     options: []
   },
   skips: {
     label: '跳过链接',
     type: 'EditList',
-    mode: 'select',
-    options: []
+    flatItem: true,
+    mapper: {
+      item: {
+        type: 'Select',
+        placeholder: '选择要跳过的链接',
+        options: []
+      }
+    },
+    emitter: new Emitter(),
+    newFun: () => ({ item: '' })
   },
   opera: {
     label: '操作',
@@ -67,18 +76,18 @@ export const mapper = new Mapper({
 export async function onAuthShow(show: boolean) {
   if (show) {
     await store.dispatch('project/refresh')
-    const project = store.getters['project/ins']
     emitter.emit('update:mprop', {
       'model.loading': true,
-      'model.options': project.models.map((mdl: Model) => ({
+      'model.options': store.getters['project/ins'].models.map((mdl: Model) => ({
         label: mdl.name,
         value: mdl.key
       })),
-      'skips.options': (await pjtAPI.apis(project.key)).map((svc: any) => ({
+      'skips.mapper.item.options': store.getters['project/apis'].map((svc: any) => ({
         label: svc.path,
         value: svc.path
       }))
     })
+    emitter.emit('update:data', store.getters['project/ins'].auth)
     mapper['model'].loading = false
   }
   authVsb.value = show
@@ -117,8 +126,13 @@ export const ruleMapper = new Mapper({
   },
   value: {
     label: '匹配方式',
-    type: 'Select',
-    options: authValues.map((val: string) => ({ label: val, value: val }))
+    type: 'Radio',
+    style: 'button',
+    options: Object.entries(authValues).map(([val, dsc]) => ({
+      label: val,
+      subLabel: dsc,
+      value: val
+    }))
   },
   action: {
     label: '动作',
@@ -127,11 +141,10 @@ export const ruleMapper = new Mapper({
 })
 
 export const apiColumn = [
-  new Column('所属模型', 'model'),
-  new Column('访问方式', 'method'),
+  new Column('所属模型', 'model', { filterable: true }),
+  new Column('访问方式', 'method', { filterable: true }),
   new Column('路由', 'path'),
-  new Column('可访问角色', 'roles'),
-  new Column('签发配置', 'sign')
+  new Column('可访问角色', 'roles')
 ]
 
 export const apiMapper = new Mapper({

@@ -4,7 +4,16 @@ import ExpCls from '@/types/expCls'
 import Model from '@/types/model'
 import Project from '@/types/project'
 import Service, { Method, methods as Methods } from '@/types/service'
-import { downloadFile, pickOrIgnore, reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
+import {
+  RequestOptions,
+  downloadFile,
+  pickOrIgnore,
+  reqDelete,
+  reqGet,
+  reqLink,
+  reqPost,
+  reqPut
+} from '@/utils'
 
 const expDft = {
   add: async (data: any) => {
@@ -70,7 +79,8 @@ const expDft = {
     await store.dispatch('project/refresh')
     return store.getters['project/ins'].models
   },
-  detail: (key: any) => reqGet('model', key).then((mdl: any) => Model.copy(mdl)),
+  detail: (key: any, options?: RequestOptions) =>
+    reqGet('model', key, options).then((mdl: any) => Model.copy(mdl)),
   export: async (expCls: ExpCls) => {
     const result = await reqPost(
       `project/${store.getters['project/ins'].key}/model/${expCls.key}/export`,

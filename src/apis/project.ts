@@ -129,7 +129,8 @@ export default {
       type: 'api',
       messages: { notShow: true }
     }),
-  apis: (key: string) => reqGet('project', `${key}/apis`, { type: 'api' }),
+  apis: (key: string) =>
+    reqGet('project', `${key}/apis`, { type: 'api', messages: { notShow: true } }),
   expDkrImg: async (key: string, name?: string) => {
     const resp = await reqGet('project', `${key}/docker/image/export`, {
       type: 'api',
