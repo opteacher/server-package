@@ -83,7 +83,7 @@ export default {
           state.dataset = []
           return
         }
-        state.dataset = await mdlAPI.dataset()
+        state.dataset = await mdlAPI.dataset(mid)
       }
     },
     async publish({ rootGetters, dispatch }: { rootGetters: any; dispatch: Dispatch }) {

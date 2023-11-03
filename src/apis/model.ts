@@ -96,12 +96,8 @@ const expDft = {
       }
     })
   },
-  dataset: () =>
-    reqGet(
-      `project/${store.getters['project/ins'].key}`,
-      `model/${store.getters['model/ins'].key}/data`,
-      { type: 'api' }
-    ),
+  dataset: (key: any) =>
+    reqGet(`project/${store.getters['project/ins'].key}`, `model/${key}/data`, { type: 'api' }),
   form: {
     save: async (form: any) => {
       await reqPut(

@@ -5,6 +5,7 @@ import store from '@/store'
 import { Cond, methods } from '@/types'
 import API from '@/types/api'
 import Model from '@/types/model'
+import Project from '@/types/project'
 import { authValues } from '@/types/rule'
 import Service from '@/types/service'
 import SgnProp from '@/types/sgnProp'
@@ -15,7 +16,7 @@ import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode, ref } from 'vue'
 
-import { authAPI, pjtAPI } from '../apis'
+import { authAPI } from '../apis'
 
 export async function refresh() {
   await store.dispatch('project/refresh')
@@ -111,6 +112,7 @@ export const ruleColumns = [
   new Column('访问方式', 'method'),
   new Column('路径', 'path'),
   new Column('匹配', 'value'),
+  new Column('指定项', 'idens'),
   new Column('动作', 'action')
 ]
 
@@ -133,6 +135,27 @@ export const ruleMapper = new Mapper({
       subLabel: dsc,
       value: val
     }))
+  },
+  idens: {
+    label: '指定项',
+    desc: '需要启动项目，才能在此检索到模型数据',
+    type: 'EditList',
+    display: [new Cond({ key: 'value', cmp: '=', val: ':i' })],
+    mapper: {
+      model: {
+        label: '模型',
+        type: 'Select'
+      },
+      pKey: {
+        label: '路由中的标识',
+        type: 'Select'
+      },
+      pVal: {
+        label: '指定数据ID',
+        type: 'Select'
+      }
+    },
+    newFun: () => ({ model: '', pKey: '', pVal: '' })
   },
   action: {
     label: '动作',
@@ -172,6 +195,34 @@ export const apiMapper = new Mapper({
 export const apiEmitter = new Emitter()
 
 export const ruleEmitter = new Emitter()
+
+ruleEmitter.on('update:show', (args: { show: boolean; object?: Object } | boolean) => {
+  if ((typeof args === 'boolean' && args) || (args as { show: boolean }).show) {
+    ruleEmitter.emit('update:mprop', {
+      'idens.mapper.model.options': (store.getters['project/ins'] as Project).models.map(model => ({
+        label: model.label,
+        value: model.key
+      }))
+    })
+    console.log((args as any).object)
+
+    const ret = {} as Record<string, any>
+    for (const api of store.getters['project/apis'] as Service[]) {
+      let obj = ret
+      const ptPaths = api.path.split('/').filter((str: string) => str)
+      for (let i = 0; i < ptPaths.length; ++i) {
+        const ptPath = ptPaths[i]
+        if (!(ptPath in obj)) {
+          obj[ptPath] = {} as Record<string, any>
+        }
+        obj = obj[ptPath]
+      }
+    }
+    ruleEmitter.emit('update:mprop', {
+      'path.options': recuAPIs(ret)
+    })
+  }
+})
 
 export const signEmitter = new Emitter()
 

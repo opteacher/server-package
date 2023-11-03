@@ -31,7 +31,8 @@ export default db.defineModel(
             {
               method: db.PropTypes.String,
               path: db.PropTypes.String,
-              value: db.PropTypes.String, // * | s | key
+              value: db.PropTypes.String, // * | s | key | */* | :i
+              idens: db.PropTypes.Array,
               action: db.PropTypes.String
             }
           ]

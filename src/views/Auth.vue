@@ -45,7 +45,6 @@
           :mapper="ruleMapper"
           :new-fun="() => new Rule()"
           :emitter="ruleEmitter"
-          @add="onRuleEdit"
           @save="refresh"
           @delete="refresh"
         >
@@ -94,13 +93,12 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { authAPI as api, genRuleAPI, roleAPI } from '../apis'
+import { authAPI as api, genRuleAPI, mdlAPI, roleAPI } from '../apis'
 import {
   authVsb,
   emitter,
   mapper,
   onAuthShow,
-  recuAPIs,
   refresh,
   roleColumns,
   roleEmitter,
@@ -148,20 +146,5 @@ async function onBindModel(form: any) {
   await api.bind(form)
   await refresh()
   authVsb.value = false
-}
-function onRuleEdit() {
-  const ret = {} as Record<string, any>
-  for (const api of store.getters['project/apis']) {
-    let obj = ret
-    for (const ptPath of api.path.split('/').filter((str: string) => str)) {
-      if (!(ptPath in obj)) {
-        obj[ptPath] = {} as Record<string, any>
-      }
-      obj = obj[ptPath]
-    }
-  }
-  ruleEmitter.emit('update:mprop', {
-    'path.options': recuAPIs(ret)
-  })
 }
 </script>

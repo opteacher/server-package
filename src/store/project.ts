@@ -35,7 +35,7 @@ export default {
         return
       }
       const pid = router.currentRoute.value.params.pid as string
-      Project.copy(await pjtAPI.detail(pid), state.project)
+      state.project = await pjtAPI.detail(pid)
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
     },

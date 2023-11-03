@@ -35,6 +35,7 @@
     </EditableTable>
     <FormDialog
       title="配置签发逻辑"
+      width="30vw"
       :show="showSgn"
       :new-fun="() => new Sign()"
       :mapper="signMapper"
