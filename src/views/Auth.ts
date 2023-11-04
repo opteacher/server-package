@@ -5,7 +5,7 @@ import store from '@/store'
 import { Cond, methods } from '@/types'
 import API from '@/types/api'
 import Model from '@/types/model'
-import Project from '@/types/project'
+import Rule from '@/types/rule'
 import { authValues } from '@/types/rule'
 import Service from '@/types/service'
 import SgnProp from '@/types/sgnProp'
@@ -134,11 +134,16 @@ export const ruleMapper = new Mapper({
       label: val,
       subLabel: dsc,
       value: val
-    }))
+    })),
+    onChange: (rule: Rule) => {
+      if (rule.value === ':i') {
+        pickPKeyFmPath(rule)
+      }
+    }
   },
   idens: {
     label: '指定项',
-    desc: '需要启动项目，才能在此检索到模型数据',
+    desc: '需要启动项目，才能在此检索到模型数据ID',
     type: 'EditList',
     display: [new Cond({ key: 'value', cmp: '=', val: ':i' })],
     mapper: {
@@ -148,11 +153,13 @@ export const ruleMapper = new Mapper({
       },
       pKey: {
         label: '路由中的标识',
-        type: 'Select'
+        type: 'Select',
+        placeholder: '需先填写完整路由'
       },
       pVal: {
         label: '指定数据ID',
-        type: 'Select'
+        type: 'Select',
+        placeholder: '需先启动项目'
       }
     },
     newFun: () => ({ model: '', pKey: '', pVal: '' })
@@ -162,6 +169,24 @@ export const ruleMapper = new Mapper({
     type: 'Input'
   }
 })
+
+export function pickPKeyFmPath(editing: Rule) {
+  const params: string[] = []
+  for (
+    let idx = editing.path.indexOf('/:');
+    idx != -1;
+    idx = editing.path.indexOf('/:', idx + 2)
+  ) {
+    const nxtIdx = editing.path.indexOf('/', idx + 2)
+    params.push(editing.path.slice(idx + 2, nxtIdx === -1 ? undefined : nxtIdx))
+  }
+  ruleEmitter.emit('update:mprop', {
+    'idens.mapper.pKey.options': params.map(param => ({
+      label: param,
+      value: param
+    }))
+  })
+}
 
 export const apiColumn = [
   new Column('所属模型', 'model', { filterable: true }),
@@ -195,34 +220,6 @@ export const apiMapper = new Mapper({
 export const apiEmitter = new Emitter()
 
 export const ruleEmitter = new Emitter()
-
-ruleEmitter.on('update:show', (args: { show: boolean; object?: Object } | boolean) => {
-  if ((typeof args === 'boolean' && args) || (args as { show: boolean }).show) {
-    ruleEmitter.emit('update:mprop', {
-      'idens.mapper.model.options': (store.getters['project/ins'] as Project).models.map(model => ({
-        label: model.label,
-        value: model.key
-      }))
-    })
-    console.log((args as any).object)
-
-    const ret = {} as Record<string, any>
-    for (const api of store.getters['project/apis'] as Service[]) {
-      let obj = ret
-      const ptPaths = api.path.split('/').filter((str: string) => str)
-      for (let i = 0; i < ptPaths.length; ++i) {
-        const ptPath = ptPaths[i]
-        if (!(ptPath in obj)) {
-          obj[ptPath] = {} as Record<string, any>
-        }
-        obj = obj[ptPath]
-      }
-    }
-    ruleEmitter.emit('update:mprop', {
-      'path.options': recuAPIs(ret)
-    })
-  }
-})
 
 export const signEmitter = new Emitter()
 
@@ -298,16 +295,4 @@ export function chkIsAuthSignAPI(api: API, svc: Service) {
 
 export function chkIsAuthVerifyAPI(api: API, svc: Service) {
   return chkIsAuthAPI(svc) && api.path.slice(-'verify'.length) === 'verify'
-}
-
-export function recuAPIs(obj: any): any[] {
-  const ret = []
-  for (const key of Object.keys(obj)) {
-    ret.push({
-      label: key,
-      value: key,
-      children: recuAPIs(obj[key])
-    })
-  }
-  return ret
 }

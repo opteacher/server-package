@@ -45,6 +45,7 @@
           :mapper="ruleMapper"
           :new-fun="() => new Rule()"
           :emitter="ruleEmitter"
+          @add="onRuleEdit"
           @save="refresh"
           @delete="refresh"
         >
@@ -86,6 +87,7 @@
 import LytProject from '@/layouts/LytProject.vue'
 import API from '@/types/api'
 import Auth from '@/types/auth'
+import Project from '@/types/project'
 import Role from '@/types/role'
 import Rule from '@/types/rule'
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons-vue'
@@ -93,7 +95,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { authAPI as api, genRuleAPI, mdlAPI, roleAPI } from '../apis'
+import { authAPI as api, genRuleAPI, roleAPI } from '../apis'
 import {
   authVsb,
   emitter,
@@ -105,7 +107,8 @@ import {
   roleMapper,
   ruleColumns,
   ruleEmitter,
-  ruleMapper
+  ruleMapper,
+  pickPKeyFmPath
 } from './Auth'
 
 const store = useStore()
@@ -146,5 +149,42 @@ async function onBindModel(form: any) {
   await api.bind(form)
   await refresh()
   authVsb.value = false
+}
+function onRuleEdit(editing?: Rule) {
+  const project = store.getters['project/ins'] as Project
+  ruleEmitter.emit('update:mprop', {
+    'idens.mapper.model.options': project.models.map(model => ({
+      label: model.label,
+      value: model.key
+    }))
+  })
+  if (editing && editing.path) {
+    pickPKeyFmPath(editing)
+  }
+
+  const ret = {} as Record<string, any>
+  for (const api of store.getters['project/apis']) {
+    let obj = ret
+    for (const ptPath of api.path.split('/').filter((str: string) => str)) {
+      if (!(ptPath in obj)) {
+        obj[ptPath] = {} as Record<string, any>
+      }
+      obj = obj[ptPath]
+    }
+  }
+  ruleEmitter.emit('update:mprop', {
+    'path.options': recuAPIs(ret)
+  })
+}
+function recuAPIs(obj: any): any[] {
+  const ret = []
+  for (const key of Object.keys(obj)) {
+    ret.push({
+      label: key,
+      value: key,
+      children: recuAPIs(obj[key])
+    })
+  }
+  return ret
 }
 </script>
