@@ -9,7 +9,7 @@
     >
       <div class="h-8 m-4 bg-gray-700" />
       <a-menu
-        class="absolute top-12 left-0 bottom-0 right-0 overflow-y-auto"
+        class="absolute top-16 left-0 bottom-0 right-0 overflow-y-auto"
         :selectedKeys="[active]"
         theme="dark"
         mode="inline"

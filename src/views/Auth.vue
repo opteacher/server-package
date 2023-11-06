@@ -90,6 +90,7 @@ import Auth from '@/types/auth'
 import Project from '@/types/project'
 import Role from '@/types/role'
 import Rule from '@/types/rule'
+import { Method } from '@/types/service'
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -101,14 +102,14 @@ import {
   emitter,
   mapper,
   onAuthShow,
+  pickPKeyFmPath,
   refresh,
   roleColumns,
   roleEmitter,
   roleMapper,
   ruleColumns,
   ruleEmitter,
-  ruleMapper,
-  pickPKeyFmPath
+  ruleMapper
 } from './Auth'
 
 const store = useStore()
@@ -125,17 +126,17 @@ watch(
   () => roleEmitter.emit('refresh')
 )
 
-function onPathChange(edtAPI: API, val: string[]) {
-  edtAPI.path = `/${val.join('/')}`
+function onPathChange(rule: Rule, val: string[]) {
+  rule.path = `/${val.join('/')}`
   const ret = Array.from(
     new Set<string>(
       store.getters['project/apis']
-        .filter((api: API) => api.path.startsWith(edtAPI.path))
+        .filter((api: API) => api.path.startsWith(rule.path))
         .map((api: API) => api.method)
     )
   )
-  if (!ret.includes(edtAPI.method)) {
-    edtAPI.method = ret[0]
+  if (!ret.includes(rule.method)) {
+    rule.method = ret[0] as Method
   }
   ruleEmitter.emit('update:mprop', {
     method: {
@@ -144,6 +145,10 @@ function onPathChange(edtAPI: API, val: string[]) {
       options: ['ALL'].concat(ret).map((mthd: string) => ({ label: mthd, value: mthd }))
     }
   })
+  if (rule.value === ':i') {
+    updIdenMdls(rule)
+    pickPKeyFmPath(rule)
+  }
 }
 async function onBindModel(form: any) {
   await api.bind(form)
@@ -153,12 +158,10 @@ async function onBindModel(form: any) {
 function onRuleEdit(editing?: Rule) {
   const project = store.getters['project/ins'] as Project
   ruleEmitter.emit('update:mprop', {
-    'idens.mapper.model.options': project.models.map(model => ({
-      label: model.label,
-      value: model.key
-    }))
+    'idens.mapper.pVal.disabled': project.status.stat !== 'running'
   })
   if (editing && editing.path) {
+    updIdenMdls(editing)
     pickPKeyFmPath(editing)
   }
 
@@ -186,5 +189,16 @@ function recuAPIs(obj: any): any[] {
     })
   }
   return ret
+}
+function updIdenMdls(rule: Rule) {
+  const project = store.getters['project/ins'] as Project
+  ruleEmitter.emit('update:mprop', {
+    'idens.mapper.model.options': project.models
+      .filter(model => rule.path.includes(`/${model.name}`))
+      .map(model => ({
+        label: model.label,
+        value: model.key
+      }))
+  })
 }
 </script>

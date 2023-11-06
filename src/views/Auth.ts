@@ -5,6 +5,7 @@ import store from '@/store'
 import { Cond, methods } from '@/types'
 import API from '@/types/api'
 import Model from '@/types/model'
+import Project from '@/types/project'
 import Rule from '@/types/rule'
 import { authValues } from '@/types/rule'
 import Service from '@/types/service'
@@ -16,7 +17,7 @@ import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode, ref } from 'vue'
 
-import { authAPI } from '../apis'
+import { authAPI, mdlAPI } from '../apis'
 
 export async function refresh() {
   await store.dispatch('project/refresh')
@@ -146,19 +147,30 @@ export const ruleMapper = new Mapper({
     desc: '需要启动项目，才能在此检索到模型数据ID',
     type: 'EditList',
     display: [new Cond({ key: 'value', cmp: '=', val: ':i' })],
+    inline: false,
     mapper: {
       model: {
         label: '模型',
-        type: 'Select'
+        type: 'Select',
+        rules: [{ required: true, message: '必须指定模型！' }],
+        onChange: async ({ model }: any) => {
+          const project = store.getters['project/ins'] as Project
+          if (project.status.stat !== 'running') {
+            return
+          }
+          console.log(await mdlAPI.dataset(model))
+        }
       },
       pKey: {
         label: '路由中的标识',
         type: 'Select',
+        rules: [{ required: true, message: '必须选择路由中的标识！' }],
         placeholder: '需先填写完整路由'
       },
       pVal: {
         label: '指定数据ID',
         type: 'Select',
+        rules: [{ required: true, message: '必须选择数据ID！' }],
         placeholder: '需先启动项目'
       }
     },
@@ -172,11 +184,7 @@ export const ruleMapper = new Mapper({
 
 export function pickPKeyFmPath(editing: Rule) {
   const params: string[] = []
-  for (
-    let idx = editing.path.indexOf('/:');
-    idx != -1;
-    idx = editing.path.indexOf('/:', idx + 2)
-  ) {
+  for (let idx = editing.path.indexOf('/:'); idx != -1; idx = editing.path.indexOf('/:', idx + 2)) {
     const nxtIdx = editing.path.indexOf('/', idx + 2)
     params.push(editing.path.slice(idx + 2, nxtIdx === -1 ? undefined : nxtIdx))
   }

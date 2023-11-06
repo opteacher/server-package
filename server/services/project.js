@@ -876,7 +876,7 @@ export async function buildMid(project) {
     console.log(`复制src/apis/login.ts文件：${apiTmp} -> ${apiGen}`)
     adjustFile(apiTmp, apiGen, { auth })
     console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
-    adjustFile(rtTmp, rtGen, { auth })
+    adjustFile(rtTmp, rtGen, { auth, project })
     const lgnTmp = Path.join(tmpSrcPath, 'views/login.vue')
     const lgnGen = Path.join(genSrcPath, 'views/login.vue')
     console.log(`复制src/views/login.vue文件：${lgnTmp} -> ${lgnGen}`)
