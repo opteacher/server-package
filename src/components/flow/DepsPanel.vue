@@ -44,11 +44,9 @@ export default defineComponent({
 })
 </script>
 
-<style lang="less">
-.collapse-ptb-0 {
-  .ant-collapse-content-box {
+<style>
+.collapse-ptb-0 .ant-collapse-content-box {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-  }
 }
 </style>

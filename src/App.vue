@@ -2,7 +2,7 @@
   <router-view />
 </template>
 
-<style lang="less">
+<style>
 body {
   overflow-y: hidden;
 }

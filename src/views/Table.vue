@@ -154,20 +154,16 @@ function onCondUpdate(cond: string) {
 }
 </script>
 
-<style lang="less">
-.demo-table {
-  th:hover {
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.04);
-  }
-  tbody {
-    tr:hover:not(.ant-table-expanded-row) > td {
-      background: inherit;
-    }
-    td:hover {
-      cursor: pointer;
-      background: #fafafa !important;
-    }
-  }
+<style>
+.demo-table th:hover {
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.04);
+}
+.demo-table tbody tr:hover:not(.ant-table-expanded-row) > td {
+  background: inherit;
+}
+.demo-table tbody td:hover {
+  cursor: pointer;
+  background: #fafafa !important;
 }
 </style>

@@ -1,8 +1,6 @@
 import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
 import { URL, fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
-import istanbul from 'vite-plugin-istanbul'
 
 // https://vitejs.dev/config/
 export default ({ mode }) =>
@@ -11,16 +9,7 @@ export default ({ mode }) =>
     build: {
       outDir: 'server/public/server-package'
     },
-    plugins: [
-      vue(),
-      vueJsx(),
-      istanbul({
-        include: 'src/*',
-        exclude: ['node_modules', 'tests/**'],
-        extension: ['.js', '.ts', '.vue'],
-        cypress: true
-      })
-    ],
+    plugins: [vue()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
