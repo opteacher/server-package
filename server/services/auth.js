@@ -42,7 +42,7 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/sign`,
       needRet: true
     })
-    await db.saveOne(Project, pid, { service: sgnSvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { services: sgnSvc.id }, { updMode: 'append' })
     skips.push(sgnSvc.path)
   }
   svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
@@ -55,7 +55,7 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/verify`,
       needRet: true
     })
-    await db.saveOne(Project, pid, { service: vfySvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { services: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
   svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'verify')
@@ -68,7 +68,7 @@ export async function bind(pid, auth) {
       path: `/api/v1/${model.name}/verify/deep`,
       needRet: true
     })
-    await db.saveOne(Project, pid, { service: vfySvc.id }, { updMode: 'append' })
+    await db.saveOne(Project, pid, { services: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
   // 跳过的路由附加到授权系统中
