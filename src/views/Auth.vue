@@ -20,7 +20,7 @@
       :api="roleAPI"
       :columns="roleColumns"
       :mapper="roleMapper"
-      :new-fun="() => new Role()"
+      :new-fun="() => newOne(Role)"
       :emitter="roleEmitter"
       :filter="(record: any) => showGuest || record.name !== 'guest'"
       :disable="(record: any) => record.name === 'guest'"
@@ -43,7 +43,7 @@
           :api="genRuleAPI(role.key)"
           :columns="ruleColumns"
           :mapper="ruleMapper"
-          :new-fun="() => new Rule()"
+          :new-fun="() => newOne(Rule)"
           :emitter="ruleEmitter"
           @add="onRuleEdit"
           @save="refresh"
@@ -72,7 +72,7 @@
     <FormDialog
       title="绑定账户模型"
       :show="authVsb"
-      :new-fun="() => new Auth()"
+      :new-fun="() => newOne(Auth)"
       :mapper="mapper"
       :emitter="emitter"
       :object="auth"
@@ -91,6 +91,7 @@ import Project from '@/types/project'
 import Role from '@/types/role'
 import Rule from '@/types/rule'
 import { Method } from '@/types/service'
+import { newOne } from '@/utils'
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'

@@ -11,20 +11,9 @@
   <FormDialog
     title="同步前端"
     width="30vw"
-    :mapper="
-      new Mapper({
-        dir: {
-          label: 'dist',
-          type: 'UploadFile',
-          directory: true,
-          params: { keepName: true },
-          path: '/server-package/api/v1/temp/file',
-          onChange: () => {}
-        }
-      })
-    "
+    :mapper="mapper"
     :new-fun="() => ({ dir: [] })"
-    :emitter="syncEmitter"
+    :emitter="emitter"
     @submit="(form: any) => api.syncFrt(project.key, form)"
   >
     <template #top>
@@ -60,11 +49,21 @@ import { useStore } from 'vuex'
 const store = useStore()
 const project = computed<Project>(() => store.getters['project/ins'])
 const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
-const syncEmitter = new Emitter()
+const emitter = new Emitter()
+const mapper = new Mapper({
+  dir: {
+    label: 'dist',
+    type: 'UploadFile',
+    directory: true,
+    params: { keepName: true },
+    path: '/server-package/api/v1/temp/file',
+    onChange: () => {}
+  }
+})
 
 function onSyncClick(pid: string) {
   if (isFront.value) {
-    syncEmitter.emit('update:show', true)
+    emitter.emit('update:show', true)
   } else {
     Modal.confirm({
       title: '确定（重）启动项目？',

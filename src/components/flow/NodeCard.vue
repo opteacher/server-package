@@ -254,7 +254,7 @@ function getWidByNexts(node: Node): number {
   return last.posLT[0] - first.posLT[0]
 }
 function fmtCode(code: string): string {
-  return code.replaceAll('\n', '&#10;')
+  return code.replace('\n', '&#10;')
 }
 </script>
 

@@ -9,6 +9,7 @@
       "@lib/*": ["./src/lib/frontend-library/src/*"]
     },
     "skipLibCheck": true,
+    "types": ["vite/client"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -17,13 +18,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/lib/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

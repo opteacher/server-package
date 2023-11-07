@@ -322,7 +322,7 @@ export const edtNdMapper = new Mapper({
       },
       isFun: {
         label: '函数式',
-        desc: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
+        placeholder: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),

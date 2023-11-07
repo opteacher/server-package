@@ -57,7 +57,7 @@
         :value="extraState[exField.refer]"
         :mapper="
           Object.assign(cloneDeep(exField.extra), {
-            mapper: new Mapper(exField.extra.mapper),
+            mapper: toExMapper(exField.extra.mapper),
             newFun: callFunc(exField.extra.newFun)
           })
         "
@@ -99,5 +99,8 @@ watch(() => props.extra, refresh)
 
 function refresh() {
   extraState.value = cloneDeep(props.extra)
+}
+function toExMapper(exMapper: any) {
+  return new Mapper(exMapper)
 }
 </script>

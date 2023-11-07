@@ -20,7 +20,7 @@
       }"
       :columns="apiColumn"
       :mapper="apiMapper"
-      :new-fun="() => new API()"
+      :new-fun="() => newOne(API)"
       :emitter="apiEmitter"
       :addable="false"
       :editable="false"
@@ -37,7 +37,7 @@
       title="配置签发逻辑"
       width="30vw"
       :show="showSgn"
-      :new-fun="() => new Sign()"
+      :new-fun="() => newOne(Sign)"
       :mapper="signMapper"
       :emitter="signEmitter"
       @update:show="onSignShow"
@@ -56,6 +56,7 @@ import Role from '@/types/role'
 import Rule from '@/types/rule'
 import Service, { Method, mthdClrs } from '@/types/service'
 import { pickOrIgnore } from '@/utils'
+import { newOne } from '@/utils'
 import { AuditOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'

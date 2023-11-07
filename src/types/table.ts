@@ -4,20 +4,17 @@ import Cell from './cell'
 import Column from '@lib/types/column'
 
 export class Cells extends Cell {
-  refer: string
   selCond: string
   cdCell: Record<string, Cell>
 
   constructor() {
     super()
-    this.refer = ''
     this.selCond = ''
     this.cdCell = {}
   }
 
   reset() {
     super.reset()
-    this.refer = ''
     this.selCond = ''
     this.cdCell = {}
   }
@@ -25,7 +22,6 @@ export class Cells extends Cell {
   static copy(src: any, tgt?: Cells, force = false): Cells {
     tgt = tgt || new Cells()
     Cell.copy(src, tgt, force)
-    tgt.refer = force ? src.refer : src.refer || tgt.refer
     tgt.selCond = force ? src.selCond : src.selCond || tgt.selCond
     tgt.cdCell = src.cdCell
       ? Object.fromEntries(

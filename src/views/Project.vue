@@ -22,7 +22,7 @@
         </a-button>
         <FormDialog
           title="配置前端"
-          :new-fun="() => new Frontend()"
+          :new-fun="() => newOne(Frontend)"
           :emitter="frtEmitter"
           :mapper="frtMapper"
           @submit="onConfigSbt"
@@ -45,7 +45,7 @@
         </a-button>
         <FormDialog
           title="配置项目"
-          :new-fun="() => new Project()"
+          :new-fun="() => newOne(Project)"
           :emitter="pjtEmitter"
           :mapper="pjtMapper"
           @submit="onConfigSbt"
@@ -67,7 +67,7 @@
         </a-tooltip>
         <FormDialog
           title="投放文件"
-          :new-fun="() => new Transfer()"
+          :new-fun="() => newOne(Transfer)"
           v-model:show="tsfVsb"
           :mapper="tsMapper"
           :emitter="tsEmitter"
@@ -83,7 +83,7 @@
         <FormDialog
           title="配置中台"
           width="40vw"
-          :new-fun="() => new Middle()"
+          :new-fun="() => newOne(Middle)"
           :mapper="midDlg.mapper"
           :emitter="midDlg.emitter"
         >
@@ -160,7 +160,7 @@
       :api="mdlAPI"
       :columns="mdlColumns"
       :mapper="mdlMapper"
-      :new-fun="() => new Model()"
+      :new-fun="() => newOne(Model)"
       :emitter="mdlEmitter"
       @save="refresh"
       @delete="refresh"
@@ -186,10 +186,7 @@
       </template>
       <template #opera="{ record: model }">
         <a-space>
-          <a-button
-            size="small"
-            @click.stop="() => onExpClsClick(model)"
-          >
+          <a-button size="small" @click.stop="() => onExpClsClick(model)">
             <template #icon><ExportOutlined /></template>
             导出类
           </a-button>
@@ -219,7 +216,7 @@
           }"
           :columns="propColumns"
           :mapper="propMapper"
-          :new-fun="() => new Property()"
+          :new-fun="() => newOne(Property)"
           @save="refresh"
           @delete="refresh"
         >
@@ -282,7 +279,7 @@
       title="导出类"
       v-model:show="expClsVsb"
       :object="expClsObj"
-      :new-fun="() => new ExpCls()"
+      :new-fun="() => newOne(ExpCls)"
       :mapper="expMapper"
       @submit="onExpClsSbt"
     />
@@ -304,7 +301,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Transfer from '@/types/transfer'
-import { getDftPjt, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   CloudUploadOutlined,

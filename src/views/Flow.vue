@@ -85,7 +85,7 @@
       :title="editTitle"
       width="70vw"
       :lblWid="2"
-      :newFun="() => new Node()"
+      :new-fun="() => newOne(Node)"
       :mapper="edtNdMapper"
       :emitter="edtNdEmitter"
       @submit="onNodeSaved"
@@ -99,7 +99,7 @@ import { NodesInPnl } from '@/store/service'
 import NodeInPnl from '@/types/ndInPnl'
 import Project from '@/types/project'
 import Service from '@/types/service'
-import { until } from '@/utils'
+import { until, newOne } from '@/utils'
 import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,

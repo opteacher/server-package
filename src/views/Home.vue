@@ -6,7 +6,7 @@
       :api="api"
       :columns="columns"
       :mapper="mapper"
-      :new-fun="() => new Project()"
+      :new-fun="() => newOne(Project)"
       :emitter="emitter"
       sclHeight="h-full"
     >
@@ -76,6 +76,7 @@
 
 <script lang="ts" setup name="Home">
 import Project from '@/types/project'
+import { newOne } from '@/utils'
 import {
   ClearOutlined,
   Html5Outlined,
@@ -83,7 +84,7 @@ import {
   PoweroffOutlined,
   SyncOutlined
 } from '@ant-design/icons-vue'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 
 import { pjtAPI as api } from '../apis'
@@ -92,8 +93,6 @@ import Database from '../types/database'
 import { columns, emitter, mapper } from './Home'
 
 const store = useStore()
-const projects = ref([])
-const loading = ref(false)
 
 watch(
   () => store.getters['project/ins'].status.stat,

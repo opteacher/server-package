@@ -3,8 +3,8 @@ import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
 import Service, { EmitType, Method, emitMapper, mthdClrs } from '@/types/service'
+import { newOne } from '@/utils'
 import { EditOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
-import EditableTable from '@lib/components/EditableTable.vue'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -19,7 +19,19 @@ const props = defineProps({
 })
 const pid = computed(() => store.getters['project/ins'].key)
 const pstatus = computed(() => store.getters['project/ins'].status.stat)
-const impEmitter = new Emitter()
+const emitter = new Emitter()
+const mapper = new Mapper({
+  impFile: {
+    label: '上传流程文件',
+    type: 'UploadFile',
+    path: '/server-package/api/v1/temp/file'
+  },
+  svcId: {
+    label: '服务ID',
+    type: 'Unknown',
+    display: false
+  }
+})
 const router = useRouter()
 
 function onAddSvcClicked() {
@@ -48,7 +60,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     content: createVNode('div', undefined, '上传流程会清空原有逻辑，请确认后再上传'),
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
-      impEmitter.emit('update:show', false)
+      emitter.emit('update:show', false)
       router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
     }
   })
@@ -65,7 +77,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
       :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
       :mapper="mapper"
       :columns="columns"
-      :new-fun="() => new Service()"
+      :new-fun="() => newOne(Service)"
       :emitter="emitter"
       @add="onAddSvcClicked"
       @before-save="onBefSave"
@@ -93,7 +105,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
               size="small"
               @click.stop="
                 () =>
-                  impEmitter.emit('update:show', {
+                  emitter.emit('update:show', {
                     show: true,
                     object: { svcId: svc.key, impFile: [] }
                   })
@@ -165,21 +177,8 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
       title="导入流程"
       width="30vw"
       :newFun="() => ({ impFile: [] })"
-      :mapper="
-        new Mapper({
-          impFile: {
-            label: '上传流程文件',
-            type: 'UploadFile',
-            path: '/server-package/api/v1/temp/file'
-          },
-          svcId: {
-            label: '服务ID',
-            type: 'Unknown',
-            display: false
-          }
-        })
-      "
-      :emitter="impEmitter"
+      :mapper="mapper"
+      :emitter="emitter"
       @submit="onImpFlowSubmit"
     />
   </div>

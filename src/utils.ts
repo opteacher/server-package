@@ -18,3 +18,7 @@ export function downloadFile(resp: any) {
   link.click()
   link.remove()
 }
+
+export function newOne<T>(t: { new (): T }): T {
+  return new t()
+}

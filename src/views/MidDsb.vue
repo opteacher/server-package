@@ -105,7 +105,8 @@
         <DsbProps v-if="!cmpProps.key" v-model:value="dsbProps" />
         <ExtraProps
           v-else
-          :field="exProps"
+          :fld-key="exProps.key"
+          :extra="exProps.extra"
           :compo="cmpMap[cmpProps.ctype]"
           :save="pjtAPI.middle.dashboard.compo.save"
         >
@@ -135,7 +136,6 @@ import {
 import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
 import { Modal } from 'ant-design-vue'
-import { pid } from 'process'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, createVNode, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
