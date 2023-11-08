@@ -201,11 +201,7 @@
         </a-space>
       </template>
       <template #expandedRowRender="{ record: model }">
-        <a-tabs
-          v-model:activeKey="actMdlTab"
-          type="card"
-          @change="(chgTab: 'props' | 'data') => onActMdlTabChange(chgTab, model)"
-        >
+        <a-tabs v-model:activeKey="actMdlTab" type="card">
           <a-tab-pane key="props" tab="字段">
             <EditableTable
               size="small"
@@ -281,11 +277,14 @@
           <a-tab-pane key="data" tab="数据" :disabled="project.status.stat !== 'running'">
             <EditableTable
               :api="{ all: () => mdlAPI.dataset(model.key) }"
+              class="h-72"
               sclHeight="h-full"
-              :columns="dataCtrl.columns"
-              :mapper="dataCtrl.mapper"
-              :new-fun="dataCtrl.newFun"
-              :emitter="dataCtrl.emitter"
+              :columns="model.props.map(prop => new Column(prop.label, prop.name))"
+              :mapper="createByFields(model.form.fields)"
+              :new-fun="
+                () =>
+                  Object.fromEntries(model.props.map(prop => [prop.name, bsTpDefault(prop.ptype)]))
+              "
               size="small"
               :pagable="true"
               :refOptions="['manual']"
@@ -427,12 +426,6 @@ const midDlg = reactive({
 })
 const middle = computed(() => store.getters['project/middle'])
 const actMdlTab = ref('props')
-const dataCtrl = reactive({
-  columns: [],
-  mapper: new Mapper(),
-  newFun: () => ({}),
-  emitter: new Emitter()
-})
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -536,13 +529,5 @@ function onExpClsClick(model: Model) {
 async function onExpClsSbt(formData: any) {
   await mdlAPI.export(formData)
   expClsVsb.value = false
-}
-function onActMdlTabChange(actTab: 'props' | 'data', model: Model) {
-  if (actTab === 'data') {
-    dataCtrl.columns = model.props.map(prop => new Column(prop.label, prop.name))
-    dataCtrl.mapper = createByFields(model.form.fields)
-    dataCtrl.newFun = () =>
-      Object.fromEntries(model.props.map(prop => [prop.name, bsTpDefault(prop.ptype)]))
-  }
 }
 </script>
