@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { db, genDefault, pickOrIgnore } from '../utils/index.js'
-import Project from '../models/project.js'
-import Model from '../models/model.js'
-import Dep from '../models/dep.js'
-import Service from '../models/service.js'
 import axios from 'axios'
 import _ from 'lodash'
+
+import Dep from '../models/dep.js'
+import Model from '../models/model.js'
+import Project from '../models/project.js'
+import Service from '../models/service.js'
+import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 import { del as delSvc } from './service.js'
 
 const typeMapper = {
@@ -102,13 +104,13 @@ export async function exportClass(mid, options) {
   }
 }
 
-export async function getData(pid, mid) {
-  const project = await db.select(Project, { _index: pid })
-  const model = await db.select(Model, { _index: mid })
+export async function getData(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+  const model = await db.select(Model, { _index: ctx.params.mid })
+  const host = process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'
   const resp = await axios.get(
-    `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}:${project.port}/${
-      project.name
-    }/mdl/v1/${model.name}/s`
+    `http://${host}:${project.port}/${project.name}/mdl/v1/${model.name}/s`,
+    { headers: ctx.headers }
   )
   if (resp.status !== 200) {
     return { error: '访问不到目标项目，请确认项目正常运行！' }

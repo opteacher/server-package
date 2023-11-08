@@ -65,7 +65,7 @@ router.delete('/:pid', async ctx => {
 
 router.get('/:pid/model/:mid/data', async ctx => {
   ctx.body = {
-    result: await getData(ctx.params.pid, ctx.params.mid)
+    result: await getData(ctx)
   }
 })
 

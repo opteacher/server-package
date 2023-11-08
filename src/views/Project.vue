@@ -201,78 +201,100 @@
         </a-space>
       </template>
       <template #expandedRowRender="{ record: model }">
-        <EditableTable
-          class="mt-6"
-          title="字段"
-          size="small"
-          :api="{
-            all: () => model.props,
-            add: (data: any) =>
-              reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
-            remove: (prop: any) =>
-              reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
-            update: (data: any) =>
-              reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
-          }"
-          :columns="propColumns"
-          :mapper="propMapper"
-          :new-fun="() => newOne(Property)"
-          @save="refresh"
-          @delete="refresh"
+        <a-tabs
+          v-model:activeKey="actMdlTab"
+          type="card"
+          @change="(chgTab: 'props' | 'data') => onActMdlTabChange(chgTab, model)"
         >
-          <template #relative="{ record }">
-            <partition-outlined
-              v-if="record.relative.isArray"
-              :rotate="record.relative.belong ? 180 : 0"
+          <a-tab-pane key="props" tab="字段">
+            <EditableTable
+              size="small"
+              :api="{
+                all: () => model.props,
+                add: (data: any) =>
+                  reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
+                remove: (prop: any) =>
+                  reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
+                update: (data: any) =>
+                  reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
+              }"
+              :columns="propColumns"
+              :mapper="propMapper"
+              :new-fun="() => newOne(Property)"
+              @save="refresh"
+              @delete="refresh"
+            >
+              <template #relative="{ record }">
+                <partition-outlined
+                  v-if="record.relative.isArray"
+                  :rotate="record.relative.belong ? 180 : 0"
+                />
+                {{ record.relative.model }}
+              </template>
+              <template #relativeEDT="{ editing }">
+                <a-input-group>
+                  <a-row :gutter="8" type="flex" justify="space-around" align="middle">
+                    <a-col :span="4">
+                      <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
+                        <a-select
+                          class="w-full"
+                          :disabled="mdlOpns.length === 1"
+                          :value="editing.relative.belong ? 'belong' : 'has'"
+                          @change="(val: string) => { editing.relative.belong = val === 'belong' }"
+                        >
+                          <a-select-option value="belong">属于</a-select-option>
+                          <a-select-option value="has">拥有</a-select-option>
+                        </a-select>
+                      </a-form-item>
+                    </a-col>
+                    <a-col :span="4" class="text-center">
+                      <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
+                        <a-checkbox
+                          :disabled="mdlOpns.length === 1"
+                          v-model:checked="editing.relative.isArray"
+                          @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
+                        >
+                          {{ editing.relative.isArray ? '多个' : '一个' }}
+                        </a-checkbox>
+                      </a-form-item>
+                    </a-col>
+                    <a-col :span="16">
+                      <a-form-item class="mb-0" ref="relative.model" name="relative.model">
+                        <a-select
+                          class="w-full"
+                          :disabled="mdlOpns.length === 1"
+                          v-model:value="editing.relative.model"
+                          :options="mdlOpns"
+                          @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
+                        />
+                      </a-form-item>
+                    </a-col>
+                  </a-row>
+                </a-input-group>
+              </template>
+              <template #remark="{ record: mdl }">
+                <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
+                <template v-else>-</template>
+              </template>
+            </EditableTable>
+          </a-tab-pane>
+          <a-tab-pane key="data" tab="数据" :disabled="project.status.stat !== 'running'">
+            <EditableTable
+              :api="{ all: () => mdlAPI.dataset(model.key) }"
+              sclHeight="h-full"
+              :columns="dataCtrl.columns"
+              :mapper="dataCtrl.mapper"
+              :new-fun="dataCtrl.newFun"
+              :emitter="dataCtrl.emitter"
+              size="small"
+              :pagable="true"
+              :refOptions="['manual']"
+              :editable="true"
+              :addable="true"
+              :delable="true"
             />
-            {{ record.relative.model }}
-          </template>
-          <template #relativeEDT="{ editing }">
-            <a-input-group>
-              <a-row :gutter="8" type="flex" justify="space-around" align="middle">
-                <a-col :span="4">
-                  <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
-                    <a-select
-                      class="w-full"
-                      :disabled="mdlOpns.length === 1"
-                      :value="editing.relative.belong ? 'belong' : 'has'"
-                      @change="(val: string) => { editing.relative.belong = val === 'belong' }"
-                    >
-                      <a-select-option value="belong">属于</a-select-option>
-                      <a-select-option value="has">拥有</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :span="4" class="text-center">
-                  <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
-                    <a-checkbox
-                      :disabled="mdlOpns.length === 1"
-                      v-model:checked="editing.relative.isArray"
-                      @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
-                    >
-                      {{ editing.relative.isArray ? '多个' : '一个' }}
-                    </a-checkbox>
-                  </a-form-item>
-                </a-col>
-                <a-col :span="16">
-                  <a-form-item class="mb-0" ref="relative.model" name="relative.model">
-                    <a-select
-                      class="w-full"
-                      :disabled="mdlOpns.length === 1"
-                      v-model:value="editing.relative.model"
-                      :options="mdlOpns"
-                      @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
-                    />
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </a-input-group>
-          </template>
-          <template #remark="{ record: mdl }">
-            <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
-            <template v-else>-</template>
-          </template>
-        </EditableTable>
+          </a-tab-pane>
+        </a-tabs>
       </template>
     </EditableTable>
     <FormDialog
@@ -292,7 +314,7 @@
 import MsvcSelect from '@/components/MsvcSelect.vue'
 import PjtCtrlBtns from '@/components/PjtCtrlBtns.vue'
 import SvcTable from '@/components/SvcTable.vue'
-import { OpnType } from '@/types'
+import { OpnType, bsTpDefault } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
 import Middle from '@/types/middle'
@@ -315,7 +337,8 @@ import {
   UpOutlined,
   UploadOutlined
 } from '@ant-design/icons-vue'
-import Mapper from '@lib/types/mapper'
+import Column from '@lib/types/column'
+import Mapper, { createByFields } from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, reactive, ref } from 'vue'
@@ -403,6 +426,13 @@ const midDlg = reactive({
   })
 })
 const middle = computed(() => store.getters['project/middle'])
+const actMdlTab = ref('props')
+const dataCtrl = reactive({
+  columns: [],
+  mapper: new Mapper(),
+  newFun: () => ({}),
+  emitter: new Emitter()
+})
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -506,5 +536,13 @@ function onExpClsClick(model: Model) {
 async function onExpClsSbt(formData: any) {
   await mdlAPI.export(formData)
   expClsVsb.value = false
+}
+function onActMdlTabChange(actTab: 'props' | 'data', model: Model) {
+  if (actTab === 'data') {
+    dataCtrl.columns = model.props.map(prop => new Column(prop.label, prop.name))
+    dataCtrl.mapper = createByFields(model.form.fields)
+    dataCtrl.newFun = () =>
+      Object.fromEntries(model.props.map(prop => [prop.name, bsTpDefault(prop.ptype)]))
+  }
 }
 </script>

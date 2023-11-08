@@ -94,7 +94,7 @@ export const mapper = new Mapper({
       independ: {
         label: '独立部署',
         type: 'Checkbox',
-        desc: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存',
+        placeholder: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存',
         display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
       },
       volumes: {

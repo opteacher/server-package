@@ -14,7 +14,6 @@ export function downloadFile(resp: any) {
     filename.endsWith('"') ? filename.length - 1 : undefined
   )
   link.style.display = 'none'
-  document.body.appendChild(link)
   link.click()
   link.remove()
 }
