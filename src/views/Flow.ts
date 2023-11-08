@@ -18,7 +18,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { v4 as uuid } from 'uuid'
 import { createVNode, ref } from 'vue'
 
-import { ndAPI as api, depAPI } from '../apis'
+import { ndAPI as api } from '../apis'
 
 function scanLocVars(ndKey: string): Variable[] {
   const nodes = store.getters['service/nodes']

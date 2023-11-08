@@ -8,6 +8,7 @@ import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
 import { edtNdEmitter, edtNdMapper } from '@/views/Flow'
+import { flatten } from 'lodash'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type SvcState = {
@@ -98,7 +99,12 @@ export default {
   actions: {
     async refresh(
       { state }: { state: SvcState },
-      params?: { force?: boolean; onlySvc?: boolean; width?: number; updNodes?: [string, 'save' | 'delete'][] }
+      params?: {
+        force?: boolean
+        onlySvc?: boolean
+        width?: number
+        updNodes?: [string, 'save' | 'delete'][]
+      }
     ) {
       if (!params) {
         params = { force: false, width: 0, updNodes: [] }
@@ -113,7 +119,7 @@ export default {
       }
       if (params.force || !state.service.flow) {
         state.service = await svcAPI.detail(sid)
-        state.deps = await depAPI.all()
+        state.deps = await Promise.all([depAPI.all(), depAPI.allByPjt()]).then(res => flatten(res))
       }
       if (params.width) {
         state.width = params.width
