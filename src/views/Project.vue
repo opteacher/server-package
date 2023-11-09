@@ -202,8 +202,9 @@
       </template>
       <template #expandedRowRender="{ record: model }">
         <a-tabs v-model:activeKey="actMdlTab" type="card">
-          <a-tab-pane key="props" tab="字段">
+          <a-tab-pane key="struct" tab="结构">
             <EditableTable
+              title="字段"
               size="small"
               :api="{
                 all: () => model.props,
@@ -279,11 +280,15 @@
               :api="{ all: () => mdlAPI.dataset(model.key) }"
               class="h-72"
               sclHeight="h-full"
-              :columns="model.props.map(prop => new Column(prop.label, prop.name))"
+              :columns="
+                model.props.map((prop: any) =>
+                  Column.copy({ title: prop.label, key: prop.name, dataIndex: prop.name })
+                )
+              "
               :mapper="createByFields(model.form.fields)"
               :new-fun="
                 () =>
-                  Object.fromEntries(model.props.map(prop => [prop.name, bsTpDefault(prop.ptype)]))
+                  Object.fromEntries(model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)]))
               "
               size="small"
               :pagable="true"
@@ -425,7 +430,7 @@ const midDlg = reactive({
   })
 })
 const middle = computed(() => store.getters['project/middle'])
-const actMdlTab = ref('props')
+const actMdlTab = ref('struct')
 
 async function refresh() {
   await store.dispatch('project/refresh')
