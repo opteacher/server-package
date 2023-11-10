@@ -49,38 +49,22 @@
       "props": [
         {
           "key": "fcbbc85c-0999-4ebe-9a62-97d37be54b2f",
-          "label": "标签",
-          "refer": "label",
-          "ftype": "Input",
-          "vtype": "String",
-          "default": "项"
-        },
-        {
-          "key": "8aa4e4ab-d3c0-4d9d-8061-518785c5bb9e",
-          "label": "项/标签字段",
-          "desc": "由field.mapper给出",
-          "refer": "field.lblProp",
+          "label": "标签字段",
+          "refer": "lblProp",
           "ftype": "Select",
           "vtype": "String"
         },
         {
-          "key": "391bfe16-6a64-4383-9905-9ff3da0c8fee",
-          "label": "项/行表单",
-          "refer": "field.inline",
-          "ftype": "Checkbox",
-          "vtype": "Boolean"
-        },
-        {
           "key": "8aa4e4ab-d3c0-4d9d-8061-518785c5bb9e",
-          "label": "项/新增表单",
-          "refer": "field.fields",
+          "label": "标签字典",
+          "refer": "lblMapper",
           "ftype": "EditList",
           "vtype": "Array",
           "extra": {
             "lblProp": "label",
             "inline": false,
             "mapper": {
-              "refer": {
+              "value": {
                 "label": "",
                 "type": "Input",
                 "rules": [
@@ -110,49 +94,11 @@
                 "reset": false,
                 "empty": false,
                 "onChange": "return () => undefined"
-              },
-              "ftype": {
-                "label": "",
-                "type": "Select",
-                "options": [
-                  {
-                    "label": "输入框",
-                    "value": "Input"
-                  },
-                  {
-                    "label": "选择框",
-                    "value": "Select"
-                  }
-                ],
-                "rules": [],
-                "desc": "",
-                "placeholder": "选择类型",
-                "disabled": false,
-                "loading": false,
-                "display": true,
-                "reset": true,
-                "empty": false,
-                "onChange": "return () => undefined"
               }
             },
             "newFun": "return () => ({ refer: '', label: '', ftype: 'Input' })",
             "onChange": "return (state, array) => { state.field.mapper = createByFields(array) }"
           }
-        },
-        {
-          "key": "d5a8d30a-35ba-4a1f-99da-2ba068a95328",
-          "label": "项/新增函数",
-          "refer": "field.newFun",
-          "ftype": "CodeEditor",
-          "vtype": "Function"
-        },
-        {
-          "key": "316640b6-24f7-47ba-96f4-a6e1f47259cb",
-          "label": "值列表",
-          "refer": "value",
-          "ftype": "EditList",
-          "vtype": "Array",
-          "vModel": true
         }
       ]
     },
