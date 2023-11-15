@@ -52,6 +52,13 @@
         :placeholder="exField.placeholder"
         @select="(icon: string) => emit('update:extra', fldKey, { [exField.refer]: icon })"
       />
+      <JsonEditor
+        v-else-if="exField.ftype === 'JsonEditor'"
+        :value="extraState[exField.refer] || {}"
+        :mainMenuBar="false"
+        :statusBar="false"
+        @update:value="(value: any) => emit('update:extra', fldKey, { [exField.refer]: value })"
+      />
       <EditList
         v-else-if="exField.ftype === 'EditList'"
         :value="extraState[exField.refer]"
@@ -80,7 +87,7 @@
 </template>
 
 <script lang="ts" setup>
-import { callFunc, pickOrIgnore, setProp } from '@/utils'
+import { callFunc, setProp } from '@/utils'
 import Compo from '@lib/types/compo'
 import Mapper from '@lib/types/mapper'
 import { cloneDeep } from 'lodash'

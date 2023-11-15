@@ -1,12 +1,29 @@
 <template>
   <LytDesign :active="`/project/${pid}/model/${mid}/form`">
     <a-layout class="h-full">
-      <a-layout-sider width="20%" class="bg-white overflow-y-auto pr-5">
-        <div class="ant-descriptions-title mb-5">
-          <build-outlined />
-          &nbsp;组件
+      <a-layout-sider :width="cmpClps ? 'auto' : '20%'" class="bg-white overflow-y-auto pr-5">
+        <div v-if="!cmpClps" class="flex justify-between">
+          <div class="ant-descriptions-title mb-5">
+            <build-outlined />
+            &nbsp;组件
+          </div>
+          <a-button type="text" @click="onCmpClpsClick">
+            <template #icon>
+              <DoubleLeftOutlined />
+            </template>
+          </a-button>
         </div>
-        <a-list :grid="{ gutter: 16, column: 2 }" :data-source="compos">
+        <div v-else class="flex flex-col">
+          <build-outlined />
+          <p class="ant-descriptions-title mb-0 text-center mt-2">组</p>
+          <p class="ant-descriptions-title mb-0 text-center">件</p>
+          <a-button type="text" @click="onCmpClpsClick">
+            <template #icon>
+              <DoubleRightOutlined />
+            </template>
+          </a-button>
+        </div>
+        <a-list v-show="!cmpClps" :grid="{ gutter: 16, column: 2 }" :data-source="compos">
           <template #renderItem="{ item: compo }">
             <a-list-item>
               <CompoCard :compo="compo" />
@@ -43,7 +60,7 @@
           </a-form>
         </div>
       </a-layout-content>
-      <a-layout-sider width="30%" class="bg-white overflow-y-auto pl-5">
+      <a-layout-sider :width="cmpClps ? '40%' : '30%'" class="bg-white overflow-y-auto pl-5">
         <FormProps v-if="!actKey" :form="form" @update:form="api.form.save" />
         <FieldProps v-else :field="actFld" @update:field="api.form.fields.save" />
         <ExtraProps
@@ -61,10 +78,11 @@
 <script lang="ts" setup name="Form">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Form from '@/types/form'
-import { BuildOutlined } from '@ant-design/icons-vue'
+import { BuildOutlined, DoubleLeftOutlined, DoubleRightOutlined } from '@ant-design/icons-vue'
 import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
 import { mdlAPI as api, cmpAPI } from '../apis'
@@ -75,7 +93,6 @@ import FieldProps from '../components/form/FieldProps.vue'
 import FormProps from '../components/form/FormProps.vue'
 import LytDesign from '../layouts/LytDesign.vue'
 import { onFieldDropDown } from '../views/Form'
-import { useRoute } from 'vue-router'
 
 const store = useStore()
 const route = useRoute()
@@ -89,6 +106,7 @@ const actFld = computed<Field>(
 )
 const actKey = ref('')
 const actCmp = ref(new Compo())
+const cmpClps = ref(false)
 
 onMounted(async () => {
   compos.splice(0, compos.length, ...(await cmpAPI.all()))
@@ -110,5 +128,8 @@ function onActiveChange(field: any) {
 }
 function resetActKey() {
   actKey.value = ''
+}
+function onCmpClpsClick() {
+  cmpClps.value = !cmpClps.value
 }
 </script>
