@@ -14,7 +14,8 @@ import {
   pjtsWithStt,
   expDkrImg,
   acsCtnrLogs,
-  extCtnrLogs
+  extCtnrLogs,
+  pjtRunCmd
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -124,5 +125,11 @@ router.get('/:pid/docker/image/export', expDkrImg)
 router.get('/:pid/docker/logs/access', acsCtnrLogs)
 
 router.delete('/:pid/docker/logs/exit', extCtnrLogs)
+
+router.get('/:pid/docker/runCmd', async ctx => {
+  ctx.body = {
+    result: await pjtRunCmd(ctx.params.pid)
+  }
+})
 
 export default router

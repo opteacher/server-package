@@ -35,13 +35,11 @@
           <template #icon><ant-design-outlined /></template>
           前端设计
         </a-button>
-        <a-button @click="onExportClick">
-          <template #icon><export-outlined /></template>
-          导出
-        </a-button>
+        <DkrRelBtns />
+        <MidPubBtns />
+        <PjtCtrlBtns />
         <a-button @click="onConfigClick">
           <template #icon><SettingOutlined /></template>
-          配置
         </a-button>
         <FormDialog
           title="配置项目"
@@ -50,72 +48,6 @@
           :mapper="pjtMapper"
           @submit="onConfigSbt"
         />
-        <a-tooltip v-if="project.thread">
-          <template #title>传输本地文件到项目实例中</template>
-          <a-button
-            :disabled="project.status.stat === 'loading'"
-            :loading="project.status.stat === 'loading'"
-            @click="
-              () => {
-                tsfVsb = true
-              }
-            "
-          >
-            <template #icon><UploadOutlined /></template>
-            传输文件
-          </a-button>
-        </a-tooltip>
-        <FormDialog
-          title="投放文件"
-          :new-fun="() => newOne(Transfer)"
-          v-model:show="tsfVsb"
-          :mapper="tsMapper"
-          :emitter="tsEmitter"
-          @submit="onTransfer"
-        />
-        <a-tooltip>
-          <template #title>在线编译可能导致服务器内存溢出，建议离线编译打包后在上传发布</template>
-          <a-button type="primary" :loading="middle.loading" @click="onMidPubShow(true)">
-            <template #icon><cloud-upload-outlined /></template>
-            发布中台
-          </a-button>
-        </a-tooltip>
-        <FormDialog
-          title="配置中台"
-          width="40vw"
-          :new-fun="() => newOne(Middle)"
-          :mapper="midDlg.mapper"
-          :emitter="midDlg.emitter"
-        >
-          <template #footer="pubInfo">
-            <a-space>
-              <a-button @click="() => onMidGen(pubInfo)">导出</a-button>
-              <a-upload
-                name="file"
-                :multiple="false"
-                :directory="true"
-                :showUploadList="false"
-                action="/server-package/api/v1/temp/file"
-                @change="(info: any) => onMidDep(info, pubInfo)"
-              >
-                <a-tooltip>
-                  <template #title>选择build生成的dist文件夹</template>
-                  <a-button>导入</a-button>
-                </a-tooltip>
-              </a-upload>
-              <a-divider type="vertical" />
-              <a-tooltip>
-                <template #title>在线编译可能导致服务器内存溢出，建议导出后编译后再上传</template>
-                <a-button type="primary" @click="onMidPub(pubInfo)">确定</a-button>
-              </a-tooltip>
-            </a-space>
-          </template>
-        </FormDialog>
-        <a-button v-if="middle.url" :loading="middle.loading" :href="middle.url" target="_blank">
-          <template #icon><eye-outlined /></template>
-          浏览中台
-        </a-button>
-        <PjtCtrlBtns />
       </template>
       <a-descriptions size="small" :column="4">
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
@@ -315,35 +247,31 @@
 
 <script lang="ts" setup name="Project">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import MsvcSelect from '@/components/MsvcSelect.vue'
-import PjtCtrlBtns from '@/components/PjtCtrlBtns.vue'
-import SvcTable from '@/components/SvcTable.vue'
+import MsvcSelect from '@/components/proj/MsvcSelect.vue'
+import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
+import MidPubBtns from '@/components/proj/MidPubBtns.vue'
+import DkrRelBtns from '@/components/proj/DkrRelBtns.vue'
+import SvcTable from '@/components/proj/SvcTable.vue'
 import { OpnType, bsTpDefault } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
-import Middle from '@/types/middle'
 import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
-import Transfer from '@/types/transfer'
 import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
-  CloudUploadOutlined,
   DownOutlined,
   ExportOutlined,
-  EyeOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
-  UpOutlined,
-  UploadOutlined
+  UpOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
-import Mapper, { createByFields } from '@lib/types/mapper'
-import { Modal } from 'ant-design-vue'
+import { createByFields } from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -365,9 +293,7 @@ import {
   frtMapper,
   svcColumns,
   svcEmitter,
-  svcMapper,
-  tsEmitter,
-  tsMapper
+  svcMapper
 } from './Project'
 
 const route = useRoute()
@@ -376,7 +302,6 @@ const store = useStore()
 const pid = route.params.pid as string
 const project = computed<Project>(() => store.getters['project/ins'])
 const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
-const tsfVsb = ref(false)
 const mdlEmitter = new Emitter()
 const mSvcMapper = computed<Record<string, Service[]>>(() => {
   const ret: Record<string, Service[]> = {}
@@ -409,27 +334,6 @@ const ctnrLogs = reactive<{
 })
 const logPnl = ref<HTMLElement>()
 const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
-const midDlg = reactive({
-  emitter: new Emitter(),
-  mapper: new Mapper({
-    title: {
-      label: '标题',
-      placeholder: '登录页和首页的标题',
-      type: 'Input'
-    },
-    prefix: {
-      label: '路由前缀',
-      placeholder: '/项目名/中台前缀/(home|login)',
-      type: 'Input'
-    },
-    lclDep: {
-      label: '本地部署',
-      placeholder: '是否部署到项目实例，【非本地部署】相当于前后端分离',
-      type: 'Checkbox'
-    }
-  })
-})
-const middle = computed(() => store.getters['project/middle'])
 const actMdlTab = ref('struct')
 
 async function refresh() {
@@ -448,11 +352,6 @@ function onConfigClick() {
     object: project.value
   })
 }
-async function onTransfer(info: Transfer) {
-  await api.transfer(info)
-  await store.dispatch('project/refresh')
-  tsfVsb.value = false
-}
 function onRelMdlChange(prop: Property, mname: string) {
   if (!mname) {
     return prop.reset()
@@ -464,12 +363,6 @@ function onRelMdlChange(prop: Property, mname: string) {
   prop.index = false
   prop.unique = false
   prop.visible = true
-}
-function onExportClick() {
-  Modal.confirm({
-    title: '确定生成并导出Docker镜像吗？',
-    onOk: () => pjtAPI.expDkrImg(pid, `${project.value.name}.tar`)
-  })
 }
 async function onCtnrLogsVsb() {
   ctnrLogs.visible = !ctnrLogs.visible
@@ -493,38 +386,6 @@ async function onCtnrLogsVsb() {
     })
   } else {
     await pjtAPI.logs.exit(pid)
-  }
-}
-function onMidPubShow(show: boolean) {
-  if (show) {
-    midDlg.emitter.emit('update:data', store.getters['project/middle'])
-  }
-  midDlg.emitter.emit('update:show', show)
-}
-async function onMidPub(info: Middle) {
-  await api.middle.publish(pid, info)
-  store.dispatch('project/chkMidStatus')
-  midDlg.emitter.emit('update:show', false)
-}
-async function onMidGen(_info: Middle) {
-  await api.middle.generate(pid)
-  midDlg.emitter.emit('update:show', false)
-}
-async function onMidDep(info: any, _pubInfo: Middle) {
-  if (
-    info.file.status === 'done' &&
-    info.fileList
-      .map((file: any) => file.status)
-      .reduce((prev: any, curr: any) => prev && curr === 'done')
-  ) {
-    await api.middle.deploy(pid, {
-      fileList: info.fileList.map((file: any) => ({
-        name: file.name,
-        src: file.response.result,
-        dest: file.originFileObj.webkitRelativePath || file.name
-      }))
-    })
-    midDlg.emitter.emit('update:show', false)
   }
 }
 function onExpClsClick(model: Model) {

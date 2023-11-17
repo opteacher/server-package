@@ -112,12 +112,11 @@
 </template>
 
 <script lang="ts" setup name="Model">
-import SvcTable from '@/components/SvcTable.vue'
+import SvcTable from '@/components/proj/SvcTable.vue'
 import { OpnType } from '@/types'
 import ExpCls from '@/types/expCls'
 import Model from '@/types/model'
 import Property from '@/types/property'
-import Service, { emitMapper } from '@/types/service'
 import { Stat } from '@/types/status'
 import {
   DatabaseOutlined,

@@ -28,7 +28,7 @@
       </template>
       <a-popover
         v-model:visible="flwOpnVsb"
-        overlayClassName="flow-ctrl-popmu"
+        overlayClassName="popmu-p-0"
         trigger="click"
         placement="bottomRight"
       >
@@ -205,9 +205,3 @@ async function onFlowOpnClick({
   }
 }
 </script>
-
-<style>
-.flow-ctrl-popmu .ant-popover-inner-content {
-  padding: 0 !important;
-}
-</style>

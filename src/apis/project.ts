@@ -131,13 +131,16 @@ export default {
     }),
   apis: (key: string) =>
     reqGet('project', `${key}/apis`, { type: 'api', messages: { notShow: true } }),
-  expDkrImg: async (key: string, name?: string) => {
-    const resp = await reqGet('project', `${key}/docker/image/export`, {
-      type: 'api',
-      orgRes: true,
-      axiosConfig: { timeout: 120000, responseType: 'blob' }
-    })
-    saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
+  docker: {
+    expImg: async (key: string, name?: string) => {
+      const resp = await reqGet('project', `${key}/docker/image/export`, {
+        type: 'api',
+        orgRes: true,
+        axiosConfig: { timeout: 120000, responseType: 'blob' }
+      })
+      saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
+    },
+    runCmd: (key: string) => reqGet('project', key, { type: 'api', action: 'docker/runCmd' })
   },
   logs: {
     exit: (key: string) => reqDelete('project', `${key}/docker/logs/exit`, { type: 'api' })

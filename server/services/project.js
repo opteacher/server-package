@@ -503,19 +503,7 @@ export async function run(pjt) {
     console.log(`无运行中的${project.name}实例`)
   }
   const childPcs = spawn(
-    [
-      `docker build -t ${project.name}:latest ${appPath}`,
-      'docker run --rm -itd ' +
-        [
-          '--network server-package_default',
-          `-p 127.0.0.1:${project.port}:${project.port}`,
-          ...(project.expPorts || []).map(port => `-p 0.0.0.0:${port}:${port}`),
-          ...(project.volumes || []).map(
-            volume => `-v ${volume instanceof Array ? volume.join(':') : volume}`
-          ),
-          `--name ${project.name} ${project.name}`
-        ].join(' ')
-    ].join(' && '),
+    [`docker build -t ${project.name}:latest ${appPath}`, pjtRunCmd(project)].join(' && '),
     {
       stdio: 'inherit',
       shell: true,
@@ -842,6 +830,7 @@ export async function buildMid(project) {
       Path.join(tmpPath, '.env'),
       Path.join(tmpPath, 'package.json'),
       Path.join(tmpPath, 'package-lock.json'),
+      Path.join(tmpSrcPath, 'Dockerfile'),
       Path.join(tmpSrcPath, 'apis/login.ts'),
       Path.join(tmpSrcPath, 'router/index.ts'),
       Path.join(tmpSrcPath, 'views/login.vue')
@@ -855,6 +844,10 @@ export async function buildMid(project) {
   const pkgGen = Path.join(genPath, 'package.json')
   console.log(`复制package.json文件：${pkgTmp} -> ${pkgGen}`)
   adjustFile(pkgTmp, pkgGen, { project })
+  const dkrTmp = Path.join(tmpPath, 'Dockerfile')
+  const dkrGen = Path.join(genPath, 'Dockerfile')
+  console.log(`复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
+  adjustFile(dkrTmp, dkrGen, { project })
   console.log('生成json数据：project.json和models.json')
   fs.mkdirSync(Path.join(genSrcPath, 'json'), { recursive: true })
   fs.writeFileSync(
@@ -1066,4 +1059,23 @@ export async function extCtnrLogs(ctx) {
   ctx.body = {
     result: { message: '监控进程停止' }
   }
+}
+
+export async function pjtRunCmd(pjt) {
+  let project = pjt
+  if (typeof pjt === 'string') {
+    project = await db.select(Project, { _index: pjt })
+  }
+  return (
+    'docker run --rm -itd ' +
+    [
+      '--network server-package_default',
+      `-p 127.0.0.1:${project.port}:${project.port}`,
+      ...(project.expPorts || []).map(port => `-p 0.0.0.0:${port}:${port}`),
+      ...(project.volumes || []).map(
+        volume => `-v ${volume instanceof Array ? volume.join(':') : volume}`
+      ),
+      `--name ${project.name} ${project.name}`
+    ].join(' ')
+  )
 }

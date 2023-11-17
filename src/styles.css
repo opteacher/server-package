@@ -1,3 +1,7 @@
 pre {
   @apply mb-0;
 }
+
+.popmu-p-0 .ant-popover-inner-content {
+  padding: 0 !important;
+}
