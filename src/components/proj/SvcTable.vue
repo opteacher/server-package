@@ -8,7 +8,7 @@ import { EditOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@an
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, createVNode, defineProps } from 'vue'
+import { computed, createVNode, defineProps, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -19,18 +19,20 @@ const props = defineProps({
 })
 const pid = computed(() => store.getters['project/ins'].key)
 const pstatus = computed(() => store.getters['project/ins'].status.stat)
-const emitter = new Emitter()
-const mapper = new Mapper({
-  impFile: {
-    label: '上传流程文件',
-    type: 'UploadFile',
-    path: '/server-package/api/v1/temp/file'
-  },
-  svcId: {
-    label: '服务ID',
-    type: 'Unknown',
-    display: false
-  }
+const impDlg = reactive({
+  emitter: new Emitter(),
+  mapper: new Mapper({
+    impFile: {
+      label: '上传流程文件',
+      type: 'UploadFile',
+      path: '/server-package/api/v1/temp/file'
+    },
+    svcId: {
+      label: '服务ID',
+      type: 'Unknown',
+      display: false
+    }
+  })
 })
 const router = useRouter()
 
@@ -60,7 +62,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     content: createVNode('div', undefined, '上传流程会清空原有逻辑，请确认后再上传'),
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
-      emitter.emit('update:show', false)
+      impDlg.emitter.emit('update:show', false)
       router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
     }
   })
@@ -177,8 +179,8 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
       title="导入流程"
       width="30vw"
       :newFun="() => ({ impFile: [] })"
-      :mapper="mapper"
-      :emitter="emitter"
+      :mapper="impDlg.mapper"
+      :emitter="impDlg.emitter"
       @submit="onImpFlowSubmit"
     />
   </div>

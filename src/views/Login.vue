@@ -2,7 +2,7 @@
   <div
     class="h-full flex items-center justify-end bg-cover"
     :style="{
-      'background-image': '@/assets/background.png'
+      'background-image': 'url(https://api.isoyu.com/bing_images.php)'
     }"
   >
     <div class="w-1/3 px-14 py-8 mr-50 bg-white rounded">
