@@ -503,7 +503,7 @@ export async function run(pjt) {
     console.log(`无运行中的${project.name}实例`)
   }
   const childPcs = spawn(
-    [`docker build -t ${project.name}:latest ${appPath}`, pjtRunCmd(project)].join(' && '),
+    [`docker build -t ${project.name}:latest ${appPath}`, await pjtRunCmd(project)].join(' && '),
     {
       stdio: 'inherit',
       shell: true,

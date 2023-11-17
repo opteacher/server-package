@@ -30,7 +30,7 @@
         </a-menu-item>
         <template v-if="project.thread">
           <a-divider class="my-2" />
-          <a-menu-item key="send_files">
+          <a-menu-item key="send_files" :disabled="project.status.stat === 'loading'">
             <template #icon><UploadOutlined /></template>
             传输文件
           </a-menu-item>
@@ -45,7 +45,7 @@
         </template>
       </a-menu>
     </template>
-    <a-button :loading="project.status.stat === 'loading'">
+    <a-button>
       <template #icon><ControlOutlined /></template>
       控制项目
     </a-button>
