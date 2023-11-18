@@ -239,7 +239,8 @@ export const edtNdMapper = new Mapper({
           )
         },
         addable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
-        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
+        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        editable: true
       },
       outputs: {
         label: '输出',
@@ -285,7 +286,8 @@ export const edtNdMapper = new Mapper({
             1
           )
         },
-        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })]
+        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        editable: true
       },
       deps: {
         label: '依赖',

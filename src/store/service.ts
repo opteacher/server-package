@@ -129,8 +129,24 @@ export default {
           for (const [ndKey, opera] of params.updNodes) {
             if (opera === 'save') {
               state.nodes[ndKey] = await ndAPI.detail(ndKey)
+              if (state.nodes[ndKey].relative) {
+                const relKey = state.nodes[ndKey].relative
+                state.nodes[relKey] = await ndAPI.detail(relKey)
+              }
             } else if (opera === 'delete') {
-              delete state.nodes[ndKey]
+              const ndKeys = [ndKey]
+              if (state.nodes[ndKey].relative) {
+                for (
+                  let nd = state.nodes[ndKey];
+                  nd.nexts.length && nd.nexts[0] !== state.nodes[ndKey].relative;
+                  nd = state.nodes[nd.nexts[0]]
+                ) {
+                  ndKeys.push(...nd.nexts)
+                }
+              }
+              for (const key of ndKeys) {
+                delete state.nodes[key]
+              }
             }
           }
         } else if (params.force) {

@@ -102,7 +102,7 @@ const genOrPub = ref<OperType>('export')
 const middle = computed(() => store.getters['project/middle'])
 
 function onMidPubClick({ key }: { key: OperType }) {
-  if (key === 'export' || key === 'import') {
+  if (key === 'export' || key === 'publish') {
     genOrPub.value = key
     emitter.emit('update:data', store.getters['project/middle'])
     emitter.emit('update:show', true)

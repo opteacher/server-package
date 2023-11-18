@@ -11,6 +11,9 @@
             <a @click="refresh">{{ project.status.stat }}</a>
           </a-tag>
           <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
+            <template #icon>
+              <SyncOutlined :spin="true" />
+            </template>
             <a @click="refresh">{{ project.status.stat }}</a>
           </a-tag>
         </a-tooltip>
@@ -247,10 +250,10 @@
 
 <script lang="ts" setup name="Project">
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import DkrRelBtns from '@/components/proj/DkrRelBtns.vue'
+import MidPubBtns from '@/components/proj/MidPubBtns.vue'
 import MsvcSelect from '@/components/proj/MsvcSelect.vue'
 import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
-import MidPubBtns from '@/components/proj/MidPubBtns.vue'
-import DkrRelBtns from '@/components/proj/DkrRelBtns.vue'
 import SvcTable from '@/components/proj/SvcTable.vue'
 import { OpnType, bsTpDefault } from '@/types'
 import ExpCls from '@/types/expCls'
@@ -268,7 +271,8 @@ import {
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
-  UpOutlined
+  UpOutlined,
+  SyncOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -288,13 +292,7 @@ import {
   propColumns,
   propMapper
 } from './Model'
-import {
-  frtEmitter,
-  frtMapper,
-  svcColumns,
-  svcEmitter,
-  svcMapper
-} from './Project'
+import { frtEmitter, frtMapper, svcColumns, svcEmitter, svcMapper } from './Project'
 
 const route = useRoute()
 const router = useRouter()

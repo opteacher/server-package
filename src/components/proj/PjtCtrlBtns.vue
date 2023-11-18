@@ -20,7 +20,7 @@
           @submit="(form: any) => api.syncFrt(project.key, form)"
         >
           <template #top>
-            <info-circle-outlined class="text-lg text-primary" />
+            <InfoCircleOutlined class="text-lg text-primary" />
             &nbsp;如果选择上传dist文件夹，则不会构建项目，直接把dist内的文件复制到web容器的public目录下
           </template>
         </FormDialog>
@@ -63,7 +63,8 @@ import {
   ExclamationCircleOutlined,
   PoweroffOutlined,
   SyncOutlined,
-  UploadOutlined
+  UploadOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'

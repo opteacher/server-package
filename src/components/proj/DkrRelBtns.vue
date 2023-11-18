@@ -50,21 +50,25 @@
   </a-popover>
   <a-modal v-model:visible="visibles.dkrInfo" title="Docker信息" :footer="null">
     <a-tabs>
-      <a-tab-pane key="1" tab="运行指令">
-        <pre>{{ runCmd }}</pre>
+      <a-tab-pane key="1" tab="运行指令" class="relative">
+        <pre class="p-2 bg-slate-200">{{ runCmd }}</pre>
+        <a-button class="absolute top-2 right-2" @click="copyRunCmd">
+          <template #icon><CopyOutlined /></template>
+        </a-button>
       </a-tab-pane>
-  </a-tabs>
+    </a-tabs>
   </a-modal>
 </template>
 
 <script setup lang="ts">
 import { pjtAPI } from '@/apis'
 import Icon, {
+  CopyOutlined,
   DeploymentUnitOutlined,
   ExportOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons-vue'
-import { Modal } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
@@ -79,7 +83,16 @@ const pid = route.params.pid as string
 const runCmd = ref('')
 
 onMounted(async () => {
-  runCmd.value = await pjtAPI.docker.runCmd(pid)
+  runCmd.value = await pjtAPI.docker.runCmd(pid).then((cmd: string) => {
+    const fixCmd = cmd
+      .replaceAll('--network', '\n\t--network')
+      .replaceAll('--name', '\n\t--name')
+      .replaceAll('-p', '\n\t-p')
+      .replaceAll('-v', '\n\t-v')
+    const lstBlkIdx = fixCmd.lastIndexOf(' ')
+    const ret = fixCmd.slice(0, lstBlkIdx) + '\n  ' + fixCmd.substring(lstBlkIdx + 1)
+    return ret.replaceAll('\t', '  ')
+  })
 })
 
 function onDkrRelClick({ key }: { key: 'export' | 'info' }) {
@@ -98,5 +111,9 @@ function onExportClick() {
     title: '确定生成并导出Docker镜像吗？',
     onOk: () => pjtAPI.docker.expImg(pid, `${project.name}.tar`)
   })
+}
+function copyRunCmd() {
+  navigator.clipboard.writeText(runCmd.value)
+  message.success('复制成功！')
 }
 </script>

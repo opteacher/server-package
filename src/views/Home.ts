@@ -101,16 +101,16 @@ export const mapper = new Mapper({
         label: '共享文件/夹',
         type: 'EditList',
         mapper: {
-          dest: {
+          host: {
             type: 'Input',
-            placeholder: '投送到……'
+            placeholder: '本机内位置'
           },
-          src: {
+          ctnr: {
             type: 'Input',
-            placeholder: '容器内……'
+            placeholder: '容器内位置'
           }
         },
-        newFun: () => ({ dest: '/', src: '/' })
+        newFun: () => ({ host: '', ctnr: '' })
       },
       envVars: {
         label: '环境变量',

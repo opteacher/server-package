@@ -107,7 +107,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
               size="small"
               @click.stop="
                 () =>
-                  emitter.emit('update:show', {
+                impDlg.emitter.emit('update:show', {
                     show: true,
                     object: { svcId: svc.key, impFile: [] }
                   })
@@ -147,7 +147,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
                 size="small"
                 type="primary"
                 :disabled="pstatus !== 'running'"
-                @click.stop="() => api.job.restart(svc.key)"
+                @click.stop="() => api.job.restart(svc.key).then(() => emitter.emit('refresh'))"
               >
                 启动
               </a-button>
@@ -157,7 +157,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
               size="small"
               danger
               :disabled="pstatus !== 'running'"
-              @click.stop="() => api.job.stop(svc.key)"
+              @click.stop="() => api.job.stop(svc.key).then(() => emitter.emit('refresh'))"
             >
               停止
             </a-button>

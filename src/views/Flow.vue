@@ -23,7 +23,8 @@
     </a-space>
     <div>
       <template v-if="pLoading">
-        <LoadingOutlined />&nbsp;
+        <LoadingOutlined />
+        &nbsp;
         <a-typography-text type="secondary" class="mr-2">操作加载中……</a-typography-text>
       </template>
       <a-popover
@@ -45,9 +46,7 @@
               <a-menu-item key="project_stop" v-if="project.thread || pLoading">停止</a-menu-item>
             </a-menu-item-group>
             <a-menu-item-group
-              v-if="
-                (service.emit === 'interval' || service.emit === 'timeout') && pRunning
-              "
+              v-if="(service.emit === 'interval' || service.emit === 'timeout') && pRunning"
               title="服务控制"
             >
               <a-menu-item key="job_start">启动</a-menu-item>
@@ -78,7 +77,7 @@
             />
           </template>
         </template>
-        <pre v-else>{{ codes }}</pre>
+        <CodeEditor v-else class="h-full" :value="codes" :disabled="true" />
       </div>
     </div>
     <FormDialog
@@ -99,7 +98,7 @@ import { NodesInPnl } from '@/store/service'
 import NodeInPnl from '@/types/ndInPnl'
 import Project from '@/types/project'
 import Service from '@/types/service'
-import { until, newOne } from '@/utils'
+import { newOne, until } from '@/utils'
 import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
