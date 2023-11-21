@@ -175,10 +175,10 @@ export async function create(data) {
   return db.select(Model, { _index: model.id })
 }
 
-export async function del(key) {
+export async function rmv(key) {
+  console.log(key)
   await db.remove(Dep, { _index: key })
-  const model = await db.select(Model, { _index: key })
-  const msvcs = await db.select(Service, { model: model.name })
+  const msvcs = await db.select(Service, { model: key })
   await Promise.all(msvcs.map(sid => delSvc(sid)))
   return db.remove(Model, { _index: key })
 }

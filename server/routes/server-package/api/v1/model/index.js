@@ -1,7 +1,7 @@
 import Router from 'koa-router'
 import {
   create,
-  del,
+  rmv,
   genForm,
   genTable,
   saveProp,
@@ -19,7 +19,7 @@ router.post('/', async ctx => {
 
 router.delete('/:mid', async ctx => {
   ctx.body = {
-    result: await del(ctx.params.mid)
+    result: await rmv(ctx.params.mid)
   }
 })
 
