@@ -103,7 +103,7 @@ export async function save(node, sid) {
   return node
 }
 
-export async function del(nid, sid) {
+export async function rmv(nid, sid) {
   const node = await db.select(Node, { _index: nid })
   if (!node) {
     return

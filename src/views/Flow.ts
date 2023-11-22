@@ -44,8 +44,6 @@ export function getLocVars(node?: Node, incSelf = false): Variable[] {
     .concat(node.previous ? scanLocVars(node.previous) : [])
 }
 
-const iptEmitter = new Emitter()
-
 const iptMapper = new Mapper({
   name: {
     label: '参数名',
@@ -84,8 +82,8 @@ const iptMapper = new Mapper({
           break
         case 'Object':
           iptMapper['value'].type = 'Select'
-          iptEmitter.emit('update:mprop', {
-            'value.options': getLocVars().map((locVar: Variable) => ({
+          edtNdEmitter.emit('update:mprop', {
+            'advanced.items.inputs.mapper.value.options': getLocVars().map((locVar: Variable) => ({
               label: locVar.value || locVar.name,
               value: locVar.value || locVar.name
             }))
@@ -94,8 +92,8 @@ const iptMapper = new Mapper({
           input.prop = ''
           break
       }
-      iptEmitter.emit('update:mprop', {
-        'value.type': iptMapper['value'].type
+      edtNdEmitter.emit('update:mprop', {
+        'advanced.items.inputs.mapper.value.type': iptMapper['value'].type
       })
     }
   },
@@ -153,8 +151,6 @@ const iptMapper = new Mapper({
   }
 })
 
-const optEmitter = new Emitter()
-
 export const edtNdEmitter = new Emitter()
 
 const depEmitter = new Emitter()
@@ -192,7 +188,7 @@ export const edtNdMapper = new Mapper({
       inputs: {
         label: '输入',
         type: 'Table',
-        emitter: iptEmitter,
+        emitter: new Emitter(),
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
@@ -245,7 +241,7 @@ export const edtNdMapper = new Mapper({
       outputs: {
         label: '输出',
         type: 'Table',
-        emitter: optEmitter,
+        emitter: new Emitter(),
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),

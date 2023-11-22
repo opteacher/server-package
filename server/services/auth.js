@@ -7,7 +7,7 @@ import Model from '../models/model.js'
 import Service from '../models/service.js'
 import Dep from '../models/dep.js'
 import Node from '../models/node.js'
-import { del as delNode, save as saveNode, scanNextss } from './node.js'
+import { rmv as rmvNode, save as saveNode, scanNextss } from './node.js'
 
 export async function bind(pid, auth) {
   let project = await db.select(Project, { _index: pid }, { ext: true })
@@ -90,9 +90,9 @@ export async function unbind(pid) {
     if (sgnSvc.flow) {
       const { allNodes } = await scanNextss(await db.select(Node, { _index: sgnSvc.flow }), '')
       for (const nid of Object.keys(allNodes)) {
-        await delNode(nid)
+        await rmvNode(nid)
       }
-      await delNode(sgnSvc.flow, sgnSvc.id)
+      await rmvNode(sgnSvc.flow, sgnSvc.id)
     }
     await db.remove(Service, { _index: sgnSid })
     await db.saveOne(Project, pid, { service: sgnSid }, { updMode: 'delete' })
@@ -142,9 +142,9 @@ export async function genSign(pid, props) {
   if (service.flow && service.flow.id) {
     const { allNodes } = await scanNextss(service.flow, '')
     for (const nid of Object.keys(allNodes)) {
-      await delNode(nid)
+      await rmvNode(nid)
     }
-    await delNode(service.flow.id, service.id)
+    await rmvNode(service.flow.id, service.id)
   }
   const getSecret = await saveNode(
     {

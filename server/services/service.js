@@ -12,7 +12,7 @@ import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db } from '../utils/index.js'
 import { genDefault, pickOrIgnore } from '../utils/index.js'
-import { del as delNode, scanNextss } from './node.js'
+import { rmv as rmvNode, scanNextss } from './node.js'
 import { adjustFile, recuNode } from './project.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
@@ -106,14 +106,12 @@ export async function stop(pid, jid, authorization) {
   return db.save(Service, { jobId: 0 }, { _index: jid })
 }
 
-export async function del(sid) {
+export async function rmv(sid) {
   const service = await db.select(Service, { _index: sid }, { ext: true })
   if (service.flow && service.flow.id) {
-    const { allNodes } = await scanNextss(service.flow, '')
-    for (const nid of Object.keys(allNodes)) {
-      await delNode(nid)
-    }
-    await delNode(service.flow.id, service.id)
+    await colcNodes(service.flow.id).then(nodes =>
+      Promise.all(nodes.map(node => db.remove(Node, { _index: node.key })))
+    )
   }
   return db.remove(Service, { _index: sid })
 }
@@ -277,7 +275,9 @@ export async function expSvcFlow(ctx) {
             const ret = _.cloneDeep(node)
             setProp(ret, 'key', undefined)
             setProp(ret, '_id', undefined)
-            setProp(ret, 'loop._id', undefined)
+            if (ret.loop) {
+              setProp(ret, 'loop._id', undefined)
+            }
             setProp(
               ret,
               'deps',
@@ -293,7 +293,11 @@ export async function expSvcFlow(ctx) {
   )
   ctx.attachment(expFile)
   await sendfile(ctx, expFile)
-  setTimeout(() => fs.rmSync(expFile), 5 * 60 * 1000)
+  setTimeout(() => {
+    try {
+      fs.rmSync(expFile)
+    } catch (e) {}
+  }, 5 * 60 * 1000)
 }
 
 async function scanAllNxts(key) {
@@ -311,27 +315,34 @@ export async function impSvcFlow(ctx) {
   }
   console.log('读取JSON文件，根据根节点ID找到根节点并插入数据库')
   const params = JSON.parse(fs.readFileSync(ctx.request.body.impFile).toString('utf8'))
-  console.log(params)
   const ndMapper = params['ndMapper']
   console.log('配置一个旧ID映射新ID的空表')
   const o2nMapper = {}
   const saveNode = async okey => {
     const node = ndMapper[okey]
-    const newNd = await db.save(Node, pickOrIgnore(node, ['previous', 'nexts']))
-    o2nMapper[okey] = newNd.id.toString()
-    for (const nxtKey of node.nexts) {
-      const subNd = await saveNode(
-        okey,
-        nxtKey,
-        pickOrIgnore(ndMapper[nxtKey], ['previous', 'nexts'])
-      )
-      await db.saveOne(Node, newNd.id, { nexts: subNd.id }, { updMode: 'append' })
-      await db.saveOne(Node, subNd.id, { previous: newNd.id })
+    const newNd = await db.save(
+      Node,
+      Object.assign(pickOrIgnore(node, ['deps', 'previous', 'nexts', 'relative']), {
+        deps: await Promise.all(
+          node.deps.map(name => db.select(Dep, { name }).then(deps => deps[0].id))
+        )
+      })
+    )
+    const newNid = newNd.id.toString()
+    o2nMapper[okey] = newNid
+    if (node.relative && node.relative in o2nMapper) {
+      const relative = o2nMapper[node.relative]
+      await db.saveOne(Node, newNid, { relative })
+      await db.saveOne(Node, relative, { relative: newNid })
     }
-    return o2nMapper[okey]
+    for (const nxtKey of node.nexts) {
+      const subNid = await saveNode(nxtKey)
+      await db.saveOne(Node, newNd.id, { nexts: subNid }, { updMode: 'append' })
+      await db.saveOne(Node, subNid, { previous: newNd.id })
+    }
+    return newNid
   }
-  await saveNode(params['flow'])
   ctx.body = {
-    result: await db.saveOne(Service, ctx.params.sid, { flow: o2nMapper[params['flow']] })
+    result: await db.saveOne(Service, ctx.params.sid, { flow: await saveNode(params['flow']) })
   }
 }

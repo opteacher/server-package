@@ -5,8 +5,12 @@ export * from '@lib/utils'
 export function downloadFile(resp: any) {
   const link = document.createElement('a')
   // 创建对象url
+  let data = resp.data
+  if (resp.headers['content-type'].startsWith('application/json')) {
+    data = JSON.stringify(data)
+  }
   link.href = window.URL.createObjectURL(
-    new Blob([resp.data], { type: resp.headers['content-type'] })
+    new Blob([data], { type: resp.headers['content-type'] })
   )
   const filename = window.decodeURI(resp.headers['content-disposition'].split('=')[1])
   link.download = filename.substring(

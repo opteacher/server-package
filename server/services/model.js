@@ -9,7 +9,7 @@ import Model from '../models/model.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db, genDefault, pickOrIgnore } from '../utils/index.js'
-import { del as delSvc } from './service.js'
+import { rmv as rmvSvc } from './service.js'
 
 const typeMapper = {
   Any: 'any',
@@ -179,7 +179,7 @@ export async function rmv(key) {
   console.log(key)
   await db.remove(Dep, { _index: key })
   const msvcs = await db.select(Service, { model: key })
-  await Promise.all(msvcs.map(sid => delSvc(sid)))
+  await Promise.all(msvcs.map(sid => rmvSvc(sid)))
   return db.remove(Model, { _index: key })
 }
 
