@@ -2,9 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
-import { NodesInPnl } from '@/store/service'
 import { Cond, baseTypes, bsTpOpns } from '@/types'
-import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
 import Variable from '@/types/variable'
@@ -82,7 +80,7 @@ const iptMapper = new Mapper({
           break
         case 'Object':
           iptMapper['value'].type = 'Select'
-          edtNdEmitter.emit('update:mprop', {
+          nodeEmitter.emit('update:mprop', {
             'advanced.items.inputs.mapper.value.options': getLocVars().map((locVar: Variable) => ({
               label: locVar.value || locVar.name,
               value: locVar.value || locVar.name
@@ -92,7 +90,7 @@ const iptMapper = new Mapper({
           input.prop = ''
           break
       }
-      edtNdEmitter.emit('update:mprop', {
+      nodeEmitter.emit('update:mprop', {
         'advanced.items.inputs.mapper.value.type': iptMapper['value'].type
       })
     }
@@ -151,11 +149,11 @@ const iptMapper = new Mapper({
   }
 })
 
-export const edtNdEmitter = new Emitter()
+export const nodeEmitter = new Emitter()
 
 const depEmitter = new Emitter()
 
-export const edtNdMapper = new Mapper({
+export const nodeMapper = new Mapper({
   title: {
     label: '标题',
     type: 'Input',
@@ -216,7 +214,7 @@ export const edtNdMapper = new Mapper({
               service.stcVars.map(v => ({ label: v.name, value: v.name }))
             )
           }
-          edtNdEmitter.emit('update:mprop', {
+          nodeEmitter.emit('update:mprop', {
             'advanced.items.inputs.mapper.value.options': options
           })
         },
@@ -290,7 +288,8 @@ export const edtNdMapper = new Mapper({
         type: 'TagList',
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
         ],
         subProp: 'subTitle',
         flatItem: true,
@@ -314,7 +313,8 @@ export const edtNdMapper = new Mapper({
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
         ],
         maxRows: 6
       },
@@ -328,6 +328,12 @@ export const edtNdMapper = new Mapper({
           new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ]
+      },
+      subFun: {
+        label: '子函数名',
+        placeholder: '定义规则跟随编码要求，即只可包含下划线、大小写字母和数字',
+        type: 'Input',
+        display: [new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })]
       },
       'loop.isAwait': {
         label: '是否为await',
@@ -346,6 +352,16 @@ export const edtNdMapper = new Mapper({
     label: '父节点',
     type: 'Text',
     display: false
+  },
+  subFlow: {
+    label: '子流程',
+    type: 'Button',
+    display: [new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })],
+    inner: '流程设计',
+    onClick: async (node: Node) => {
+      await store.dispatch('service/setSubNid', node.key)
+      nodeEmitter.emit('update:show', false)
+    }
   },
   delete: {
     label: '操作',
@@ -366,8 +382,8 @@ export const edtNdMapper = new Mapper({
         cancelText: 'No',
         onOk: async () => {
           await api.remove(node.key)
-          edtNdEmitter.emit('update:show', false)
-          edtNdEmitter.emit('delNode', node.key)
+          nodeEmitter.emit('update:show', false)
+          nodeEmitter.emit('delNode', node.key)
         }
       })
     }

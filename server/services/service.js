@@ -150,7 +150,15 @@ const CardGutter = 50
 const CardHlfGutter = CardGutter >> 1
 
 export async function readAllNodes(svcKey) {
-  return colcNodes((await db.select(Service, { _index: svcKey }, { ext: false })).flow)
+  return db
+    .select(Service, { _index: svcKey }, { ext: false })
+    .then(svc => (svc.flow ? colcNodes(svc.flow) : []))
+}
+
+export async function readAllSubNds(sndKey) {
+  return db
+    .select(Node, { _index: sndKey }, { ext: false })
+    .then(node => (node.relative ? colcNodes(node.relative) : []))
 }
 
 async function colcNodes(ndKey) {
@@ -168,9 +176,12 @@ async function colcNodes(ndKey) {
   return ret
 }
 
-export async function buildNodes(svcKey, { width }) {
+export async function buildNodes(svcKey, { width }, sndKey) {
   const service = await db.select(Service, { _index: svcKey }, { ext: false })
-  const flowKey = service.flow
+  const flowKey =
+    sndKey === 's'
+      ? service.flow
+      : await db.select(Node, { _index: sndKey }, { ext: false }).then(node => node.relative)
   if (!flowKey) {
     return []
   }

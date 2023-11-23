@@ -11,7 +11,7 @@ export async function bindPtCdNodes(parent, child) {
   ])
 }
 
-export async function save(node, sid) {
+export async function save(node, sid, isSub = false) {
   // 保存依赖
   if (node.key) {
     // 更新节点
@@ -86,7 +86,11 @@ export async function save(node, sid) {
   }
   if (!node.previous) {
     // 绑定根节点
-    await db.saveOne(Service, sid, { flow: nodeKey }, { updMode: 'append' })
+    if (isSub) {
+      await db.saveOne(Node, sid, { relative: nodeKey })
+    } else {
+      await db.saveOne(Service, sid, { flow: nodeKey })
+    }
   } else {
     // 绑定非根节点
     const previous = await db.select(Node, { _index: node.previous.key || node.previous })
@@ -103,7 +107,7 @@ export async function save(node, sid) {
   return node
 }
 
-export async function rmv(nid, sid) {
+export async function rmv(nid, sid, isSub = false) {
   const node = await db.select(Node, { _index: nid })
   if (!node) {
     return
@@ -116,7 +120,11 @@ export async function rmv(nid, sid) {
       await db.saveOne(Node, pvsKey, { nexts: node.id }, { updMode: 'delete' })
     } else {
       // 删除根节点
-      await db.saveOne(Service, sid, { flow: node.id }, { updMode: 'delete' })
+      if (isSub) {
+        await db.saveOne(Node, sid, { relative: node.id }, { updMode: 'delete' })
+      } else {
+        await db.saveOne(Service, sid, { flow: node.id }, { updMode: 'delete' })
+      }
     }
     // 删除节点的子节点或解绑子节点
     const nexts = []
@@ -177,7 +185,11 @@ export async function rmv(nid, sid) {
         await bindPtCdNodes(pvsKey, nxtKey)
       }
     } else {
-      await db.saveOne(Service, sid, { flow: nexts[0] })
+      if (isSub) {
+        await db.saveOne(Node, sid, { relative: nexts[0] })
+      } else {
+        await db.saveOne(Service, sid, { flow: nexts[0] })
+      }
     }
   }
   // 最后删除节点自身

@@ -1,6 +1,16 @@
 import Router from 'koa-router'
-import { restart, stop, rmv, genSvcCode, readAllNodes, buildNodes, expSvcFlow, impSvcFlow } from '../../../../../services/service.js'
-import { save as saveNode, rmv as rmvNode } from '../../../../../services/node.js'
+
+import { rmv as rmvNode, save as saveNode } from '../../../../../services/node.js'
+import {
+  buildNodes,
+  expSvcFlow,
+  genSvcCode,
+  impSvcFlow,
+  readAllNodes,
+  restart,
+  rmv,
+  stop
+} from '../../../../../services/service.js'
 
 const router = new Router()
 
@@ -18,11 +28,7 @@ router.post('/:sid/job/restart', async ctx => {
     return
   }
   ctx.body = {
-    result: await restart(
-      ctx.request.query.pid,
-      ctx.params.sid,
-      ctx.headers['authorization']
-    )
+    result: await restart(ctx.request.query.pid, ctx.params.sid, ctx.headers['authorization'])
   }
 })
 
@@ -34,23 +40,25 @@ router.delete('/:sid/job/stop', async ctx => {
     return
   }
   ctx.body = {
-    result: await stop(
-      ctx.request.query.pid,
-      ctx.params.sid,
-      ctx.headers['authorization']
-    )
+    result: await stop(ctx.request.query.pid, ctx.params.sid, ctx.headers['authorization'])
   }
 })
 
 router.post('/:sid/node', async ctx => {
+  console.log(ctx.query.isSub)
   ctx.body = {
-    result: await saveNode(ctx.request.body, ctx.params.sid)
+    result: await saveNode(ctx.request.body, ctx.params.sid, ctx.query.isSub)
   }
 })
 
 router.post('/:sid/node/:nid', async ctx => {
+  console.log(ctx.query.isSub)
   ctx.body = {
-    result: await saveNode(Object.assign(ctx.request.body, { key: ctx.params.nid }), ctx.params.sid)
+    result: await saveNode(
+      Object.assign(ctx.request.body, { key: ctx.params.nid }),
+      ctx.params.sid,
+      ctx.query.isSub
+    )
   }
 })
 
@@ -72,9 +80,9 @@ router.get('/:sid/flow/nodes', async ctx => {
   }
 })
 
-router.post('/:sid/node/s/build', async ctx => {
+router.post('/:sid/node/:nid/build', async ctx => {
   ctx.body = {
-    result: await buildNodes(ctx.params.sid, ctx.request.body)
+    result: await buildNodes(ctx.params.sid, ctx.request.body, ctx.params.nid)
   }
 })
 

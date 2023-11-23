@@ -45,8 +45,8 @@ export default {
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   flow: {
     codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
-    build: (key: any, width: number) =>
-      reqPost(`service/${key}/node/s/build`, { width }, { type: 'api' }),
+    build: (key: any, width: number, sub?: string) =>
+      reqPost(`service/${key}/node/${sub || 's'}/build`, { width }, { type: 'api' }),
     export: async (key: any) =>
       downloadFile(await reqGet('service', `/${key}/flow/export`, { type: 'api', orgRes: true })),
     import: (key: any, body: { impFile: string }) =>

@@ -62,6 +62,12 @@
   </div>
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
     <div class="relative w-full h-full">
+      <div v-if="store.getters['service/subNdKey']" class="absolute top-0 left-0 z-50">
+        <a-button @click="() => store.dispatch('service/setSubNid')">
+          <template #icon><ArrowLeftOutlined /></template>
+          {{ store.getters['service/subNdTtl'] }}
+        </a-button>
+      </div>
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
         <a-spin v-if="loading" class="w-full h-full" />
         <template v-else-if="!codes">
@@ -85,8 +91,8 @@
       width="70vw"
       :lblWid="2"
       :new-fun="() => newOne(Node)"
-      :mapper="edtNdMapper"
-      :emitter="edtNdEmitter"
+      :mapper="nodeMapper"
+      :emitter="nodeEmitter"
       @submit="onNodeSaved"
     />
   </div>
@@ -114,7 +120,7 @@ import { ndAPI as api, pjtAPI } from '../apis'
 import NodeCard from '../components/flow/NodeCard.vue'
 import VarsPanel from '../components/flow/VarsPanel.vue'
 import Node from '../types/node'
-import { edtNdEmitter, edtNdMapper } from './Flow'
+import { nodeEmitter, nodeMapper } from './Flow'
 
 const store = useStore()
 const route = useRoute()
@@ -144,7 +150,7 @@ onMounted(() => {
   // rszObs.observe(panelRef.value)
   refresh(true)
 })
-edtNdEmitter.on('delNode', (ndKey: string) => refresh([ndKey, 'delete']))
+nodeEmitter.on('delNode', (ndKey: string) => refresh([ndKey, 'delete']))
 
 async function refresh(param: [string, 'save' | 'delete'] | boolean = false) {
   loading.value = true

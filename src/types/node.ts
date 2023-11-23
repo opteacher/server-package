@@ -3,7 +3,7 @@
 import { gnlCpy } from '@/utils'
 import Variable from './variable'
 
-export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode'
+export type NodeType = 'normal' | 'condition' | 'condNode' | 'traversal' | 'endNode' | 'subNode'
 export type LoopType = 'for-of' | 'for-in'
 
 export const NodeTypeMapper = {
@@ -11,7 +11,8 @@ export const NodeTypeMapper = {
   condition: '条件根节点',
   condNode: '条件节点',
   traversal: '遍历节点',
-  endNode: '结束节点'
+  endNode: '结束节点',
+  subNode: '子节点'
 }
 
 export const ndTpOpns = Object.entries(NodeTypeMapper).map(([value, label]) => ({ label, value }))
@@ -24,6 +25,7 @@ export default class Node implements Record<string, any> {
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   isFun: boolean
+  subFun: string
   code: string
   previous: string | null
   nexts: string[]
@@ -44,6 +46,7 @@ export default class Node implements Record<string, any> {
     this.outputs = []
     this.code = ''
     this.isFun = true
+    this.subFun = ''
     this.previous = null
     this.nexts = []
     this.relative = ''
@@ -64,6 +67,7 @@ export default class Node implements Record<string, any> {
     this.outputs = []
     this.code = ''
     this.isFun = true
+    this.subFun = ''
     this.previous = null
     this.nexts = []
     this.relative = ''

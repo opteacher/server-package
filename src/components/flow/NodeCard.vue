@@ -223,13 +223,15 @@ const arwBtmSvgSizeW = computed(() => getWidByNexts(props.node as Node))
 const color = computed(() => {
   switch (props.node.ntype) {
     case 'normal':
-      return '#FF9900'
+      return '#FFA500'
     case 'condition':
-      return '#00AA72'
+      return '#009E8E'
     case 'condNode':
-      return '#FF5600'
+      return '#009E8E'
     case 'traversal':
-      return '#0D58A6'
+      return '#1047A9'
+    case 'subNode':
+      return '#FF6C00'
     default:
       return 'grey'
   }
