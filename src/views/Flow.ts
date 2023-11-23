@@ -328,6 +328,23 @@ export const nodeMapper = new Mapper({
           new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+        ],
+        onChange: (node: Node, checked: boolean) => {
+          if (node.ntype === 'subNode') {
+            nodeEmitter.emit('update:mprop', {
+              'advanced.items.subFun.display': checked,
+              'advanced.items.subFun.rules[0].required': checked
+            })
+          }
+        }
+      },
+      subFun: {
+        label: '函数名',
+        type: 'Input',
+        placeholder: '',
+        display: true,
+        rules: [
+          { required: true, message: '必须指定函数名！' }
         ]
       },
       isAwait: {

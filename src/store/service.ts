@@ -86,6 +86,13 @@ export default {
       nodeEmitter.emit('update:mprop', {
         'ntype.options': nodeMapper.ntype.options
       })
+      // 含子节点更新函数名编辑框
+      if (state.editing.ntype === 'subNode') {
+        nodeEmitter.emit('update:mprop', {
+          'advanced.items.subFun.display': state.editing.isFun,
+          'advanced.items.subFun.rules[0].required': state.editing.isFun
+        })
+      }
       nodeEmitter.emit('update:show', {
         show: true,
         viewOnly: payload.viewOnly,
@@ -142,7 +149,7 @@ export default {
             switch (opera) {
               case 'save':
                 state.nodes[ndKey] = await ndAPI.detail(ndKey)
-                if (state.nodes[ndKey].relative) {
+                if (state.nodes[ndKey].ntype !== 'subNode' && state.nodes[ndKey].relative) {
                   const relKey = state.nodes[ndKey].relative
                   state.nodes[relKey] = await ndAPI.detail(relKey)
                 }
@@ -157,7 +164,7 @@ export default {
               case 'delete':
                 {
                   const ndKeys = [ndKey]
-                  if (state.nodes[ndKey].relative) {
+                  if (state.nodes[ndKey].ntype !== 'subNode' && state.nodes[ndKey].relative) {
                     for (
                       let nd = state.nodes[ndKey];
                       nd.nexts.length && nd.nexts[0] !== state.nodes[ndKey].relative;
