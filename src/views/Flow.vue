@@ -61,13 +61,13 @@
     </div>
   </div>
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
+    <div v-if="!codes && store.getters['service/subNdKey']" class="absolute top-0 left-0 z-50">
+      <a-button @click="() => store.dispatch('service/setSubNid')">
+        <template #icon><ArrowLeftOutlined /></template>
+        回到上层流程
+      </a-button>
+    </div>
     <div class="relative w-full h-full">
-      <div v-if="store.getters['service/subNdKey']" class="absolute top-0 left-0 z-50">
-        <a-button @click="() => store.dispatch('service/setSubNid')">
-          <template #icon><ArrowLeftOutlined /></template>
-          {{ store.getters['service/subNdTtl'] }}
-        </a-button>
-      </div>
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
         <a-spin v-if="loading" class="w-full h-full" />
         <template v-else-if="!codes">
@@ -116,10 +116,10 @@ import { computed, createVNode, onBeforeMount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { ndAPI as api, pjtAPI } from '../apis'
+import { ndAPI as api, ndAPI, pjtAPI } from '../apis'
 import NodeCard from '../components/flow/NodeCard.vue'
 import VarsPanel from '../components/flow/VarsPanel.vue'
-import Node from '../types/node'
+import Node, { NodeTypeMapper } from '../types/node'
 import { nodeEmitter, nodeMapper } from './Flow'
 
 const store = useStore()
@@ -132,9 +132,10 @@ const project = computed<Project>(() => store.getters['project/ins'])
 const pLoading = computed<boolean>(() => store.getters['project/ins'].status.stat === 'loading')
 const pRunning = computed<boolean>(() => store.getters['project/ins'].status.stat === 'running')
 const service = computed<Service>(() => store.getters['service/ins'])
-const editTitle = computed<string>(() =>
-  store.getters['service/edtNdKey'] ? '编辑节点' : '添加节点'
-)
+const editTitle = computed<string>(() => {
+  const node = store.getters['service/editNode'] as Node
+  return `${node.key ? '编辑' : '添加'}${NodeTypeMapper[node.ntype]}`
+})
 const nodes = computed<NodeInPnl[]>(() =>
   Object.values(store.getters['service/nodes'] as NodesInPnl)
 )
@@ -177,7 +178,9 @@ async function onShowCodesClick() {
   if (codes.value) {
     codes.value = ''
   } else {
-    codes.value = await svcAPI.flow.codes(route.params.sid)
+    codes.value = store.getters['service/subNdKey']
+      ? await ndAPI.subNode.codes(store.getters['service/subNdKey'])
+      : await svcAPI.flow.codes(route.params.sid)
   }
 }
 async function onFlowOpnClick({

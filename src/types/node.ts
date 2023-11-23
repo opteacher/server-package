@@ -12,7 +12,7 @@ export const NodeTypeMapper = {
   condNode: '条件节点',
   traversal: '遍历节点',
   endNode: '结束节点',
-  subNode: '子节点'
+  subNode: '含子节点'
 }
 
 export const ndTpOpns = Object.entries(NodeTypeMapper).map(([value, label]) => ({ label, value }))
@@ -25,6 +25,8 @@ export default class Node implements Record<string, any> {
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   isFun: boolean
+  isAwait: boolean
+  isForIn: boolean
   subFun: string
   code: string
   previous: string | null
@@ -32,10 +34,6 @@ export default class Node implements Record<string, any> {
   relative: string
   temp: string[]
   deps: string[]
-  loop: {
-    isAwait: boolean
-    isForIn: boolean
-  }
 
   constructor() {
     this.key = ''
@@ -46,16 +44,14 @@ export default class Node implements Record<string, any> {
     this.outputs = []
     this.code = ''
     this.isFun = true
+    this.isAwait = false
+    this.isForIn = false
     this.subFun = ''
     this.previous = null
     this.nexts = []
     this.relative = ''
     this.temp = []
     this.deps = []
-    this.loop = {
-      isAwait: false,
-      isForIn: false
-    }
   }
 
   reset() {
@@ -67,20 +63,20 @@ export default class Node implements Record<string, any> {
     this.outputs = []
     this.code = ''
     this.isFun = true
+    this.isAwait = false
+    this.isForIn = false
     this.subFun = ''
     this.previous = null
     this.nexts = []
     this.relative = ''
     this.temp = []
     this.deps = []
-    this.loop.isAwait = false
-    this.loop.isForIn = false
   }
 
   static copy(src: any, tgt?: Node, force = false): Node {
     tgt = gnlCpy(Node, src, tgt, {
       force,
-      ignProps: ['previous', 'loop', 'deps'],
+      ignProps: ['previous', 'deps'],
       cpyMapper: { inputs: Variable.copy, outputs: Variable.copy }
     })
     if (src.deps) {
@@ -94,17 +90,6 @@ export default class Node implements Record<string, any> {
       ? null
       : tgt.previous
     tgt.nexts = tgt.nexts.map((next: any) => next._id || next)
-    if (src.ntype === 'traversal') {
-      if (src.loop) {
-        tgt.loop.isAwait =
-          typeof src.loop.isAwait !== 'undefined' ? src.loop.isAwait : tgt.loop.isAwait
-        tgt.loop.isForIn =
-          typeof src.loop.isForIn !== 'undefined' ? src.loop.isForIn : tgt.loop.isForIn
-      } else if (force) {
-        tgt.loop.isAwait = false
-        tgt.loop.isForIn = false
-      }
-    }
     return tgt
   }
 }

@@ -320,6 +320,7 @@ export const nodeMapper = new Mapper({
       },
       isFun: {
         label: '函数式',
+        desc: '如果是含子节点，则该函数不会执行，而是抛出一个函数名供其后调用',
         placeholder: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
         display: [
@@ -329,18 +330,18 @@ export const nodeMapper = new Mapper({
           new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
         ]
       },
-      subFun: {
-        label: '子函数名',
-        placeholder: '定义规则跟随编码要求，即只可包含下划线、大小写字母和数字',
-        type: 'Input',
-        display: [new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })]
-      },
-      'loop.isAwait': {
-        label: '是否为await',
+      isAwait: {
+        label: '异步节点',
         type: 'Checkbox',
-        display: [new Cond({ key: 'ntype', cmp: '=', val: 'traversal' })]
+        placeholder: '为真则会添加async/await前缀',
+        display: {
+          OR: [
+            new Cond({ key: 'ntype', cmp: '=', val: 'traversal' }),
+            new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })
+          ]
+        }
       },
-      'loop.isForIn': {
+      isForIn: {
         label: '是否使用for……in循环',
         desc: '默认for……of循环',
         type: 'Checkbox',
@@ -356,7 +357,10 @@ export const nodeMapper = new Mapper({
   subFlow: {
     label: '子流程',
     type: 'Button',
-    display: [new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })],
+    display: [
+      new Cond({ key: 'key', cmp: '!=', val: '' }),
+      new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })
+    ],
     inner: '流程设计',
     onClick: async (node: Node) => {
       await store.dispatch('service/setSubNid', node.key)
@@ -382,8 +386,8 @@ export const nodeMapper = new Mapper({
         cancelText: 'No',
         onOk: async () => {
           await api.remove(node.key)
-          nodeEmitter.emit('update:show', false)
           nodeEmitter.emit('delNode', node.key)
+          nodeEmitter.emit('update:show', false)
         }
       })
     }

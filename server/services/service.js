@@ -12,7 +12,6 @@ import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db } from '../utils/index.js'
 import { genDefault, pickOrIgnore } from '../utils/index.js'
-import { rmv as rmvNode, scanNextss } from './node.js'
 import { adjustFile, recuNode } from './project.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
@@ -139,6 +138,27 @@ export async function genSvcCode(sid) {
   })
 }
 
+export async function genSubNdsCode(nid) {
+  const node = await db.select(Node, { _index: nid })
+  node.interface = node.subFun
+  node.deps = []
+  node.nodes = node.relative
+    ? await recuNode(node.relative, 4, snd => {
+        if (snd.deps) {
+          for (const dep of snd.deps) {
+            node.deps.push(dep)
+          }
+        }
+      })
+    : []
+  const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
+  return adjustFile(fs.readFileSync(svcTmp), undefined, {
+    services: [node],
+    stcVars: [],
+    genDefault
+  })
+}
+
 const CardWidth = 300
 const CardHeight = 108
 const CardHlfWid = CardWidth >> 1
@@ -161,7 +181,7 @@ export async function readAllSubNds(sndKey) {
     .then(node => (node.relative ? colcNodes(node.relative) : []))
 }
 
-async function colcNodes(ndKey) {
+export async function colcNodes(ndKey) {
   const ret = []
   const node = await db.select(Node, { _index: ndKey }, { ext: false }).then(node => ({
     key: ndKey,
@@ -286,9 +306,6 @@ export async function expSvcFlow(ctx) {
             const ret = _.cloneDeep(node)
             setProp(ret, 'key', undefined)
             setProp(ret, '_id', undefined)
-            if (ret.loop) {
-              setProp(ret, 'loop._id', undefined)
-            }
             setProp(
               ret,
               'deps',

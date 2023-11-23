@@ -54,9 +54,9 @@
           <BorderlessTableOutlined v-else />
           &nbsp;{{ node.title }}&nbsp;
         </h3>
-        <template v-if="node.ntype === 'traversal' && node.loop">
-          <a-tag v-if="node.loop.isAwait" color="green">await</a-tag>
-          <a-tag v-else-if="node.loop.isForIn" color="blue">for……in循环</a-tag>
+        <template v-if="node.ntype === 'traversal'">
+          <a-tag v-if="node.isAwait" color="green">await</a-tag>
+          <a-tag v-else-if="node.isForIn" color="blue">for……in循环</a-tag>
         </template>
       </a-space>
     </template>

@@ -3,6 +3,7 @@
 import Node from '../models/node.js'
 import Service from '../models/service.js'
 import { db, pickOrIgnore } from '../utils/index.js'
+import { colcNodes } from './service.js'
 
 export async function bindPtCdNodes(parent, child) {
   return Promise.all([
@@ -132,7 +133,7 @@ export async function rmv(nid, sid, isSub = false) {
       case 'condNode':
         {
           // 如果是条件节点或循环根节点，删除对应的块
-          const endNode = await delBlock(node, pvsKey.toString(), false, false)
+          const endNode = await rmvBlock(node, pvsKey.toString(), false, false)
           const rootNode = await db.select(Node, { _index: pvsKey })
           if (!rootNode.nexts.length) {
             await db.saveOne(Node, pvsKey, { nexts: endNode.id }, { updMode: 'append' })
@@ -141,7 +142,7 @@ export async function rmv(nid, sid, isSub = false) {
         break
       case 'traversal':
         {
-          const endNode = await delBlock(node, nid.toString(), false, true)
+          const endNode = await rmvBlock(node, nid.toString(), false, true)
           nexts.push(...endNode.nexts)
         }
         break
@@ -161,7 +162,7 @@ export async function rmv(nid, sid, isSub = false) {
           }
           for (let i = 0; i < nxtNodes.length; ++i) {
             const nxtNode = nxtNodes[i]
-            const endNode = await delBlock(
+            const endNode = await rmvBlock(
               nxtNode,
               node.id.toString(),
               true,
@@ -174,6 +175,11 @@ export async function rmv(nid, sid, isSub = false) {
           // 结束节点后的子节点接到该节点下
           nexts.push(...Array.from(new Set(endNxtKeys)))
         }
+        break
+      case 'subNode':
+        await colcNodes(node.relative).then(nodes =>
+          Promise.all(nodes.map(node => db.remove(Node, { _index: node.key })))
+        )
         break
       default:
         // 如果是普通节点，则把其子节点依次连接到删除节点的父节点上（相当于跳过，类似链表删除）
@@ -225,7 +231,7 @@ export async function scanNextss(node, rootKey) {
   return { endNode, allNodes }
 }
 
-async function delBlock(node, rootKey, delRoot, delEnd) {
+async function rmvBlock(node, rootKey, delRoot, delEnd) {
   // 从该节点之后删除到与该节点对应的end节点（注意：不会删除起始节点）
   // 先收集所有需要删除的节点
   const nxtss = await scanNextss(node, rootKey)

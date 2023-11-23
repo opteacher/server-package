@@ -64,9 +64,9 @@ function formatToStr(value, vtype) {
  * @param {*} indents
  * @returns
  */
-function genAnnotation(node, indents) {
+function genAnnotation(node, indents, endl = false) {
   return (
-    node.inputs.length || node.outputs.length
+    (node.inputs.length || node.outputs.length
       ? [
           indents + `/** ${node.title}`,
           node.inputs
@@ -78,9 +78,10 @@ function genAnnotation(node, indents) {
           indents + '**/'
         ]
       : [indents + `// ${node.title}`]
+    )
+      .filter(line => line)
+      .join('\n') + (endl ? '\n' : '')
   )
-    .filter(line => line)
-    .join('\n')
 }
 
 /**
@@ -184,7 +185,7 @@ export async function recuNode(key, indent, callback, endKey) {
       )
     }
     case 'condition': {
-      const ret = [genAnnotation(node, indents)]
+      const ret = []
       const nxtNds = await Promise.all(
         node.nexts.map(nxtNode => db.select(Node, { _index: nxtNode.id }))
       )
@@ -198,7 +199,8 @@ export async function recuNode(key, indent, callback, endKey) {
       for (let i = 0; i < nxtNds.length; ++i) {
         const nxtNode = nxtNds[i]
         ret.push(
-          indents +
+          (i === 0 ? genAnnotation(node, indents, true) : '') +
+            indents +
             `${i !== 0 ? '} else ' : ''}${
               nxtNode.code ? 'if (' + fmtCode(Object.assign(nxtNode, { isFun: false })) + ')' : ''
             } {`
@@ -220,11 +222,9 @@ export async function recuNode(key, indent, callback, endKey) {
       const output = node.outputs[0]
       const ret = [
         [
-          genAnnotation(node, indents),
-          '\n' + indents,
-          `for ${node.loop && node.loop.isAwait ? 'await' : ''} (const ${fmtOutput(
-            output
-          )} of ${fmtInput(input)}) {`
+          genAnnotation(node, indents, true),
+          indents,
+          `for ${node.isAwait ? 'await' : ''} (const ${fmtOutput(output)} of ${fmtInput(input)}) {`
         ].join('')
       ]
       if (node.nexts.length) {
@@ -239,6 +239,31 @@ export async function recuNode(key, indent, callback, endKey) {
       } else {
         return await recuNode(node.nexts[0].id, indent, callback, endKey)
       }
+    case 'subNode': {
+      const ret = []
+      if (node.isFun) {
+        ret.push(
+          [
+            genAnnotation(node, indents),
+            '\n',
+            indents,
+            node.isAwait ? 'async ' : '',
+            `function ${node.subFun}(`,
+            node.inputs.map(ipt => ipt.name).join(', '),
+            ') {'
+          ].join('')
+        )
+      } else {
+        ret.push(genAnnotation(node, indents))
+      }
+      ret.push(...(await recuNode(node.relative, indent + (node.isFun ? 2 : 0), callback)))
+      if (node.isFun) {
+        ret.push(indents + '}')
+      }
+      return ret.concat(
+        node.nexts.length ? await recuNode(node.nexts[0].id, indent, callback, endKey) : []
+      )
+    }
     default:
       return []
   }

@@ -23,7 +23,8 @@ const exp = {
   },
   all: (sid: string): Promise<Node[]> => reqGet('service', `${sid}/flow/nodes`, { type: 'api' }),
   subNode: {
-    all: (nid: string): Promise<Node[]> => reqGet('node', nid, { action: 'sub/nodes', type: 'api' })
+    all: (nid: string): Promise<Node[]> => reqGet('node', nid, { action: 'sub/nodes', type: 'api' }),
+    codes: (key: any) => reqGet('node', key, { action: 'sub/codes', type: 'api' }),
   },
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {

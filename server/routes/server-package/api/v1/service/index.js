@@ -52,7 +52,6 @@ router.post('/:sid/node', async ctx => {
 })
 
 router.post('/:sid/node/:nid', async ctx => {
-  console.log(ctx.query.isSub)
   ctx.body = {
     result: await saveNode(
       Object.assign(ctx.request.body, { key: ctx.params.nid }),
@@ -64,7 +63,7 @@ router.post('/:sid/node/:nid', async ctx => {
 
 router.delete('/:sid/node/:nid', async ctx => {
   ctx.body = {
-    result: await rmvNode(ctx.params.nid, ctx.params.sid)
+    result: await rmvNode(ctx.params.nid, ctx.params.sid, ctx.query.isSub)
   }
 })
 
