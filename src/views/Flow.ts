@@ -6,7 +6,7 @@ import { Cond, baseTypes, bsTpOpns } from '@/types'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
 import Variable from '@/types/variable'
-import { setProp, until } from '@/utils'
+import { setProp } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
@@ -36,8 +36,10 @@ export function getLocVars(node?: Node, incSelf = false): Variable[] {
     node = store.getters['service/node'] as Node
   }
   const service = store.getters['service/ins'] as Service
+  const subNode = store.getters['service/subNode'] as Node
   return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })]
     .concat(service.stcVars)
+    .concat(store.getters['service/subNdKey'] ? subNode.inputs : [])
     .concat(incSelf ? node.outputs : [])
     .concat(node.previous ? scanLocVars(node.previous) : [])
 }

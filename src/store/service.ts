@@ -87,12 +87,11 @@ export default {
         'ntype.options': nodeMapper.ntype.options
       })
       // 含子节点更新函数名编辑框
-      if (state.editing.ntype === 'subNode') {
-        nodeEmitter.emit('update:mprop', {
-          'advanced.items.subFun.display': state.editing.isFun,
-          'advanced.items.subFun.rules[0].required': state.editing.isFun
-        })
-      }
+      const enable = state.editing.ntype === 'subNode' && state.editing.isFun
+      nodeEmitter.emit('update:mprop', {
+        'advanced.items.subFun.display': enable,
+        'advanced.items.subFun.rules[0].required': enable
+      })
       nodeEmitter.emit('update:show', {
         show: true,
         viewOnly: payload.viewOnly,
@@ -211,6 +210,7 @@ export default {
     editNode: (state: SvcState): Node => state.editing,
     edtNdKey: (state: SvcState): string => state.editing.key,
     subNdKey: (state: SvcState): string => state.subNode.key,
+    subNode: (state: SvcState): Node => state.subNode,
     subNdTtl: (state: SvcState): string => state.subNode.title
   }
 }
