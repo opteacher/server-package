@@ -343,9 +343,9 @@ export const nodeMapper = new Mapper({
         label: '函数名',
         type: 'Input',
         placeholder: '',
-        display: true,
+        display: false,
         rules: [
-          { required: true, message: '必须指定函数名！' }
+          { required: false, message: '必须指定函数名！' }
         ]
       },
       isAwait: {
