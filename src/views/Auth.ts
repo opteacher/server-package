@@ -66,7 +66,7 @@ export const mapper = new Mapper({
         cancelText: 'No',
         onOk: async () => {
           await authAPI.unbind()
-          emitter.emit('update:show', false)
+          emitter.emit('update:visible', false)
           await refresh()
         }
       })

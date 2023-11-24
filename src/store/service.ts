@@ -53,7 +53,7 @@ export default {
             item => item.value !== 'endNode' && item.value !== 'condNode'
           )
         })
-        nodeEmitter.emit('update:show', true)
+        nodeEmitter.emit('update:visible', true)
         return
       }
       if (payload.key) {
@@ -92,7 +92,7 @@ export default {
         'advanced.items.subFun.display': enable,
         'advanced.items.subFun.rules[0].required': enable
       })
-      nodeEmitter.emit('update:show', {
+      nodeEmitter.emit('update:visible', {
         show: true,
         viewOnly: payload.viewOnly,
         object: state.editing

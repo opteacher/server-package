@@ -92,7 +92,7 @@
             <template #icon><home-outlined /></template>
           </a-button>
           <a-breadcrumb>
-            <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
+            <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
             <a-breadcrumb-item>
               <a
                 v-if="active.includes('/model/') || active.includes('/auth/')"
@@ -159,7 +159,7 @@ const pid = route.params.pid
 const pjtName = computed(() => store.getters['project/ins'].name)
 const mdlName = computed(() => store.getters['model/ins'].name)
 const models = computed(() => store.getters['project/ins'].models)
-const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+const isFront = computed<boolean>(() => !store.getters['project/ins'].database)
 const expanded = reactive<string[]>([])
 const collapsed = ref<boolean>(false)
 

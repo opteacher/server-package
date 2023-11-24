@@ -1,16 +1,54 @@
 {
   "data": [
     {
-      "name": "mongo",
-      "dbs": ["test", "stock-crawler", "vote-video", "frontend-library"],
+      "name": "test",
+      "dbtype": "mongo",
+      "db": "test",
       "host": "mongo",
       "port": 27017,
       "username": "root",
       "password": "12345"
     },
     {
-      "name": "mysql",
-      "dbs": ["population-statistics", "police-assets"],
+      "name": "stock-crawler",
+      "dbtype": "mongo",
+      "db": "stock-crawler",
+      "host": "mongo",
+      "port": 27017,
+      "username": "root",
+      "password": "12345"
+    },
+    {
+      "name": "vote-video",
+      "dbtype": "mongo",
+      "db": "vote-video",
+      "host": "mongo",
+      "port": 27017,
+      "username": "root",
+      "password": "12345"
+    },
+    {
+      "name": "frontend-library",
+      "dbtype": "mongo",
+      "db": "frontend-library",
+      "host": "mongo",
+      "port": 27017,
+      "username": "root",
+      "password": "12345"
+    },
+    {
+      "name": "population-statistics",
+      "dbtype": "mysql",
+      "db": "population-statistics",
+      "host": "mysql",
+      "port": 3306,
+      "username": "root",
+      "password": "12345"
+    },
+    {
+      "name": "police-assets",
+      "dbtype": "mysql",
+      "db": "police-assets",
       "host": "mysql",
       "port": 3306,
       "username": "root",

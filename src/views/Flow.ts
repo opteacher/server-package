@@ -389,7 +389,7 @@ export const nodeMapper = new Mapper({
     inner: '流程设计',
     onClick: async (node: Node) => {
       await store.dispatch('service/setSubNid', node.key)
-      nodeEmitter.emit('update:show', false)
+      nodeEmitter.emit('update:visible', false)
     }
   },
   delete: {
@@ -412,7 +412,7 @@ export const nodeMapper = new Mapper({
         onOk: async () => {
           await api.remove(node.key)
           nodeEmitter.emit('delNode', node.key)
-          nodeEmitter.emit('update:show', false)
+          nodeEmitter.emit('update:visible', false)
         }
       })
     }

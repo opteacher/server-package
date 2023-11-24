@@ -5,17 +5,28 @@ import { pjtAPI as api } from '@/apis'
 import router from '@/router'
 import store from '@/store'
 import { Cond } from '@/types'
+import DataBase from '@/types/database'
 import Project from '@/types/project'
-import { reqAll, setProp } from '@/utils'
+import { reqAll } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
-import { cloneDeep } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode } from 'vue'
 
 export const emitter = new Emitter()
+
+emitter.on('show', async () => {
+  emitter.emit('update:mprop', {
+    'database.options': await api.databases().then((dbs: DataBase[]) =>
+      dbs.map(db => ({
+        value: db.key,
+        label: db.name
+      }))
+    )
+  })
+})
 
 export const columns = [
   new Column('名称', 'name'),
@@ -73,9 +84,9 @@ export const mapper = new Mapper({
   },
   database: {
     label: '数据库',
-    type: 'Cascader',
+    type: 'Select',
     options: [],
-    rules: [{ type: 'array', required: true, message: '请选择数据库！', trigger: 'change' }],
+    rules: [{ required: true, message: '请选择数据库！', trigger: 'change' }],
     display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
   },
   dropDbs: {
@@ -130,14 +141,14 @@ export const mapper = new Mapper({
         newFun: () => ({ key: '', name: '', value: '' }),
         onSaved: (evar: { key: string; name: string; value: string }, extra?: any) => {
           extra.push({ name: evar.name, value: evar.value })
-          evarsEmitter.emit('update:show', false)
+          evarsEmitter.emit('update:visible', false)
         },
         onDeleted: (key: any, extra?: any) => {
           extra.splice(
             extra.findIndex((evar: any) => evar.key === key),
             1
           )
-          evarsEmitter.emit('update:show', false)
+          evarsEmitter.emit('update:visible', false)
         },
         edtable: false
       },

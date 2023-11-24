@@ -91,8 +91,8 @@ const visibles = reactive({
 })
 
 function onSyncClick(pid: string) {
-  if (store.getters['project/ins'].database.length === 0) {
-    emitter.emit('update:show', true)
+  if (!store.getters['project/ins'].database) {
+    emitter.emit('update:visible', true)
   } else {
     Modal.confirm({
       title: '确定（重）启动项目？',

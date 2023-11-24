@@ -16,12 +16,15 @@
         </a>
       </template>
       <template #database="{ record: project }">
-        <template v-if="project.database.length">
+        <template v-if="project.database">
           <a-tooltip v-if="project.dropDbs">
             <template #title>启动时清空</template>
             <clear-outlined />
           </a-tooltip>
-          &nbsp;{{ project.database.join(' / ') }}
+          &nbsp;
+          {{ project.database.dbtype }}db://{{ project.database.host }}:{{
+            project.database.port
+          }}/{{ project.database.db }}
         </template>
         <template v-else>
           <a-tooltip>
@@ -84,12 +87,11 @@ import {
   PoweroffOutlined,
   SyncOutlined
 } from '@ant-design/icons-vue'
-import { onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import { useStore } from 'vuex'
 
 import { pjtAPI as api } from '../apis'
 import LytMain from '../layouts/LytMain.vue'
-import Database from '../types/database'
 import { columns, emitter, mapper } from './Home'
 
 const store = useStore()
@@ -100,14 +102,4 @@ watch(
     emitter.emit('refresh')
   }
 )
-onMounted(async () => {
-  mapper.database.options = (await api.databases()).map((database: Database) => ({
-    value: database.name,
-    label: database.name,
-    children: database.dbs.map((db: string) => ({
-      value: db,
-      label: db
-    }))
-  }))
-})
 </script>

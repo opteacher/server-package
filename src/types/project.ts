@@ -9,6 +9,7 @@ import Service, { Method } from './service'
 import Frontend from './frontend'
 import Variable from './variable'
 import { gnlCpy } from '@/utils'
+import DataBase from './database'
 
 export default class Project {
   key: string
@@ -17,7 +18,7 @@ export default class Project {
   desc: string
   port: number
   thread: number
-  database: string[]
+  database?: DataBase
   dropDbs: boolean
   commands: string
   independ: boolean
@@ -38,7 +39,7 @@ export default class Project {
     this.desc = ''
     this.port = 0
     this.thread = 0
-    this.database = []
+    this.database = undefined
     this.dropDbs = false
     this.commands = ''
     this.independ = false
@@ -60,7 +61,7 @@ export default class Project {
     this.desc = ''
     this.port = 0
     this.thread = 0
-    this.database = []
+    this.database = undefined
     this.dropDbs = false
     this.commands = ''
     this.independ = false
@@ -80,6 +81,7 @@ export default class Project {
       force,
       ignProps: ['ptype', 'models'],
       cpyMapper: {
+        database: DataBase.copy,
         envVars: Variable.copy,
         services: Service.copy,
         auth: Auth.copy,
@@ -107,7 +109,7 @@ export default class Project {
         )
       )
     }
-    tgt.ptype = src.database && src.database.length ? 'backend' : 'frontend'
+    tgt.ptype = src.database ? 'backend' : 'frontend'
     return tgt
   }
 }

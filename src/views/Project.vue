@@ -19,7 +19,7 @@
         </a-tooltip>
       </template>
       <template #extra>
-        <a-button v-if="isFront" @click="() => frtEmitter.emit('update:show', true)">
+        <a-button v-if="isFront" @click="() => frtEmitter.emit('update:visible', true)">
           <template #icon><Html5Outlined /></template>
           &nbsp;前端配置
         </a-button>
@@ -34,7 +34,7 @@
             <a-button>水电费水电费水电</a-button>
           </template>
         </FormDialog>
-        <a-button v-if="isFront" type="primary" @click="() => frtEmitter.emit('update:show', true)">
+        <a-button v-if="isFront" type="primary" @click="() => frtEmitter.emit('update:visible', true)">
           <template #icon><ant-design-outlined /></template>
           前端设计
         </a-button>
@@ -56,7 +56,7 @@
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
         <template v-if="!isFront">
           <a-descriptions-item label="数据库">
-            {{ project.database[0] }}/{{ project.database[1] }}
+            {{ database }}
           </a-descriptions-item>
           <a-descriptions-item label="启动时清空数据库">
             {{ project.dropDbs ? '是' : '否' }}
@@ -213,8 +213,8 @@
           <a-tab-pane key="data" tab="数据" :disabled="project.status.stat !== 'running'">
             <EditableTable
               :api="{ all: () => mdlAPI.dataset(model.key) }"
-              class="h-72"
-              sclHeight="h-full"
+              scl-height="h-full"
+              min-height="18rem"
               :columns="
                 model.props.map((prop: any) =>
                   Column.copy({ title: prop.label, key: prop.name, dataIndex: prop.name })
@@ -262,7 +262,7 @@ import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
-import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp, waitFor } from '@/utils'
 import {
   AntDesignOutlined,
   DownOutlined,
@@ -271,8 +271,8 @@ import {
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
-  UpOutlined,
-  SyncOutlined
+  SyncOutlined,
+  UpOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -299,7 +299,11 @@ const router = useRouter()
 const store = useStore()
 const pid = route.params.pid as string
 const project = computed<Project>(() => store.getters['project/ins'])
-const isFront = computed<boolean>(() => store.getters['project/ins'].database.length === 0)
+const database = computed<string>(() => {
+  const db = (store.getters['project/ins'] as Project).database
+  return db ? `${db.dbtype}db://${db.host}:${db.port}/${db.db}` : ''
+})
+const isFront = computed<boolean>(() => !store.getters['project/ins'].database)
 const mdlEmitter = new Emitter()
 const mSvcMapper = computed<Record<string, Service[]>>(() => {
   const ret: Record<string, Service[]> = {}
@@ -342,10 +346,10 @@ async function refresh() {
 async function onConfigSbt(pjt: Project) {
   await api.update(pjt)
   await store.dispatch('project/refresh')
-  pjtEmitter.emit('update:show', false)
+  pjtEmitter.emit('update:visible', false)
 }
 function onConfigClick() {
-  pjtEmitter.emit('update:show', {
+  pjtEmitter.emit('update:visible', {
     show: true,
     object: project.value
   })

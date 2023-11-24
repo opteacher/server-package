@@ -76,7 +76,7 @@
       :mapper="mapper"
       :emitter="emitter"
       :object="auth"
-      @update:show="onAuthShow"
+      @update:visible="onAuthShow"
       @submit="onBindModel"
     />
   </LytProject>

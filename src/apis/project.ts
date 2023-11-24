@@ -6,8 +6,6 @@ import Transfer from '@/types/transfer'
 import {
   RequestOptions,
   downloadFile,
-  endsWith,
-  makeRequest,
   pickOrIgnore,
   reqAll,
   reqDelete,
@@ -17,7 +15,6 @@ import {
 } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
-import axios from 'axios'
 import { saveAs } from 'file-saver'
 import { createVNode } from 'vue'
 
@@ -42,16 +39,16 @@ export default {
   remove: (data: any) => reqDelete('project', data.key, { type: 'api' }),
   update: (data: any) =>
     reqPut('project', data.key, data, {
-      ignores: ['models', 'auth', 'middle', 'status', 'services']
+      ignores: ['models', 'auth', 'middle', 'status', 'services', 'database']
     }),
   all: (options: RequestOptions) =>
     reqAll('project', { ...options, copy: Project.copy, axiosConfig: { params: { _ext: true } } }),
   detail: (key: any) => reqGet('project', key, { copy: Project.copy }),
-  databases: () =>
-    reqAll('database').then((result: any[]) => result.map((org: any) => DataBase.copy(org))),
+  databases: () => reqAll('database', { copy: DataBase.copy }),
   sync: (key: string) =>
-    reqPut('project', `${key}/sync`, undefined, {
+    reqPut('project', key, undefined, {
       type: 'api',
+      action: 'sync',
       middles: {
         before: () => {
           store.commit('project/SET_STATUS', 'loading')

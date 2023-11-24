@@ -1,5 +1,5 @@
-##return `[${database.name}]`*/
-database="/*return project.database[1]*/"
+##return `[${database.dbtype}]`*/
+database="/*return database.db*/"
 username="/*return database.username*/"
 password="/*return database.password*/"
 host="/*return database.host*/"

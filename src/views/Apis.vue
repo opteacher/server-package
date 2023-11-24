@@ -40,7 +40,7 @@
       :new-fun="() => newOne(Sign)"
       :mapper="signMapper"
       :emitter="signEmitter"
-      @update:show="onSignShow"
+      @update:visible="onSignShow"
       @submit="onSignCfg"
     />
   </LytProject>

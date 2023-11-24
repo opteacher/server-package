@@ -62,7 +62,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     content: createVNode('div', undefined, '上传流程会清空原有逻辑，请确认后再上传'),
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
-      impDlg.emitter.emit('update:show', false)
+      impDlg.emitter.emit('update:visible', false)
       router.push(`/project/${pid.value}/flow/${params.svcId}`)
     }
   })
@@ -107,7 +107,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
               size="small"
               @click.stop="
                 () =>
-                  impDlg.emitter.emit('update:show', {
+                  impDlg.emitter.emit('update:visible', {
                     show: true,
                     object: { svcId: svc.key, impFile: [] }
                   })

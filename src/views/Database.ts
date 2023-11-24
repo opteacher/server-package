@@ -3,7 +3,8 @@ import Mapper from '@lib/types/mapper'
 
 export const columns = [
   new Column('名称', 'name'),
-  new Column('数据库', 'dbs'),
+  new Column('类型', 'dbtype'),
+  new Column('数据库', 'db'),
   new Column('主机地址', 'host'),
   new Column('端口', 'port')
 ]
@@ -11,18 +12,18 @@ export const mapper = new Mapper({
   name: {
     label: '名称',
     type: 'Input',
-    rules: [{ required: true, message: '请输入数据库名称！', trigger: 'blur' }]
+    rules: [{ required: true, message: '请输入数据源名称！', trigger: 'blur' }]
   },
-  dbs: {
+  dbtype: {
+    label: '类型',
+    type: 'Select',
+    options: ['mongo', 'mysql'].map(itm => ({ label: itm, value: itm })),
+    rules: [{ required: true, message: '请选择数据库类型！', trigger: 'change' }]
+  },
+  db: {
     label: '数据库',
-    type: 'EditList',
-    mapper: new Mapper({
-      value: {
-        type: 'Input',
-        placeholder: '输入数据库'
-      }
-    }),
-    newFun: () => ({ value: '' })
+    type: 'Input',
+    rules: [{ required: true, message: '请输入数据库名称！', trigger: 'blur' }]
   },
   host: {
     label: '主机地址',

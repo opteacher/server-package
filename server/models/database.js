@@ -4,9 +4,10 @@ export default db.defineModel(
   'database',
   {
     name: db.PropTypes.String,
-    dbs: db.PropTypes.Array,
+    dbtype: db.PropTypes.String, // mysql | mongo
     host: db.PropTypes.String,
     port: db.PropTypes.Number,
+    db: db.PropTypes.String,
     username: db.PropTypes.String,
     password: db.PropTypes.String
   },

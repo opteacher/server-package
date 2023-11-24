@@ -293,7 +293,7 @@ export async function generate(pid) {
   console.log(`生成项目到目录：${genPath}`)
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
-  if (!project.database.length) {
+  if (!project.database) {
     console.log('检测为前端项目，进行前端项目的生成逻辑……')
     return genFront(project)
   }
@@ -306,13 +306,11 @@ export async function generate(pid) {
     project.auth = {}
   }
   console.log('从数据库获取项目持久化源配置……')
-  const database = (await db.select(DataBase, { name: project.database[0] }))[0]
-
   fs.mkdirSync(Path.join(genPath, 'configs'))
   const dbCfgTmp = Path.join(tmpPath, 'configs', 'db.toml')
   const dbCfgGen = Path.join(genPath, 'configs', 'db.toml')
   console.log(`调整数据源配置文件：${dbCfgTmp} -> ${dbCfgGen}`)
-  adjustFile(dbCfgTmp, dbCfgGen, { project, database })
+  adjustFile(dbCfgTmp, dbCfgGen, { database: project.database })
   const mdlCfgTmp = Path.join(tmpPath, 'configs', 'models.toml')
   const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
   console.log(`调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)

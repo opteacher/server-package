@@ -105,7 +105,7 @@ function onMidPubClick({ key }: { key: OperType }) {
   if (key === 'export' || key === 'publish') {
     genOrPub.value = key
     emitter.emit('update:data', store.getters['project/middle'])
-    emitter.emit('update:show', true)
+    emitter.emit('update:visible', true)
   }
 }
 async function onMidSubmit(info: Middle) {
@@ -124,11 +124,11 @@ async function onMidSubmit(info: Middle) {
 async function onMidPub(info: Middle) {
   await api.middle.publish(pid, info)
   store.dispatch('project/chkMidStatus')
-  emitter.emit('update:show', false)
+  emitter.emit('update:visible', false)
 }
 async function onMidGen(_info: Middle) {
   await api.middle.generate(pid)
-  emitter.emit('update:show', false)
+  emitter.emit('update:visible', false)
 }
 async function onMidDep(info: any) {
   if (
@@ -144,7 +144,7 @@ async function onMidDep(info: any) {
         dest: file.originFileObj.webkitRelativePath || file.name
       }))
     })
-    emitter.emit('update:show', false)
+    emitter.emit('update:visible', false)
   }
 }
 </script>
