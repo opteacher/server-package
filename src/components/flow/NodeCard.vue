@@ -105,11 +105,11 @@
         </template>
         <template v-else>输入节点描述</template>
       </a-col>
-      <a-col v-if="node.outputs.length" flex="1px">
+      <a-col v-if="ndOutputs.length" flex="1px">
         <div class="relative">
           <div class="absolute z-50 left-0">
             <a-tag
-              v-for="output in node.outputs"
+              v-for="output in ndOutputs"
               :key="output.key"
               class="border-0 mr-0"
               :class="{ 'filled-output': output.value }"
@@ -177,22 +177,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import NodeInPnl from '@/types/ndInPnl'
 import Node from '@/types/node'
-import { AddBtnHlfWH, ArrowHlfHgt, CardHeight, CardHlfWid, CardWidth, StokeColor } from '@/views/Flow'
+import Variable from '@/types/variable'
 import {
+  AddBtnHlfWH,
+  ArrowHlfHgt,
+  CardHeight,
+  CardHlfWid,
+  CardWidth,
+  StokeColor
+} from '@/views/Flow'
+import {
+  BorderlessTableOutlined,
   FunctionOutlined,
   LoginOutlined,
   LogoutOutlined,
   MoreOutlined,
   PlusOutlined,
-  RightOutlined,
-  BorderlessTableOutlined
+  RightOutlined
 } from '@ant-design/icons-vue'
+import { v4 as uuid } from 'uuid'
 import { computed, defineEmits, defineProps, ref } from 'vue'
 import { useStore } from 'vuex'
 
 defineEmits(['click:card', 'click:addBtn', 'mouseenter', 'mouseleave'])
 const props = defineProps({
-  node: { type: Object, default: new NodeInPnl() }
+  node: { type: NodeInPnl, default: new NodeInPnl() }
 })
 const store = useStore()
 const nodeRef = ref()
@@ -240,6 +249,13 @@ const multiCond = computed(() => {
   const relative = store.getters['service/node'](props.node.relative)
   return props.node.ntype === 'endNode' && relative.nexts.length > 1
 })
+const ndOutputs = computed(() =>
+  props.node.outputs.concat(
+    props.node.ntype === 'subNode' && props.node.subFun
+      ? [Variable.copy({ key: uuid(), name: props.node.subFun })]
+      : []
+  )
+)
 
 function getWidByNexts(node: Node): number {
   if (!node.nexts || !node.nexts.length) {

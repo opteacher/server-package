@@ -1,7 +1,7 @@
 <template>
   <div class="flex justify-between mx-6 my-4">
     <a-space>
-      <a-button @click="$router.go(-1)">
+      <a-button @click="onBackClick">
         <template #icon><arrow-left-outlined /></template>
       </a-button>
       <a-breadcrumb>
@@ -18,7 +18,15 @@
             {{ service.name }}.{{ service.interface || service.method }}
           </a>
         </a-breadcrumb-item>
-        <a-breadcrumb-item>设计流程</a-breadcrumb-item>
+        <template v-if="store.getters['service/subNdKey']">
+          <a-breadcrumb-item>
+            <a @click="onBackClick">设计流程</a>
+          </a-breadcrumb-item>
+          <a-breadcrumb-item>
+            {{ store.getters['service/subNdTtl'] }}
+          </a-breadcrumb-item>
+        </template>
+        <a-breadcrumb-item v-else>设计流程</a-breadcrumb-item>
       </a-breadcrumb>
     </a-space>
     <div>
@@ -61,12 +69,6 @@
     </div>
   </div>
   <div class="mx-6 mb-4 p-6 bg-white h-full overflow-y-auto">
-    <div v-if="!codes && store.getters['service/subNdKey']" class="absolute top-0 left-0 z-50">
-      <a-button @click="() => store.dispatch('service/setSubNid')">
-        <template #icon><ArrowLeftOutlined /></template>
-        回到上层流程
-      </a-button>
-    </div>
     <div class="relative w-full h-full">
       <div class="absolute top-0 left-0 bottom-16 right-0 overflow-y-auto" ref="panelRef">
         <a-spin v-if="loading" class="w-full h-full" />
@@ -113,7 +115,7 @@ import {
 } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
 import { computed, createVNode, onBeforeMount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
 import { ndAPI as api, ndAPI, pjtAPI } from '../apis'
@@ -124,6 +126,7 @@ import { nodeEmitter, nodeMapper } from './Flow'
 
 const store = useStore()
 const route = useRoute()
+const router = useRouter()
 const pid = route.params.pid as string
 const sid = route.params.sid as string
 const panelRef = ref()
@@ -211,5 +214,8 @@ async function onFlowOpnClick({
       await svcAPI.job.stop(sid)
       break
   }
+}
+function onBackClick() {
+  store.getters['service/subNdKey'] ? store.dispatch('service/setSubNid') : router.go(-1)
 }
 </script>

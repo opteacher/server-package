@@ -243,7 +243,8 @@ export const nodeMapper = new Mapper({
         display: [
           new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
           new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
+          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
         ],
         columns: [
           new Column('返回名', 'name'),
