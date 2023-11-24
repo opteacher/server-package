@@ -2,6 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
+import { NodesInPnl } from '@/store/service'
 import { Cond, baseTypes, bsTpOpns } from '@/types'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
@@ -19,7 +20,7 @@ import { createVNode, ref } from 'vue'
 import { ndAPI as api } from '../apis'
 
 function scanLocVars(ndKey: string): Variable[] {
-  const nodes = store.getters['service/nodes']
+  const nodes = store.getters['service/nodes'] as NodesInPnl
   if (!(ndKey in nodes)) {
     return []
   }
@@ -28,7 +29,13 @@ function scanLocVars(ndKey: string): Variable[] {
   if (node.previous) {
     ret.push(...scanLocVars(node.previous))
   }
-  return ret.concat(node.outputs)
+  return ret
+    .concat(node.outputs)
+    .concat(
+      node.ntype === 'subNode' && node.isFun
+        ? [Variable.copy({ name: node.subFun, value: node.subFun })]
+        : []
+    )
 }
 
 export function getLocVars(node?: Node, incSelf = false): Variable[] {
@@ -346,9 +353,7 @@ export const nodeMapper = new Mapper({
         type: 'Input',
         placeholder: '',
         display: false,
-        rules: [
-          { required: false, message: '必须指定函数名！' }
-        ]
+        rules: [{ required: false, message: '必须指定函数名！' }]
       },
       isAwait: {
         label: '异步节点',
