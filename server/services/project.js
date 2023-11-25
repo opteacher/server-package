@@ -15,7 +15,6 @@ import {
   readConfig,
   rmvStartsOf
 } from '../lib/backend-library/utils/index.js'
-import DataBase from '../models/database.js'
 import Dep from '../models/dep.js'
 import Model from '../models/model.js'
 import Node from '../models/node.js'
@@ -454,6 +453,15 @@ export async function generate(pid) {
   adjustFile(pkgTmp, pkgGen, {
     project,
     pkgDeps: Object.values(deps).filter(dep => dep.version)
+  })
+  const pkgLkTmp = Path.join(tmpPath, 'package-lock.json')
+  const pkgLkGen = Path.join(genPath, 'package-lock.json')
+  console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
+  adjustFile(pkgLkTmp, pkgLkGen, { project })
+  console.log('解压node_modules.tar文件到项目生成目录')
+  spawnSync(`tar -zxvf ${tmpPath}/node_modules.tar -C ${genPath}`, {
+    stdio: 'inherit',
+    shell: true
   })
   return project
 }
@@ -919,7 +927,8 @@ export async function pubMiddle(pid, pubInfo) {
   await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
   spawnSync(
     [
-      'export NODE_OPTIONS=--max_old_space_size=2048',
+      (process.platform === 'win32' ? 'set' : 'export') + ' NODE_OPTIONS=--max_old_space_size=2048',
+      'git clone https://gitee.com/opteacher/frontend-library.git lib/frontend-library',
       'npm config set registry http://registry.npm.taobao.org',
       'npm install --unsafe-perm=true --allow-root',
       'npm run build',

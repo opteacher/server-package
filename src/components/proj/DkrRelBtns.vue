@@ -9,7 +9,7 @@
       <a-menu class="w-48 border-r-0" mode="inline" @click="onDkrRelClick">
         <a-menu-item key="deploy">
           <template #icon><DeploymentUnitOutlined /></template>
-          部署
+          部署到……
         </a-menu-item>
         <a-divider class="my-0" />
         <a-menu-item key="export">
