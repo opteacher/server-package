@@ -458,8 +458,8 @@ export async function generate(pid) {
   const pkgLkGen = Path.join(genPath, 'package-lock.json')
   console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
   adjustFile(pkgLkTmp, pkgLkGen, { project })
-  console.log('解压node_modules.tar文件到项目生成目录')
-  spawnSync(`tar -zxvf ${tmpPath}/node_modules.tar -C ${genPath}`, {
+  const nmodTmp = Path.join(tmpPath, 'npm.tar')
+  spawnSync(`tar -zxvf ${nmodTmp} -C ${genPath}`, {
     stdio: 'inherit',
     shell: true
   })

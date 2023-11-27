@@ -1,35 +1,35 @@
 {
-	"name": "/*return project.name*/",
-	"version": "1.0.0",
-	"description": "/*return project.desc*/",
-	"main": "app.js",
-	"type": "module",
-	"directories": {
-		"lib": "lib"
-	},
-	"scripts": {
-		"start": "node ./app.js"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		/*return pkgDeps.map(dep => `"${dep.from}": "${dep.version}",`).join('\n		')*/
-		"axios": "^0.25.0",
-		"jsonwebtoken": "^8.5.1",
-		"koa": "^2.13.1",
-		"koa-body": "^4.2.0",
-		"koa-json": "^2.0.2",
-		"koa-logger": "^3.2.1",
-		"koa-router": "^10.0.0",
-		"koa-static": "^5.0.0",
-		"koa-views": "^8.0.0",
-		"koa2-cors": "^2.0.6",
-		"lodash": "^4.17.21",
+  "name": "/*return project.name*/",
+  "version": "1.0.0",
+  "description": "/*return project.desc*/",
+  "main": "app.js",
+  "type": "module",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start": "node ./app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    /*return pkgDeps.map(dep => `"${dep.from}": "${dep.version}",`).join('\n    ')*/
+    "axios": "^0.25.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-json": "^2.0.2",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^10.0.0",
+    "koa-static": "^5.0.0",
+    "koa-views": "^8.0.0",
+    "koa2-cors": "^2.0.6",
+    "lodash": "^4.17.21",
     "lodash-inflection": "^1.5.0",
-		"mongoose": "^6.2.7",
-		"mysql2": "^2.3.3",
-		"qiniu": "^7.6.0",
-		"sequelize": "^6.20.1",
-		"toml": "^3.0.0"
-	}
+    "mongoose": "^6.2.7",
+    "mysql2": "^2.3.3",
+    "qiniu": "^7.6.0",
+    "sequelize": "^6.20.1",
+    "toml": "^3.0.0"
+  }
 }

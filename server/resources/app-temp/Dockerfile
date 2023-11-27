@@ -7,6 +7,7 @@ COPY . /app
 ##return project.envVars && project.envVars.length ? project.envVars.map(evar => `ENV ${evar.name}="${evar.value}"`).join('\n') : ''*/
 ##return project.expPorts && project.expPorts.length ? project.expPorts.map(port => `EXPOSE ${port}`).join('\n') : ''*/
 ##return `EXPOSE ${project.port}`*/
+RUN mv .npm/* 'npm config get cache'
 RUN npm config set registry http://registry.npm.taobao.org
-RUN npm install --unsafe-perm=true --allow-root
+RUN npm install --unsafe-perm=true --allow-root --prefer-offline
 CMD [ "node", "./app.js" ]
