@@ -196,6 +196,7 @@ export async function rmv(nid, sid, isSub = false) {
       } else {
         await db.saveOne(Service, sid, { flow: nexts[0] })
       }
+      await db.saveOne(Node, nexts[0], { previous: null }, { updMode: 'delete' })
     }
   }
   // 最后删除节点自身
