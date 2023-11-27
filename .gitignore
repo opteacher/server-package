@@ -3,7 +3,6 @@ data/
 node_modules
 dist
 apps
-package-lock.json
 coverage
 server/tmp
 .docker
