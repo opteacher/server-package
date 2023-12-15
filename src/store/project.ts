@@ -106,6 +106,7 @@ export default {
     }
   },
   getters: {
+    key: (state: PjtState): string => state.project.key,
     ins: (state: PjtState): Project => state.project,
     models: (state: PjtState) => state.project.models,
     model:

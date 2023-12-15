@@ -10,6 +10,7 @@ import Frontend from './frontend'
 import Variable from './variable'
 import { gnlCpy } from '@/utils'
 import DataBase from './database'
+import Typo from './typo'
 
 export default class Project {
   key: string
@@ -26,6 +27,7 @@ export default class Project {
   expPorts: number[]
   volumes: any[]
   models: Model[]
+  typos: Typo[]
   services: Service[]
   auth: Auth
   middle: Middle
@@ -46,6 +48,7 @@ export default class Project {
     this.envVars = []
     this.expPorts = []
     this.volumes = []
+    this.typos = []
     this.models = []
     this.services = []
     this.auth = new Auth()
@@ -68,6 +71,7 @@ export default class Project {
     this.envVars = []
     this.expPorts = []
     this.volumes = []
+    this.typos = []
     this.models = []
     this.services = []
     this.auth = new Auth()
@@ -84,6 +88,7 @@ export default class Project {
         database: DataBase.copy,
         envVars: Variable.copy,
         services: Service.copy,
+        typos: Typo.copy,
         auth: Auth.copy,
         middle: Middle.copy,
         frontend: Frontend.copy,

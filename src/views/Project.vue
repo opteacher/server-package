@@ -34,7 +34,11 @@
             <a-button>水电费水电费水电</a-button>
           </template>
         </FormDialog>
-        <a-button v-if="isFront" type="primary" @click="() => frtEmitter.emit('update:visible', true)">
+        <a-button
+          v-if="isFront"
+          type="primary"
+          @click="() => frtEmitter.emit('update:visible', true)"
+        >
           <template #icon><ant-design-outlined /></template>
           前端设计
         </a-button>
@@ -88,162 +92,202 @@
         }}</pre>
       </template>
     </a-page-header>
-    <EditableTable
-      title="模型"
-      :description="`定义在项目${isFront ? 'types' : 'models'}文件夹下`"
-      size="small"
-      :api="mdlAPI"
-      :columns="mdlColumns"
-      :mapper="mdlMapper"
-      :new-fun="() => newOne(Model)"
-      :emitter="mdlEmitter"
-      @save="refresh"
-      @delete="refresh"
-    >
-      <template #name="{ record: model }">
-        <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
-          {{ model.name }}
-        </a>
-      </template>
-      <template #methods="{ record: model }">
-        <a-tooltip v-for="svc in mSvcMapper[model.key]" :key="svc.key">
-          <template #title>{{ svc.path }}</template>
-          <a-tag class="cursor-pointer" :color="mthdClrs[svc.method]">
-            {{ svc.method }}
-          </a-tag>
-        </a-tooltip>
-      </template>
-      <template #methodsEDT="{ editing: model }">
-        <MsvcSelect
-          :methods="model.methods"
-          @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
+    <a-tabs>
+      <a-tab-pane key="model" tab="模型">
+        <EditableTable
+          title="模型"
+          :description="`定义在项目${isFront ? 'types' : 'models'}文件夹下`"
+          size="small"
+          :api="mdlAPI"
+          :columns="mdlColumns"
+          :mapper="mdlMapper"
+          :new-fun="() => newOne(Model)"
+          :emitter="mdlEmitter"
+          @save="refresh"
+          @delete="refresh"
+        >
+          <template #name="{ record: model }">
+            <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
+              {{ model.name }}
+            </a>
+          </template>
+          <template #methods="{ record: model }">
+            <a-tooltip v-for="svc in mSvcMapper[model.key]" :key="svc.key">
+              <template #title>{{ svc.path }}</template>
+              <a-tag class="cursor-pointer" :color="mthdClrs[svc.method]">
+                {{ svc.method }}
+              </a-tag>
+            </a-tooltip>
+          </template>
+          <template #methodsEDT="{ editing: model }">
+            <MsvcSelect
+              :methods="model.methods"
+              @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
+            />
+          </template>
+          <template #opera="{ record: model }">
+            <a-space>
+              <a-button size="small" @click.stop="() => onExpClsClick(model)">
+                <template #icon><ExportOutlined /></template>
+                导出类
+              </a-button>
+              <a-button
+                type="primary"
+                size="small"
+                @click.stop="() => router.push(`/project/${pid}/model/${model.key}/form`)"
+              >
+                <template #icon><FormOutlined /></template>
+                表单/表项设计
+              </a-button>
+            </a-space>
+          </template>
+          <template #expandedRowRender="{ record: model }">
+            <a-tabs v-model:activeKey="actMdlTab" type="card">
+              <a-tab-pane key="struct" tab="结构">
+                <EditableTable
+                  title="字段"
+                  size="small"
+                  :api="{
+                    all: () => model.props,
+                    add: (data: any) =>
+                      reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
+                    remove: (prop: any) =>
+                      reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
+                    update: (data: any) =>
+                      reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
+                  }"
+                  :columns="propColumns"
+                  :mapper="propMapper"
+                  :new-fun="() => newOne(Property)"
+                  @save="refresh"
+                  @delete="refresh"
+                >
+                  <template #relative="{ record }">
+                    <partition-outlined
+                      v-if="record.relative.isArray"
+                      :rotate="record.relative.belong ? 180 : 0"
+                    />
+                    {{ record.relative.model }}
+                  </template>
+                  <template #relativeEDT="{ editing }">
+                    <a-input-group>
+                      <a-row :gutter="8" type="flex" justify="space-around" align="middle">
+                        <a-col :span="4">
+                          <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
+                            <a-select
+                              class="w-full"
+                              :disabled="mdlOpns.length === 1"
+                              :value="editing.relative.belong ? 'belong' : 'has'"
+                              @change="(val: string) => { editing.relative.belong = val === 'belong' }"
+                            >
+                              <a-select-option value="belong">属于</a-select-option>
+                              <a-select-option value="has">拥有</a-select-option>
+                            </a-select>
+                          </a-form-item>
+                        </a-col>
+                        <a-col :span="4" class="text-center">
+                          <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
+                            <a-checkbox
+                              :disabled="mdlOpns.length === 1"
+                              v-model:checked="editing.relative.isArray"
+                              @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
+                            >
+                              {{ editing.relative.isArray ? '多个' : '一个' }}
+                            </a-checkbox>
+                          </a-form-item>
+                        </a-col>
+                        <a-col :span="16">
+                          <a-form-item class="mb-0" ref="relative.model" name="relative.model">
+                            <a-select
+                              class="w-full"
+                              :disabled="mdlOpns.length === 1"
+                              v-model:value="editing.relative.model"
+                              :options="mdlOpns"
+                              @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
+                            />
+                          </a-form-item>
+                        </a-col>
+                      </a-row>
+                    </a-input-group>
+                  </template>
+                  <template #remark="{ record: mdl }">
+                    <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
+                    <template v-else>-</template>
+                  </template>
+                </EditableTable>
+              </a-tab-pane>
+              <a-tab-pane key="data" tab="数据" :disabled="project.status.stat !== 'running'">
+                <EditableTable
+                  :api="{ all: () => mdlAPI.dataset(model.key) }"
+                  scl-height="h-full"
+                  min-height="18rem"
+                  :columns="
+                    model.props.map((prop: any) =>
+                      Column.copy({ title: prop.label, key: prop.name, dataIndex: prop.name })
+                    )
+                  "
+                  :mapper="createByFields(model.form.fields)"
+                  :new-fun="
+                    () =>
+                      Object.fromEntries(model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)]))
+                  "
+                  size="small"
+                  :pagable="true"
+                  :refOptions="['manual']"
+                  :editable="true"
+                  :addable="true"
+                  :delable="true"
+                />
+              </a-tab-pane>
+            </a-tabs>
+          </template>
+        </EditableTable>
+        <FormDialog
+          title="导出类"
+          v-model:show="expClsVsb"
+          :object="expClsObj"
+          :new-fun="() => newOne(ExpCls)"
+          :mapper="expMapper"
+          @submit="onExpClsSbt"
         />
-      </template>
-      <template #opera="{ record: model }">
-        <a-space>
-          <a-button size="small" @click.stop="() => onExpClsClick(model)">
-            <template #icon><ExportOutlined /></template>
-            导出类
-          </a-button>
-          <a-button
-            type="primary"
-            size="small"
-            @click.stop="() => router.push(`/project/${pid}/model/${model.key}/form`)"
-          >
-            <template #icon><FormOutlined /></template>
-            表单/表项设计
-          </a-button>
-        </a-space>
-      </template>
-      <template #expandedRowRender="{ record: model }">
-        <a-tabs v-model:activeKey="actMdlTab" type="card">
-          <a-tab-pane key="struct" tab="结构">
+      </a-tab-pane>
+      <a-tab-pane key="typo" tab="类">
+        <EditableTable
+          size="small"
+          title="自定义类"
+          description="定义在项目types文件夹下"
+          :api="typAPI"
+          :columns="clsColumns"
+          :mapper="clsMapper"
+          :new-fun="() => newOne(Typo)"
+          :emitter="clsEmitter"
+        >
+          <template #expandedRowRender="{ record: typo }">
             <EditableTable
               title="字段"
               size="small"
-              :api="{
-                all: () => model.props,
-                add: (data: any) =>
-                  reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
-                remove: (prop: any) =>
-                  reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
-                update: (data: any) =>
-                  reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
-              }"
-              :columns="propColumns"
-              :mapper="propMapper"
+              :api="typPrpAPI(typo)"
+              :columns="clsPrpCols"
+              :mapper="clsPrpMapper"
               :new-fun="() => newOne(Property)"
-              @save="refresh"
-              @delete="refresh"
-            >
-              <template #relative="{ record }">
-                <partition-outlined
-                  v-if="record.relative.isArray"
-                  :rotate="record.relative.belong ? 180 : 0"
-                />
-                {{ record.relative.model }}
-              </template>
-              <template #relativeEDT="{ editing }">
-                <a-input-group>
-                  <a-row :gutter="8" type="flex" justify="space-around" align="middle">
-                    <a-col :span="4">
-                      <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
-                        <a-select
-                          class="w-full"
-                          :disabled="mdlOpns.length === 1"
-                          :value="editing.relative.belong ? 'belong' : 'has'"
-                          @change="(val: string) => { editing.relative.belong = val === 'belong' }"
-                        >
-                          <a-select-option value="belong">属于</a-select-option>
-                          <a-select-option value="has">拥有</a-select-option>
-                        </a-select>
-                      </a-form-item>
-                    </a-col>
-                    <a-col :span="4" class="text-center">
-                      <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
-                        <a-checkbox
-                          :disabled="mdlOpns.length === 1"
-                          v-model:checked="editing.relative.isArray"
-                          @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
-                        >
-                          {{ editing.relative.isArray ? '多个' : '一个' }}
-                        </a-checkbox>
-                      </a-form-item>
-                    </a-col>
-                    <a-col :span="16">
-                      <a-form-item class="mb-0" ref="relative.model" name="relative.model">
-                        <a-select
-                          class="w-full"
-                          :disabled="mdlOpns.length === 1"
-                          v-model:value="editing.relative.model"
-                          :options="mdlOpns"
-                          @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
-                        />
-                      </a-form-item>
-                    </a-col>
-                  </a-row>
-                </a-input-group>
-              </template>
-              <template #remark="{ record: mdl }">
-                <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
-                <template v-else>-</template>
-              </template>
-            </EditableTable>
-          </a-tab-pane>
-          <a-tab-pane key="data" tab="数据" :disabled="project.status.stat !== 'running'">
-            <EditableTable
-              :api="{ all: () => mdlAPI.dataset(model.key) }"
-              scl-height="h-full"
-              min-height="18rem"
-              :columns="
-                model.props.map((prop: any) =>
-                  Column.copy({ title: prop.label, key: prop.name, dataIndex: prop.name })
-                )
-              "
-              :mapper="createByFields(model.form.fields)"
-              :new-fun="
-                () =>
-                  Object.fromEntries(model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)]))
-              "
-              size="small"
-              :pagable="true"
-              :refOptions="['manual']"
-              :editable="true"
-              :addable="true"
-              :delable="true"
+              :emitter="clsPrpEmitter"
             />
-          </a-tab-pane>
-        </a-tabs>
-      </template>
-    </EditableTable>
-    <FormDialog
-      title="导出类"
-      v-model:show="expClsVsb"
-      :object="expClsObj"
-      :new-fun="() => newOne(ExpCls)"
-      :mapper="expMapper"
-      @submit="onExpClsSbt"
-    />
+            <EditableTable
+              class="mt-3"
+              title="方法"
+              size="small"
+              :api="{
+                all: () => []
+              }"
+              :columns="clsFunCols"
+              :mapper="clsFunMapper"
+              :new-fun="() => newOne(Func)"
+              :emitter="clsFunEmitter"
+            />
+          </template>
+        </EditableTable>
+      </a-tab-pane>
+    </a-tabs>
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
   </LytProject>
 </template>
@@ -262,7 +306,8 @@ import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
-import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp, waitFor } from '@/utils'
+import Typo, { Func } from '@/types/typo'
+import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   DownOutlined,
@@ -281,7 +326,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, pjtAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typPrpAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -292,7 +337,22 @@ import {
   propColumns,
   propMapper
 } from './Model'
-import { frtEmitter, frtMapper, svcColumns, svcEmitter, svcMapper } from './Project'
+import {
+  clsColumns,
+  clsEmitter,
+  clsMapper,
+  clsPrpCols,
+  clsPrpEmitter,
+  clsPrpMapper,
+  clsFunCols,
+  clsFunMapper,
+  clsFunEmitter,
+  frtEmitter,
+  frtMapper,
+  svcColumns,
+  svcEmitter,
+  svcMapper
+} from './Project'
 
 const route = useRoute()
 const router = useRouter()

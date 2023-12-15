@@ -10,6 +10,8 @@ import apiAPI from './api'
 import roleAPI from './role'
 import genRuleAPI from './rule'
 import authAPI from './auth'
+import typAPI from './typo'
+import typPrpAPI from './typPrp'
 
 export {
   dbAPI,
@@ -23,5 +25,7 @@ export {
   authAPI,
   apiAPI,
   roleAPI,
-  genRuleAPI
+  genRuleAPI,
+  typAPI,
+  typPrpAPI
 }

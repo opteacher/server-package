@@ -9,10 +9,11 @@ import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Variable from '@/types/variable'
-import { Cond, OpnType, bsTpOpns, methods } from '@lib/types'
+import { BaseTypes, Cond, OpnType, bsTpOpns, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import dayjs from 'dayjs'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ref } from 'vue'
@@ -309,5 +310,135 @@ export const frtMapper = new Mapper({
       }
     },
     copy: Page.copy
+  }
+})
+
+export const clsColumns = [
+  new Column('类名', 'name'),
+  new Column('类标签', 'label'),
+  new Column('描述', 'desc')
+]
+
+export const clsMapper = new Mapper({
+  name: {
+    label: '类名',
+    type: 'Input',
+    rules: [{ required: true, message: '必须给出类名！' }]
+  },
+  label: {
+    label: '类标签',
+    type: 'Input'
+  },
+  desc: {
+    label: '描述',
+    type: 'Textarea'
+  }
+})
+
+export const clsEmitter = new Emitter()
+
+export const clsPrpCols = [
+  new Column('字段名', 'name'),
+  new Column('标签', 'label'),
+  new Column('类型', 'ptype'),
+  new Column('默认值', 'default'),
+  new Column('备注', 'remark')
+]
+
+function genVarMapper(emitter: Emitter) {
+  return new Mapper({
+    name: {
+      label: '名称',
+      type: 'Input',
+      rules: [{ required: true, message: '必须填写名称！' }]
+    },
+    label: {
+      label: '标签',
+      type: 'Input'
+    },
+    ptype: {
+      label: '类型',
+      type: 'Select',
+      rules: [{ required: true, message: '必须选择类型！' }],
+      options: bsTpOpns.filter(({ value }) => value !== 'Id' && value !== 'Any' && value !== 'Unknown'),
+      onChange: (prop: Property) => {
+        switch (prop.ptype) {
+          case 'Number':
+            emitter.emit('update:data', { ...prop, default: 0 })
+            emitter.emit('update:mprop', { 'default.type': 'Number' })
+            break
+          case 'String':
+            emitter.emit('update:data', { ...prop, default: '' })
+            emitter.emit('update:mprop', { 'default.type': 'Input' })
+            break
+          case 'LongStr':
+            emitter.emit('update:data', { ...prop, default: '' })
+            emitter.emit('update:mprop', { 'default.type': 'Textarea' })
+            break
+          case 'Array':
+            emitter.emit('update:data', { ...prop, default: [] })
+            emitter.emit('update:mprop', {
+              'default.type': 'EditList',
+              'default.mapper': {
+                value: {
+                  type: 'Input'
+                }
+              },
+              'default.inline': true,
+              'default.flatItem': true
+            })
+            break
+          case 'Boolean':
+            emitter.emit('update:data', { ...prop, default: false })
+            emitter.emit('update:mprop', { 'default.type': 'Checkbox' })
+            break
+          case 'DateTime':
+            emitter.emit('update:data', { ...prop, default: dayjs() })
+            emitter.emit('update:mprop', { 'default.type': 'DateTime' })
+            break
+          case 'Object':
+            emitter.emit('update:data', { ...prop, default: {} })
+            emitter.emit('update:mprop', { 'default.type': 'JsonEditor' })
+            break
+          case 'Function':
+            emitter.emit('update:data', { ...prop, default: 'return () => {}' })
+            emitter.emit('update:mprop', { 'default.type': 'CodeEditor' })
+            break
+        }
+      }
+    },
+    default: {
+      label: '默认值',
+      type: 'Input'
+    },
+    remark: {
+      label: '备注',
+      type: 'Textarea'
+    }
+  })
+}
+
+export const clsPrpEmitter = new Emitter()
+
+export const clsPrpMapper = genVarMapper(clsPrpEmitter)
+
+export const clsFunCols = [
+  new Column('函数名', 'name'),
+  new Column('参数', 'args')
+]
+
+export const clsFunEmitter = new Emitter()
+
+export const clsFunMapper = new Mapper({
+  name: {
+    label: '函数名',
+    type: 'Input',
+    rules: [{ required: true, message: '必须给出函数名！' }]
+  },
+  args: {
+    label: '参数',
+    type: 'EditList',
+    mapper: genVarMapper(clsFunEmitter),
+    inline: false
   }
 })
