@@ -345,7 +345,7 @@ export const clsPrpCols = [
   new Column('备注', 'remark')
 ]
 
-function genVarMapper(emitter: Emitter) {
+function genVarMapper(emitter: Emitter, prefix = '') {
   return new Mapper({
     name: {
       label: '名称',
@@ -364,45 +364,45 @@ function genVarMapper(emitter: Emitter) {
       onChange: (prop: Property) => {
         switch (prop.ptype) {
           case 'Number':
-            emitter.emit('update:data', { ...prop, default: 0 })
-            emitter.emit('update:mprop', { 'default.type': 'Number' })
+            emitter.emit('update:dprop', { default: 0 })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Number' })
             break
           case 'String':
-            emitter.emit('update:data', { ...prop, default: '' })
-            emitter.emit('update:mprop', { 'default.type': 'Input' })
+            emitter.emit('update:dprop', { default: '' })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Input' })
             break
           case 'LongStr':
-            emitter.emit('update:data', { ...prop, default: '' })
-            emitter.emit('update:mprop', { 'default.type': 'Textarea' })
+            emitter.emit('update:dprop', { default: '' })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Textarea' })
             break
           case 'Array':
-            emitter.emit('update:data', { ...prop, default: [] })
+            emitter.emit('update:dprop', { default: [] })
             emitter.emit('update:mprop', {
-              'default.type': 'EditList',
-              'default.mapper': {
+              [`${prefix}default.type`]: 'EditList',
+              [`${prefix}default.mapper`]: {
                 value: {
                   type: 'Input'
                 }
               },
-              'default.inline': true,
-              'default.flatItem': true
+              [`${prefix}default.inline`]: true,
+              [`${prefix}default.flatItem`]: true
             })
             break
           case 'Boolean':
-            emitter.emit('update:data', { ...prop, default: false })
-            emitter.emit('update:mprop', { 'default.type': 'Checkbox' })
+            emitter.emit('update:dprop', { default: false })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Checkbox' })
             break
           case 'DateTime':
-            emitter.emit('update:data', { ...prop, default: dayjs() })
-            emitter.emit('update:mprop', { 'default.type': 'DateTime' })
+            emitter.emit('update:dprop', { default: dayjs() })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'DateTime' })
             break
           case 'Object':
-            emitter.emit('update:data', { ...prop, default: {} })
-            emitter.emit('update:mprop', { 'default.type': 'JsonEditor' })
+            emitter.emit('update:dprop', { default: {} })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'JsonEditor' })
             break
           case 'Function':
-            emitter.emit('update:data', { ...prop, default: 'return () => {}' })
-            emitter.emit('update:mprop', { 'default.type': 'CodeEditor' })
+            emitter.emit('update:dprop', { default: 'return () => {}' })
+            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'CodeEditor' })
             break
         }
       }
@@ -424,7 +424,8 @@ export const clsPrpMapper = genVarMapper(clsPrpEmitter)
 
 export const clsFunCols = [
   new Column('函数名', 'name'),
-  new Column('参数', 'args')
+  new Column('参数', 'args'),
+  new Column('备注', 'remark')
 ]
 
 export const clsFunEmitter = new Emitter()
@@ -438,7 +439,14 @@ export const clsFunMapper = new Mapper({
   args: {
     label: '参数',
     type: 'EditList',
-    mapper: genVarMapper(clsFunEmitter),
-    inline: false
+    mapper: genVarMapper(clsFunEmitter, 'args.'),
+    inline: false,
+    flatItem: false,
+    lblProp: 'name',
+    subProp: 'label'
+  },
+  remark: {
+    label: '备注',
+    type: 'Textarea'
   }
 })

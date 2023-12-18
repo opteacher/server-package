@@ -27,6 +27,7 @@ export default db.defineModel(
             default: db.PropTypes.Any
           }
         ],
+        remark: db.PropTypes.String,
         flow: { type: db.PropTypes.Id, ref: 'node' }
       }
     ]

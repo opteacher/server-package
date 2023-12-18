@@ -12,6 +12,7 @@ import genRuleAPI from './rule'
 import authAPI from './auth'
 import typAPI from './typo'
 import typPrpAPI from './typPrp'
+import typFunAPI from './typFun'
 
 export {
   dbAPI,
@@ -27,5 +28,6 @@ export {
   roleAPI,
   genRuleAPI,
   typAPI,
-  typPrpAPI
+  typPrpAPI,
+  typFunAPI
 }

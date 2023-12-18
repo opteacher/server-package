@@ -276,14 +276,24 @@
               class="mt-3"
               title="方法"
               size="small"
-              :api="{
-                all: () => []
-              }"
+              :api="typFunAPI(typo)"
               :columns="clsFunCols"
               :mapper="clsFunMapper"
               :new-fun="() => newOne(Func)"
               :emitter="clsFunEmitter"
-            />
+            >
+              <template #opera>
+                <a-button size="small" type="primary">
+                  <template #icon><EditOutlined /></template>
+                  设计流程
+                </a-button>
+              </template>
+              <template #args="{ record: func }">
+                <ul class="list-none mb-0 pl-0">
+                  <li v-for="arg of func.args" :key="arg.key">{{ arg.name }}</li>
+                </ul>
+              </template>
+            </EditableTable>
           </template>
         </EditableTable>
       </a-tab-pane>
@@ -317,7 +327,8 @@ import {
   PartitionOutlined,
   SettingOutlined,
   SyncOutlined,
-  UpOutlined
+  UpOutlined,
+  EditOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -326,7 +337,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typPrpAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typPrpAPI, typFunAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
