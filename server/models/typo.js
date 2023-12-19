@@ -12,7 +12,8 @@ export default db.defineModel(
         label: db.PropTypes.String,
         ptype: db.PropTypes.String,
         remark: db.PropTypes.String,
-        default: db.PropTypes.Any
+        default: db.PropTypes.Any,
+        index: db.PropTypes.Boolean // 是否从构造作为参数导入
       }
     ],
     funcs: [
@@ -27,6 +28,7 @@ export default db.defineModel(
             default: db.PropTypes.Any
           }
         ],
+        isAsync: db.PropTypes.Boolean,
         remark: db.PropTypes.String,
         flow: { type: db.PropTypes.Id, ref: 'node' }
       }

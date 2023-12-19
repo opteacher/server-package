@@ -87,8 +87,8 @@ onMounted(async () => {
     const fixCmd = cmd
       .replaceAll('--network', '\n\t--network')
       .replaceAll('--name', '\n\t--name')
-      .replaceAll('-p', '\n\t-p')
-      .replaceAll('-v', '\n\t-v')
+      .replaceAll('-p ', '\n\t-p ')
+      .replaceAll('-v ', '\n\t-v ')
     const lstBlkIdx = fixCmd.lastIndexOf(' ')
     const ret = fixCmd.slice(0, lstBlkIdx) + '\n  ' + fixCmd.substring(lstBlkIdx + 1)
     return ret.replaceAll('\t', '  ')

@@ -4,11 +4,17 @@ import store from '@/store'
 import Model from '@/types/model'
 import Service, { EmitType, Method, emitMapper, mthdClrs } from '@/types/service'
 import { newOne } from '@/utils'
-import { EditOutlined, ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import {
+  EditOutlined,
+  ExclamationCircleOutlined,
+  ExportOutlined,
+  ImportOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, createVNode, defineProps, reactive } from 'vue'
+import { computed, createVNode, defineProps, h, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -67,6 +73,22 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     }
   })
 }
+async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Service) {
+  switch (selKey) {
+    case 'design':
+      await router.push(`/project/${pid.value}/flow/${svc.key}`)
+      break
+    case 'export':
+      await api.flow.export(svc.key)
+      break
+    case 'import':
+      impDlg.emitter.emit('update:visible', {
+        show: true,
+        object: { svcId: svc.key, impFile: [] }
+      })
+      break
+  }
+}
 </script>
 
 <template>
@@ -99,35 +121,27 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
         <template v-if="!svc.model">{{ svc.name }}.{{ svc.interface }}()</template>
         <template v-else>-</template>
       </template>
-      <template #opera="{ record: svc }">
-        <template v-if="!svc.model">
-          <a-input-group compact class="w-32">
-            <a-button
-              class="w-1/2"
-              size="small"
-              @click.stop="
-                () =>
-                  impDlg.emitter.emit('update:visible', {
-                    show: true,
-                    object: { svcId: svc.key, impFile: [] }
-                  })
-              "
-            >
-              导入
-            </a-button>
-            <a-button class="w-1/2" size="small" @click.stop="() => api.flow.export(svc.key)">
-              导出
-            </a-button>
-          </a-input-group>
-          <a-button
-            type="primary"
-            size="small"
-            @click.stop="$router.push(`/project/${pid}/flow/${svc.key}`)"
-          >
-            <template #icon><edit-outlined /></template>
-            设计流程
-          </a-button>
-        </template>
+      <template #operaAfter="{ record: svc }">
+        <a-popover v-if="!svc.model" overlayClassName="popmu-p-0" trigger="click">
+          <template #content>
+            <a-menu mode="vertical" @click="({ key }) => onDsgnFlowClick(key, svc)">
+              <a-menu-item key="design">
+                <template #icon><EditOutlined /></template>
+                <span>设计</span>
+              </a-menu-item>
+              <a-divider class="my-0" />
+              <a-menu-item key="export">
+                <template #icon><ExportOutlined /></template>
+                <span>导出</span>
+              </a-menu-item>
+              <a-menu-item key="import">
+                <template #icon><ImportOutlined /></template>
+                <span>导入</span>
+              </a-menu-item>
+            </a-menu>
+          </template>
+          <a-button type="primary" size="small" @click.stop>流程</a-button>
+        </a-popover>
         <template v-else>
           <InfoCircleOutlined />
           模型路由流程固定

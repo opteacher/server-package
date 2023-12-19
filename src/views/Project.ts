@@ -281,7 +281,7 @@ export const svcMapper = new Mapper({
 export const svcColumns = [
   new Column('激活方式', 'emit'),
   new Column('路由/激发条件', 'pathCond'),
-  new Column('访问方式/控制', 'methodCtrl', { width: 120 }),
+  new Column('访问方式/控制', 'methodCtrl', { width: 100 }),
   new Column('文件/方法', 'fileFunc'),
   new Column('全局变量', 'stcVars'),
   new Column('描述', 'desc')
@@ -342,6 +342,7 @@ export const clsPrpCols = [
   new Column('标签', 'label'),
   new Column('类型', 'ptype'),
   new Column('默认值', 'default'),
+  new Column('构造导入', 'index'),
   new Column('备注', 'remark')
 ]
 
@@ -409,7 +410,12 @@ function genVarMapper(emitter: Emitter, prefix = '') {
     },
     default: {
       label: '默认值',
-      type: 'Input'
+      type: 'Unknown'
+    },
+    index: {
+      label: '构造导入',
+      type: 'Checkbox',
+      placeholder: '为真则表示该字段通过构造函数的参数初始化'
     },
     remark: {
       label: '备注',
@@ -425,6 +431,7 @@ export const clsPrpMapper = genVarMapper(clsPrpEmitter)
 export const clsFunCols = [
   new Column('函数名', 'name'),
   new Column('参数', 'args'),
+  new Column('Async', 'isAsync'),
   new Column('备注', 'remark')
 ]
 
@@ -444,6 +451,10 @@ export const clsFunMapper = new Mapper({
     flatItem: false,
     lblProp: 'name',
     subProp: 'label'
+  },
+  isAsync: {
+    label: 'Async前缀',
+    type: 'Checkbox'
   },
   remark: {
     label: '备注',

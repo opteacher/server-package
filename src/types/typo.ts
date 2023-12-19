@@ -7,6 +7,7 @@ export class Func {
   key: string
   name: string
   args: Property[]
+  isAsync: boolean
   remark: string
   flow: Node | string
 
@@ -14,6 +15,7 @@ export class Func {
     this.key = ''
     this.name = ''
     this.args = []
+    this.isAsync = false
     this.remark = ''
     this.flow = ''
   }
@@ -22,6 +24,7 @@ export class Func {
     this.key = ''
     this.name = ''
     this.args = []
+    this.isAsync = false
     this.remark = ''
     this.flow = ''
   }

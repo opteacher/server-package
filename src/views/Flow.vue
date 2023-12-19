@@ -183,7 +183,7 @@ async function onShowCodesClick() {
   } else {
     codes.value = store.getters['service/subNdKey']
       ? await ndAPI.subNode.codes(store.getters['service/subNdKey'])
-      : await svcAPI.flow.codes(route.params.sid)
+      : await svcAPI.flow.codes(sid)
   }
 }
 async function onFlowOpnClick({

@@ -125,21 +125,23 @@
               @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
             />
           </template>
-          <template #opera="{ record: model }">
-            <a-space>
-              <a-button size="small" @click.stop="() => onExpClsClick(model)">
-                <template #icon><ExportOutlined /></template>
-                导出类
-              </a-button>
-              <a-button
-                type="primary"
-                size="small"
-                @click.stop="() => router.push(`/project/${pid}/model/${model.key}/form`)"
-              >
-                <template #icon><FormOutlined /></template>
-                表单/表项设计
-              </a-button>
-            </a-space>
+          <template #operaAfter="{ record: model }">
+            <a-popover overlayClassName="popmu-p-0" trigger="click">
+              <template #content>
+                <a-menu mode="vertical" @click="({ key }) => onMdlOprClick(key, model)">
+                  <a-menu-item key="design">
+                    <template #icon><FormOutlined /></template>
+                    <span>表单/表项设计</span>
+                  </a-menu-item>
+                  <a-divider class="my-0" />
+                  <a-menu-item key="export">
+                    <template #icon><ExportOutlined /></template>
+                    <span>导出</span>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button type="text" size="small" @click.stop>更多</a-button>
+            </a-popover>
           </template>
           <template #expandedRowRender="{ record: model }">
             <a-tabs v-model:activeKey="actMdlTab" type="card">
@@ -271,7 +273,15 @@
               :mapper="clsPrpMapper"
               :new-fun="() => newOne(Property)"
               :emitter="clsPrpEmitter"
-            />
+            >
+              <template #defaultEDT="{ editing: prop }">
+                <a-input>
+                  <template #addonAfter>
+                    <a-checkbox>无</a-checkbox>
+                  </template>
+                </a-input>
+              </template>
+            </EditableTable>
             <EditableTable
               class="mt-3"
               title="方法"
@@ -282,8 +292,8 @@
               :new-fun="() => newOne(Func)"
               :emitter="clsFunEmitter"
             >
-              <template #opera>
-                <a-button size="small" type="primary">
+              <template #operaBefore="{ record: func }">
+                <a-button size="small" type="primary" @click.stop="router.push(`/project/${pid}/flow/${func.key}`)">
                   <template #icon><EditOutlined /></template>
                   设计流程
                 </a-button>
@@ -291,6 +301,13 @@
               <template #args="{ record: func }">
                 <ul class="list-none mb-0 pl-0">
                   <li v-for="arg of func.args" :key="arg.key">{{ arg.name }}</li>
+                </ul>
+              </template>
+              <template #argsVW="{ current: func }">
+                <ul class="list-none mb-0 pl-0">
+                  <li v-for="arg of func.args" :key="arg.key">
+                    {{ arg.name }} : {{ arg.ptype }} = {{ arg.default }} // {{ arg.label }}
+                  </li>
                 </ul>
               </template>
             </EditableTable>
@@ -321,14 +338,14 @@ import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   DownOutlined,
+  EditOutlined,
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
   SyncOutlined,
-  UpOutlined,
-  EditOutlined
+  UpOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -337,7 +354,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typPrpAPI, typFunAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typFunAPI, typPrpAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -351,13 +368,13 @@ import {
 import {
   clsColumns,
   clsEmitter,
+  clsFunCols,
+  clsFunEmitter,
+  clsFunMapper,
   clsMapper,
   clsPrpCols,
   clsPrpEmitter,
   clsPrpMapper,
-  clsFunCols,
-  clsFunMapper,
-  clsFunEmitter,
   frtEmitter,
   frtMapper,
   svcColumns,
@@ -468,5 +485,15 @@ function onExpClsClick(model: Model) {
 async function onExpClsSbt(formData: any) {
   await mdlAPI.export(formData)
   expClsVsb.value = false
+}
+function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
+  switch (selKey) {
+    case 'design':
+      router.push(`/project/${pid}/model/${model.key}/form`)
+      break
+    case 'export':
+      onExpClsClick(model)
+      break
+  }
 }
 </script>

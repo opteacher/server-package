@@ -10,8 +10,8 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 export const columns = [
   new Column('模型名', 'name'),
   new Column('标签', 'label'),
-  new Column('描述', 'desc'),
-  new Column('模型接口', 'methods')
+  new Column('模型接口', 'methods'),
+  new Column('描述', 'desc')
 ]
 
 export const mapper = new Mapper({
