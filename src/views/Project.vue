@@ -160,6 +160,7 @@
                   }"
                   :columns="propColumns"
                   :mapper="propMapper"
+                  :emitter="propEmitter"
                   :new-fun="() => newOne(Property)"
                   @save="refresh"
                   @delete="refresh"
@@ -264,6 +265,9 @@
           :new-fun="() => newOne(Typo)"
           :emitter="clsEmitter"
         >
+          <template #name="{ record: typo }">
+            <a @click.stop="() => onTypoClick(typo)">{{ typo.name }}</a>
+          </template>
           <template #expandedRowRender="{ record: typo }">
             <EditableTable
               title="字段"
@@ -293,7 +297,11 @@
               :emitter="clsFunEmitter"
             >
               <template #operaBefore="{ record: func }">
-                <a-button size="small" type="primary" @click.stop="router.push(`/project/${pid}/flow/${func.key}`)">
+                <a-button
+                  size="small"
+                  type="primary"
+                  @click.stop="router.push(`/project/${pid}/flow/${func.key}`)"
+                >
                   <template #icon><EditOutlined /></template>
                   设计流程
                 </a-button>
@@ -349,8 +357,9 @@ import {
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
+import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, reactive, ref } from 'vue'
+import { computed, h, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -363,7 +372,8 @@ import {
   columns as mdlColumns,
   mapper as mdlMapper,
   propColumns,
-  propMapper
+  propMapper,
+  propEmitter
 } from './Model'
 import {
   clsColumns,
@@ -495,5 +505,18 @@ function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
       onExpClsClick(model)
       break
   }
+}
+function onTypoClick(typo: Typo) {
+  Modal.confirm({
+    title: 'This is a notification message',
+    content: h('div', {}, [
+      h('p', 'some messages...some messages...'),
+      h('p', 'some messages...some messages...')
+    ]),
+    maskClosable: true,
+    onOk() {
+      console.log('ok')
+    }
+  })
 }
 </script>

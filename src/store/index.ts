@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import model from './model'
 import project from './project'
-import service from './service'
+import node from './node'
 import admin from './admin'
 
 export default createStore({
@@ -10,8 +10,8 @@ export default createStore({
   actions: {},
   modules: {
     project,
-    service,
     model,
-    admin
+    admin,
+    node
   }
 })

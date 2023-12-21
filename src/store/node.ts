@@ -12,7 +12,7 @@ import { flatten } from 'lodash'
 import { Dispatch } from 'vuex'
 
 export type NodesInPnl = { [key: string]: NodeInPnl }
-type SvcState = {
+type NodeState = {
   service: Service
   nodes: NodesInPnl
   width: number
@@ -31,9 +31,9 @@ export default {
       editing: new Node(),
       deps: [],
       subNode: new Node()
-    } as SvcState),
+    } as NodeState),
   mutations: {
-    SET_NODE(state: SvcState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
+    SET_NODE(state: NodeState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       // 更新依赖选项到表单
       const depExp = (dep: Dep) => (dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`)
       nodeEmitter.emit('update:mprop', {
@@ -98,7 +98,7 @@ export default {
         object: state.editing
       })
     },
-    RESET_STATE(state: SvcState) {
+    RESET_STATE(state: NodeState) {
       state.service.reset()
       state.width = 0
       state.nodes = {}
@@ -106,7 +106,7 @@ export default {
     }
   },
   actions: {
-    async setSubNid({ state, dispatch }: { state: SvcState; dispatch: Dispatch }, subNid?: string) {
+    async setSubNid({ state, dispatch }: { state: NodeState; dispatch: Dispatch }, subNid?: string) {
       if (subNid) {
         state.subNode = state.nodes[subNid]
       } else {
@@ -115,7 +115,7 @@ export default {
       await dispatch('refresh', { force: true })
     },
     async refresh(
-      { state }: { state: SvcState },
+      { state }: { state: NodeState },
       params?: {
         force?: boolean
         onlySvc?: boolean
@@ -199,18 +199,18 @@ export default {
     }
   },
   getters: {
-    ins: (state: SvcState): Service => state.service,
-    svcKey: (state: SvcState): string => state.service.key,
-    nodes: (state: SvcState): NodesInPnl => state.nodes,
-    width: (state: SvcState): number => state.width,
+    service: (state: NodeState): Service => state.service,
+    svcKey: (state: NodeState): string => state.service.key,
+    nodes: (state: NodeState): NodesInPnl => state.nodes,
+    width: (state: NodeState): number => state.width,
     node:
-      (state: SvcState) =>
+      (state: NodeState) =>
       (key: string): NodeInPnl =>
         state.nodes[key],
-    editNode: (state: SvcState): Node => state.editing,
-    edtNdKey: (state: SvcState): string => state.editing.key,
-    subNdKey: (state: SvcState): string => state.subNode.key,
-    subNode: (state: SvcState): Node => state.subNode,
-    subNdTtl: (state: SvcState): string => state.subNode.title
+    editNode: (state: NodeState): Node => state.editing,
+    edtNdKey: (state: NodeState): string => state.editing.key,
+    subNdKey: (state: NodeState): string => state.subNode.key,
+    subNode: (state: NodeState): Node => state.subNode,
+    subNdTtl: (state: NodeState): string => state.subNode.title
   }
 }

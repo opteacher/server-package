@@ -12,7 +12,7 @@ export default db.defineModel(
         label: db.PropTypes.String,
         ptype: db.PropTypes.String,
         remark: db.PropTypes.String,
-        default: db.PropTypes.Any,
+        dftVal: db.PropTypes.Any,
         index: db.PropTypes.Boolean // 是否从构造作为参数导入
       }
     ],
@@ -25,7 +25,7 @@ export default db.defineModel(
             label: db.PropTypes.String,
             ptype: db.PropTypes.String,
             remark: db.PropTypes.String,
-            default: db.PropTypes.Any
+            dftVal: db.PropTypes.Any
           }
         ],
         isAsync: db.PropTypes.Boolean,

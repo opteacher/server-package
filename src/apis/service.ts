@@ -61,8 +61,8 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            await store.dispatch('service/refresh', { onlySvc: true })
-            return store.getters['service/ins'].jobId !== 0
+            await store.dispatch('node/refresh', { onlySvc: true })
+            return store.getters['node/service'].jobId !== 0
           } catch (e: any) {
             return false
           }
@@ -77,8 +77,8 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            await store.dispatch('service/refresh', { onlySvc: true })
-            return store.getters['service/ins'].jobId === 0
+            await store.dispatch('node/refresh', { onlySvc: true })
+            return store.getters['node/service'].jobId === 0
           } catch (e: any) {
             return false
           }

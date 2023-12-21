@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
-import { NodesInPnl } from '@/store/service'
+import { NodesInPnl } from '@/store/node'
 import { Cond, baseTypes, bsTpOpns } from '@/types'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
@@ -20,7 +20,7 @@ import { createVNode, ref } from 'vue'
 import { ndAPI as api } from '../apis'
 
 function scanLocVars(ndKey: string): Variable[] {
-  const nodes = store.getters['service/nodes'] as NodesInPnl
+  const nodes = store.getters['node/nodes'] as NodesInPnl
   if (!(ndKey in nodes)) {
     return []
   }
@@ -40,13 +40,13 @@ function scanLocVars(ndKey: string): Variable[] {
 
 export function getLocVars(node?: Node, incSelf = false): Variable[] {
   if (!node) {
-    node = store.getters['service/node'] as Node
+    node = store.getters['node/node'] as Node
   }
-  const service = store.getters['service/ins'] as Service
-  const subNode = store.getters['service/subNode'] as Node
+  const service = store.getters['node/service'] as Service
+  const subNode = store.getters['node/subNode'] as Node
   return [Variable.copy({ key: 'context', name: 'ctx', type: 'Object' })]
     .concat(service.stcVars)
-    .concat(store.getters['service/subNdKey'] ? subNode.inputs : [])
+    .concat(store.getters['node/subNdKey'] ? subNode.inputs : [])
     .concat(incSelf ? node.outputs : [])
     .concat(node.previous ? scanLocVars(node.previous) : [])
 }
@@ -112,8 +112,8 @@ const iptMapper = new Mapper({
       if (input.vtype !== 'Object' && input.vtype !== 'Unknown') {
         return
       }
-      const edtNode = store.getters['service/editNode']
-      const pvsNode = store.getters['service/node'](edtNode.previous)
+      const edtNode = store.getters['node/editNode']
+      const pvsNode = store.getters['node/node'](edtNode.previous)
       const selVar = pvsNode
         ? getLocVars(pvsNode, true).find((v: any) => v.value === to || v.name === to)
         : input
@@ -212,13 +212,13 @@ export const nodeMapper = new Mapper({
         onEdit: (node: any) => {
           let options = []
           if (node.previous) {
-            const pvsNode = store.getters['service/node'](node.previous)
+            const pvsNode = store.getters['node/node'](node.previous)
             options = getLocVars(pvsNode, true).map((locVar: Variable) => ({
               label: locVar.value || locVar.name,
               value: locVar.value || locVar.name
             }))
           } else {
-            const service = store.getters['service/ins'] as Service
+            const service = store.getters['node/service'] as Service
             options = [{ label: 'ctx', value: 'ctx' }].concat(
               service.stcVars.map(v => ({ label: v.name, value: v.name }))
             )
@@ -388,7 +388,7 @@ export const nodeMapper = new Mapper({
     ],
     inner: '流程设计',
     onClick: async (node: Node) => {
-      await store.dispatch('service/setSubNid', node.key)
+      await store.dispatch('node/setSubNid', node.key)
       nodeEmitter.emit('update:visible', false)
     }
   },

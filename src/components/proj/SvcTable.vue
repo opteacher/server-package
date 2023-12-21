@@ -140,7 +140,7 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
               </a-menu-item>
             </a-menu>
           </template>
-          <a-button type="primary" size="small" @click.stop>流程</a-button>
+          <a-button type="text" size="small" @click.stop>更多</a-button>
         </a-popover>
         <template v-else>
           <InfoCircleOutlined />

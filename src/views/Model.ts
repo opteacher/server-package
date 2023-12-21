@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BaseTypes, Cond, baseTypes } from '@/types/index'
+import { Cond, bsTpOpns } from '@/types/index'
 import Property from '@/types/property'
+import { pickOrIgnore, updDftByType } from '@/utils'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
@@ -63,13 +64,17 @@ export const expMapper = new Mapper({
 
 export const propEmitter = new Emitter()
 
+propEmitter.on('show', (prop: Property) =>
+  updDftByType(prop.ptype, propEmitter, pickOrIgnore(prop, ['dftVal'], false))
+)
+
 export const propColumns = [
   new Column('字段名', 'name'),
   new Column('标签', 'label'),
   new Column('字段类型', 'ptype'),
   new Column('是否为索引', 'index'),
   new Column('是否唯一', 'unique'),
-  new Column('默认值', 'default'),
+  new Column('默认值', 'dftVal'),
   new Column('关联模型', 'relative'),
   new Column('备注', 'remark', { width: 300 })
 ]
@@ -91,28 +96,9 @@ export const propMapper = new Mapper({
     label: '字段类型',
     type: 'Select',
     disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
-    options: baseTypes.map(bsTyp => ({
-      label: bsTyp,
-      value: bsTyp
-    })),
+    options: bsTpOpns,
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
-    onChange: (_prop: Property, toType: BaseTypes) => {
-      propEmitter.emit('update:data', {
-        default: {
-          LongStr: '',
-          Object: '{}',
-          Array: '[]',
-          Boolean: 'true',
-          DateTime: 'new Date()',
-          Number: '0',
-          String: '',
-          Unknown: '',
-          Id: '',
-          Function: "return ''",
-          Any: ''
-        }[toType]
-      })
-    }
+    onChange: (prop: Property) => updDftByType(prop.ptype, propEmitter)
   },
   index: {
     label: '是否为索引',
@@ -126,9 +112,9 @@ export const propMapper = new Mapper({
     disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
     placeholder: '重复的记录无法持久化'
   },
-  default: {
+  dftVal: {
     label: '默认值',
-    type: 'Input'
+    type: 'Unknown'
   },
   relative: {
     label: '关联模型',

@@ -23,7 +23,7 @@ export default db.defineModel(
           isArray: db.PropTypes.Boolean
         },
         remark: db.PropTypes.String,
-        default: db.PropTypes.Any
+        dftVal: db.PropTypes.Any
       }
     ],
     form: {

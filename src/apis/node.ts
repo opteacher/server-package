@@ -4,8 +4,8 @@ import { reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 
 const exp = {
   save: (data: any) => {
-    const isSub = store.getters['service/subNdKey'] as boolean
-    const sid = isSub ? store.getters['service/subNdKey'] : store.getters['service/svcKey']
+    const isSub = store.getters['node/subNdKey'] as boolean
+    const sid = isSub ? store.getters['node/subNdKey'] : store.getters['node/svcKey']
     const nid = data.key ? '/' + data.key : ''
     return reqPost(`service/${sid}/node${nid}`, data, {
       type: 'api',
@@ -14,8 +14,8 @@ const exp = {
     })
   },
   remove: (key: any) => {
-    const isSub = store.getters['service/subNdKey'] as boolean
-    const sid = isSub ? store.getters['service/subNdKey'] : store.getters['service/svcKey']
+    const isSub = store.getters['node/subNdKey'] as boolean
+    const sid = isSub ? store.getters['node/subNdKey'] : store.getters['node/svcKey']
     return reqDelete(`service/${sid}`, `node/${key}`, {
       type: 'api',
       axiosConfig: { params: { isSub } }
@@ -28,7 +28,7 @@ const exp = {
   },
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
-    save: (deps: string[]) => reqPut('node', store.getters['service/edtNdKey'], { deps })
+    save: (deps: string[]) => reqPut('node', store.getters['node/edtNdKey'], { deps })
   }
 }
 

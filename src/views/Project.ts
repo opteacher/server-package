@@ -9,6 +9,7 @@ import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Variable from '@/types/variable'
+import { pickOrIgnore, updDftByType } from '@/utils'
 import { BaseTypes, Cond, OpnType, bsTpOpns, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
@@ -341,7 +342,7 @@ export const clsPrpCols = [
   new Column('字段名', 'name'),
   new Column('标签', 'label'),
   new Column('类型', 'ptype'),
-  new Column('默认值', 'default'),
+  new Column('默认值', 'dftVal'),
   new Column('构造导入', 'index'),
   new Column('备注', 'remark')
 ]
@@ -361,54 +362,12 @@ function genVarMapper(emitter: Emitter, prefix = '') {
       label: '类型',
       type: 'Select',
       rules: [{ required: true, message: '必须选择类型！' }],
-      options: bsTpOpns.filter(({ value }) => value !== 'Id' && value !== 'Any' && value !== 'Unknown'),
-      onChange: (prop: Property) => {
-        switch (prop.ptype) {
-          case 'Number':
-            emitter.emit('update:dprop', { default: 0 })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Number' })
-            break
-          case 'String':
-            emitter.emit('update:dprop', { default: '' })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Input' })
-            break
-          case 'LongStr':
-            emitter.emit('update:dprop', { default: '' })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Textarea' })
-            break
-          case 'Array':
-            emitter.emit('update:dprop', { default: [] })
-            emitter.emit('update:mprop', {
-              [`${prefix}default.type`]: 'EditList',
-              [`${prefix}default.mapper`]: {
-                value: {
-                  type: 'Input'
-                }
-              },
-              [`${prefix}default.inline`]: true,
-              [`${prefix}default.flatItem`]: true
-            })
-            break
-          case 'Boolean':
-            emitter.emit('update:dprop', { default: false })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'Checkbox' })
-            break
-          case 'DateTime':
-            emitter.emit('update:dprop', { default: dayjs() })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'DateTime' })
-            break
-          case 'Object':
-            emitter.emit('update:dprop', { default: {} })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'JsonEditor' })
-            break
-          case 'Function':
-            emitter.emit('update:dprop', { default: 'return () => {}' })
-            emitter.emit('update:mprop', { [`${prefix}default.type`]: 'CodeEditor' })
-            break
-        }
-      }
+      options: bsTpOpns.filter(
+        ({ value }) => value !== 'Id' && value !== 'Any' && value !== 'Unknown'
+      ),
+      onChange: (prop: Property) => updDftByType(prop.ptype, emitter, { prefix })
     },
-    default: {
+    dftVal: {
       label: '默认值',
       type: 'Unknown'
     },
@@ -425,6 +384,10 @@ function genVarMapper(emitter: Emitter, prefix = '') {
 }
 
 export const clsPrpEmitter = new Emitter()
+
+clsPrpEmitter.on('show', (prop: Property) =>
+  updDftByType(prop.ptype, clsPrpEmitter, pickOrIgnore(prop, ['dftVal'], false))
+)
 
 export const clsPrpMapper = genVarMapper(clsPrpEmitter)
 
@@ -446,11 +409,12 @@ export const clsFunMapper = new Mapper({
   args: {
     label: '参数',
     type: 'EditList',
-    mapper: genVarMapper(clsFunEmitter, 'args.'),
+    mapper: genVarMapper(clsFunEmitter, 'args.mapper.'),
     inline: false,
     flatItem: false,
     lblProp: 'name',
-    subProp: 'label'
+    subProp: 'label',
+    onAdded: () => updDftByType('String', clsFunEmitter, { prefix: 'args.mapper.' })
   },
   isAsync: {
     label: 'Async前缀',

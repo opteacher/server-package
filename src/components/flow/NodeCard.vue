@@ -211,7 +211,7 @@ const addBtnPosLT = computed(() =>
         props.node.posLT[0] + CardHlfWid - AddBtnHlfWH,
         props.node.posLT[1] + CardHeight + ArrowHlfHgt - AddBtnHlfWH
       ]
-    : [(store.getters['service/width'] >> 1) - AddBtnHlfWH, 0]
+    : [(store.getters['node/width'] >> 1) - AddBtnHlfWH, 0]
 )
 const arwBtmSvgPosLT = computed(() => [
   props.node.posLT[0] - (arwBtmSvgSizeW.value >> 1) + CardHlfWid,
@@ -223,7 +223,7 @@ const arwTopSvgPosLT = computed(() => [
 ])
 const arwTopSvgSizeW = computed(() => {
   if (props.node.ntype === 'endNode') {
-    return getWidByNexts(store.getters['service/node'](props.node.relative))
+    return getWidByNexts(store.getters['node/node'](props.node.relative))
   } else {
     return CardWidth
   }
@@ -246,7 +246,7 @@ const color = computed(() => {
   }
 })
 const multiCond = computed(() => {
-  const relative = store.getters['service/node'](props.node.relative)
+  const relative = store.getters['node/node'](props.node.relative)
   return props.node.ntype === 'endNode' && relative.nexts.length > 1
 })
 const ndOutputs = computed(() =>
@@ -264,8 +264,8 @@ function getWidByNexts(node: Node): number {
   const lstIdx = node.nexts.length - 1
   const fstKey = node.nexts[0]
   const lstKey = node.nexts[lstIdx]
-  const first = store.getters['service/node'](fstKey)
-  const last = store.getters['service/node'](lstKey)
+  const first = store.getters['node/node'](fstKey)
+  const last = store.getters['node/node'](lstKey)
   if (!first || !first.posLT || !last || !last.posLT || last.posLT[0] <= first.posLT[0]) {
     return CardWidth
   }

@@ -25,9 +25,9 @@
         </a-button>
         <FormDialog
           title="导出类"
-          v-model:show="showExpCls"
+          v-model:visible="showExpCls"
           :object="expCls"
-          :copy="ExpCls.copy"
+          :new-fun="() => newOne(ExpCls)"
           :mapper="expMapper"
           @submit="(formData: any) => mdlAPI.export(formData)"
         />
@@ -47,8 +47,8 @@
       :api="propAPI"
       :columns="propColumns"
       :mapper="propMapper"
-      :copy="Property.copy"
       :emitter="propEmitter"
+      :new-fun="() => newOne(Property)"
       @save="refresh"
       @delete="refresh"
     >
@@ -132,6 +132,7 @@ import { mdlAPI, propAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { expMapper, propColumns, propEmitter, propMapper } from './Model'
 import { svcColumns, svcEmitter, svcMapper } from './Project'
+import { newOne } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
