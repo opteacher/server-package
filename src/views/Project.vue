@@ -254,8 +254,24 @@
           @submit="onExpClsSbt"
         />
       </a-tab-pane>
-      <a-tab-pane key="typo" tab="类">
-        <EditableTable
+      <a-tab-pane key="typo" tab="自定义类">
+        <a-row class="w-full p-2" :gutter="8">
+          <a-col v-for="typo of project.typos" :key="typo.key" :span="6">
+            <a-card :title="typo.name + (typo.label ? ` ( ${typo.label} )` : '')" hoverable>
+              <a-list :data-source="typo.props">
+                <template #renderItem="{ item: prop }">
+                  <a-list-item>
+                    <a-list-item-meta>
+                      <template #title>{{ prop.name }}</template>
+                    </a-list-item-meta>
+                    {{ prop.ptype }}
+                  </a-list-item>
+                </template>
+              </a-list>
+            </a-card>
+          </a-col>
+        </a-row>
+        <!-- <EditableTable
           size="small"
           title="自定义类"
           description="定义在项目types文件夹下"
@@ -320,7 +336,7 @@
               </template>
             </EditableTable>
           </template>
-        </EditableTable>
+        </EditableTable> -->
       </a-tab-pane>
     </a-tabs>
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
@@ -372,8 +388,8 @@ import {
   columns as mdlColumns,
   mapper as mdlMapper,
   propColumns,
-  propMapper,
-  propEmitter
+  propEmitter,
+  propMapper
 } from './Model'
 import {
   clsColumns,

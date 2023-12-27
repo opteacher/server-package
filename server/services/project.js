@@ -458,11 +458,24 @@ export async function generate(pid) {
   const pkgLkGen = Path.join(genPath, 'package-lock.json')
   console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
   adjustFile(pkgLkTmp, pkgLkGen, { project })
-  const nmodTmp = Path.join(tmpPath, 'npm.tar')
-  spawnSync(`tar -zxvf ${nmodTmp} -C ${genPath}`, {
-    stdio: 'inherit',
-    shell: true
-  })
+  const cchPath = Path.resolve(svrCfg.apps, 'tmp')
+  try {
+    fs.accessSync(cchPath)
+  } catch (e) {
+    fs.mkdirSync(cchPath)
+  }
+  const nmodTmp = Path.join(cchPath, '.npm')
+  try {
+    fs.accessSync(nmodTmp, fs.constants.R_OK)
+  } catch (e) {
+    console.log('解压缩npm文件，减少install时间')
+    spawnSync(`tar -zxvf ${Path.join(tmpPath, 'npm.tar')} -C ${cchPath}`, {
+      stdio: 'inherit',
+      shell: true
+    })
+  }
+  console.log(`复制npm文件夹到生成目录：${nmodTmp} -> ${Path.join(genPath, '.npm')}`)
+  copyDir(nmodTmp, Path.join(genPath, '.npm'))
   return project
 }
 
