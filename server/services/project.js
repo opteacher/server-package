@@ -776,7 +776,7 @@ export async function deploy(pid, cfg) {
   spawnSync(
     [
       `git clone ${cfg.gitURL} && cd *`,
-      'npm config set registry http://registry.npm.taobao.org',
+      'npm config set registry https://mirrors.tuna.tsinghua.edu.cn/npm/',
       'npm install --unsafe-perm=true --allow-root',
       cfg.buildCmd,
       `docker container cp ${cfg.indexPath} ${project.name}:/app/views/index.html`,
@@ -942,7 +942,7 @@ export async function pubMiddle(pid, pubInfo) {
     [
       (process.platform === 'win32' ? 'set' : 'export') + ' NODE_OPTIONS=--max_old_space_size=2048',
       'git clone https://gitee.com/opteacher/frontend-library.git lib/frontend-library',
-      'npm config set registry http://registry.npm.taobao.org',
+      'npm config set registry https://mirrors.tuna.tsinghua.edu.cn/npm/',
       'npm install --unsafe-perm=true --allow-root',
       'npm run build',
       `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public`,
