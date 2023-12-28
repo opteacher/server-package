@@ -9,6 +9,6 @@ COPY . /app
 ##return `EXPOSE ${project.port}`*/
 RUN npm config get cache | xargs rm -r
 RUN mv .npm ~
-RUN npm config set registry https://mirrors.tuna.tsinghua.edu.cn/npm/
+RUN npm config set registry https://registry.npm.aliyun.com/
 RUN npm install --unsafe-perm=true --allow-root --prefer-offline
 CMD [ "node", "./app.js" ]
