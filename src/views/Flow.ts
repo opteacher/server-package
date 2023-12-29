@@ -345,6 +345,11 @@ export const nodeMapper = new Mapper({
               'advanced.items.subFun.display': checked,
               'advanced.items.subFun.rules[0].required': checked
             })
+          } else {
+            nodeEmitter.emit('update:mprop', {
+              'advanced.items.subFun.display': false,
+              'advanced.items.subFun.rules[0].required': false
+            })
           }
         }
       },
