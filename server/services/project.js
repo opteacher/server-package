@@ -416,11 +416,14 @@ export async function generate(pid) {
     } else {
       svcMap[service.name].push(svcExt)
     }
-    if (!(service.name in varMap)) {
-      varMap[service.name] = svcExt.stcVars
-    } else {
-      const vnames = new Set(varMap[service.name].map(v => v.name))
-      varMap[service.name].push(...svcExt.stcVars.filter(v => !vnames.has(v.name)))
+    if (svcExt.stcVars.length) {
+      console.log('收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`))
+      if (!(service.name in varMap)) {
+        varMap[service.name] = svcExt.stcVars
+      } else {
+        const vnames = new Set(varMap[service.name].map(v => v.name))
+        varMap[service.name].push(...svcExt.stcVars.filter(v => !vnames.has(v.name)))
+      }
     }
   }
   console.log('生成非模型服务的路由……')
