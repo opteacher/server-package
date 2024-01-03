@@ -160,18 +160,18 @@ const pjtName = computed(() => store.getters['project/ins'].name)
 const mdlName = computed(() => store.getters['model/ins'].name)
 const models = computed(() => store.getters['project/ins'].models)
 const isFront = computed<boolean>(() => !store.getters['project/ins'].database)
-const expanded = reactive<string[]>([])
+const expanded = ref<string[]>([])
 const collapsed = ref<boolean>(false)
 
 onMounted(() => {
   if (route.fullPath.endsWith(`/project/${pid}`) || route.fullPath.includes('/model/')) {
-    expanded.push('project')
+    expanded.value.push('project')
   }
   if (route.fullPath.includes('/mid/')) {
-    expanded.push('middle')
+    expanded.value.push('middle')
   }
   if (route.fullPath.includes('/auth/')) {
-    expanded.push('auth')
+    expanded.value.push('auth')
   }
 })
 
