@@ -593,10 +593,12 @@ async function adjAndRestartNginx(projects) {
   }
   spawnSync(
     [
-      'docker run --rm -itd --network server-package_default --name server-package_nginx nginx',
-      `docker container cp ${ngCfgGen} server-package_nginx:/etc/nginx/conf.d/default.conf`,
-      'docker container restart server-package_nginx'
-    ].join(' && '),
+      'docker run --rm -itd',
+      '--network server-package_default',
+      '--name server-package_nginx',
+      `-v ${ngCfgGen}:/etc/nginx/conf.d/default.conf`,
+      'nginx'
+    ].join(' '),
     {
       stdio: 'inherit',
       shell: true
