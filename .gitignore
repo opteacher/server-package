@@ -10,6 +10,8 @@ server/configs/nginx.conf
 .nyc_output
 screenshots
 __image_snapshots__
+server/views
+server/public/server-package
 
 
 # local env files

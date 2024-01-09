@@ -580,11 +580,11 @@ async function adjAndRestartNginx(projects) {
   const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
   const ngCfgGen = Path.resolve('configs', 'nginx.conf')
   console.log(`调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
-  adjustFile(ngCfgTmp, ngCfgGen, { projects })
+  adjustFile(ngCfgTmp, ngCfgGen, { svrCfg, projects })
 
   console.log('重启Nginx……')
   try {
-    spawnSync(['docker stop nginx', 'docker container prune -f'].join(' && '), {
+    spawnSync(['docker stop server-package_nginx', 'docker container prune -f'].join(' && '), {
       stdio: 'inherit',
       shell: true
     })
@@ -593,9 +593,9 @@ async function adjAndRestartNginx(projects) {
   }
   spawnSync(
     [
-      'docker run --rm -itd --net host --name nginx nginx',
-      `docker container cp ${ngCfgGen} nginx:/etc/nginx/conf.d/default.conf`,
-      'docker container restart nginx'
+      'docker run --rm -itd --network server-package_default --name server-package_nginx nginx',
+      `docker container cp ${ngCfgGen} server-package_nginx:/etc/nginx/conf.d/default.conf`,
+      'docker container restart server-package_nginx'
     ].join(' && '),
     {
       stdio: 'inherit',
