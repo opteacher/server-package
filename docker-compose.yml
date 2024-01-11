@@ -2,7 +2,7 @@ version: '3'
 services:
   mysql:
     image: mysql
-    container_name: mysql
+    container_name: server-package_mysql
     restart: unless-stopped
     ports:
       - 3306:3306
@@ -14,7 +14,7 @@ services:
 
   mongo:
     image: mongo
-    container_name: mongo
+    container_name: server-package_mongo
     restart: unless-stopped
     ports:
       - 27017:27017
@@ -26,7 +26,7 @@ services:
       - /data/server-package/mongo/config:/data/config
 
   default:
-    container_name: server-package
+    container_name: server-package_default
     build:
       context: ./
     privileged: true
