@@ -597,7 +597,7 @@ async function adjAndRestartNginx(projects) {
         'docker run --rm -itd',
         '--network server-package_default',
         '--name server-package_nginx',
-        `-p 0.0.0:${svrCfg.ngPort}:${svrCfg.ngPort}`,
+        `-p 0.0.0.0:${svrCfg.ngPort}:${svrCfg.ngPort}`,
         'nginx'
       ].join(' '),
       `docker container cp ${ngCfgGen} server-package_nginx:/etc/nginx/conf.d/default.conf`,
