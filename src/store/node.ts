@@ -157,7 +157,6 @@ export default {
         state.width = params.width
       }
       if (state.service.flow || state.typFun.flow) {
-        const subNid = state.subNode.key
         if (params.updNodes) {
           for (const [ndKey, opera] of params.updNodes) {
             switch (opera) {

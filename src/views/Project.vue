@@ -307,6 +307,7 @@
           </a-col>
         </a-row>
         <FormDialog
+          title="自定义类"
           :emitter="clsEmitter"
           :mapper="clsMapper"
           :new-fun="() => newOne(Typo)"

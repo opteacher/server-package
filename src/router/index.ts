@@ -86,7 +86,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/project/:pid/typo/:tid/func/:fid',
-    name: 'Flow',
+    name: 'Func',
     component: Flow,
     meta: { reqLogin: true }
   },
