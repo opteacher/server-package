@@ -11,13 +11,21 @@
             {{ pname }}
           </a>
         </a-breadcrumb-item>
-        <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
-        <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
-        <a-breadcrumb-item>
-          <a :href="`/server-package/project/${pid}`">
-            {{ service.name }}.{{ service.interface || service.method }}
-          </a>
-        </a-breadcrumb-item>
+        <template v-if="service.key">
+          <a-breadcrumb-item v-if="service.emit === 'api'">接口</a-breadcrumb-item>
+          <a-breadcrumb-item v-else>任务</a-breadcrumb-item>
+          <a-breadcrumb-item>
+            <a :href="`/server-package/project/${pid}`">
+              {{ service.name }}.{{ service.interface || service.method }}
+            </a>
+          </a-breadcrumb-item>
+        </template>
+        <template v-else>
+          <a-breadcrumb-item>自定义类</a-breadcrumb-item>
+          <a-breadcrumb-item>
+            <a :href="`/server-package/project/${pid}`">{{ tname }}.{{ fname }}</a>
+          </a-breadcrumb-item>
+        </template>
         <template v-if="store.getters['node/subNdKey']">
           <a-breadcrumb-item>
             <a @click="onBackClick">设计流程</a>
@@ -64,28 +72,33 @@
 </template>
 
 <script lang="ts" setup name="Flow">
+import PjtCtrlPnl from '@/components/flow/PjtCtrlPnl.vue'
 import { NodesInPnl } from '@/store/node'
 import NodeInPnl from '@/types/ndInPnl'
 import Service from '@/types/service'
+import Typo from '@/types/typo'
 import { newOne, until } from '@/utils'
 import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import { computed, onBeforeMount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { ndAPI as api, pjtAPI } from '../apis'
+import { ndAPI as api } from '../apis'
 import NodeCard from '../components/flow/NodeCard.vue'
 import VarsPanel from '../components/flow/VarsPanel.vue'
 import Node, { NodeTypeMapper } from '../types/node'
 import { nodeEmitter, nodeMapper } from './Flow'
-import PjtCtrlPnl from '@/components/flow/PjtCtrlPnl.vue'
 
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
 const pid = route.params.pid as string
 const panelRef = ref()
-const pname = ref('')
+const pname = computed(() => store.getters['project/ins'].name)
+const tname = computed(
+  () => store.getters['project/ins'].typos.find((typo: Typo) => typo.key === route.params.tid)?.name
+)
+const fname = computed(() => store.getters['node/typFun'].name)
 const service = computed<Service>(() => store.getters['node/service'])
 const editTitle = computed<string>(() => {
   const node = store.getters['node/editNode'] as Node
@@ -107,9 +120,6 @@ nodeEmitter.on('delNode', (ndKey: string) => refresh([ndKey, 'delete']))
 
 async function refresh(param: [string, 'save' | 'delete'] | boolean = false) {
   loading.value = true
-  if (typeof param === 'boolean' && param) {
-    pname.value = (await pjtAPI.detail(route.params.pid)).name
-  }
   await until(() => panelRef.value)
   await store.dispatch('node/refresh', {
     force: typeof param === 'boolean' ? param : undefined,

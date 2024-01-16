@@ -1,9 +1,11 @@
 import store from '@/store'
 import Typo from '@/types/typo'
-import { reqDelete, reqLink, reqPost, reqPut } from '@/utils'
+import { reqDelete, reqGet, reqLink, reqPost, reqPut } from '@/utils'
 
 export default {
-  all: () => store.dispatch('project/refresh').then(() => store.getters['project/ins'].typos),
+  all: (): Promise<Typo[]> =>
+    store.dispatch('project/refresh').then(() => store.getters['project/ins'].typos),
+  get: (key: string): Promise<Typo> => reqGet('typo', key, { copy: Typo.copy }),
   add: (typo: Typo) =>
     reqPost('typo', typo, { copy: Typo.copy }).then(({ key }) =>
       reqLink({ parent: ['project', store.getters['project/key']], child: ['typos', key] })

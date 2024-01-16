@@ -196,12 +196,15 @@ export async function colcNodes(ndKey) {
   return ret
 }
 
-export async function buildNodes(svcKey, { width }, sndKey) {
-  const service = await db.select(Service, { _index: svcKey }, { ext: false })
+export async function getNodesFmSvc(svcKey, sndKey, reqBody) {
   const flowKey =
     sndKey === 's'
-      ? service.flow
+      ? await db.select(Service, { _index: svcKey }, { ext: false }).then(svc => svc.flow)
       : await db.select(Node, { _index: sndKey }, { ext: false }).then(node => node.relative)
+  return buildNodes(flowKey, reqBody.width)
+}
+
+export async function buildNodes(flowKey, width) {
   if (!flowKey) {
     return []
   }
@@ -275,7 +278,7 @@ export async function buildNodes(svcKey, { width }, sndKey) {
     }
     if (width < right - left) {
       width = right - left
-      await buildNodes(svcKey, { width })
+      await buildNodes(flowKey, width)
     }
   }
 

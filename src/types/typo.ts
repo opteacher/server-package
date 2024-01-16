@@ -6,6 +6,7 @@ import Property from './property'
 export class Func {
   key: string
   name: string
+  label: string
   args: Property[]
   isAsync: boolean
   remark: string
@@ -14,6 +15,7 @@ export class Func {
   constructor() {
     this.key = ''
     this.name = ''
+    this.label = ''
     this.args = []
     this.isAsync = false
     this.remark = ''
@@ -23,6 +25,7 @@ export class Func {
   reset() {
     this.key = ''
     this.name = ''
+    this.label = ''
     this.args = []
     this.isAsync = false
     this.remark = ''

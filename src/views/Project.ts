@@ -8,6 +8,7 @@ import Property from '@/types/property'
 import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
+import { Func } from '@/types/typo'
 import Variable from '@/types/variable'
 import { pickOrIgnore, updDftByType } from '@/utils'
 import { BaseTypes, Cond, OpnType, bsTpOpns, methods } from '@lib/types'
@@ -314,30 +315,6 @@ export const frtMapper = new Mapper({
   }
 })
 
-export const clsColumns = [
-  new Column('类名', 'name'),
-  new Column('类标签', 'label'),
-  new Column('描述', 'desc')
-]
-
-export const clsMapper = new Mapper({
-  name: {
-    label: '类名',
-    type: 'Input',
-    rules: [{ required: true, message: '必须给出类名！' }]
-  },
-  label: {
-    label: '类标签',
-    type: 'Input'
-  },
-  desc: {
-    label: '描述',
-    type: 'Textarea'
-  }
-})
-
-export const clsEmitter = new Emitter()
-
 export const clsPrpCols = [
   new Column('字段名', 'name'),
   new Column('标签', 'label'),
@@ -393,6 +370,7 @@ export const clsPrpMapper = genVarMapper(clsPrpEmitter)
 
 export const clsFunCols = [
   new Column('函数名', 'name'),
+  new Column('简介', 'label'),
   new Column('参数', 'args'),
   new Column('Async', 'isAsync'),
   new Column('备注', 'remark')
@@ -405,6 +383,10 @@ export const clsFunMapper = new Mapper({
     label: '函数名',
     type: 'Input',
     rules: [{ required: true, message: '必须给出函数名！' }]
+  },
+  label: {
+    label: '简介',
+    type: 'Input'
   },
   args: {
     label: '参数',
@@ -425,3 +407,43 @@ export const clsFunMapper = new Mapper({
     type: 'Textarea'
   }
 })
+
+export const clsColumns = [
+  new Column('类名', 'name'),
+  new Column('类标签', 'label'),
+  new Column('描述', 'desc')
+]
+
+export const clsMapper = new Mapper({
+  name: {
+    label: '类名',
+    type: 'Input',
+    rules: [{ required: true, message: '必须给出类名！' }]
+  },
+  label: {
+    label: '类标签',
+    type: 'Input'
+  },
+  desc: {
+    label: '描述',
+    type: 'Textarea'
+  },
+  props: {
+    label: '字段',
+    type: 'Table',
+    columns: clsPrpCols,
+    mapper: clsPrpMapper,
+    emitter: clsPrpEmitter,
+    newFun: () => new Property()
+  },
+  funcs: {
+    label: '方法',
+    type: 'Table',
+    columns: clsFunCols,
+    mapper: clsFunMapper,
+    emitter: clsFunEmitter,
+    newFun: () => new Func()
+  }
+})
+
+export const clsEmitter = new Emitter()

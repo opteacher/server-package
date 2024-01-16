@@ -59,7 +59,7 @@
       <a-descriptions size="small" :column="4">
         <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
         <template v-if="!isFront">
-          <a-descriptions-item label="数据库">
+          <a-descriptions-item label="数据库" :span="2">
             {{ database }}
           </a-descriptions-item>
           <a-descriptions-item label="启动时清空数据库">
@@ -255,88 +255,63 @@
         />
       </a-tab-pane>
       <a-tab-pane key="typo" tab="自定义类">
+        <div class="text-right">
+          <a-typography-text class="mr-3" type="secondary">
+            点击方法进入方法流程设计
+          </a-typography-text>
+          <a-button type="primary" @click="() => clsEmitter.emit('update:visible', true)">
+            添加
+          </a-button>
+        </div>
         <a-row class="w-full p-2" :gutter="8">
           <a-col v-for="typo of project.typos" :key="typo.key" :span="6">
-            <a-card :title="typo.name + (typo.label ? ` ( ${typo.label} )` : '')" hoverable>
-              <a-list :data-source="typo.props">
-                <template #renderItem="{ item: prop }">
-                  <a-list-item>
-                    <a-list-item-meta>
-                      <template #title>{{ prop.name }}</template>
-                    </a-list-item-meta>
-                    {{ prop.ptype }}
-                  </a-list-item>
-                </template>
-              </a-list>
+            <a-card
+              hoverable
+              @click="() => clsEmitter.emit('update:visible', { show: true, object: typo })"
+            >
+              <template #title>
+                {{ typo.name }}
+                <span class="float-right">{{ typo.label }}</span>
+              </template>
+              <ul class="pl-0 mb-0 list-none">
+                <li
+                  v-for="prop of typo.props"
+                  :key="prop.key"
+                  class="px-1 pb-0.5 hover:bg-gray-200"
+                >
+                  <b>-</b>
+                  &nbsp;{{ prop.name }}:&nbsp;{{ prop.ptype }}
+                  <span class="float-right">{{ prop.label }}</span>
+                </li>
+              </ul>
+              <a-divider class="my-3" />
+              <ul class="pl-0 mb-0 list-none">
+                <li
+                  v-for="func of typo.funcs"
+                  :key="func.key"
+                  class="px-1 pb-0.5 hover:bg-gray-200"
+                  @click.stop="
+                    () => router.push(`/project/${pid}/typo/${typo.key}/func/${func.key}`)
+                  "
+                >
+                  <b>+</b>
+                  &nbsp;{{ (func.isAsync ? 'async ' : '') + func.name }}&nbsp;(
+                  <span v-for="arg of func.args" :key="arg.key">
+                    {{ arg.name }}:&nbsp;{{ arg.ptype }}
+                  </span>
+                  )
+                  <span class="float-right">{{ func.label }}</span>
+                </li>
+              </ul>
             </a-card>
           </a-col>
         </a-row>
-        <!-- <EditableTable
-          size="small"
-          title="自定义类"
-          description="定义在项目types文件夹下"
-          :api="typAPI"
-          :columns="clsColumns"
+        <FormDialog
+          :emitter="clsEmitter"
           :mapper="clsMapper"
           :new-fun="() => newOne(Typo)"
-          :emitter="clsEmitter"
-        >
-          <template #name="{ record: typo }">
-            <a @click.stop="() => onTypoClick(typo)">{{ typo.name }}</a>
-          </template>
-          <template #expandedRowRender="{ record: typo }">
-            <EditableTable
-              title="字段"
-              size="small"
-              :api="typPrpAPI(typo)"
-              :columns="clsPrpCols"
-              :mapper="clsPrpMapper"
-              :new-fun="() => newOne(Property)"
-              :emitter="clsPrpEmitter"
-            >
-              <template #defaultEDT="{ editing: prop }">
-                <a-input>
-                  <template #addonAfter>
-                    <a-checkbox>无</a-checkbox>
-                  </template>
-                </a-input>
-              </template>
-            </EditableTable>
-            <EditableTable
-              class="mt-3"
-              title="方法"
-              size="small"
-              :api="typFunAPI(typo)"
-              :columns="clsFunCols"
-              :mapper="clsFunMapper"
-              :new-fun="() => newOne(Func)"
-              :emitter="clsFunEmitter"
-            >
-              <template #operaBefore="{ record: func }">
-                <a-button
-                  size="small"
-                  type="primary"
-                  @click.stop="router.push(`/project/${pid}/flow/${func.key}`)"
-                >
-                  <template #icon><EditOutlined /></template>
-                  设计流程
-                </a-button>
-              </template>
-              <template #args="{ record: func }">
-                <ul class="list-none mb-0 pl-0">
-                  <li v-for="arg of func.args" :key="arg.key">{{ arg.name }}</li>
-                </ul>
-              </template>
-              <template #argsVW="{ current: func }">
-                <ul class="list-none mb-0 pl-0">
-                  <li v-for="arg of func.args" :key="arg.key">
-                    {{ arg.name }} : {{ arg.ptype }} = {{ arg.default }} // {{ arg.label }}
-                  </li>
-                </ul>
-              </template>
-            </EditableTable>
-          </template>
-        </EditableTable> -->
+          @submit="(typo: Typo) => typo.key ? typAPI.update(typo) : typAPI.add(typo)"
+        />
       </a-tab-pane>
     </a-tabs>
     <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
@@ -357,12 +332,11 @@ import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
-import Typo, { Func } from '@/types/typo'
+import Typo from '@/types/typo'
 import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   DownOutlined,
-  EditOutlined,
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
@@ -374,6 +348,7 @@ import {
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
+import { update } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, h, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -392,15 +367,8 @@ import {
   propMapper
 } from './Model'
 import {
-  clsColumns,
   clsEmitter,
-  clsFunCols,
-  clsFunEmitter,
-  clsFunMapper,
   clsMapper,
-  clsPrpCols,
-  clsPrpEmitter,
-  clsPrpMapper,
   frtEmitter,
   frtMapper,
   svcColumns,

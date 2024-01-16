@@ -2,7 +2,7 @@ import Router from 'koa-router'
 
 import { rmv as rmvNode, save as saveNode } from '../../../../../services/node.js'
 import {
-  buildNodes,
+  getNodesFmSvc,
   expSvcFlow,
   genSvcCode,
   impSvcFlow,
@@ -45,9 +45,8 @@ router.delete('/:sid/job/stop', async ctx => {
 })
 
 router.post('/:sid/node', async ctx => {
-  console.log(ctx.query.isSub)
   ctx.body = {
-    result: await saveNode(ctx.request.body, ctx.params.sid, ctx.query.isSub)
+    result: await saveNode(ctx.request.body, ctx.params.sid, ctx.query.flowMod)
   }
 })
 
@@ -56,14 +55,14 @@ router.post('/:sid/node/:nid', async ctx => {
     result: await saveNode(
       Object.assign(ctx.request.body, { key: ctx.params.nid }),
       ctx.params.sid,
-      ctx.query.isSub
+      ctx.query.flowMod
     )
   }
 })
 
 router.delete('/:sid/node/:nid', async ctx => {
   ctx.body = {
-    result: await rmvNode(ctx.params.nid, ctx.params.sid, ctx.query.isSub)
+    result: await rmvNode(ctx.params.nid, ctx.params.sid, ctx.query.flowMod)
   }
 })
 
@@ -81,7 +80,7 @@ router.get('/:sid/flow/nodes', async ctx => {
 
 router.post('/:sid/node/:nid/build', async ctx => {
   ctx.body = {
-    result: await buildNodes(ctx.params.sid, ctx.request.body, ctx.params.nid)
+    result: await getNodesFmSvc(ctx.params.sid, ctx.params.nid, ctx.request.body)
   }
 })
 

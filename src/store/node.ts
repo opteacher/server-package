@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { depAPI, ndAPI, svcAPI } from '@/apis'
+import { depAPI, ndAPI, svcAPI, typAPI } from '@/apis'
 import router from '@/router'
 import Dep from '@/types/dep'
 import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
+import { Func } from '@/types/typo'
 import { nodeEmitter, nodeMapper } from '@/views/Flow'
 import { flatten } from 'lodash'
 import { Dispatch } from 'vuex'
@@ -14,6 +15,7 @@ import { Dispatch } from 'vuex'
 export type NodesInPnl = { [key: string]: NodeInPnl }
 type NodeState = {
   service: Service
+  typFun: Func
   nodes: NodesInPnl
   width: number
   editing: Node
@@ -26,6 +28,7 @@ export default {
   state: () =>
     ({
       service: new Service(),
+      typFun: new Func(),
       nodes: {} as NodesInPnl,
       width: 0,
       editing: new Node(),
@@ -100,13 +103,17 @@ export default {
     },
     RESET_STATE(state: NodeState) {
       state.service.reset()
+      state.typFun.reset()
+      state.editing.reset()
       state.width = 0
       state.nodes = {}
-      state.editing.reset()
     }
   },
   actions: {
-    async setSubNid({ state, dispatch }: { state: NodeState; dispatch: Dispatch }, subNid?: string) {
+    async setSubNid(
+      { state, dispatch }: { state: NodeState; dispatch: Dispatch },
+      subNid?: string
+    ) {
       if (subNid) {
         state.subNode = state.nodes[subNid]
       } else {
@@ -118,7 +125,7 @@ export default {
       { state }: { state: NodeState },
       params?: {
         force?: boolean
-        onlySvc?: boolean
+        onlyIns?: boolean
         width?: number
         updNodes?: [string, 'save' | 'delete'][]
       }
@@ -126,22 +133,30 @@ export default {
       if (!params) {
         params = { force: false, width: 0, updNodes: [] }
       }
-      if (!router.currentRoute.value.params.sid) {
+      const routeParams = router.currentRoute.value.params
+      let flowKey = state.subNode.relative
+      if (routeParams.sid) {
+        state.service = await svcAPI.detail(routeParams.sid as string)
+        state.typFun.reset()
+        flowKey = state.service.flow.key
+      } else if (routeParams.tid) {
+        const typo = await typAPI.get(routeParams.tid as string)
+        state.typFun = typo.funcs.find((func: Func) => func.key === routeParams.fid)
+        state.service.reset()
+        flowKey = state.typFun.flow as string
+      } else {
         return
       }
-      const sid = router.currentRoute.value.params.sid as string
-      if (params.onlySvc) {
-        state.service = await svcAPI.detail(sid)
+      if (params.onlyIns) {
         return
       }
-      if (params.force || !state.service.flow) {
-        state.service = await svcAPI.detail(sid)
+      if (params.force || (!state.service.flow && !state.typFun.flow)) {
         state.deps = await Promise.all([depAPI.all(), depAPI.allByPjt()]).then(res => flatten(res))
       }
       if (params.width) {
         state.width = params.width
       }
-      if (state.service.flow) {
+      if (state.service.flow || state.typFun.flow) {
         const subNid = state.subNode.key
         if (params.updNodes) {
           for (const [ndKey, opera] of params.updNodes) {
@@ -182,12 +197,12 @@ export default {
           }
         } else if (params.force) {
           state.nodes = Object.fromEntries(
-            await (subNid ? ndAPI.subNode.all(subNid) : ndAPI.all(sid)).then(nodes =>
-              nodes.map(node => [node.key, NodeInPnl.copy(node)])
-            )
+            await ndAPI
+              .all(flowKey)
+              .then(nodes => nodes.map(node => [node.key, NodeInPnl.copy(node)]))
           )
         }
-        for (const ndInPnl of await svcAPI.flow.build(sid, state.width, subNid)) {
+        for (const ndInPnl of await svcAPI.flow.build(flowKey, state.width)) {
           const node = state.nodes[ndInPnl.key]
           node.posLT = ndInPnl.posLT
           node.btmSvgHgt = ndInPnl.btmSvgHgt
@@ -200,7 +215,9 @@ export default {
   },
   getters: {
     service: (state: NodeState): Service => state.service,
+    typFun: (state: NodeState): Func => state.typFun,
     svcKey: (state: NodeState): string => state.service.key,
+    funKey: (state: NodeState): string => state.typFun.key,
     nodes: (state: NodeState): NodesInPnl => state.nodes,
     width: (state: NodeState): number => state.width,
     node:

@@ -45,8 +45,8 @@ export default {
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   flow: {
     codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
-    build: (key: any, width: number, sub?: string) =>
-      reqPost(`service/${key}/node/${sub || 's'}/build`, { width }, { type: 'api' }),
+    build: (key: any, width: number) =>
+      reqPost(`/${key}/nodes`, { width }, { type: 'api' }),
     export: async (key: any) =>
       downloadFile(await reqGet('service', `/${key}/flow/export`, { type: 'api', orgRes: true })),
     import: (key: any, body: { impFile: string }) =>
@@ -61,7 +61,7 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            await store.dispatch('node/refresh', { onlySvc: true })
+            await store.dispatch('node/refresh', { onlyIns: true })
             return store.getters['node/service'].jobId !== 0
           } catch (e: any) {
             return false
@@ -77,7 +77,7 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            await store.dispatch('node/refresh', { onlySvc: true })
+            await store.dispatch('node/refresh', { onlyIns: true })
             return store.getters['node/service'].jobId === 0
           } catch (e: any) {
             return false

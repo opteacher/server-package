@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from '../models/node.js'
+import Func from '../models/func.js'
 import Service from '../models/service.js'
 import { db, pickOrIgnore } from '../utils/index.js'
 import { colcNodes } from './service.js'
@@ -12,7 +13,11 @@ export async function bindPtCdNodes(parent, child) {
   ])
 }
 
-export async function save(node, sid, isSub = false) {
+// @flowMode: 枚举值如下
+// * service: 服务类型
+// * subNode: 子节点（优先级最高）
+// * typFun: 自定义方法
+export async function save(node, sid, flowMod = 'service') {
   // 保存依赖
   if (node.key) {
     // 更新节点
@@ -87,10 +92,17 @@ export async function save(node, sid, isSub = false) {
   }
   if (!node.previous) {
     // 绑定根节点
-    if (isSub) {
-      await db.saveOne(Node, sid, { relative: nodeKey })
-    } else {
-      await db.saveOne(Service, sid, { flow: nodeKey })
+    switch (flowMod) {
+      case 'service':
+        await db.saveOne(Service, sid, { flow: nodeKey })
+        break
+      case 'typFun': {}
+        await db.saveOne(Func, sid, { flow: nodeKey })
+        break
+      case 'subNode':
+      default:
+        await db.saveOne(Node, sid, { relative: nodeKey })
+        break
     }
   } else {
     // 绑定非根节点
@@ -108,7 +120,8 @@ export async function save(node, sid, isSub = false) {
   return node
 }
 
-export async function rmv(nid, sid, isSub = false) {
+// flowMod: 参照save
+export async function rmv(nid, sid, flowMod = 'service') {
   const node = await db.select(Node, { _index: nid })
   if (!node) {
     return
@@ -121,10 +134,17 @@ export async function rmv(nid, sid, isSub = false) {
       await db.saveOne(Node, pvsKey, { nexts: node.id }, { updMode: 'delete' })
     } else {
       // 删除根节点
-      if (isSub) {
-        await db.saveOne(Node, sid, { relative: node.id }, { updMode: 'delete' })
-      } else {
-        await db.saveOne(Service, sid, { flow: node.id }, { updMode: 'delete' })
+      switch (flowMod) {
+        case 'service':
+          await db.saveOne(Service, sid, { flow: node.id }, { updMode: 'delete' })
+          break
+        case 'typFun':
+          await db.saveOne(Func, sid, { flow: node.id }, { updMode: 'delete' })
+          break
+        case 'subNode':
+        default:
+          await db.saveOne(Node, sid, { relative: node.id }, { updMode: 'delete' })
+          break
       }
     }
     // 删除节点的子节点或解绑子节点
@@ -191,10 +211,17 @@ export async function rmv(nid, sid, isSub = false) {
         await bindPtCdNodes(pvsKey, nxtKey)
       }
     } else {
-      if (isSub) {
-        await db.saveOne(Node, sid, { relative: nexts[0] })
-      } else {
-        await db.saveOne(Service, sid, { flow: nexts[0] })
+      switch (flowMod) {
+        case 'service':
+          await db.saveOne(Service, sid, { flow: nexts[0] })
+          break
+        case 'typFun':
+          await db.saveOne(Func, sid, { flow: nexts[0] })
+          break
+        case 'subNode':
+        default:
+          await db.saveOne(Node, sid, { relative: nexts[0] })
+          break
       }
       await db.saveOne(Node, nexts[0], { previous: null }, { updMode: 'delete' })
     }

@@ -2,34 +2,44 @@ import store from '@/store'
 import Node from '@/types/node'
 import { reqDelete, reqGet, reqPost, reqPut } from '@/utils'
 
-const exp = {
+function getFlowCtnr() {
+  if (store.getters['node/subNdKey']) {
+    return ['subNode', store.getters['node/subNdKey']]
+  } else if (store.getters['node/svcKey']) {
+    return ['service', store.getters['node/svcKey']]
+  } else if (store.getters['node/funKey']) {
+    return ['typFun', store.getters['node/funKey']]
+  } else {
+    throw new Error('未知流程设计！')
+  }
+}
+
+export default {
   save: (data: any) => {
-    const isSub = store.getters['node/subNdKey'] as boolean
-    const sid = isSub ? store.getters['node/subNdKey'] : store.getters['node/svcKey']
+    const flowCtnr = getFlowCtnr()
     const nid = data.key ? '/' + data.key : ''
-    return reqPost(`service/${sid}/node${nid}`, data, {
+    return reqPost(`service/${flowCtnr[1]}/node${nid}`, data, {
       type: 'api',
       copy: Node.copy,
-      axiosConfig: { params: { isSub } }
+      axiosConfig: { params: { flowMod: flowCtnr[0] } }
     })
   },
   remove: (key: any) => {
-    const isSub = store.getters['node/subNdKey'] as boolean
-    const sid = isSub ? store.getters['node/subNdKey'] : store.getters['node/svcKey']
-    return reqDelete(`service/${sid}`, `node/${key}`, {
+    const flowCtnr = getFlowCtnr()
+    return reqDelete(`service/${flowCtnr[1]}`, `node/${key}`, {
       type: 'api',
-      axiosConfig: { params: { isSub } }
+      axiosConfig: { params: { flowMod: flowCtnr[0] } }
     })
   },
-  all: (sid: string): Promise<Node[]> => reqGet('service', `${sid}/flow/nodes`, { type: 'api' }),
+  all: (nid: string): Promise<Node[]> =>
+    reqGet('flow', `${nid}/nodes`, { type: 'api', copy: Node.copy }),
   subNode: {
-    all: (nid: string): Promise<Node[]> => reqGet('node', nid, { action: 'sub/nodes', type: 'api' }),
-    codes: (key: any) => reqGet('node', key, { action: 'sub/codes', type: 'api' }),
+    all: (nid: string): Promise<Node[]> =>
+      reqGet('node', nid, { action: 'sub/nodes', type: 'api' }),
+    codes: (key: any) => reqGet('node', key, { action: 'sub/codes', type: 'api' })
   },
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
     save: (deps: string[]) => reqPut('node', store.getters['node/edtNdKey'], { deps })
   }
 }
-
-export default exp
