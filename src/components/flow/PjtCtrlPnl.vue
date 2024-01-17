@@ -93,13 +93,22 @@ async function onFlowOpnClick({
 }
 async function onShowCodesClick() {
   showCodes.value = !showCodes.value
-  emit(
-    'update:codes',
-    showCodes.value
-      ? store.getters['node/subNdKey']
-        ? await ndAPI.subNode.codes(store.getters['node/subNdKey'])
-        : await svcAPI.flow.codes(sid)
-      : ''
-  )
+  let flowKey: any = ''
+  let funName = ''
+  if (store.getters['node/subNode'].relative) {
+    flowKey = store.getters['node/subNode'].relative
+    console.log(store.getters['node/subNode'])
+    funName = store.getters['node/subNode'].subFun
+  } else if (store.getters['node/service'].flow) {
+    flowKey = store.getters['node/service'].flow.key
+    funName = store.getters['node/service'].interface
+  } else if (store.getters['node/typFun'].flow) {
+    flowKey = store.getters['node/typFun'].flow
+    funName = store.getters['node/typFun'].name
+    if (flowKey.key) {
+      flowKey = flowKey.key
+    }
+  }
+  emit('update:codes', showCodes.value ? await svcAPI.flow.codes(flowKey, funName) : '')
 }
 </script>

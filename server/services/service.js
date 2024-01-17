@@ -7,6 +7,7 @@ import Path from 'path'
 
 import { readConfig, setProp } from '../lib/backend-library/utils/index.js'
 import Dep from '../models/dep.js'
+import Func from '../models/func.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
@@ -115,45 +116,20 @@ export async function rmv(sid) {
   return db.remove(Service, { _index: sid })
 }
 
-export async function genSvcCode(sid) {
-  const service = await db.select(Service, { _index: sid }, { ext: true })
-  if (service.model) {
-    return { error: '模型服务无法生成代码！' }
-  }
-  service.deps = []
-  service.nodes = service.flow
-    ? await recuNode(service.flow.id, 4, node => {
+export async function genFlowCodes(nid, funName) {
+  const deps = []
+  const nodes = nid
+    ? await recuNode(nid, 4, node => {
         if (node.deps) {
           for (const dep of node.deps) {
-            service.deps.push(dep)
+            deps.push(dep)
           }
         }
       })
     : []
   const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
   return adjustFile(fs.readFileSync(svcTmp), undefined, {
-    services: [service],
-    stcVars: service.stcVars,
-    genDefault
-  })
-}
-
-export async function genSubNdsCode(nid) {
-  const node = await db.select(Node, { _index: nid })
-  node.interface = node.subFun
-  node.deps = []
-  node.nodes = node.relative
-    ? await recuNode(node.relative, 4, snd => {
-        if (snd.deps) {
-          for (const dep of snd.deps) {
-            node.deps.push(dep)
-          }
-        }
-      })
-    : []
-  const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
-  return adjustFile(fs.readFileSync(svcTmp), undefined, {
-    services: [node],
+    services: [{ interface: funName, deps, nodes }],
     stcVars: [],
     genDefault
   })
@@ -168,12 +144,6 @@ const AddBtnWH = 32
 const AddBtnHlfWH = AddBtnWH >> 1
 const CardGutter = 50
 const CardHlfGutter = CardGutter >> 1
-
-export async function readAllNodes(svcKey) {
-  return db
-    .select(Service, { _index: svcKey }, { ext: false })
-    .then(svc => (svc.flow ? colcNodes(svc.flow) : []))
-}
 
 export async function readAllSubNds(sndKey) {
   return db
@@ -194,14 +164,6 @@ export async function colcNodes(ndKey) {
     ret.push(...(await colcNodes(sbKey)))
   }
   return ret
-}
-
-export async function getNodesFmSvc(svcKey, sndKey, reqBody) {
-  const flowKey =
-    sndKey === 's'
-      ? await db.select(Service, { _index: svcKey }, { ext: false }).then(svc => svc.flow)
-      : await db.select(Node, { _index: sndKey }, { ext: false }).then(node => node.relative)
-  return buildNodes(flowKey, reqBody.width)
 }
 
 export async function buildNodes(flowKey, width) {

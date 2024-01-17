@@ -265,45 +265,7 @@
         </div>
         <a-row class="w-full p-2" :gutter="8">
           <a-col v-for="typo of project.typos" :key="typo.key" :span="6">
-            <a-card
-              hoverable
-              @click="() => clsEmitter.emit('update:visible', { show: true, object: typo })"
-            >
-              <template #title>
-                {{ typo.name }}
-                <span class="float-right">{{ typo.label }}</span>
-              </template>
-              <ul class="pl-0 mb-0 list-none">
-                <li
-                  v-for="prop of typo.props"
-                  :key="prop.key"
-                  class="px-1 pb-0.5 hover:bg-gray-200"
-                >
-                  <b>-</b>
-                  &nbsp;{{ prop.name }}:&nbsp;{{ prop.ptype }}
-                  <span class="float-right">{{ prop.label }}</span>
-                </li>
-              </ul>
-              <a-divider class="my-3" />
-              <ul class="pl-0 mb-0 list-none">
-                <li
-                  v-for="func of typo.funcs"
-                  :key="func.key"
-                  class="px-1 pb-0.5 hover:bg-gray-200"
-                  @click.stop="
-                    () => router.push(`/project/${pid}/typo/${typo.key}/func/${func.key}`)
-                  "
-                >
-                  <b>+</b>
-                  &nbsp;{{ (func.isAsync ? 'async ' : '') + func.name }}&nbsp;(
-                  <span v-for="arg of func.args" :key="arg.key">
-                    {{ arg.name }}:&nbsp;{{ arg.ptype }}
-                  </span>
-                  )
-                  <span class="float-right">{{ func.label }}</span>
-                </li>
-              </ul>
-            </a-card>
+            <TypoCard :typo="typo" :emitter="clsEmitter" />
           </a-col>
         </a-row>
         <FormDialog
@@ -311,7 +273,7 @@
           :emitter="clsEmitter"
           :mapper="clsMapper"
           :new-fun="() => newOne(Typo)"
-          @submit="(typo: Typo) => typo.key ? typAPI.update(typo) : typAPI.add(typo)"
+          @submit="onTypoSubmit"
         />
       </a-tab-pane>
     </a-tabs>
@@ -326,6 +288,7 @@ import MidPubBtns from '@/components/proj/MidPubBtns.vue'
 import MsvcSelect from '@/components/proj/MsvcSelect.vue'
 import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
 import SvcTable from '@/components/proj/SvcTable.vue'
+import TypoCard from '@/components/proj/TypoCard.vue'
 import { OpnType, bsTpDefault } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
@@ -349,13 +312,12 @@ import {
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
-import { update } from 'lodash'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, h, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, pjtAPI, typAPI, typFunAPI, typPrpAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, pjtAPI, typAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -503,5 +465,14 @@ function onTypoClick(typo: Typo) {
       console.log('ok')
     }
   })
+}
+async function onTypoSubmit(typo: Typo, next: Function) {
+  if (typo.key) {
+    await typAPI.update(typo)
+  } else {
+    await typAPI.add(typo)
+  }
+  next()
+  await store.dispatch('project/refresh')
 }
 </script>

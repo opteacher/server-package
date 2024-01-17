@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { typAPI } from '@/apis'
 import store from '@/store'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
@@ -8,14 +9,13 @@ import Property from '@/types/property'
 import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
-import { Func } from '@/types/typo'
+import Typo, { Func } from '@/types/typo'
 import Variable from '@/types/variable'
 import { pickOrIgnore, updDftByType } from '@/utils'
-import { BaseTypes, Cond, OpnType, bsTpOpns, methods } from '@lib/types'
+import { Cond, OpnType, bsTpOpns, methods } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
-import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import dayjs from 'dayjs'
+import { Modal, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
 import { Moment } from 'moment'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { ref } from 'vue'
@@ -443,6 +443,24 @@ export const clsMapper = new Mapper({
     mapper: clsFunMapper,
     emitter: clsFunEmitter,
     newFun: () => new Func()
+  },
+  opera: {
+    label: '操作',
+    type: 'Button',
+    inner: '删除',
+    danger: true,
+    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    onClick: (typo: Typo) => {
+      Modal.confirm({
+        title: '确定删除适配器',
+        content: 'abcd',
+        onOk: async () => {
+          await typAPI.remove(typo)
+          clsEmitter.emit('update:visible', false)
+          await store.dispatch('project/refresh')
+        }
+      })
+    }
   }
 })
 

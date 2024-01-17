@@ -134,8 +134,10 @@ export default {
         params = { force: false, width: 0, updNodes: [] }
       }
       const routeParams = router.currentRoute.value.params
-      let flowKey = state.subNode.relative
-      if (routeParams.sid) {
+      let flowKey = ''
+      if (state.subNode.key) {
+        flowKey = state.subNode.relative
+      } else if (routeParams.sid) {
         state.service = await svcAPI.detail(routeParams.sid as string)
         state.typFun.reset()
         flowKey = state.service.flow.key
@@ -195,11 +197,16 @@ export default {
             }
           }
         } else if (params.force) {
-          state.nodes = Object.fromEntries(
-            await ndAPI
-              .all(flowKey)
-              .then(nodes => nodes.map(node => [node.key, NodeInPnl.copy(node)]))
-          )
+          state.nodes = flowKey
+            ? Object.fromEntries(
+                await ndAPI
+                  .all(flowKey)
+                  .then(nodes => nodes.map(node => [node.key, NodeInPnl.copy(node)]))
+              )
+            : {}
+        }
+        if (!flowKey) {
+          return
         }
         for (const ndInPnl of await svcAPI.flow.build(flowKey, state.width)) {
           const node = state.nodes[ndInPnl.key]

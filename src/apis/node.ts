@@ -33,11 +33,6 @@ export default {
   },
   all: (nid: string): Promise<Node[]> =>
     reqGet('flow', `${nid}/nodes`, { type: 'api', copy: Node.copy }),
-  subNode: {
-    all: (nid: string): Promise<Node[]> =>
-      reqGet('node', nid, { action: 'sub/nodes', type: 'api' }),
-    codes: (key: any) => reqGet('node', key, { action: 'sub/codes', type: 'api' })
-  },
   detail: (key: string) => reqGet('node', key, { copy: Node.copy }),
   deps: {
     save: (deps: string[]) => reqPut('node', store.getters['node/edtNdKey'], { deps })

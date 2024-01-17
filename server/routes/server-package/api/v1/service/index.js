@@ -2,11 +2,8 @@ import Router from 'koa-router'
 
 import { rmv as rmvNode, save as saveNode } from '../../../../../services/node.js'
 import {
-  getNodesFmSvc,
   expSvcFlow,
-  genSvcCode,
   impSvcFlow,
-  readAllNodes,
   restart,
   rmv,
   stop
@@ -63,24 +60,6 @@ router.post('/:sid/node/:nid', async ctx => {
 router.delete('/:sid/node/:nid', async ctx => {
   ctx.body = {
     result: await rmvNode(ctx.params.nid, ctx.params.sid, ctx.query.flowMod)
-  }
-})
-
-router.get('/:sid/flow/codes', async ctx => {
-  ctx.body = {
-    result: await genSvcCode(ctx.params.sid)
-  }
-})
-
-router.get('/:sid/flow/nodes', async ctx => {
-  ctx.body = {
-    result: await readAllNodes(ctx.params.sid)
-  }
-})
-
-router.post('/:sid/node/:nid/build', async ctx => {
-  ctx.body = {
-    result: await getNodesFmSvc(ctx.params.sid, ctx.params.nid, ctx.request.body)
   }
 })
 

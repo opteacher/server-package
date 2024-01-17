@@ -1,6 +1,6 @@
 <script lang="ts" setup name="ModelServiceSelect">
 import { Method, methods as Methods } from '@/types/service'
-import { defineEmits, defineProps, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const emit = defineEmits(['update:methods'])
 const props = defineProps({

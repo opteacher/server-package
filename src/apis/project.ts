@@ -3,6 +3,7 @@ import CmpIns from '@/types/cmpIns'
 import DataBase from '@/types/database'
 import Project from '@/types/project'
 import Transfer from '@/types/transfer'
+import Typo from '@/types/typo'
 import {
   RequestOptions,
   downloadFile,
@@ -43,7 +44,13 @@ export default {
     }),
   all: (options: RequestOptions) =>
     reqAll('project', { ...options, copy: Project.copy, axiosConfig: { params: { _ext: true } } }),
-  detail: (key: any) => reqGet('project', key, { copy: Project.copy }),
+  detail: async (key: any) => {
+    const project = (await reqGet('project', key, { copy: Project.copy })) as Project
+    await Promise.all(
+      project.typos.map(async typo => Typo.copy(await reqGet('typo', typo.key), typo))
+    )
+    return project
+  },
   databases: () => reqAll('database', { copy: DataBase.copy }),
   sync: (key: string) =>
     reqPut('project', key, undefined, {

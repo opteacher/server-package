@@ -44,7 +44,8 @@ export default {
   },
   detail: (key: any) => reqGet('service', key, { copy: Service.copy }),
   flow: {
-    codes: (key: any) => reqGet('service', `${key}/flow/codes`, { type: 'api' }),
+    codes: (key: any, funName = '') =>
+      reqGet('flow', `${key}/codes`, { type: 'api', axiosConfig: { params: { funName } } }),
     build: (key: any, width: number) =>
       reqPost(`flow/${key}/nodes`, { width }, { type: 'api', action: 'build' }),
     export: async (key: any) =>
