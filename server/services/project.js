@@ -20,6 +20,7 @@ import Model from '../models/model.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
+import Typo from '../models/typo.js'
 import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
@@ -282,6 +283,24 @@ export async function sync(pid) {
   return Promise.resolve({ message: '同步中……' })
 }
 
+async function nodes2Codes(flowKey, ident = 4) {
+  const deps = []
+  const codes = flowKey
+    ? await recuNode(flowKey, ident, node => {
+        if (node.deps) {
+          for (const dep of node.deps) {
+            if (!(dep.id in deps)) {
+              // console.log(`\t${dep.name}: ${dep.version}`)
+              deps[dep.id] = dep
+            }
+            deps.push(dep)
+          }
+        }
+      }).then(ress => ress.join('\n\n'))
+    : ''
+  return { codes, deps }
+}
+
 export async function generate(pid) {
   console.log('从数据库获取项目实例……')
   const project = await db.select(Project, { _index: pid }, { ext: true })
@@ -362,6 +381,22 @@ export async function generate(pid) {
   console.log(`复制页面文件夹：${vwsTmp} -> ${vwsGen}`)
   copyDir(vwsTmp, vwsGen)
 
+  const typTmp = Path.join(tmpPath, 'types', 'temp.js')
+  const typGen = Path.join(genPath, 'types')
+  fs.mkdirSync(typGen)
+  console.log(`生成自定义类文件：${typTmp} -> ${typGen}`)
+  for (const typo of await Promise.all(
+    project.typos.map(typ => db.select(Typo, { _index: typ.id }, { ext: true }))
+  )) {
+    const funcs = await Promise.all(
+      typo.funcs.map(func => nodes2Codes(func.flow).then(ress => Object.assign(func, ress)))
+    )
+    adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
+      typo: Object.assign(typo, { funcs }),
+      genDefault
+    })
+  }
+
   const mdlPath = Path.join(genPath, 'models')
   const rotPath = Path.join(genPath, 'routes', project.name)
   fs.mkdirSync(mdlPath)
@@ -396,21 +431,10 @@ export async function generate(pid) {
     }
 
     console.log('收集项目依赖模块：')
-    const svcExt = await db.select(Service, { _index: service.id }, { ext: true })
-    svcExt.deps = []
-    svcExt.nodes = svcExt.flow
-      ? await recuNode(svcExt.flow.id, 4, node => {
-          if (node.deps) {
-            for (const dep of node.deps) {
-              if (!(dep.id in deps)) {
-                console.log(`\t${dep.name}: ${dep.version}`)
-                deps[dep.id] = dep
-              }
-              svcExt.deps.push(dep)
-            }
-          }
-        })
-      : []
+    let svcExt = await db.select(Service, { _index: service.id }, { ext: true })
+    if (svcExt.flow) {
+      svcExt = Object.assign(svcExt, await nodes2Codes(svcExt.flow.id))
+    }
     if (!(service.name in svcMap)) {
       svcMap[service.name] = [svcExt]
     } else {
