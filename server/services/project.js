@@ -393,7 +393,8 @@ export async function generate(pid) {
     )
     adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
       typo: Object.assign(typo, { funcs }),
-      genDefault
+      genDefault,
+      genFuncAnno
     })
   }
 
@@ -642,6 +643,16 @@ export async function runAll() {
       run(project)
     }
   })
+}
+
+function genFuncAnno(func, indent = '  ') {
+  return indent + [
+    '/**',
+    '* ' + func.label,
+    '* ' + func.remark,
+    ...func.args.map(arg => `* @params{${arg.name}}[${arg.ptype}]:${arg.label}`),
+    '*/'
+  ].join('\n' + indent)
 }
 
 /**
