@@ -35,6 +35,7 @@ export default db.defineModel(
       }
     ],
     isFun: db.PropTypes.Boolean,
+    isTdFun: db.PropTypes.Boolean, // [true]: function XXXX() {}; [false]: const XXXX = () => {}
     isAwait: db.PropTypes.Boolean,
     isForIn: db.PropTypes.Boolean,
     subFun: db.PropTypes.String,

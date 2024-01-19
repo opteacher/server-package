@@ -25,6 +25,7 @@ export default class Node implements Record<string, any> {
   inputs: Variable[] // [0]参数 [1]槽
   outputs: Variable[]
   isFun: boolean
+  isTdFun: boolean
   isAwait: boolean
   isForIn: boolean
   subFun: string
@@ -44,6 +45,7 @@ export default class Node implements Record<string, any> {
     this.outputs = []
     this.code = ''
     this.isFun = true
+    this.isTdFun = false
     this.isAwait = false
     this.isForIn = false
     this.subFun = ''

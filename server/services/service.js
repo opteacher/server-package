@@ -7,13 +7,13 @@ import Path from 'path'
 
 import { readConfig, setProp } from '../lib/backend-library/utils/index.js'
 import Dep from '../models/dep.js'
-import Func from '../models/func.js'
 import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
 import { db } from '../utils/index.js'
 import { genDefault, pickOrIgnore } from '../utils/index.js'
-import { adjustFile, recuNode } from './project.js'
+import { adjustFile } from './project.js'
+import { nodes2Codes } from './project.js'
 
 const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
@@ -117,19 +117,10 @@ export async function rmv(sid) {
 }
 
 export async function genFlowCodes(nid, funName) {
-  const deps = []
-  const nodes = nid
-    ? await recuNode(nid, 4, node => {
-        if (node.deps) {
-          for (const dep of node.deps) {
-            deps.push(dep)
-          }
-        }
-      })
-    : []
+  const res = await nodes2Codes(nid, 4)
   const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
   return adjustFile(fs.readFileSync(svcTmp), undefined, {
-    services: [{ interface: funName, deps, nodes }],
+    services: [{ interface: funName, ...res }],
     stcVars: [],
     genDefault
   })

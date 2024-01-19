@@ -3,7 +3,7 @@
 export class /*return typo.name*/ {
   /*return '/**'*/
   /*return typo.label ? '* '  + typo.label : ''*/
-  /*return typo.props.map(prop => `* @params{${prop.name}}[${prop.ptype}]:${prop.label}`).join('\n  ')*/
+  /*return typo.props.map(prop => `* @param {${prop.name}} [${prop.ptype}]: ${prop.label}`).join('\n  ')*/
   /*return '*\/'*/
   constructor(/*return typo.props.filter(prop => prop.index).map(prop => `p_${prop.name}`).join(', ')*/) {
     /*return typo.props.map(prop => `this.${prop.name} = ${prop.index ? 'p_' + prop.name : genDefault(prop.ptype, prop.dftVal)}`).join('\n    ')*/

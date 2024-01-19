@@ -242,16 +242,22 @@ export async function recuNode(key, indent, callback, endKey) {
     case 'subNode': {
       const ret = []
       if (node.isFun) {
+        const prefix = genAnnotation(node, indents) + '\n' + indents
         ret.push(
-          [
-            genAnnotation(node, indents),
-            '\n',
-            indents,
-            node.isAwait ? 'async ' : '',
-            `function ${node.subFun}(`,
-            node.inputs.map(ipt => ipt.name).join(', '),
-            ') {'
-          ].join('')
+          prefix +
+            (node.isTdFun
+              ? [
+                  node.isAwait ? 'async ' : '',
+                  `function ${node.subFun}(`,
+                  node.inputs.map(ipt => ipt.name).join(', '),
+                  ') {'
+                ].join('')
+              : [
+                  `const ${node.subFun} = `,
+                  node.isAwait ? 'async (' : '(',
+                  node.inputs.map(ipt => ipt.name).join(', '),
+                  ') => {'
+                ].join(''))
         )
       } else {
         ret.push(genAnnotation(node, indents))
@@ -283,7 +289,7 @@ export async function sync(pid) {
   return Promise.resolve({ message: '同步中……' })
 }
 
-async function nodes2Codes(flowKey, ident = 4) {
+export async function nodes2Codes(flowKey, ident = 4) {
   const deps = []
   const codes = flowKey
     ? await recuNode(flowKey, ident, node => {
@@ -646,13 +652,16 @@ export async function runAll() {
 }
 
 function genFuncAnno(func, indent = '  ') {
-  return indent + [
-    '/**',
-    '* ' + func.label,
-    '* ' + func.remark,
-    ...func.args.map(arg => `* @params{${arg.name}}[${arg.ptype}]:${arg.label}`),
-    '*/'
-  ].join('\n' + indent)
+  return (
+    indent +
+    [
+      '/**',
+      '* ' + func.label,
+      '* ' + func.remark,
+      ...func.args.map(arg => `* @param {${arg.name}} [${arg.ptype}]: ${arg.label}`),
+      '*/'
+    ].join('\n' + indent)
+  )
 }
 
 /**
