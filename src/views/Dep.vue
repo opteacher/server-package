@@ -8,7 +8,13 @@
       :mapper="mapper"
       :new-fun="() => newOne(Dep)"
       sclHeight="h-full"
-    />
+    >
+      <template #exports="{ record }">
+        <ul class="list-none pl-0 mb-0">
+          <li v-for="exp in record.exports" :key="exp">{{ exp }}</li>
+        </ul>
+      </template>
+    </EditableTable>
   </LytMain>
 </template>
 

@@ -290,7 +290,7 @@ export async function sync(pid) {
 }
 
 export async function nodes2Codes(flowKey, ident = 4) {
-  const deps = []
+  const deps = {}
   const codes = flowKey
     ? await recuNode(flowKey, ident, node => {
         if (node.deps) {
@@ -299,12 +299,11 @@ export async function nodes2Codes(flowKey, ident = 4) {
               // console.log(`\t${dep.name}: ${dep.version}`)
               deps[dep.id] = dep
             }
-            deps.push(dep)
           }
         }
       }).then(ress => ress.join('\n\n'))
     : ''
-  return { codes, deps }
+  return { codes, deps: Object.values(deps) }
 }
 
 export async function generate(pid) {
@@ -441,6 +440,12 @@ export async function generate(pid) {
     let svcExt = await db.select(Service, { _index: service.id }, { ext: true })
     if (svcExt.flow) {
       svcExt = Object.assign(svcExt, await nodes2Codes(svcExt.flow.id))
+      for (const dep of svcExt.deps) {
+        if (!(dep.id in deps)) {
+          deps[dep.id] = dep
+        }
+      }
+      console.log(deps)
     }
     if (!(service.name in svcMap)) {
       svcMap[service.name] = [svcExt]
