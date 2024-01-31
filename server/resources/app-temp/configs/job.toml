@@ -1,0 +1,7 @@
+[mongo]
+database="agenda_job"
+username="/*return mongodb.username*/"
+password="/*return mongodb.password*/"
+host="/*return mongodb.host*/"
+port=0##return mongodb.port*/
+

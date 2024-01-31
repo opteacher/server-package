@@ -4,7 +4,7 @@ import { reqAll, reqDelete, reqPost, reqPut } from '@/utils'
 
 export default {
   add: (data: any) => reqPost('dependency', data),
-  remove: (key: any) => reqDelete('dependency', key),
+  remove: (dep: Dep) => reqDelete('dependency', dep.key),
   update: (data: any) => reqPut('dependency', data.key, data),
   all: async (): Promise<Dep[]> =>
     reqAll('dependency', {

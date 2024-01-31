@@ -51,7 +51,7 @@ export default class Service {
   model: string
   method: Method
   path: string
-  jobId: number
+  jobId: string
   condition: string
   cdValue: number
   cdUnit: string
@@ -68,7 +68,7 @@ export default class Service {
     this.model = ''
     this.method = 'GET'
     this.path = ''
-    this.jobId = 0
+    this.jobId = ''
     this.condition = ''
     this.cdValue = 1
     this.cdUnit = 's'
@@ -86,7 +86,7 @@ export default class Service {
     this.model = ''
     this.method = 'GET'
     this.path = ''
-    this.jobId = 0
+    this.jobId = ''
     this.condition = ''
     this.cdValue = 1
     this.cdUnit = 's'

@@ -51,10 +51,7 @@
   <a-modal v-model:visible="visibles.dkrInfo" title="Docker信息" :footer="null">
     <a-tabs>
       <a-tab-pane key="1" tab="运行指令" class="relative">
-        <pre class="p-2 bg-slate-200">{{ runCmd }}</pre>
-        <a-button class="absolute top-2 right-2" @click="copyRunCmd">
-          <template #icon><CopyOutlined /></template>
-        </a-button>
+        <a-typography-paragraph copyable>{{ runCmd }}</a-typography-paragraph>
       </a-tab-pane>
     </a-tabs>
   </a-modal>
@@ -63,7 +60,6 @@
 <script setup lang="ts">
 import { pjtAPI } from '@/apis'
 import Icon, {
-  CopyOutlined,
   DeploymentUnitOutlined,
   ExportOutlined,
   InfoCircleOutlined
@@ -84,6 +80,7 @@ const runCmd = ref('')
 
 onMounted(async () => {
   runCmd.value = await pjtAPI.docker.runCmd(pid).then((cmd: string) => {
+    runCmd.value = cmd
     const fixCmd = cmd
       .replaceAll('--network', '\n\t--network')
       .replaceAll('--name', '\n\t--name')

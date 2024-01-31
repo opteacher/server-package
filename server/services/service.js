@@ -75,7 +75,7 @@ export async function restart(pid, jid, authorization) {
       result[5] === '--' ? now.getMinutes() : parseInt(result[5]),
       result[6] === '--' ? now.getSeconds() : parseInt(result[6])
     )
-    timestamp = datetime.getTime() - now.getTime()
+    timestamp = datetime
   }
   if (!timestamp) {
     return { error: '错误的时间条件' }

@@ -25,6 +25,7 @@ import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
+const jobCfg = readConfig(Path.resolve('configs', 'job'))
 const tmpPath = Path.resolve('resources', 'app-temp')
 
 function formatToStr(value, vtype) {
@@ -338,6 +339,12 @@ export async function generate(pid) {
   const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
   console.log(`调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
   adjustFile(mdlCfgTmp, mdlCfgGen, { project })
+  if (project.services.some(svc => svc.emit === 'timeout' || svc.emit === 'interval')) {
+    const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
+    const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
+    console.log(`调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
+    adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
+  }
   if (project.independ) {
     const svrCfgTmp = Path.join(tmpPath, 'configs', 'server.toml')
     const svrCfgGen = Path.join(genPath, 'configs', 'server.toml')
@@ -445,7 +452,6 @@ export async function generate(pid) {
           deps[dep.id] = dep
         }
       }
-      console.log(deps)
     }
     if (!(service.name in svcMap)) {
       svcMap[service.name] = [svcExt]
@@ -493,10 +499,10 @@ export async function generate(pid) {
     project,
     pkgDeps: Object.values(deps).filter(dep => dep.version)
   })
-  const pkgLkTmp = Path.join(tmpPath, 'package-lock.json')
-  const pkgLkGen = Path.join(genPath, 'package-lock.json')
-  console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
-  adjustFile(pkgLkTmp, pkgLkGen, { project })
+  // const pkgLkTmp = Path.join(tmpPath, 'package-lock.json')
+  // const pkgLkGen = Path.join(genPath, 'package-lock.json')
+  // console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
+  // adjustFile(pkgLkTmp, pkgLkGen, { project })
   const cchPath = Path.resolve(svrCfg.apps, 'tmp')
   try {
     fs.accessSync(cchPath)
