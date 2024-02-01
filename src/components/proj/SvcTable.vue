@@ -2,7 +2,7 @@
 import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
-import Service, { EmitType, Method, emitMapper, mthdClrs } from '@/types/service'
+import Service, { EmitType, Method, emitMapper, itvlDimen, mthdClrs } from '@/types/service'
 import { newOne } from '@/utils'
 import {
   EditOutlined,
@@ -57,8 +57,32 @@ function onAddSvcClicked() {
   })
 }
 function onBefSave(svc: Service) {
-  if (svc.emit === 'timeout' || svc.emit === 'interval') {
+  if (svc.emit === 'timeout') {
     svc.path = `/job/v1/${svc.name}/${svc.interface}`
+    svc.condition = svc.condDtTm.format('YYYY/MM/DDTHH:mm:ss')
+  } else if (svc.emit === 'interval') {
+    svc.path = `/job/v1/${svc.name}/${svc.interface}`
+    switch (svc.condArray[1]) {
+      case 's':
+        svc.condition = `*/${svc.condArray[0]} * * * * *`
+        break
+      case 'm':
+        svc.condition = `0 */${svc.condArray[0]} * * * *`
+        break
+      case 'h':
+        svc.condition = `0 0 */${svc.condArray[0]} * * *`
+        break
+      case 'D':
+        svc.condition = `0 0 0 */${svc.condArray[0]} * *`
+        break
+      case 'W':
+        // svc.condition = `*/${svc.condArray[0]} * * * * *`
+        break
+      case 'M':
+        // svc.condition = `*/${svc.condArray[0]} * * * * *`
+        break
+    }
+    console.log(svc.condition)
   }
 }
 function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
@@ -190,31 +214,17 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       </template>
       <template #conditionEDT="{ editing: svc }">
         <template v-if="svc.emit === 'interval'">
-          <a-input-group>
-            <a-row :gutter="4">
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[0]" />
-              </a-col>
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[1]" />
-              </a-col>
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[2]" />
-              </a-col>
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[3]" />
-              </a-col>
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[4]" />
-              </a-col>
-              <a-col :span="4">
-                <a-input class="text-center" v-model="svc.condArray[5]" />
-              </a-col>
-            </a-row>
-          </a-input-group>
+          <a-form-item-rest>
+            <a-input-group compact class="w-full">
+              <a-input class="w-1/12 text-right" disabled value="每" />
+              <a-input class="w-2/12" type="number" placeholder="输入间隔时间" v-model:value="svc.condArray[0]" />
+              <a-select class="w-2/12 text-right" placeholder="选择时间单位" :options="itvlDimen" v-model:value="svc.condArray[1]" />
+              <a-input class="w-7/12" disabled value="执行一次" />
+            </a-input-group>
+          </a-form-item-rest>
         </template>
         <template v-else-if="svc.emit === 'timeout'">
-          <a-date-picker class="w-full" show-time />
+          <a-date-picker class="w-full" show-time placeholder="选择指定时间执行" v-model="svc.condDtTm" />
         </template>
       </template>
     </EditableTable>

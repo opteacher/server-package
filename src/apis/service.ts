@@ -14,8 +14,7 @@ import {
 export default {
   add: async (data: any) => {
     const pid = store.getters['project/ins'].key
-    data.condition = `${data.cdValue}${data.cdUnit}`
-    const svc = Service.copy(await reqPost('service', data, { ignores: ['model'] }))
+    const svc = Service.copy(await reqPost('service', data, { ignores: ['model', 'condDtTm', 'condArray'] }))
     if (data.model) {
       await reqPut(`service/${svc.key}`, `model/${data.model}`)
     }
@@ -30,13 +29,10 @@ export default {
     return reqDelete('service', data.key, { type: 'api' })
   },
   update: async (data: any) => {
-    if (data.cdValue) {
-      data.condition = `${data.cdValue}${data.cdUnit}`
-    }
     if (data.model) {
       await reqPut(`service/${data.key}`, `model/${data.model}`)
     }
-    return reqPut('service', data.key, data, { ignores: ['flow', 'model'] })
+    return reqPut('service', data.key, data, { ignores: ['flow', 'model', 'condDtTm', 'condArray'] })
   },
   all: async () => {
     await store.dispatch('project/refresh')

@@ -33,6 +33,17 @@ export const tmUntMapper = {
 
 export const timeUnits = Object.entries(tmUntMapper).map(([value, label]) => ({ label, value }))
 
+export const itvlDimenMapper = {
+  s: '秒',
+  m: '分钟',
+  h: '小时',
+  D: '天',
+  W: '周',
+  M: '月',
+}
+
+export const itvlDimen = Object.entries(itvlDimenMapper).map(([value, label]) => ({ label, value }))
+
 export const methods: Method[] = ['GET', 'POST', 'DELETE', 'PUT', 'LINK']
 
 export type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'LINK'
@@ -56,7 +67,7 @@ export default class Service {
   path: string
   jobId: string
   condition: string
-  condArray: [string, string, string, string, string, string]
+  condArray: [number, string]
   condDtTm: Dayjs
   needRet: boolean
   stcVars: Variable[]
@@ -73,7 +84,7 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.condArray = ['*', '*', '*', '*', '*', '*']
+    this.condArray = [1, 's']
     this.condDtTm = dayjs(0)
     this.needRet = true
     this.stcVars = []
@@ -91,7 +102,7 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.condArray = ['*', '*', '*', '*', '*', '*']
+    this.condArray = [1, 's']
     this.condDtTm = dayjs(0)
     this.needRet = true
     this.stcVars = []
@@ -111,11 +122,7 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    tgt.condArray = src.condition
-      ? src.condition.split(' ')
-      : force
-      ? ['*', '*', '*', '*', '*', '*']
-      : tgt.condArray
+    tgt.condArray = src.condition ? src.condition.split(' ') : force ? [1, 's'] : tgt.condArray
     tgt.condDtTm = src.condition ? dayjs(src.condition) : force ? dayjs(0) : tgt.condDtTm
     return tgt
   }
