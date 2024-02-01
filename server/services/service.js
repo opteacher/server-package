@@ -15,7 +15,6 @@ import { genDefault, pickOrIgnore } from '../utils/index.js'
 import { adjustFile } from './project.js'
 import { nodes2Codes } from './project.js'
 
-const RangeRegexp = /(Y|M|D|h|m|s|ms)$/
 const TimeRegexp = /^(--|\d\d)\/(--|\d\d)\/(--|\d\d)T(--|\d\d):(--|\d\d):(--|\d\d)$/
 
 export async function restart(pid, jid, authorization) {
@@ -29,60 +28,34 @@ export async function restart(pid, jid, authorization) {
       authorization ? { headers: { authorization } } : undefined
     )
   }
-  let timestamp = 0
-  if (RangeRegexp.test(svc.condition)) {
-    // 以Y/M/D/h/m/s/ms结尾，则表示时间段
-    // 对于time，则在此时间段后激发；对于interval，则每过此时间段就执行一次。
-    switch (svc.condition.slice(-1)) {
-      case 'Y':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 365 * 24 * 60 * 60 * 1000
-        break
-      case 'M':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 30 * 24 * 60 * 60 * 1000
-        break
-      case 'W':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 7 * 24 * 60 * 60 * 1000
-        break
-      case 'D':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 24 * 60 * 60 * 1000
-        break
-      case 'h':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 60 * 60 * 1000
-        break
-      case 'm':
-        timestamp = parseInt(svc.condition.slice(0, -1)) * 60 * 1000
-        break
-      case 's':
-        if (svc.condition.endsWith('ms')) {
-          timestamp = parseInt(svc.condition.slice(0, -2))
-        } else {
-          timestamp = parseInt(svc.condition.slice(0, -1)) * 1000
-        }
-        break
-    }
-  } else if (TimeRegexp.test(svc.condition)) {
-    // 除此以外，如果是--/--/00T00:00:00格式存储，则在该时间点执行，激发方式随意
-    const now = new Date()
-    const result = TimeRegexp.exec(svc.condition)
-    if (!result || result.length < 7) {
-      return { error: '错误的时间点格式' }
-    }
-    const datetime = new Date(
-      result[1] === '--' ? now.getFullYear() : parseInt(result[1] + 2000),
-      result[2] === '--' ? now.getMonth() : parseInt(result[2]),
-      result[3] === '--' ? now.getDay() : parseInt(result[3]),
-      result[4] === '--' ? now.getHours() : parseInt(result[4]),
-      result[5] === '--' ? now.getMinutes() : parseInt(result[5]),
-      result[6] === '--' ? now.getSeconds() : parseInt(result[6])
-    )
-    timestamp = datetime
+  let timeparams = {}
+  switch (svc.emit) {
+    case 'interval':
+      timeparams = { timecron: svc.condition }
+      break
+    case 'timeout':
+      const now = new Date()
+      const result = TimeRegexp.exec(svc.condition)
+      if (!result || result.length < 7) {
+        return { error: '错误的时间点格式' }
+      }
+      const datetime = new Date(
+        result[1] === '--' ? now.getFullYear() : parseInt(result[1] + 2000),
+        result[2] === '--' ? now.getMonth() : parseInt(result[2]),
+        result[3] === '--' ? now.getDay() : parseInt(result[3]),
+        result[4] === '--' ? now.getHours() : parseInt(result[4]),
+        result[5] === '--' ? now.getMinutes() : parseInt(result[5]),
+        result[6] === '--' ? now.getSeconds() : parseInt(result[6])
+      )
+      timeparams = { datetime }
+      break
   }
-  if (!timestamp) {
+  if (!timeparams) {
     return { error: '错误的时间条件' }
   }
   const resp = await axios.post(
-    `${baseURL}${svc.path}?timestamp=${timestamp}`,
-    undefined,
+    baseURL + svc.path,
+    timeparams,
     authorization ? { headers: { authorization } } : undefined
   )
   if (resp.status !== 200) {

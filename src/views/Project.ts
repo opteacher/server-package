@@ -142,9 +142,7 @@ export const svcMapper = new Mapper({
         case 'interval':
           svcEmitter.emit('update:mprop', {
             'method.rules': [],
-            'path.rules': [],
-            'cdValue.rules': [{ required: true, message: '必须填入时间值！' }],
-            'cdUnit.rules': [{ required: true, message: '必须选择时间类型！' }]
+            'path.rules': []
           })
           break
       }
@@ -221,22 +219,9 @@ export const svcMapper = new Mapper({
     type: 'Checkbox',
     display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })]
   },
-  cdValue: {
-    label: '触发值',
-    desc: '指定时间间隔或时刻',
-    type: 'Input',
-    display: {
-      OR: [
-        new Cond({ key: 'emit', cmp: '=', val: 'timeout' }),
-        new Cond({ key: 'emit', cmp: '=', val: 'interval' })
-      ]
-    }
-  },
-  cdUnit: {
-    label: '触发值',
-    desc: '指定时间间隔或时刻',
-    type: 'Select',
-    options: timeUnits,
+  condition: {
+    label: '延时/定时条件',
+    type: 'Unknown',
     display: {
       OR: [
         new Cond({ key: 'emit', cmp: '=', val: 'timeout' }),

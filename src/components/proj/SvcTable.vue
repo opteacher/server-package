@@ -188,6 +188,35 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
         <pre v-if="svc.desc" class="max-w-xs">{{ svc.desc }}</pre>
         <template v-else>-</template>
       </template>
+      <template #conditionEDT="{ editing: svc }">
+        <template v-if="svc.emit === 'interval'">
+          <a-input-group>
+            <a-row :gutter="4">
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[0]" />
+              </a-col>
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[1]" />
+              </a-col>
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[2]" />
+              </a-col>
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[3]" />
+              </a-col>
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[4]" />
+              </a-col>
+              <a-col :span="4">
+                <a-input class="text-center" v-model="svc.condArray[5]" />
+              </a-col>
+            </a-row>
+          </a-input-group>
+        </template>
+        <template v-else-if="svc.emit === 'timeout'">
+          <a-date-picker class="w-full" show-time />
+        </template>
+      </template>
     </EditableTable>
     <FormDialog
       title="导入流程"

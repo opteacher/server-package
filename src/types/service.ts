@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import dayjs, { Dayjs } from 'dayjs'
+
 import { gnlCpy } from '../utils'
 import Node from './node'
 import Variable from './variable'
@@ -53,8 +56,8 @@ export default class Service {
   path: string
   jobId: string
   condition: string
-  cdValue: number
-  cdUnit: string
+  condArray: [string, string, string, string, string, string]
+  condDtTm: Dayjs
   needRet: boolean
   stcVars: Variable[]
   desc: string
@@ -70,8 +73,8 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.cdValue = 1
-    this.cdUnit = 's'
+    this.condArray = ['*', '*', '*', '*', '*', '*']
+    this.condDtTm = dayjs(0)
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -88,8 +91,8 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.cdValue = 1
-    this.cdUnit = 's'
+    this.condArray = ['*', '*', '*', '*', '*', '*']
+    this.condDtTm = dayjs(0)
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -98,7 +101,7 @@ export default class Service {
   static copy(src: any, tgt?: Service, force = false): Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
-      ignProps: ['name', 'interface', 'cdValue', 'cdUnit'],
+      ignProps: ['name', 'interface', 'condArray', 'condDtTm'],
       cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
     })
     if (src.service && src.service.length === 2) {
@@ -108,11 +111,12 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    const emtNum = /^\d+/.exec(tgt.condition)
-    tgt.cdValue =
-      src.cdValue || (tgt.condition && emtNum && emtNum.length ? emtNum[0] : tgt.cdValue)
-    const emtUnt = /(Y|M|W|D|h|m|s|ms)$/.exec(tgt.condition)
-    tgt.cdUnit = src.cdUnit || (tgt.condition && emtUnt && emtUnt.length ? emtUnt[0] : tgt.cdUnit)
+    tgt.condArray = src.condition
+      ? src.condition.split(' ')
+      : force
+      ? ['*', '*', '*', '*', '*', '*']
+      : tgt.condArray
+    tgt.condDtTm = src.condition ? dayjs(src.condition) : force ? dayjs(0) : tgt.condDtTm
     return tgt
   }
 }

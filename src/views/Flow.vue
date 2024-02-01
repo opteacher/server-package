@@ -121,6 +121,7 @@ nodeEmitter.on('delNode', (ndKey: string) => refresh([ndKey, 'delete']))
 async function refresh(param: [string, 'save' | 'delete'] | boolean = false) {
   loading.value = true
   await until(() => panelRef.value)
+  await store.dispatch('project/refresh')
   await store.dispatch('node/refresh', {
     force: typeof param === 'boolean' ? param : undefined,
     updNodes: Array.isArray(param) ? [param] : undefined,

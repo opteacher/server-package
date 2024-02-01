@@ -140,7 +140,7 @@ export default {
       } else if (routeParams.sid) {
         state.service = await svcAPI.detail(routeParams.sid as string)
         state.typFun.reset()
-        flowKey = state.service.flow.key
+        flowKey = state.service.flow ? state.service.flow.key : ''
       } else if (routeParams.tid) {
         const typo = await typAPI.get(routeParams.tid as string)
         state.typFun = typo.funcs.find((func: Func) => func.key === routeParams.fid)
