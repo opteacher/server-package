@@ -24,7 +24,7 @@ export const tmUntMapper = {
   ms: '毫秒',
   s: '秒',
   m: '分钟',
-  h: '小时',
+  H: '小时',
   D: '天',
   W: '周',
   M: '月',
@@ -36,13 +36,27 @@ export const timeUnits = Object.entries(tmUntMapper).map(([value, label]) => ({ 
 export const itvlDimenMapper = {
   s: '秒',
   m: '分钟',
-  h: '小时',
+  H: '小时',
   D: '天',
   W: '周',
   M: '月',
 }
 
+export type ItvlDimen = keyof typeof itvlDimenMapper
+
 export const itvlDimen = Object.entries(itvlDimenMapper).map(([value, label]) => ({ label, value }))
+
+export const weekDayMapper = {
+  1: '周一',
+  2: '周二',
+  3: '周三',
+  4: '周四',
+  5: '周五',
+  6: '周六',
+  7: '周日'
+}
+
+export const weekDays = Object.entries(weekDayMapper).map(([value, label]) => ({ label, value }))
 
 export const methods: Method[] = ['GET', 'POST', 'DELETE', 'PUT', 'LINK']
 
@@ -67,8 +81,12 @@ export default class Service {
   path: string
   jobId: string
   condition: string
-  condArray: [number, string]
-  condDtTm: Dayjs
+  interval: {
+    value: number
+    dimen: ItvlDimen
+    datetime: Dayjs
+    rightnow: boolean
+  }
   needRet: boolean
   stcVars: Variable[]
   desc: string
@@ -84,8 +102,12 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.condArray = [1, 's']
-    this.condDtTm = dayjs(0)
+    this.interval = {
+      value: 1,
+      dimen: 's',
+      datetime: dayjs(),
+      rightnow: true
+    }
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -102,8 +124,12 @@ export default class Service {
     this.path = ''
     this.jobId = ''
     this.condition = ''
-    this.condArray = [1, 's']
-    this.condDtTm = dayjs(0)
+    this.interval = {
+      value: 1,
+      dimen: 's',
+      datetime: dayjs(),
+      rightnow: true
+    }
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -112,7 +138,7 @@ export default class Service {
   static copy(src: any, tgt?: Service, force = false): Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
-      ignProps: ['name', 'interface', 'condArray', 'condDtTm'],
+      ignProps: ['name', 'interface', 'interval'],
       cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
     })
     if (src.service && src.service.length === 2) {
@@ -122,8 +148,40 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    tgt.condArray = src.condition ? src.condition.split(' ') : force ? [1, 's'] : tgt.condArray
-    tgt.condDtTm = src.condition ? dayjs(src.condition) : force ? dayjs(0) : tgt.condDtTm
+    if (src.condition) {
+      const [sec, min, hour, day, mon, week] = src.condition.split(' ')
+      if (sec.includes('/')) {
+        tgt.interval.value = parseInt(sec.split('/')[1])
+        tgt.interval.dimen = 's'
+        tgt.interval.datetime = dayjs(null)
+      } else if (min.includes('/')) {
+        tgt.interval.value = parseInt(min.split('/')[1])
+        tgt.interval.dimen = 'm'
+        tgt.interval.datetime = dayjs(sec, 'ss')
+      } else if (hour.includes('/')) {
+        tgt.interval.value = parseInt(hour.split('/')[1])
+        tgt.interval.dimen = 'H'
+        tgt.interval.datetime = dayjs(`${min}:${sec}`, 'mm:ss')
+      } else if (day.includes('/')) {
+        tgt.interval.value = parseInt(day.split('/')[1])
+        tgt.interval.dimen = 'D'
+        tgt.interval.datetime = dayjs(`${hour}:${min}:${sec}`, 'HH:mm:ss')
+      } else if (mon.includes('/')) {
+        tgt.interval.value = parseInt(mon.split('/')[1])
+        tgt.interval.dimen = 'M'
+        tgt.interval.datetime = dayjs(`${day}T${hour}:${min}:${sec}`, 'DDTHH:mm:ss')
+      } else if (week !== '?') {
+        tgt.interval.value = parseInt(week)
+        tgt.interval.dimen = 'W'
+        tgt.interval.datetime = dayjs(`${hour}:${min}:${sec}`, 'HH:mm:ss')
+      }
+      tgt.interval.rightnow = true
+    } else if (force) {
+      tgt.interval.value = 1
+      tgt.interval.dimen = 's'
+      tgt.interval.datetime = dayjs()
+      tgt.interval.rightnow = true
+    }
     return tgt
   }
 }

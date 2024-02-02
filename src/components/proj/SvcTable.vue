@@ -2,7 +2,14 @@
 import { svcAPI as api } from '@/apis'
 import store from '@/store'
 import Model from '@/types/model'
-import Service, { EmitType, Method, emitMapper, itvlDimen, mthdClrs } from '@/types/service'
+import Service, {
+  EmitType,
+  Method,
+  emitMapper,
+  itvlDimen,
+  mthdClrs,
+  weekDays
+} from '@/types/service'
 import { newOne } from '@/utils'
 import {
   EditOutlined,
@@ -13,6 +20,7 @@ import {
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
+import dayjs from 'dayjs'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, createVNode, defineProps, h, reactive } from 'vue'
 import { useRouter } from 'vue-router'
@@ -59,27 +67,52 @@ function onAddSvcClicked() {
 function onBefSave(svc: Service) {
   if (svc.emit === 'timeout') {
     svc.path = `/job/v1/${svc.name}/${svc.interface}`
-    svc.condition = svc.condDtTm.format('YYYY/MM/DDTHH:mm:ss')
+    svc.condition = svc.interval.datetime.format('YYYY/MM/DDTHH:mm:ss')
   } else if (svc.emit === 'interval') {
     svc.path = `/job/v1/${svc.name}/${svc.interface}`
-    switch (svc.condArray[1]) {
+    switch (svc.interval.dimen) {
       case 's':
-        svc.condition = `*/${svc.condArray[0]} * * * * *`
+        svc.condition = ['*/' + svc.interval.value, '* * * * ?'].join(' ')
         break
       case 'm':
-        svc.condition = `0 */${svc.condArray[0]} * * * *`
+        svc.condition = [svc.interval.datetime.second(), '*/' + svc.interval.value, '* * * ?'].join(
+          ' '
+        )
         break
-      case 'h':
-        svc.condition = `0 0 */${svc.condArray[0]} * * *`
+      case 'H':
+        svc.condition = [
+          svc.interval.datetime.second(),
+          svc.interval.datetime.minute(),
+          '*/' + svc.interval.value,
+          '* * ?'
+        ].join(' ')
         break
       case 'D':
-        svc.condition = `0 0 0 */${svc.condArray[0]} * *`
+        svc.condition = [
+          svc.interval.datetime.second(),
+          svc.interval.datetime.minute(),
+          svc.interval.datetime.hour(),
+          '*/' + svc.interval.value,
+          '* ?'
+        ].join(' ')
         break
       case 'W':
-        // svc.condition = `*/${svc.condArray[0]} * * * * *`
+        svc.condition = [
+          svc.interval.datetime.second(),
+          svc.interval.datetime.minute(),
+          svc.interval.datetime.hour(),
+          '? *',
+          svc.interval.value
+        ].join(' ')
         break
       case 'M':
-        // svc.condition = `*/${svc.condArray[0]} * * * * *`
+        svc.condition = [
+          svc.interval.datetime.second(),
+          svc.interval.datetime.minute(),
+          svc.interval.datetime.hour(),
+          svc.interval.datetime.daysInMonth(),
+          `*/${svc.interval.value} ?`
+        ].join(' ')
         break
     }
     console.log(svc.condition)
@@ -113,6 +146,18 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       break
   }
 }
+function getTimeFormat(svc: Service) {
+  switch (svc.interval.dimen) {
+    case 'm':
+      return 'ss秒'
+    case 'H':
+      return 'mm分ss秒'
+    case 'D':
+      return 'HH时mm分ss秒'
+    case 'W':
+      return 'HH时mm分ss秒'
+  }
+}
 </script>
 
 <template>
@@ -121,6 +166,7 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       title="服务"
       description="定义在项目services文件夹下"
       size="small"
+      dlg-width="60vw"
       :api="api"
       :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
       :mapper="mapper"
@@ -137,8 +183,10 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       </template>
       <template #pathCond="{ record: svc }">
         <template v-if="svc.emit === 'api'">{{ svc.path }}</template>
-        <template v-else-if="svc.emit === 'timeout'">{{ svc.condition }}后</template>
-        <template v-else-if="svc.emit === 'interval'">每{{ svc.condition }}</template>
+        <template v-else-if="svc.emit === 'timeout'">
+          {{ dayjs(svc.condition, 'YYYY/MM/DDTHH:mm:ss').format('YY/MM/DD HH:mm:ss') }}
+        </template>
+        <template v-else-if="svc.emit === 'interval'">{{ svc.condition }}</template>
         <template v-else>-</template>
       </template>
       <template #fileFunc="{ record: svc }">
@@ -215,16 +263,58 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       <template #conditionEDT="{ editing: svc }">
         <template v-if="svc.emit === 'interval'">
           <a-form-item-rest>
-            <a-input-group compact class="w-full">
-              <a-input class="w-1/12 text-right" disabled value="每" />
-              <a-input class="w-2/12" type="number" placeholder="输入间隔时间" v-model:value="svc.condArray[0]" />
-              <a-select class="w-2/12 text-right" placeholder="选择时间单位" :options="itvlDimen" v-model:value="svc.condArray[1]" />
-              <a-input class="w-7/12" disabled value="执行一次" />
-            </a-input-group>
+            <div class="flex leading-8 align-middle space-x-2">
+              <span>每</span>
+              <a-input-number
+                class="w-14"
+                placeholder="输入间隔时间"
+                v-model:value="svc.interval.value"
+              />
+              <a-select
+                class="w-24"
+                placeholder="选择时间单位"
+                :options="itvlDimen"
+                v-model:value="svc.interval.dimen"
+              />
+              <span v-if="svc.interval.dimen !== 's'">在</span>
+              <a-time-picker
+                v-if="
+                  svc.interval.dimen === 'm' ||
+                  svc.interval.dimen === 'H' ||
+                  svc.interval.dimen === 'D'
+                "
+                :show-now="false"
+                :format="getTimeFormat(svc)"
+                placeholder="指定时间"
+                v-model:value="svc.interval.datetime"
+              />
+              <template v-else-if="svc.interval.dimen === 'W'">
+                <a-select class="w-28" placeholder="指定周几" :options="weekDays" />
+                <a-time-picker
+                  :show-now="false"
+                  placeholder="指定时间"
+                  :format="getTimeFormat(svc)"
+                  v-model:value="svc.interval.datetime"
+                />
+              </template>
+              <a-date-picker
+                v-else-if="svc.interval.dimen === 'M'"
+                show-time
+                placeholder="指定时间"
+                v-model:value="svc.interval.datetime"
+              />
+              <span>执行一次，并立即执行</span>
+              <a-checkbox v-model:checked="svc.interval.rightnow" />
+            </div>
           </a-form-item-rest>
         </template>
         <template v-else-if="svc.emit === 'timeout'">
-          <a-date-picker class="w-full" show-time placeholder="选择指定时间执行" v-model="svc.condDtTm" />
+          <a-date-picker
+            class="w-full"
+            show-time
+            placeholder="选择指定时间执行"
+            v-model:value="svc.interval.datetime"
+          />
         </template>
       </template>
     </EditableTable>
