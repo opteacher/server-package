@@ -76,7 +76,7 @@ export async function stop(pid, jid, authorization) {
     `${baseURL}${svc.path}/${svc.jobId}`,
     authorization ? { headers: { authorization } } : undefined
   )
-  return db.save(Service, { jobId: 0 }, { _index: jid })
+  return db.save(Service, { jobId: '' }, { _index: jid })
 }
 
 export async function rmv(sid) {

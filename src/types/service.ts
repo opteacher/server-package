@@ -148,7 +148,7 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    if (src.condition) {
+    if (src.condition && src.condition.split(' ').length === 6) {
       const [sec, min, hour, day, mon, week] = src.condition.split(' ')
       if (sec.includes('/')) {
         tgt.interval.value = parseInt(sec.split('/')[1])

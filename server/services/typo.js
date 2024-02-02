@@ -2,7 +2,9 @@ import Dep from '../models/dep.js'
 import Func from '../models/func.js'
 import Project from '../models/project.js'
 import Typo from '../models/typo.js'
+import Node from '../models/node.js'
 import { db, pickOrIgnore } from '../utils/index.js'
+import { colcNodes } from './service.js'
 
 export async function add(typo, pid) {
   const newTyp = await db.save(Typo, pickOrIgnore(typo, ['funcs']))
@@ -51,7 +53,11 @@ export async function remove(tid, pid) {
   const typo = await db.select(Typo, { _index: tid })
   const project = await db.select(Project, { _index: pid })
   await db.remove(Dep, { belong: project.name, name: typo.name })
-  await Promise.all(typo.funcs.map(fid => db.remove(Func, { _index: fid })))
+  for (const func of await Promise.all(typo.funcs.map(fid => db.select(Func, { _index: fid })))) {
+    const nodes = await colcNodes(func.flow)
+    await Promise.all(nodes.map(node => db.remove(Node, { _index: node.key })))
+    await db.remove(Func, { _index: func.id })
+  }
   await db.remove(Typo, { _index: tid })
   await db.saveOne(Project, pid, { typos: tid }, { updMode: 'delete' })
   return typo
