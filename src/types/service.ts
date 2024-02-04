@@ -56,7 +56,7 @@ export const weekDayMapper = {
   7: '周日'
 }
 
-export const weekDays = Object.entries(weekDayMapper).map(([value, label]) => ({ label, value }))
+export const weekDays = Object.entries(weekDayMapper).map(([value, label]) => ({ label, value: parseInt(value) }))
 
 export const methods: Method[] = ['GET', 'POST', 'DELETE', 'PUT', 'LINK']
 
@@ -105,7 +105,7 @@ export default class Service {
     this.interval = {
       value: 1,
       dimen: 's',
-      datetime: dayjs(),
+      datetime: dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss'),
       rightnow: true
     }
     this.needRet = true
@@ -127,7 +127,7 @@ export default class Service {
     this.interval = {
       value: 1,
       dimen: 's',
-      datetime: dayjs(),
+      datetime: dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss'),
       rightnow: true
     }
     this.needRet = true
@@ -179,7 +179,7 @@ export default class Service {
     } else if (force) {
       tgt.interval.value = 1
       tgt.interval.dimen = 's'
-      tgt.interval.datetime = dayjs()
+      tgt.interval.datetime = dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss')
       tgt.interval.rightnow = true
     }
     return tgt

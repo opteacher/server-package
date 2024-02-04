@@ -7,6 +7,7 @@ import Service, {
   Method,
   emitMapper,
   itvlDimen,
+  itvlDimenMapper,
   mthdClrs,
   weekDays
 } from '@/types/service'
@@ -115,7 +116,6 @@ function onBefSave(svc: Service) {
         ].join(' ')
         break
     }
-    console.log(svc.condition)
   }
 }
 function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
@@ -186,7 +186,15 @@ function getTimeFormat(svc: Service) {
         <template v-else-if="svc.emit === 'timeout'">
           {{ dayjs(svc.condition, 'YYYY/MM/DDTHH:mm:ss').format('YY/MM/DD HH:mm:ss') }}
         </template>
-        <template v-else-if="svc.emit === 'interval'">{{ svc.condition }}</template>
+        <template v-else-if="svc.emit === 'interval'">
+          <template v-if="svc.interval.dimen === 'W'"></template>
+          <template v-else>
+            {{ ['每', svc.interval.value, itvlDimenMapper[svc.interval.dimen]].join('') }}
+            <template v-if="svc.interval.dimen !== 's'">
+              {{ ['在', svc.interval.datetime.format(getTimeFormat(svc)), '执行一次'].join('') }}
+            </template>
+          </template>
+        </template>
         <template v-else>-</template>
       </template>
       <template #fileFunc="{ record: svc }">
@@ -265,9 +273,12 @@ function getTimeFormat(svc: Service) {
           <a-form-item-rest>
             <div class="flex leading-8 align-middle space-x-2">
               <span>每</span>
+              <span v-if="svc.interval.dimen === 'W'">1</span>
               <a-input-number
+                v-else
                 class="w-14"
                 placeholder="输入间隔时间"
+                :min="1"
                 v-model:value="svc.interval.value"
               />
               <a-select
@@ -289,7 +300,12 @@ function getTimeFormat(svc: Service) {
                 v-model:value="svc.interval.datetime"
               />
               <template v-else-if="svc.interval.dimen === 'W'">
-                <a-select class="w-28" placeholder="指定周几" :options="weekDays" />
+                <a-select
+                  class="w-28"
+                  placeholder="指定周几"
+                  :options="weekDays"
+                  v-model:value="svc.interval.value"
+                />
                 <a-time-picker
                   :show-now="false"
                   placeholder="指定时间"
