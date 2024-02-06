@@ -5,7 +5,7 @@
     </template>
     显示列
   </a-button>
-  <a-modal v-model:visible="selColsVsb" title="选择显示的列" width="50vw" :footer="null">
+  <a-modal v-model:open="selColsVsb" title="选择显示的列" width="50vw" :footer="null">
     <a-checkbox :checked="allSelCols" :indeterminate="indSelCols" @change="onAllColsChange">
       批量选择显示的列
     </a-checkbox>

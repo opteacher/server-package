@@ -6,7 +6,7 @@
       <a-typography-text type="secondary" class="mr-2">操作加载中……</a-typography-text>
     </template>
     <a-popover
-      v-model:visible="flwOpnVsb"
+      v-model:open="flwOpnVsb"
       overlayClassName="popmu-p-0"
       trigger="click"
       placement="bottomRight"

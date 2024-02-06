@@ -17,7 +17,7 @@
       />
       <a-modal
         :bodyStyle="{ padding: 0 }"
-        v-model:visible="formState.visible"
+        v-model:open="formState.visible"
         title="选择颜色"
         @ok="onSubmit"
       >

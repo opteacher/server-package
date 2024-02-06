@@ -1,6 +1,6 @@
 <template>
   <a-popover
-    v-model:visible="visibles.ctrlMenu"
+    v-model:open="visibles.ctrlMenu"
     overlayClassName="popmu-p-0"
     trigger="click"
     placement="bottomRight"

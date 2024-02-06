@@ -25,7 +25,7 @@
         </a-button>
         <FormDialog
           title="导出类"
-          v-model:visible="showExpCls"
+          v-model:open="showExpCls"
           :object="expCls"
           :new-fun="() => newOne(ExpCls)"
           :mapper="expMapper"

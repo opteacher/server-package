@@ -6,7 +6,7 @@ import axios from 'axios'
 import Antd from 'ant-design-vue'
 import MyLib from './lib/frontend-library/src/index'
 import './lib/frontend-library/src/assets/main.css'
-import 'ant-design-vue/dist/antd.css'
+import 'ant-design-vue/dist/reset.css'
 import './styles.css'
 
 axios.interceptors.request.use(

@@ -1,6 +1,6 @@
 <template>
   <a-popover
-    v-model:visible="visibles.dkrRel"
+    v-model:open="visibles.dkrRel"
     overlayClassName="popmu-p-0"
     trigger="click"
     placement="bottomLeft"
@@ -48,7 +48,7 @@
       Docker
     </a-button>
   </a-popover>
-  <a-modal v-model:visible="visibles.dkrInfo" title="Docker信息" :footer="null">
+  <a-modal v-model:open="visibles.dkrInfo" title="Docker信息" :footer="null">
     <a-tabs>
       <a-tab-pane key="1" tab="运行指令" class="relative">
         <a-typography-paragraph copyable>{{ runCmd }}</a-typography-paragraph>
