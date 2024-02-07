@@ -72,7 +72,6 @@
 <script lang="ts" setup name="TableProps">
 import { mdlAPI as api } from '@/apis'
 import Column from '@lib/types/column'
-import { defineEmits, defineProps } from 'vue'
 
 const emit = defineEmits(['change'])
 defineProps({

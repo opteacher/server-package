@@ -196,7 +196,7 @@ import {
   RightOutlined
 } from '@ant-design/icons-vue'
 import { v4 as uuid } from 'uuid'
-import { computed, defineEmits, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 
 defineEmits(['click:card', 'click:addBtn', 'mouseenter', 'mouseleave'])

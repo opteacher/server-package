@@ -1,6 +1,6 @@
 /*return Object.values(Object.fromEntries(typo.funcs.map(func => func.deps).flat().map(dep => [dep.name, dep]))).map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
-export class /*return typo.name*/ {
+export default class /*return typo.name*/ {
   /*return '/**'*/
   /*return typo.label ? '* '  + typo.label : ''*/
   /*return typo.props.map(prop => `* @param {${prop.name}} [${prop.ptype}]: ${prop.label}`).join('\n  ')*/
