@@ -1,16 +1,24 @@
 <template>
-  <opt-scl-pnl url="http://127.0.0.1:7132/stock-crawler/api/v1/stock/watch" />
+  <opt-scl-pnl
+    url="/stock-crawler/api/v1/stock/watch"
+    @before-start="onBefStart"
+    @after-end="onAftEnd"
+  />
 </template>
 
 <script lang="ts" setup>
+import { reqDelete, reqPost } from '@/utils'
 import OptSclPnl from '@lib/components/OptSclPnl.vue'
 
-// import { reqAll } from '@/utils'
-// import { onMounted } from 'vue'
-
-// onMounted(refresh)
-
-// async function refresh() {
-//   console.log(await reqAll('stock', { project: 'stock-crawler' }))
-// }
+const onBefStart = () =>
+  reqPost('stock', undefined, {
+    project: 'stock-crawler',
+    type: 'job',
+    action: 'crawl'
+  })
+const onAftEnd = () =>
+  reqDelete('stock', 'crawl/stock_crawl', {
+    project: 'stock-crawler',
+    type: 'job'
+  })
 </script>

@@ -22,6 +22,11 @@ export default ({ mode }) =>
           target: 'http://127.0.0.1:4000',
           ws: true,
           changeOrigin: true
+        },
+        '^/stock-crawler/(api|job)': {
+          target: 'http://127.0.0.1:7132',
+          ws: true,
+          changeOrigin: true
         }
       }
     },
