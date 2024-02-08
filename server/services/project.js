@@ -514,7 +514,7 @@ export async function generate(pid) {
     fs.accessSync(nmodTmp, fs.constants.R_OK)
   } catch (e) {
     console.log('解压缩npm文件，减少install时间')
-    spawnSync(`tar -zxvf ${Path.join(tmpPath, 'npm.tar')} -C ${cchPath}`, {
+    spawnSync(`tar -zxf ${Path.join(tmpPath, 'npm.tar')} -C ${cchPath}`, {
       stdio: 'inherit',
       shell: true
     })

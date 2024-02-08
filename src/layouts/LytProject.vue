@@ -145,7 +145,7 @@ import {
   SolutionOutlined,
   UserOutlined
 } from '@ant-design/icons-vue'
-import { computed, defineProps, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 

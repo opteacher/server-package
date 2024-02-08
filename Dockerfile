@@ -1,4 +1,4 @@
-FROM node:16.15.1
+FROM node:latest
 ENV NODE_ENV prod
 WORKDIR /tmp
 COPY . /tmp
@@ -10,7 +10,7 @@ RUN cd /tmp \
   && mkdir -p ./views \
   && mv ./public/server-package/index.html ./views/index.html
 
-FROM node:16.15.1
+FROM node:latest
 ENV NODE_ENV prod
 WORKDIR /app
 COPY --from=0 /tmp/server/ /app/

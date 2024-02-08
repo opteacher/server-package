@@ -23,7 +23,7 @@ import Mapper from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, createVNode, defineProps, h, reactive } from 'vue'
+import { computed, createVNode, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
