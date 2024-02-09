@@ -39,7 +39,7 @@ export const itvlDimenMapper = {
   H: '小时',
   D: '天',
   W: '周',
-  M: '月',
+  M: '月'
 }
 
 export type ItvlDimen = keyof typeof itvlDimenMapper
@@ -56,7 +56,10 @@ export const weekDayMapper = {
   7: '周日'
 }
 
-export const weekDays = Object.entries(weekDayMapper).map(([value, label]) => ({ label, value: parseInt(value) }))
+export const weekDays = Object.entries(weekDayMapper).map(([value, label]) => ({
+  label,
+  value: parseInt(value)
+}))
 
 export const methods: Method[] = ['GET', 'POST', 'DELETE', 'PUT', 'LINK']
 
@@ -169,7 +172,10 @@ export default class Service {
       } else if (mon.includes('/')) {
         tgt.interval.value = parseInt(mon.split('/')[1])
         tgt.interval.dimen = 'M'
-        tgt.interval.datetime = dayjs(`${day}T${hour}:${min}:${sec}`, 'DDTHH:mm:ss')
+        tgt.interval.datetime = dayjs(
+          `${day.padStart(2, '0')} ${hour}:${min}:${sec}`,
+          'DD HH:mm:ss'
+        )
       } else if (week !== '?') {
         tgt.interval.value = parseInt(week)
         tgt.interval.dimen = 'W'

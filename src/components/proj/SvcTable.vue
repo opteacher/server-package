@@ -111,7 +111,7 @@ function onBefSave(svc: Service) {
           svc.interval.datetime.second(),
           svc.interval.datetime.minute(),
           svc.interval.datetime.hour(),
-          svc.interval.datetime.daysInMonth(),
+          svc.interval.datetime.date(),
           `*/${svc.interval.value} ?`
         ].join(' ')
         break
@@ -156,6 +156,8 @@ function getTimeFormat(svc: Service) {
       return 'HH时mm分ss秒'
     case 'W':
       return 'HH时mm分ss秒'
+    case 'M':
+      return 'DD日/HH时mm分ss秒'
   }
 }
 </script>
