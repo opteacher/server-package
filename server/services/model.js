@@ -304,6 +304,45 @@ export async function saveProp(data, mid, pid) {
       return db.saveOne(Model, mid, { 'table.cells': initCell(data) }, { updMode: 'append' })
     }
   } else {
+    const model = await db.select(Model, { _index: mid })
+    const pname = model.props.find(prop => prop._id.toString() === pid)?.name
+    const pattern = new RegExp(`\\W?${pname}\\W?`, 'g')
+    if (pname !== data.name) {
+      // 如果修改字段的名称
+      // 1. 修改绑定的表单组件关联
+      for (const field of model.form.fields) {
+        if (!pattern.test(field.refer)) {
+          continue
+        }
+        await db.saveOne(Model, mid, {
+          [`form.fields[{_id:${field._id.toString()}}].refer`]: field.refer.replace(
+            pattern,
+            data.name
+          )
+        })
+      }
+      // 2. 修改绑定的表列关联
+      for (const column of model.table.columns) {
+        if (column.dataIndex !== pname) {
+          continue
+        }
+        await db.saveOne(Model, mid, {
+          [`table.columns[{_id:${column._id.toString()}}].dataIndex`]: data.name
+        })
+      }
+      // 3. 修改绑定的表项关联
+      for (const cell of model.table.cells) {
+        if (!pattern.test(cell.refer)) {
+          continue
+        }
+        await db.saveOne(Model, mid, {
+          [`table.cells[{_id:${cell._id.toString()}}].refer`]: cell.refer.replace(
+            pattern,
+            data.name
+          )
+        })
+      }
+    }
     return db.saveOne(Model, mid, { [`props[{_id:${pid}}]`]: data })
   }
 }
