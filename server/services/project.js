@@ -297,7 +297,6 @@ export async function nodes2Codes(flowKey, ident = 4) {
         if (node.deps) {
           for (const dep of node.deps) {
             if (!(dep.id in deps)) {
-              // console.log(`\t${dep.name}: ${dep.version}`)
               deps[dep.id] = dep
             }
           }
@@ -443,12 +442,15 @@ export async function generate(pid) {
       continue
     }
 
-    console.log('收集项目依赖模块：')
-    let svcExt = await db.select(Service, { _index: service.id }, { ext: true })
+    let svcExt = await db.select(Service, { _index: service.id }, { ext: true, rawQuery: false })
     if (svcExt.flow) {
       svcExt = Object.assign(svcExt, await nodes2Codes(svcExt.flow.id))
+      if (svcExt.deps.length) {
+        console.log('收集项目依赖模块：')
+      }
       for (const dep of svcExt.deps) {
         if (!(dep.id in deps)) {
+          console.log(`\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
           deps[dep.id] = dep
         }
       }
@@ -461,10 +463,10 @@ export async function generate(pid) {
     if (svcExt.stcVars.length) {
       console.log('收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`))
       if (!(service.name in varMap)) {
-        varMap[service.name] = svcExt.stcVars
+        varMap[service.name] = Array.from(svcExt.stcVars)
       } else {
         const vnames = new Set(varMap[service.name].map(v => v.name))
-        varMap[service.name].push(...svcExt.stcVars.filter(v => !vnames.has(v.name)))
+        varMap[service.name] = varMap[service.name].concat(svcExt.stcVars.filter(v => !vnames.has(v.name)))
       }
     }
   }
