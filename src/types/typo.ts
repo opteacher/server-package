@@ -1,5 +1,6 @@
 import { gnlCpy } from '@/utils'
 
+import Dep from './dep'
 import Node from './node'
 import Property from './property'
 
@@ -52,6 +53,8 @@ export default class Typo {
   name: string
   label: string
   desc: string
+  super: string
+  params: string[]
   props: Property[]
   funcs: Func[]
 
@@ -60,6 +63,8 @@ export default class Typo {
     this.name = ''
     this.label = ''
     this.desc = ''
+    this.super = ''
+    this.params = []
     this.props = []
     this.funcs = []
   }
@@ -69,11 +74,23 @@ export default class Typo {
     this.name = ''
     this.label = ''
     this.desc = ''
+    this.super = ''
+    this.params = []
     this.props = []
     this.funcs = []
   }
 
   static copy(src: any, tgt?: Typo, force = false): Typo {
-    return gnlCpy(Typo, src, tgt, { force, cpyMapper: { props: Property.copy, funcs: Func.copy } })
+    tgt = gnlCpy(Typo, src, tgt, {
+      force,
+      ignProps: ['super'],
+      cpyMapper: { props: Property.copy, funcs: Func.copy }
+    })
+    if (src.super) {
+      tgt.super = src.super._id || src.super
+    } else if (force) {
+      tgt.super = ''
+    }
+    return tgt
   }
 }

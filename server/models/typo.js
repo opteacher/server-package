@@ -6,6 +6,10 @@ export default db.defineModel(
     name: db.PropTypes.String,
     label: db.PropTypes.String,
     desc: db.PropTypes.String,
+    super: { type: db.PropTypes.Id, ref: 'dependency' },
+    // 父类的构造函数参数，只在指定了super的时候有效
+    // 优先于props参数：constructor(...params, ...props)
+    params: db.PropTypes.Array,
     props: [
       {
         name: db.PropTypes.String,

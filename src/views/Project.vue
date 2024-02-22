@@ -263,8 +263,14 @@
             添加
           </a-button>
         </div>
-        <a-row class="w-full p-2" :gutter="8">
-          <a-col v-for="typo of project.typos" :key="typo.key" :span="6">
+        <a-row class="w-full p-2" :gutter="{ lg: 16, xl: 24, xxl: 32 }">
+          <a-col
+            v-for="typo of project.typos"
+            :key="typo.key"
+            :lg="{ span: 12 }"
+            :xl="{ span: 9 }"
+            :xxl="{ span: 6 }"
+          >
             <TypoCard :typo="typo" :emitter="clsEmitter" />
           </a-col>
         </a-row>

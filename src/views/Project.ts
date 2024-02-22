@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { typAPI } from '@/apis'
+import { depAPI, typAPI } from '@/apis'
 import store from '@/store'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
@@ -413,6 +413,11 @@ export const clsMapper = new Mapper({
     label: '描述',
     type: 'Textarea'
   },
+  super: {
+    label: '父类',
+    type: 'Select',
+    options: []
+  },
   props: {
     label: '字段',
     type: 'Table',
@@ -450,3 +455,11 @@ export const clsMapper = new Mapper({
 })
 
 export const clsEmitter = new Emitter()
+
+clsEmitter.on('show', async () => {
+  clsEmitter.emit('update:mprop', {
+    'super.options': await Promise.all([depAPI.all(), depAPI.allByPjt()])
+      .then(ress => ress.flat())
+      .then(ress => ress.map(({ key, name }) => ({ label: name, value: key })))
+  })
+})
