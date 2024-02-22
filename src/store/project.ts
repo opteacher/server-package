@@ -11,15 +11,17 @@ import Status from '@/types/status'
 import { intervalCheck } from '@/utils'
 import { Dispatch } from 'vuex'
 
-import { pjtAPI } from '../apis'
+import { depAPI, pjtAPI } from '../apis'
+import Dep from '@/types/dep'
 
-type PjtState = { project: Project; apis: API[] }
+type PjtState = { project: Project; apis: API[]; deps: Dep[] }
 
 export default {
   namespaced: true,
   state: {
     project: new Project(),
-    apis: []
+    apis: [],
+    deps: []
   },
   mutations: {
     SET_STATUS(state: PjtState, payload: 'loading' | 'running' | 'stopped') {
@@ -38,6 +40,7 @@ export default {
       state.project = await pjtAPI.detail(pid)
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
       state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
+      state.deps = await Promise.all([depAPI.all(), depAPI.allByPjt(true)]).then(ress => ress.flat())
     },
     chkStatus({ state }: { state: PjtState }, expect: 'running' | 'stopped') {
       const msgTxt = expect === 'running' ? '启动' : '停止'
@@ -66,7 +69,7 @@ export default {
             )
           }
         },
-        interval: 4000,
+        interval: 5000,
         limit: 15 * 60
       })
     },
@@ -115,6 +118,7 @@ export default {
         state.project.models.find((mdl: Model) => mdl.key === mkey) as Model,
     auth: (state: PjtState): Auth => state.project.auth,
     apis: (state: PjtState): API[] => state.apis,
+    deps: (state: PjtState): Dep[] => state.deps,
     middle: (state: PjtState): Middle => state.project.middle
   }
 }

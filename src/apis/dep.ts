@@ -11,8 +11,10 @@ export default {
       copy: Dep.copy,
       axiosConfig: { params: { belong: ['==', 'null'] } }
     }),
-  allByPjt: async () => {
-    await store.dispatch('project/refresh')
+  allByPjt: async (noRefresh = false) => {
+    if (!noRefresh) {
+      await store.dispatch('project/refresh')
+    }
     const pjtName = store.getters['project/ins'].name
     if (pjtName) {
       return reqAll('dependency', {

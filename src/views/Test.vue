@@ -1,7 +1,7 @@
 <template>
-  <opt-scl-pnl
+  <OptSclPnl
     url="/stock-crawler/api/v1/stock/watch"
-    @before-start="onBefStart"
+    @before-start="onAftStart"
     @after-end="onAftEnd"
   />
 </template>
@@ -10,14 +10,14 @@
 import { reqDelete, reqPost } from '@/utils'
 import OptSclPnl from '@lib/components/OptSclPnl.vue'
 
-const onBefStart = () =>
+const onAftStart = () =>
   reqPost('stock', undefined, {
     project: 'stock-crawler',
     type: 'job',
     action: 'crawl'
   })
 const onAftEnd = () =>
-  reqDelete('stock', 'crawl/stock_crawl', {
+  reqDelete('stock', 'update/stock_crawl', {
     project: 'stock-crawler',
     type: 'job'
   })

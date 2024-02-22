@@ -24,33 +24,12 @@ export async function add(typo, pid) {
   return newTyp
 }
 
-export async function update(typo, pid) {
-  await db.saveOne(Typo, typo.key, pickOrIgnore(typo, ['funcs', 'super']))
-  const project = await db.select(Project, { _index: pid }, { ext: true })
-  const exsFunKeys = project.typos
-    .find(typ => typ.id.toString() === typo.key)
-    ?.funcs.map(func => func.id.toString())
-  const curFunKeys = new Set(typo.funcs.map(fun => fun.key))
-  console.log(curFunKeys, exsFunKeys)
-  for (const funKey of exsFunKeys) {
-    if (!curFunKeys.has(funKey)) {
-      await db.remove(Func, { _index: funKey })
-      await db.saveOne(Typo, typo.key, { funcs: funKey }, { updMode: 'delete' })
-    }
-  }
-  const fids = new Set(exsFunKeys)
-  for (const func of typo.funcs) {
-    if (fids.has(func.key)) {
-      await db.saveOne(Func, func.key, pickOrIgnore(func, ['flow']))
-    } else {
-      const newFun = await db.save(Func, pickOrIgnore(func, ['flow']))
-      await db.saveOne(Typo, typo.key, { funcs: newFun.id }, { updMode: 'append' })
-    }
-  }
-  if (typo.super) {
-    await db.saveOne(Typo, typo.key, { super: typo.super })
-  }
-  return db.select(Typo, { _index: typo.key })
+export function update(typo) {
+  return db.saveOne(
+    Typo,
+    typo.key,
+    Object.assign(typo, { funcs: typo.funcs.map(func => func.key || func) })
+  )
 }
 
 export async function remove(tid, pid) {

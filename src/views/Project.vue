@@ -17,6 +17,21 @@
             <a @click="refresh">{{ project.status.stat }}</a>
           </a-tag>
         </a-tooltip>
+        <a-tooltip v-if="project.status.stat !== 'stopped'">
+          <template #title>查看日志</template>
+          <a-button type="text" size="small" @click="() => setProp(ctnrLogs, 'visible', true)">
+            <template #icon><FileTextOutlined /></template>
+          </a-button>
+        </a-tooltip>
+        <a-modal
+          width="40vw"
+          :bodyStyle="{ height: '60vh' }"
+          title="容器日志"
+          :footer="null"
+          v-model:open="ctnrLogs.visible"
+        >
+          <OptSclPnl :url="esURL" :emitter="ctnrLogs.emitter" />
+        </a-modal>
       </template>
       <template #extra>
         <a-button v-if="isFront" @click="() => frtEmitter.emit('update:visible', true)">
@@ -77,20 +92,6 @@
           </a-descriptions-item>
         </template>
       </a-descriptions>
-      <template v-if="project.status.stat === 'running'">
-        <a-divider class="m-0">
-          <a-button type="link" @click="onCtnrLogsVsb">
-            <template #icon>
-              <UpOutlined v-if="ctnrLogs.visible" />
-              <DownOutlined v-else />
-            </template>
-            容器日志
-          </a-button>
-        </a-divider>
-        <pre v-if="ctnrLogs.visible" class="bg-gray-100 p-2 h-64" ref="logPnl">{{
-          ctnrLogs.content
-        }}</pre>
-      </template>
     </a-page-header>
     <a-tabs>
       <a-tab-pane key="model" tab="模型">
@@ -152,11 +153,17 @@
                   :api="{
                     all: () => model.props,
                     add: (data: any) =>
-                      reqPost('model/' + model.key+ '/property', data, { type: 'api' }).then(refresh),
+                      reqPost('model/' + model.key + '/property', data, { type: 'api' }).then(
+                        refresh
+                      ),
                     remove: (prop: any) =>
-                      reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(refresh),
+                      reqDelete('model/' + model.key, 'property/' + prop.key, { type: 'api' }).then(
+                        refresh
+                      ),
                     update: (data: any) =>
-                      reqPut('model/' + model.key, 'property/' + data.key, data, { type: 'api' }).then(refresh)
+                      reqPut('model/' + model.key, 'property/' + data.key, data, {
+                        type: 'api'
+                      }).then(refresh)
                   }"
                   :columns="propColumns"
                   :mapper="propMapper"
@@ -181,7 +188,11 @@
                               class="w-full"
                               :disabled="mdlOpns.length === 1"
                               :value="editing.relative.belong ? 'belong' : 'has'"
-                              @change="(val: string) => { editing.relative.belong = val === 'belong' }"
+                              @change="
+                                (val: string) => {
+                                  editing.relative.belong = val === 'belong'
+                                }
+                              "
                             >
                               <a-select-option value="belong">属于</a-select-option>
                               <a-select-option value="has">拥有</a-select-option>
@@ -193,7 +204,11 @@
                             <a-checkbox
                               :disabled="mdlOpns.length === 1"
                               v-model:checked="editing.relative.isArray"
-                              @change="(checked: boolean) => { editing.ptype = checked ? 'Array' : 'Id' }"
+                              @change="
+                                (checked: boolean) => {
+                                  editing.ptype = checked ? 'Array' : 'Id'
+                                }
+                              "
                             >
                               {{ editing.relative.isArray ? '多个' : '一个' }}
                             </a-checkbox>
@@ -232,7 +247,9 @@
                   :mapper="createByFields(model.form.fields)"
                   :new-fun="
                     () =>
-                      Object.fromEntries(model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)]))
+                      Object.fromEntries(
+                        model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)])
+                      )
                   "
                   size="small"
                   :pagable="true"
@@ -306,20 +323,19 @@ import Typo from '@/types/typo'
 import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
-  DownOutlined,
   ExportOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
   SyncOutlined,
-  UpOutlined
+  FileTextOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
 import { Modal } from 'ant-design-vue'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, h, reactive, ref } from 'vue'
+import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
+import { computed, h, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -344,6 +360,7 @@ import {
   svcEmitter,
   svcMapper
 } from './Project'
+import OptSclPnl from '@/lib/frontend-library/src/components/OptSclPnl.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -381,13 +398,26 @@ const mdlOpns = computed<OpnType[]>(() =>
 const ctnrLogs = reactive<{
   visible: boolean
   content: string
+  emitter: TinyEmitter
 }>({
   visible: false,
-  content: ''
+  content: '',
+  emitter: new TinyEmitter()
 })
 const logPnl = ref<HTMLElement>()
 const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
 const actMdlTab = ref('struct')
+
+watch(() => ctnrLogs.visible, (visible: boolean) => {
+  if (visible) {
+    setTimeout(() => {
+      ctnrLogs.emitter.emit('start')
+      if (navigator.userAgent.includes('Windows')) {
+        ctnrLogs.visible = false
+      }
+    }, 10)
+  }
+})
 
 async function refresh() {
   await store.dispatch('project/refresh')

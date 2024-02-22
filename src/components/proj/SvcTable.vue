@@ -170,7 +170,7 @@ function getTimeFormat(svc: Service) {
       size="small"
       dlg-width="60vw"
       :api="api"
-      :filter="(svc: any) => model ? (svc.model === model) : !svc.model"
+      :filter="(svc: any) => (model ? svc.model === model : !svc.model)"
       :mapper="mapper"
       :columns="columns"
       :new-fun="() => newOne(Service)"
@@ -262,8 +262,8 @@ function getTimeFormat(svc: Service) {
         <template v-else>-</template>
       </template>
       <template #stcVars="{ record: svc }">
-        <ul class="list-none mb-0 pl-0">
-          <li v-for="v of svc.stcVars" :key="v.key">{{ v.name }}</li>
+        <ul class="list-none mb-0 pl-0 space-y-0.5">
+          <li v-for="v of svc.stcVars" :key="v.key">{{ v.name }}: {{ v.vtype }}</li>
         </ul>
       </template>
       <template #desc="{ record: svc }">

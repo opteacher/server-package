@@ -7,11 +7,6 @@
   >
     <template #content>
       <a-menu class="w-48 border-r-0" mode="inline" @click="onProjCtrlClick">
-        <a-menu-item key="build_procs" v-if="project.status.stat === 'loading'">
-          <template #icon><BuildOutlined /></template>
-          构建信息
-        </a-menu-item>
-        <a-modal v-model:open="visibles.buildPcs" title="构建信息">abcd</a-modal>
         <a-menu-item key="sync_proj" :disabled="project.status.stat === 'loading'">
           <template #icon><SyncOutlined /></template>
           同步
@@ -64,7 +59,6 @@ import Transfer from '@/types/transfer'
 import { newOne } from '@/utils'
 import { tsEmitter, tsMapper } from '@/views/Project'
 import {
-  BuildOutlined,
   ControlOutlined,
   ExclamationCircleOutlined,
   InfoCircleOutlined,
@@ -93,8 +87,7 @@ const mapper = new Mapper({
 })
 const visibles = reactive({
   ctrlMenu: false,
-  tsfFiles: false,
-  buildPcs: false
+  tsfFiles: false
 })
 
 function onSyncClick(pid: string) {
@@ -108,7 +101,7 @@ function onSyncClick(pid: string) {
     })
   }
 }
-function onProjCtrlClick({ key }: { key: 'sync_proj' | 'stop_proj' | 'send_files' | 'build_procs' }) {
+function onProjCtrlClick({ key }: { key: 'sync_proj' | 'stop_proj' | 'send_files' }) {
   const project = store.getters['project/ins']
   switch (key) {
     case 'sync_proj':
@@ -119,9 +112,6 @@ function onProjCtrlClick({ key }: { key: 'sync_proj' | 'stop_proj' | 'send_files
       break
     case 'send_files':
       visibles.tsfFiles = true
-      break
-    case 'build_procs':
-      visibles.buildPcs = true
       break
   }
 }

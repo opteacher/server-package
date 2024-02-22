@@ -16,6 +16,7 @@
     /*return pkgDeps.map(dep => `"${dep.from}": "${dep.version}",`).join('\n    ')*/
     "@hokify/agenda": "^6.3.0",
     "axios": "^0.25.0",
+    "dayjs": "^1.11.3",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",

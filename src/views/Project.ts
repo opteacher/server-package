@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { depAPI, typAPI } from '@/apis'
+import { typAPI } from '@/apis'
+import router from '@/router'
 import store from '@/store'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
+import Project from '@/types/project'
 import Property from '@/types/property'
-import { EmitType, Method, emitTypeOpns, timeUnits } from '@/types/service'
+import { EmitType, Method, emitTypeOpns } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Typo, { Func } from '@/types/typo'
@@ -325,7 +327,7 @@ function genVarMapper(emitter: Emitter, prefix = '') {
       type: 'Select',
       rules: [{ required: true, message: '必须选择类型！' }],
       options: bsTpOpns.filter(
-        ({ value }) => value !== 'Id' && value !== 'Any' && value !== 'Unknown'
+        ({ value }) => value !== 'Id' && value !== 'Unknown'
       ),
       onChange: (prop: Property) => updDftByType(prop.ptype, emitter, { prefix })
     },
@@ -390,6 +392,17 @@ export const clsFunMapper = new Mapper({
   remark: {
     label: '备注',
     type: 'Textarea'
+  },
+  design: {
+    label: '流程',
+    type: 'Button',
+    inner: '流程设计',
+    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    onClick: (func: Func) => {
+      const project = store.getters['project/ins'] as Project
+      const typo = project.typos.find(typo => typo.funcs.find(fun => fun.key === func.key)) as Typo
+      router.push(`/project/${project.key}/typo/${typo.key}/func/${func.key}`)
+    }
   }
 })
 
@@ -417,6 +430,18 @@ export const clsMapper = new Mapper({
     label: '父类',
     type: 'Select',
     options: []
+  },
+  params: {
+    label: '构造参数',
+    type: 'EditList',
+    flatItem: true,
+    mapper: new Mapper({
+      pname: {
+        type: 'Input',
+        placeholder: '填入参数名'
+      }
+    }),
+    newFun: () => ({ pname: '' })
   },
   props: {
     label: '字段',
@@ -456,10 +481,9 @@ export const clsMapper = new Mapper({
 
 export const clsEmitter = new Emitter()
 
-clsEmitter.on('show', async () => {
-  clsEmitter.emit('update:mprop', {
-    'super.options': await Promise.all([depAPI.all(), depAPI.allByPjt()])
-      .then(ress => ress.flat())
-      .then(ress => ress.map(({ key, name }) => ({ label: name, value: key })))
-  })
-})
+clsEmitter.on('show', () => clsEmitter.emit('update:mprop', {
+  'super.options': store.getters['project/deps'].map(({ key, name }) => ({
+    label: name,
+    value: key
+  }))
+}))
