@@ -29,13 +29,10 @@ const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const jobCfg = readConfig(Path.resolve('configs', 'job'))
 const tmpPath = Path.resolve('resources', 'app-temp')
-const sse = new PassThrough()
 const logger = winston.createLogger({
   level: 'info',
-  transports: [
-    new winston.transports.Console(),
-    new SseTransport({ stream: sse })
-  ]
+  format: winston.format.simple(),
+  transports: [new winston.transports.Console()]
 })
 
 function formatToStr(value, vtype) {
@@ -287,26 +284,29 @@ export async function recuNode(key, indent, callback, endKey) {
 }
 
 export function watchSync(ctx) {
+  const stream = new PassThrough()
   ctx.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
+    Connection: 'keep-alive'
   })
   ctx.status = 200
-  ctx.body = sse
+  ctx.body = stream
+  logger.add(new SseTransport({ stream }))
 }
 
 export async function sync(pid) {
-  logger.log('info', '更新项目的进程ID……')
-  await db.save(Project, { thread: -1 }, { _index: pid })
-
   setTimeout(async () => {
+    logger.log('info', '更新项目的进程ID……')
+    await db.saveOne(Project, pid, { thread: -1 })
+
+    logger.log('info', '生成项目……')
     const project = await generate(pid)
 
     logger.log('info', '启动项目……')
     await run(project)
     await adjAndRestartNginx()
-  }, 10)
+  }, 1000)
   return Promise.resolve({ message: '同步中……' })
 }
 
@@ -486,7 +486,9 @@ export async function generate(pid) {
         varMap[service.name] = Array.from(svcExt.stcVars)
       } else {
         const vnames = new Set(varMap[service.name].map(v => v.name))
-        varMap[service.name] = varMap[service.name].concat(svcExt.stcVars.filter(v => !vnames.has(v.name)))
+        varMap[service.name] = varMap[service.name].concat(
+          svcExt.stcVars.filter(v => !vnames.has(v.name))
+        )
       }
     }
   }
@@ -595,6 +597,7 @@ export async function genAuth(project, tmpPath, genPath) {
  * @returns
  */
 export async function run(pjt) {
+  const stream = logger.transports.find(transport => transport instanceof SseTransport)?.stream
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -611,20 +614,25 @@ export async function run(pjt) {
       shell: true
     })
   } catch (e) {
-    console.log(`无运行中的${project.name}实例`)
+    logger.log('warn', `无运行中的${project.name}实例`)
   }
   const childPcs = spawn(
     [`docker build -t ${project.name}:latest ${appPath}`, await pjtRunCmd(project)].join(' && '),
     {
-      stdio: 'inherit',
+      stdio: stream ? ['inherit', 'pipe', 'pipe'] : 'inherit',
       shell: true,
       env: { NODE_ENV: '' } // 暂时不支持环境
     }
   ).on('error', err => {
-    console.log(err)
+    logger.log('error', err)
   })
+  if (stream) {
+    childPcs.stdout?.pipe(process.stdout)
+    console.log(stream.writable)
+    childPcs.stdout?.pipe(stream)
+  }
   const thread = childPcs.pid
-  console.log('持久化进程id……')
+  logger.log('info', '持久化进程id……')
   await db.save(Project, { thread }, { _index: project._id })
   return Promise.resolve(thread || 0)
 }

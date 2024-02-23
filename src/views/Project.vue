@@ -24,7 +24,7 @@
           </a-button>
         </a-tooltip>
         <a-modal
-          width="40vw"
+          width="60vw"
           :bodyStyle="{ height: '60vh' }"
           title="容器日志"
           :footer="null"
@@ -334,7 +334,6 @@ import {
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
-import { Modal } from 'ant-design-vue'
 import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
 import { computed, h, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -361,12 +360,14 @@ import {
   svcEmitter,
   svcMapper
 } from './Project'
+import Status from '@/types/status'
 
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
 const pid = route.params.pid as string
 const project = computed<Project>(() => store.getters['project/ins'])
+const pjtStt = computed<Status>(() => store.getters['project/ins'].status)
 const database = computed<string>(() => {
   const db = (store.getters['project/ins'] as Project).database
   return db ? `${db.dbtype}db://${db.host}:${db.port}/${db.db}` : ''
@@ -404,9 +405,8 @@ const ctnrLogs = reactive<{
   content: '',
   emitter: new TinyEmitter()
 })
-const logPnl = ref<HTMLElement>()
 const esURL = computed(() =>
-  project.value.status.stat === 'loading'
+  pjtStt.value.stat === 'loading'
     ? `/${getDftPjt()}/api/v1/project/${pid}/sync/watch`
     : `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
 )
@@ -416,12 +416,12 @@ watch(
   () => ctnrLogs.visible,
   (visible: boolean) => {
     if (visible) {
-      setTimeout(() => {
-        ctnrLogs.emitter.emit('start')
-        if (navigator.userAgent.includes('Windows')) {
-          ctnrLogs.visible = false
-        }
-      }, 10)
+      setTimeout(() => ctnrLogs.emitter.emit('start'), 10)
+      if (pjtStt.value.stat === 'running' && navigator.userAgent.includes('Windows')) {
+        ctnrLogs.visible = false
+      }
+    } else {
+      ctnrLogs.emitter.emit('stop')
     }
   }
 )
@@ -472,19 +472,6 @@ function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
       break
   }
 }
-function onTypoClick(typo: Typo) {
-  Modal.confirm({
-    title: 'This is a notification message',
-    content: h('div', {}, [
-      h('p', 'some messages...some messages...'),
-      h('p', 'some messages...some messages...')
-    ]),
-    maskClosable: true,
-    onOk() {
-      console.log('ok')
-    }
-  })
-}
 async function onTypoSubmit(typo: Typo, next: Function) {
   if (typo.key) {
     await typAPI.update(typo)
@@ -495,6 +482,8 @@ async function onTypoSubmit(typo: Typo, next: Function) {
   await store.dispatch('project/refresh')
 }
 function onSyncFinish() {
+  store.commit('project/SET_STATUS', 'loading')
   ctnrLogs.visible = true
+  console.log(store.getters['project/ins'])
 }
 </script>
