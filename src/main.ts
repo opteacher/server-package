@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import axios from 'axios'
+import axios, { AxiosRequestHeaders } from 'axios'
 import Antd from 'ant-design-vue'
 import MyLib from './lib/frontend-library/src/index'
 import './lib/frontend-library/src/assets/main.css'
@@ -14,7 +14,7 @@ axios.interceptors.request.use(
     const token = `Bearer ${localStorage.getItem('loginToken')}`
     if (token) {
       if (!config.headers) {
-        config.headers = { authorization: token } as Record<string, string>
+        config.headers = { authorization: token } as AxiosRequestHeaders
       } else {
         config.headers['authorization'] = token
       }
