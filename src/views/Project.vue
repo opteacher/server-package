@@ -59,7 +59,7 @@
         </a-button>
         <DkrRelBtns />
         <MidPubBtns />
-        <PjtCtrlBtns />
+        <PjtCtrlBtns @sync_fin="onSyncFinish" />
         <a-button @click="onConfigClick">
           <template #icon><SettingOutlined /></template>
         </a-button>
@@ -312,6 +312,7 @@ import MsvcSelect from '@/components/proj/MsvcSelect.vue'
 import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
 import SvcTable from '@/components/proj/SvcTable.vue'
 import TypoCard from '@/components/proj/TypoCard.vue'
+import OptSclPnl from '@/lib/frontend-library/src/components/OptSclPnl.vue'
 import { OpnType, bsTpDefault } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
@@ -324,12 +325,12 @@ import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,
+  FileTextOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
-  SyncOutlined,
-  FileTextOutlined
+  SyncOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -360,7 +361,6 @@ import {
   svcEmitter,
   svcMapper
 } from './Project'
-import OptSclPnl from '@/lib/frontend-library/src/components/OptSclPnl.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -405,19 +405,26 @@ const ctnrLogs = reactive<{
   emitter: new TinyEmitter()
 })
 const logPnl = ref<HTMLElement>()
-const esURL = `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
+const esURL = computed(() =>
+  project.value.status.stat === 'loading'
+    ? `/${getDftPjt()}/api/v1/project/${pid}/sync/watch`
+    : `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
+)
 const actMdlTab = ref('struct')
 
-watch(() => ctnrLogs.visible, (visible: boolean) => {
-  if (visible) {
-    setTimeout(() => {
-      ctnrLogs.emitter.emit('start')
-      if (navigator.userAgent.includes('Windows')) {
-        ctnrLogs.visible = false
-      }
-    }, 10)
+watch(
+  () => ctnrLogs.visible,
+  (visible: boolean) => {
+    if (visible) {
+      setTimeout(() => {
+        ctnrLogs.emitter.emit('start')
+        if (navigator.userAgent.includes('Windows')) {
+          ctnrLogs.visible = false
+        }
+      }, 10)
+    }
   }
-})
+)
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -446,30 +453,6 @@ function onRelMdlChange(prop: Property, mname: string) {
   prop.index = false
   prop.unique = false
   prop.visible = true
-}
-async function onCtnrLogsVsb() {
-  ctnrLogs.visible = !ctnrLogs.visible
-  if (ctnrLogs.visible) {
-    ctnrLogs.content = ''
-    const es = new EventSource(esURL)
-    es.addEventListener('message', e => {
-      ctnrLogs.content += e.data
-      const logOpt = logPnl.value
-      if (logOpt) {
-        if (logOpt.scrollHeight > logOpt.clientHeight) {
-          setTimeout(() => {
-            logOpt.scrollTop = logOpt.scrollHeight
-          }, 0)
-        }
-      }
-    })
-    es.addEventListener('error', e => {
-      console.error(e)
-      es.close()
-    })
-  } else {
-    await pjtAPI.logs.exit(pid)
-  }
 }
 function onExpClsClick(model: Model) {
   expClsObj.update(model)
@@ -510,5 +493,8 @@ async function onTypoSubmit(typo: Typo, next: Function) {
   }
   next()
   await store.dispatch('project/refresh')
+}
+function onSyncFinish() {
+  ctnrLogs.visible = true
 }
 </script>

@@ -23,15 +23,18 @@ import Service from '../models/service.js'
 import Typo from '../models/typo.js'
 import { db, genDefault, pickOrIgnore } from '../utils/index.js'
 import winston from 'winston'
+import SseTransport from '../types/SseTransport.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const jobCfg = readConfig(Path.resolve('configs', 'job'))
 const tmpPath = Path.resolve('resources', 'app-temp')
+const sse = new PassThrough()
 const logger = winston.createLogger({
   level: 'info',
   transports: [
-    new winston.transports.Console()
+    new winston.transports.Console(),
+    new SseTransport({ stream: sse })
   ]
 })
 
@@ -283,6 +286,16 @@ export async function recuNode(key, indent, callback, endKey) {
   }
 }
 
+export function watchSync(ctx) {
+  ctx.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  })
+  ctx.status = 200
+  ctx.body = sse
+}
+
 export async function sync(pid) {
   logger.log('info', '更新项目的进程ID……')
   await db.save(Project, { thread: -1 }, { _index: pid })
@@ -290,7 +303,7 @@ export async function sync(pid) {
   setTimeout(async () => {
     const project = await generate(pid)
 
-    console.log('启动项目……')
+    logger.log('info', '启动项目……')
     await run(project)
     await adjAndRestartNginx()
   }, 10)
@@ -314,20 +327,20 @@ export async function nodes2Codes(flowKey, ident = 4) {
 }
 
 export async function generate(pid) {
-  console.log('从数据库获取项目实例……')
+  logger.log('info', '从数据库获取项目实例……')
   const project = await db.select(Project, { _index: pid }, { ext: true })
   if (project.thread) {
     await stopSync(project)
   }
   const genPath = Path.resolve(svrCfg.apps, project.name)
-  console.log(`生成项目到目录：${genPath}`)
+  logger.log('info', `生成项目到目录：${genPath}`)
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
   if (!project.database) {
-    console.log('检测为前端项目，进行前端项目的生成逻辑……')
+    logger.log('info', '检测为前端项目，进行前端项目的生成逻辑……')
     return genFront(project)
   }
-  console.log('从数据库获取项目模型……')
+  logger.log('info', '从数据库获取项目模型……')
   for (const index in project.models) {
     const mid = project.models[index]
     project.models[index] = await db.select(Model, { _index: mid }, { ext: true })
@@ -335,32 +348,32 @@ export async function generate(pid) {
   if (!project.auth) {
     project.auth = {}
   }
-  console.log('从数据库获取项目持久化源配置……')
+  logger.log('info', '从数据库获取项目持久化源配置……')
   fs.mkdirSync(Path.join(genPath, 'configs'))
   const dbCfgTmp = Path.join(tmpPath, 'configs', 'db.toml')
   const dbCfgGen = Path.join(genPath, 'configs', 'db.toml')
-  console.log(`调整数据源配置文件：${dbCfgTmp} -> ${dbCfgGen}`)
+  logger.log('info', `调整数据源配置文件：${dbCfgTmp} -> ${dbCfgGen}`)
   adjustFile(dbCfgTmp, dbCfgGen, { database: project.database })
   const mdlCfgTmp = Path.join(tmpPath, 'configs', 'models.toml')
   const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
-  console.log(`调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
+  logger.log('info', `调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
   adjustFile(mdlCfgTmp, mdlCfgGen, { project })
   if (project.services.some(svc => svc.emit === 'timeout' || svc.emit === 'interval')) {
     const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
     const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
-    console.log(`调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
+    logger.log('info', `调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
     adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
   }
   if (project.independ) {
     const svrCfgTmp = Path.join(tmpPath, 'configs', 'server.toml')
     const svrCfgGen = Path.join(genPath, 'configs', 'server.toml')
-    console.log(`调整服务配置文件：${svrCfgTmp} -> ${svrCfgGen}`)
+    logger.log('info', `调整服务配置文件：${svrCfgTmp} -> ${svrCfgGen}`)
     adjustFile(svrCfgTmp, svrCfgGen, { secret: svrCfg.secret })
   }
 
   const appTmp = Path.join(tmpPath, 'app.js')
   const appGen = Path.join(genPath, 'app.js')
-  console.log(`调整应用文件：${appTmp} -> ${appGen}`)
+  logger.log('info', `调整应用文件：${appTmp} -> ${appGen}`)
   adjustFile(appTmp, appGen, {
     project,
     start_svcs: project.services.filter(svc => svc.emit === 'app_start').flat(),
@@ -369,21 +382,21 @@ export async function generate(pid) {
 
   const dkrTmp = Path.join(tmpPath, 'Dockerfile')
   const dkrGen = Path.join(genPath, 'Dockerfile')
-  console.log(`调整Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
+  logger.log('info', `调整Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
 
   const libTmp = Path.resolve('lib')
   const libGen = Path.join(genPath, 'lib')
-  console.log(`复制库文件夹：${libTmp} -> ${libGen}`)
+  logger.log('info', `复制库文件夹：${libTmp} -> ${libGen}`)
   copyDir(libTmp, libGen, { ignores: [Path.resolve(libTmp, 'node_modules')] })
 
   fs.mkdirSync(Path.join(genPath, 'utils'))
   const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
   const utilsGen = Path.join(genPath, 'utils', 'index.js')
-  console.log(`调整工具文件：${utilsTmp} -> ${utilsGen}`)
+  logger.log('info', `调整工具文件：${utilsTmp} -> ${utilsGen}`)
   adjustFile(utilsTmp, utilsGen)
 
-  console.log(`生成public文件夹：${Path.join(genPath, 'public')}`)
+  logger.log('info', `生成public文件夹：${Path.join(genPath, 'public')}`)
   fs.mkdirSync(Path.join(genPath, 'public'))
 
   const deps = {}
@@ -396,13 +409,13 @@ export async function generate(pid) {
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
   const vwsGen = Path.join(genPath, 'views')
-  console.log(`复制页面文件夹：${vwsTmp} -> ${vwsGen}`)
+  logger.log('info', `复制页面文件夹：${vwsTmp} -> ${vwsGen}`)
   copyDir(vwsTmp, vwsGen)
 
   const typTmp = Path.join(tmpPath, 'types', 'temp.js')
   const typGen = Path.join(genPath, 'types')
   fs.mkdirSync(typGen)
-  console.log(`生成自定义类文件：${typTmp} -> ${typGen}`)
+  logger.log('info', `生成自定义类文件：${typTmp} -> ${typGen}`)
   for (const typo of await Promise.all(
     project.typos.map(typ => db.select(Typo, { _index: typ.id }, { ext: true }))
   )) {
@@ -429,7 +442,7 @@ export async function generate(pid) {
   const svcRts = {}
   const svcMap = {}
   const varMap = {}
-  console.log('收集非模型服务实例……')
+  logger.log('info', '收集非模型服务实例……')
   for (const service of project.services.filter(svc => !svc.model)) {
     if (service.path) {
       let pamIdx = service.path.indexOf('/:')
@@ -445,7 +458,7 @@ export async function generate(pid) {
     }
 
     if (service.name === 'auth') {
-      console.log('跳过授权服务')
+      logger.log('info', '跳过授权服务')
       continue
     }
 
@@ -453,11 +466,11 @@ export async function generate(pid) {
     if (svcExt.flow) {
       svcExt = Object.assign(svcExt, await nodes2Codes(svcExt.flow.id))
       if (svcExt.deps.length) {
-        console.log('收集项目依赖模块：')
+        logger.log('info', '收集项目依赖模块：')
       }
       for (const dep of svcExt.deps) {
         if (!(dep.id in deps)) {
-          console.log(`\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
+          logger.log('info', `\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
           deps[dep.id] = dep
         }
       }
@@ -468,7 +481,7 @@ export async function generate(pid) {
       svcMap[service.name].push(svcExt)
     }
     if (svcExt.stcVars.length) {
-      console.log('收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`))
+      logger.log('info', '收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`))
       if (!(service.name in varMap)) {
         varMap[service.name] = Array.from(svcExt.stcVars)
       } else {
@@ -477,18 +490,18 @@ export async function generate(pid) {
       }
     }
   }
-  console.log('生成非模型服务的路由……')
+  logger.log('info', '生成非模型服务的路由……')
   for (const [rotGen, services] of Object.entries(svcRts)) {
-    console.log(`调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
+    logger.log('info', `调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
     adjustFile(rotData, `${rotGen}/index.js`, { services })
   }
-  console.log('生成非模型服务实例……')
+  logger.log('info', '生成非模型服务实例……')
   for (const [aname, services] of Object.entries(svcMap)) {
     const svcGen = Path.join(svcPath, aname + '.js')
-    console.log(`调整服务文件：${svcTmp} -> ${svcGen}`)
+    logger.log('info', `调整服务文件：${svcTmp} -> ${svcGen}`)
     adjustFile(svcData, svcGen, { services, stcVars: varMap[aname], genDefault })
   }
-  console.log('生成模型实例……')
+  logger.log('info', '生成模型实例……')
   for (const model of project.models) {
     const mid = model.id.toString()
     model.services = project.services.filter(svc => svc.model && svc.model.toString() === mid)
@@ -498,19 +511,19 @@ export async function generate(pid) {
     )
 
     const mdlGen = Path.join(mdlPath, model.name + '.js')
-    console.log(`调整模型文件：${mdlTmp} -> ${mdlGen}`)
+    logger.log('info', `调整模型文件：${mdlTmp} -> ${mdlGen}`)
     adjustFile(mdlData, mdlGen, { model })
   }
   const pkgTmp = Path.join(tmpPath, 'package.json')
   const pkgGen = Path.join(genPath, 'package.json')
-  console.log(`调整package文件：${pkgTmp} -> ${pkgGen}`)
+  logger.log('info', `调整package文件：${pkgTmp} -> ${pkgGen}`)
   adjustFile(pkgTmp, pkgGen, {
     project,
     pkgDeps: Object.values(deps).filter(dep => dep.version)
   })
   // const pkgLkTmp = Path.join(tmpPath, 'package-lock.json')
   // const pkgLkGen = Path.join(genPath, 'package-lock.json')
-  // console.log(`调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
+  // logger.log('info', `调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)
   // adjustFile(pkgLkTmp, pkgLkGen, { project })
   const cchPath = Path.resolve(svrCfg.apps, 'tmp')
   try {
@@ -522,13 +535,13 @@ export async function generate(pid) {
   try {
     fs.accessSync(nmodTmp, fs.constants.R_OK)
   } catch (e) {
-    console.log('解压缩npm文件，减少install时间')
+    logger.log('info', '解压缩npm文件，减少install时间')
     spawnSync(`tar -zxf ${Path.join(tmpPath, 'npm.tar')} -C ${cchPath}`, {
       stdio: 'inherit',
       shell: true
     })
   }
-  console.log(`复制npm文件夹到生成目录：${nmodTmp} -> ${Path.join(genPath, '.npm')}`)
+  logger.log('info', `复制npm文件夹到生成目录：${nmodTmp} -> ${Path.join(genPath, '.npm')}`)
   copyDir(nmodTmp, Path.join(genPath, '.npm'))
   return project
 }
@@ -537,7 +550,7 @@ export async function genAuth(project, tmpPath, genPath) {
   const deps = {}
   const authTmp = Path.join(tmpPath, 'services', 'auth.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
-  console.log(`复制授权服务文件：${authTmp} -> ${authGen}`)
+  logger.log('info', `复制授权服务文件：${authTmp} -> ${authGen}`)
   const apis = await getAllAPIs(project.id)
   const args = {
     secret: svrCfg.secret,

@@ -72,6 +72,7 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, createVNode, reactive } from 'vue'
 import { useStore } from 'vuex'
 
+const emit = defineEmits(['sync_fin'])
 const store = useStore()
 const project = computed<Project>(() => store.getters['project/ins'])
 const emitter = new Emitter()
@@ -97,7 +98,11 @@ function onSyncClick(pid: string) {
     Modal.confirm({
       title: '确定（重）启动项目？',
       icon: createVNode(ExclamationCircleOutlined),
-      onOk: () => api.sync(pid).then(() => setTimeout(() => store.dispatch('project/refresh'), 10))
+      onOk: () =>
+        api
+          .sync(pid)
+          .then(() => store.dispatch('project/refresh'))
+          .then(() => emit('sync_fin'))
     })
   }
 }

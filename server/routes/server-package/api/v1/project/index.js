@@ -1,6 +1,7 @@
 import Router from 'koa-router'
 import {
   sync,
+  watchSync,
   del,
   stop,
   status,
@@ -33,6 +34,8 @@ router.put('/:pid/sync', async ctx => {
     result: await sync(ctx.params.pid)
   }
 })
+
+router.get('/:pid/sync/watch', watchSync)
 
 router.get('/:pid/stat', async ctx => {
   ctx.body = {
