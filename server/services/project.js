@@ -22,11 +22,18 @@ import Project from '../models/project.js'
 import Service from '../models/service.js'
 import Typo from '../models/typo.js'
 import { db, genDefault, pickOrIgnore } from '../utils/index.js'
+import winston from 'winston'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const jobCfg = readConfig(Path.resolve('configs', 'job'))
 const tmpPath = Path.resolve('resources', 'app-temp')
+const logger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console()
+  ]
+})
 
 function formatToStr(value, vtype) {
   if (typeof value === 'undefined' || value === null) {
@@ -277,7 +284,7 @@ export async function recuNode(key, indent, callback, endKey) {
 }
 
 export async function sync(pid) {
-  console.log('更新项目的进程ID……')
+  logger.log('info', '更新项目的进程ID……')
   await db.save(Project, { thread: -1 }, { _index: pid })
 
   setTimeout(async () => {

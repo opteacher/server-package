@@ -14,7 +14,7 @@ axios.interceptors.request.use(
     const token = `Bearer ${localStorage.getItem('loginToken')}`
     if (token) {
       if (!config.headers) {
-        config.headers = { authorization: token }
+        config.headers = { authorization: token } as Record<string, string>
       } else {
         config.headers['authorization'] = token
       }
