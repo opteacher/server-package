@@ -33,7 +33,8 @@
     "mysql2": "^2.2.5",
     "qiniu": "^7.4.0",
     "toml": "^3.0.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",

@@ -1,4 +1,4 @@
-/*return 'import ' + typo.super.exports[0] + ' from \'' + typo.super.from.replaceAll('../types/', './') + '\''*/
+/*return typo.super ? ('import ' + typo.super.exports[0] + ' from \'' + typo.super.from.replaceAll('../types/', './') + '\'') : ''*/
 /*return Object.values(Object.fromEntries(typo.funcs.map(func => func.deps).flat().map(dep => [dep.name, dep]))).map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
 export default class /*return typo.name + (typo.super ? ` extends ${typo.super.exports[0]}` : '')*/ {
