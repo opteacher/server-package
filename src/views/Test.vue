@@ -1,9 +1,11 @@
 <template>
-  <OptSclPnl
-    url="/stock-crawler/api/v1/stock/watch"
-    @before-start="onAftStart"
-    @after-end="onAftEnd"
-  />
+  <div class="h-full p-5">
+    <OptSclPnl
+      url="/stock-crawler/api/v1/stock/watch"
+      @before-start="onAftStart"
+      @after-end="onAftEnd"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>

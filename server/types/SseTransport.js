@@ -39,4 +39,11 @@ export default class SseTransport extends Transport {
     callback()
   }
 
+  close () {
+    if (this.stream) {
+      this.stream.write('event: stop\n')
+      this.stream.write('data: \n\n')
+    }
+  }
+
 }

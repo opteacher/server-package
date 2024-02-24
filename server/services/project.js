@@ -285,6 +285,10 @@ export async function recuNode(key, indent, callback, endKey) {
 
 export function watchSync(ctx) {
   const stream = new PassThrough()
+  stream.on('close', () => {
+    stream.destroy()
+    logger.transports.splice(logger.transports.findIndex(tp => tp instanceof SseTransport))
+  })
   ctx.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -292,7 +296,12 @@ export function watchSync(ctx) {
   })
   ctx.status = 200
   ctx.body = stream
-  logger.add(new SseTransport({ stream }))
+  const transport = logger.transports.find(tp => tp instanceof SseTransport)
+  if (transport) {
+    transport.stream = stream
+  } else {
+    logger.add(new SseTransport({ stream }))
+  }
 }
 
 export async function sync(pid) {
@@ -597,7 +606,6 @@ export async function genAuth(project, tmpPath, genPath) {
  * @returns
  */
 export async function run(pjt) {
-  const stream = logger.transports.find(transport => transport instanceof SseTransport)?.stream
   const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }) : pjt
   const appPath = Path.resolve(svrCfg.apps, project.name)
   const appFile = Path.join(appPath, 'app.js')
@@ -619,18 +627,26 @@ export async function run(pjt) {
   const childPcs = spawn(
     [`docker build -t ${project.name}:latest ${appPath}`, await pjtRunCmd(project)].join(' && '),
     {
-      stdio: stream ? ['inherit', 'pipe', 'pipe'] : 'inherit',
+      stdio: ['inherit', 'pipe', 'pipe'],
       shell: true,
       env: { NODE_ENV: '' } // 暂时不支持环境
     }
-  ).on('error', err => {
-    logger.log('error', err)
+  )
+    .on('error', err => {
+      logger.log('error', err)
+    })
+    .on('exit', () => {
+      logger.log('info', '运行成功！')
+      logger.transports.find(transport => transport instanceof SseTransport)?.close()
+    })
+  childPcs.stdout.pipe(process.stdout)
+  childPcs.stderr.pipe(process.stderr)
+  childPcs.stdout.on('data', msg => {
+    logger.log('info', msg instanceof Buffer ? msg.toString('utf-8') : msg)
   })
-  if (stream) {
-    childPcs.stdout?.pipe(process.stdout)
-    console.log(stream.writable)
-    childPcs.stdout?.pipe(stream)
-  }
+  childPcs.stderr.on('error', err => {
+    logger.log('error', err.message || JSON.stringify(err))
+  })
   const thread = childPcs.pid
   logger.log('info', '持久化进程id……')
   await db.save(Project, { thread }, { _index: project._id })

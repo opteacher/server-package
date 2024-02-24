@@ -24,11 +24,20 @@ export async function add(typo, pid) {
   return newTyp
 }
 
-export function update(typo) {
+export async function update(typo) {
+  const funcs = []
+  for (const func of typo.funcs) {
+    if (func.key) {
+      funcs.push(func.key)
+    } else {
+      const newFun = await db.save(Func, pickOrIgnore(func, ['flow']))
+      funcs.push(newFun._id.toString())
+    }
+  }
   return db.saveOne(
     Typo,
     typo.key,
-    Object.assign(typo, { funcs: typo.funcs.map(func => func.key || func) })
+    Object.assign(typo, { funcs })
   )
 }
 

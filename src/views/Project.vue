@@ -416,12 +416,15 @@ watch(
   () => ctnrLogs.visible,
   (visible: boolean) => {
     if (visible) {
-      setTimeout(() => ctnrLogs.emitter.emit('start'), 10)
-      if (pjtStt.value.stat === 'running' && navigator.userAgent.includes('Windows')) {
-        ctnrLogs.visible = false
-      }
+      setTimeout(() => {
+        ctnrLogs.emitter.emit('start')
+        if (pjtStt.value.stat === 'running' && navigator.userAgent.includes('Windows')) {
+          setTimeout(() => setProp(ctnrLogs, 'visible', false), 10)
+        }
+      }, 10)
     } else {
       ctnrLogs.emitter.emit('stop')
+      ctnrLogs.emitter.emit('clean')
     }
   }
 )
