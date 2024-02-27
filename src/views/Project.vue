@@ -424,7 +424,6 @@ watch(
       }, 10)
     } else {
       ctnrLogs.emitter.emit('stop')
-      ctnrLogs.emitter.emit('clean')
     }
   }
 )
@@ -486,6 +485,7 @@ async function onTypoSubmit(typo: Typo, next: Function) {
 }
 function onSyncFinish() {
   store.commit('project/SET_STATUS', 'loading')
+  ctnrLogs.emitter.emit('clean')
   ctnrLogs.visible = true
   console.log(store.getters['project/ins'])
 }

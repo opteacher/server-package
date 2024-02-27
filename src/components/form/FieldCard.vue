@@ -16,38 +16,10 @@
       class="hidden h-0.5 bg-primary"
     />
   </div>
-  <FormItem
-    :id="field.key"
-    class="p-2.5 m-0 relative"
-    :form="form"
-    :skey="field.refer"
-    :mapper="mapper"
-  />
-  <div
-    class="px-2.5 py-0"
-    :style="{
-      width: `${cmpRect[2]}px`
-    }"
-    @dragover.stop="e => e.preventDefault()"
-    @dragenter.stop="e => onDragEnter(e, `divider_btm_${field.key}`)"
-    @dragleave.stop="onDragLeave"
-    @drop.stop="e => onDropDown(e)"
-  >
-    <div
-      v-show="showDivider('btm')"
-      :id="`divider_btm_${field.key}`"
-      class="hidden h-0.5 bg-primary"
-    />
-  </div>
-
   <div
     :class="{ 'card-hover': mosMvOver && active !== field.key }"
-    class="cursor-pointer absolute rounded"
+    class="cursor-pointer rounded z-30"
     :style="{
-      left: `${cmpRect[0]}px`,
-      top: `${cmpRect[1]}px`,
-      width: `${cmpRect[2]}px`,
-      height: `${cmpRect[3]}px`,
       border: active === field.key ? '2px solid #1890ff' : ''
     }"
     @click.stop="$emit('update:active', field)"
@@ -73,6 +45,29 @@
         <CloseOutlined />
       </template>
     </a-button>
+    <FormItem
+      :id="field.key"
+      class="p-2.5 m-0 relative"
+      :form="form"
+      :skey="field.refer"
+      :mapper="mapper"
+    />
+  </div>
+  <div
+    class="px-2.5 py-0"
+    :style="{
+      width: `${cmpRect[2]}px`
+    }"
+    @dragover.stop="e => e.preventDefault()"
+    @dragenter.stop="e => onDragEnter(e, `divider_btm_${field.key}`)"
+    @dragleave.stop="onDragLeave"
+    @drop.stop="e => onDropDown(e)"
+  >
+    <div
+      v-show="showDivider('btm')"
+      :id="`divider_btm_${field.key}`"
+      class="hidden h-0.5 bg-primary"
+    />
   </div>
 </template>
 
@@ -204,7 +199,9 @@ export default defineComponent({
 <style>
 .card-hover {
   border-radius: 3px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
   transition: all 200ms ease-out;
 }
 </style>
