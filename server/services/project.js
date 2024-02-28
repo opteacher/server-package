@@ -639,10 +639,13 @@ export async function run(pjt) {
       logger.log('info', '运行成功！')
       logger.transports.find(transport => transport instanceof SseTransport)?.close()
     })
-  childPcs.stdout.pipe(process.stdout)
-  childPcs.stderr.pipe(process.stderr)
+  // childPcs.stdout.pipe(process.stdout)
+  // childPcs.stderr.pipe(process.stderr)
   childPcs.stdout.on('data', msg => {
-    logger.log('info', msg instanceof Buffer ? msg.toString('utf-8') : msg)
+    const strMsg = msg instanceof Buffer ? msg.toString('utf-8') : msg
+    for (const strLin of strMsg.split('\n')) {
+      logger.log('info', strLin)
+    }
   })
   childPcs.stderr.on('error', err => {
     logger.log('error', err.message || JSON.stringify(err))

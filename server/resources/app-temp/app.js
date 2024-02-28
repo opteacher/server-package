@@ -6,6 +6,8 @@ import logger from 'koa-logger'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
+import Agendash from 'agendash'
+import { agenda } from './utils/index.js'
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
@@ -41,6 +43,10 @@ app.use(statc(path.resolve('public')))
 app.use(router.routes()).use(router.allowedMethods())
 // 模型路由
 app.use(models.router.routes()).use(models.router.allowedMethods())
+// Agendash路由
+for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
+  app.use(middleware)
+}
 // 指定页面目录
 app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾（如果没有则index.html默认为404页面）
