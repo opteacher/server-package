@@ -1,6 +1,6 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
-import { beforeAll, beforeEach, afterAll, expect, test } from '@jest/globals'
+import { beforeAll, beforeEach, afterAll, expect, test, describe } from '@jest/globals'
 import { db } from '../utils/index.js'
 import Admin from '../models/admin.js'
 import { regup, login, verify } from '../services/admin.js'
