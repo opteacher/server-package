@@ -5,6 +5,7 @@ import { Agenda } from '@hokify/agenda'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import mongoose from 'mongoose'
 
+// console.log(globalThis.__MONGO_URI__)
 const address = 'mongodb://root:12345@127.0.0.1:27017/agenda_job?authSource=admin'
 const agenda = new Agenda({
   db: {
