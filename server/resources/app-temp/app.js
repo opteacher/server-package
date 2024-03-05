@@ -58,10 +58,14 @@ app.use(views('./views', { extension: 'html' }))
 app.use(ctx => ctx.render('index'))
 
 /*return project.https ? 'const options = { key: fs.readFileSync(\'./certs/private.key\'), cert: fs.readFileSync(\'./certs/certificate.crt\') }' : ''*/
-/*return project.https ? 'https.createServer(options, app.callback())' : 'app'*/.listen(0/*return project.port*/, undefined, async () => {
-  console.log('服务已部署，占用端口：/*return project.port*/')
-  /*return start_svcs.map(svc => `await ${svc.interface}()`).join('\n')*/
-})
+/*return project.https ? 'https.createServer(options, app.callback())' : 'app'*/.listen(
+  0/*return project.port*/,
+  undefined,
+  async () => {
+    console.log('服务已部署，占用端口：/*return project.port*/')
+    /*return start_svcs.map(svc => `await ${svc.interface}()`).join('\n')*/
+  }
+)
 
 process.on('exit', () => {
   setTimeout(async () => {
