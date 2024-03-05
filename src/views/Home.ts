@@ -102,6 +102,11 @@ export const mapper = new Mapper({
         label: '前置命令',
         type: 'Textarea'
       },
+      https: {
+        label: '开启https服务',
+        type: 'Switch',
+        chkLabels: ['未开启', '已开启']
+      },
       independ: {
         label: '独立部署',
         type: 'Checkbox',
