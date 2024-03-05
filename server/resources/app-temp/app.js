@@ -1,8 +1,11 @@
+import fs from 'fs'
 import path from 'path'
+import https from 'https'
 import Koa from 'koa'
 import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
+import sslify from 'koa-sslify'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
@@ -47,12 +50,15 @@ app.use(models.router.routes()).use(models.router.allowedMethods())
 for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
   app.use(middleware)
 }
+// Https服务
+/*return project.https ? 'app.use(sslify())' : ''*/
 // 指定页面目录
 app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾（如果没有则index.html默认为404页面）
 app.use(ctx => ctx.render('index'))
 
-app.listen(0/*return project.port*/, undefined, async () => {
+/*return project.https ? 'const options = { key: fs.readFileSync(\'./certs/private.key\'), cert: fs.readFileSync(\'./certs/certificate.crt\') }' : ''*/
+/*return project.https ? 'https.createServer(options, app.callback())' : 'app'*/.listen(0/*return project.port*/, undefined, async () => {
   console.log('服务已部署，占用端口：/*return project.port*/')
   /*return start_svcs.map(svc => `await ${svc.interface}()`).join('\n')*/
 })

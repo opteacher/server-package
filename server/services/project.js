@@ -421,6 +421,14 @@ export async function generate(pid) {
   logger.log('info', `复制页面文件夹：${vwsTmp} -> ${vwsGen}`)
   copyDir(vwsTmp, vwsGen)
 
+  if (project.https) {
+    fs.mkdirSync(Path.join(genPath, 'certs'))
+    const ctsTmp = Path.join(tmpPath, 'certs')
+    const ctsGen = Path.join(genPath, 'certs')
+    logger.log('info', `复制SSL证书：${ctsTmp} -> ${ctsGen}`)
+    copyDir(ctsTmp, ctsGen)
+  }
+
   const typTmp = Path.join(tmpPath, 'types', 'temp.js')
   const typGen = Path.join(genPath, 'types')
   fs.mkdirSync(typGen)
