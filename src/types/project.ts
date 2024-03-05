@@ -22,6 +22,7 @@ export default class Project {
   database?: DataBase
   dropDbs: boolean
   commands: string
+  https: boolean
   independ: boolean
   envVars: Variable[]
   expPorts: number[]
@@ -44,6 +45,7 @@ export default class Project {
     this.database = undefined
     this.dropDbs = false
     this.commands = ''
+    this.https = false
     this.independ = false
     this.envVars = []
     this.expPorts = []
@@ -67,6 +69,7 @@ export default class Project {
     this.database = undefined
     this.dropDbs = false
     this.commands = ''
+    this.https = false
     this.independ = false
     this.envVars = []
     this.expPorts = []
