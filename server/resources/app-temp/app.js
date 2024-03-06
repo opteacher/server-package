@@ -5,7 +5,7 @@ import Koa from 'koa'
 import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
-import { default as sslify } from 'koa-sslify'
+import sslify from 'koa-sslify'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
@@ -51,7 +51,7 @@ for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
   app.use(middleware)
 }
 // Https服务
-/*return project.https ? 'app.use(sslify())' : ''*/
+/*return project.https ? 'app.use(sslify.default())' : ''*/
 // 指定页面目录
 app.use(views('./views', { extension: 'html' }))
 // 以页面路由结尾（如果没有则index.html默认为404页面）
