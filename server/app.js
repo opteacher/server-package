@@ -3,7 +3,6 @@ import Koa from 'koa'
 import koaBody from 'koa-body'
 import json from 'koa-json'
 import logger from 'koa-logger'
-import sslify from 'koa-sslify'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
@@ -40,8 +39,6 @@ app.use(
 )
 // json解析
 app.use(json())
-
-app.use(sslify.default())
 // 指定静态目录
 app.use(statc(Path.resolve('public')))
 // 模型路由
