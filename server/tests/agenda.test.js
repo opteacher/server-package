@@ -111,23 +111,23 @@ describe('# Agenda定时任务测试', () => {
         agenda.define('my_job', callback)
         await agenda.start()
         await agenda.every('5 second', 'my_job')
-        console.log('首次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('首次执行')
             expect(callback).toBeCalled()
             resolve()
           }, 100)
         })
-        console.log('5秒后第一次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第一次执行')
             expect(callback).toBeCalledTimes(2)
             resolve()
           }, 5100)
         })
-        console.log('5秒后第二次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第二次执行')
             expect(callback).toBeCalledTimes(3)
             resolve()
           }, 5100)
@@ -139,23 +139,23 @@ describe('# Agenda定时任务测试', () => {
         agenda.define('my_job', callback)
         await agenda.start()
         await agenda.every(5000, 'my_job')
-        console.log('首次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('首次执行')
             expect(callback).toBeCalled()
             resolve()
           }, 100)
         })
-        console.log('5秒后第一次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第一次执行')
             expect(callback).toBeCalledTimes(2)
             resolve()
           }, 5100)
         })
-        console.log('5秒后第二次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第二次执行')
             expect(callback).toBeCalledTimes(3)
             resolve()
           }, 5100)
@@ -166,24 +166,24 @@ describe('# Agenda定时任务测试', () => {
         const callback = jest.fn()
         agenda.define('my_job', callback)
         await agenda.start()
-        await agenda.every('0/5 * * * * ?', 'my_job')
-        console.log('首次执行')
+        await agenda.every('*/5 * * * *', 'my_job')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('首次执行')
             expect(callback).toBeCalled()
             resolve()
           }, 100)
         })
-        console.log('5秒后第一次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第一次执行')
             expect(callback).toBeCalledTimes(2)
             resolve()
           }, 5100)
         })
-        console.log('5秒后第二次执行')
         await new Promise(resolve => {
           setTimeout(() => {
+            console.log('5秒后第二次执行')
             expect(callback).toBeCalledTimes(3)
             resolve()
           }, 5100)
@@ -193,7 +193,27 @@ describe('# Agenda定时任务测试', () => {
     })
     describe('# 测试选项/options', () => {
       test('# 时区/timezone', () => {})
-      test('# 跳过首次执行/skipImmediate', () => {})
+      test('# 跳过首次执行/skipImmediate', async () => {
+        const callback = jest.fn()
+        agenda.define('my_job', callback)
+        await agenda.start()
+        await agenda.every('0/5 * * * * ?', 'my_job', undefined, { skipImmediate: true })
+        await new Promise(resolve => {
+          setTimeout(() => {
+            console.log('首次不执行')
+            expect(callback).not.toBeCalled()
+            resolve()
+          }, 5000)
+        })
+        await new Promise(resolve => {
+          setTimeout(() => {
+            console.log('5秒后执行')
+            expect(callback).toBeCalled()
+            resolve()
+          }, 200)
+        })
+        await agenda.cancel({ name: 'my_job' })
+      }, 60000)
       test('# 指定开始时刻/startDate', () => {})
       test('# 每次执行间隔（天）/skipDays', () => {})
     })
