@@ -163,10 +163,14 @@ describe('# Agenda定时任务测试', () => {
         await agenda.cancel({ name: 'my_job' })
       }, 60000)
       test('# cron', async () => {
+        console.log('cron无效的研究结果：')
+        console.log('调用堆栈：every\n => repeatEvery\n => computeNextRunAt\n => computeFromInterval\n => dateForTimezone\n => fromJSDate\n => toJSDate')
+        console.log('问题所在：toJSDate() { return new Date(this.isValid ? this.ts : NaN); }，而this.ts是从fromJSDate(new Date(), ...')
+        console.log('  解析来，没有根据时区发生任何变化。所以任务开始于-8:00的时刻，导致every无法正常运行')
         const callback = jest.fn()
         agenda.define('my_job', callback)
         await agenda.start()
-        await agenda.every('*/5 * * * *', 'my_job')
+        await agenda.every('0/5 * * * * ?', 'my_job')
         await new Promise(resolve => {
           setTimeout(() => {
             console.log('首次执行')
