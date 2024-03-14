@@ -73,7 +73,7 @@ export async function stop(pid, jid, authorization) {
     return { error: '指定任务没有在运行' }
   }
   await axios.delete(
-    `${baseURL}${svc.path}/${svc.jobId}`,
+    baseURL + svc.path,
     authorization ? { headers: { authorization } } : undefined
   )
   return db.save(Service, { jobId: '' }, { _index: jid })
