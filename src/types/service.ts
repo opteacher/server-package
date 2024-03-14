@@ -34,12 +34,12 @@ export const tmUntMapper = {
 export const timeUnits = Object.entries(tmUntMapper).map(([value, label]) => ({ label, value }))
 
 export const itvlDimenMapper = {
-  s: '秒',
-  m: '分钟',
-  H: '小时',
-  D: '天',
-  W: '周',
-  M: '月'
+  seconds: '秒',
+  minutes: '分钟',
+  hours: '小时',
+  days: '天',
+  weeks: '周',
+  months: '月'
 }
 
 export type ItvlDimen = keyof typeof itvlDimenMapper
@@ -87,9 +87,9 @@ export default class Service {
   interval: {
     value: number
     dimen: ItvlDimen
-    datetime: Dayjs
     rightnow: boolean
   }
+  datetime: Dayjs
   needRet: boolean
   stcVars: Variable[]
   desc: string
@@ -107,10 +107,10 @@ export default class Service {
     this.condition = ''
     this.interval = {
       value: 1,
-      dimen: 's',
-      datetime: dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss'),
+      dimen: 'seconds',
       rightnow: true
     }
+    this.datetime = dayjs(null)
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -129,10 +129,10 @@ export default class Service {
     this.condition = ''
     this.interval = {
       value: 1,
-      dimen: 's',
-      datetime: dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss'),
+      dimen: 'seconds',
       rightnow: true
     }
+    this.datetime = dayjs(null)
     this.needRet = true
     this.stcVars = []
     this.desc = ''
@@ -141,7 +141,7 @@ export default class Service {
   static copy(src: any, tgt?: Service, force = false): Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
-      ignProps: ['name', 'interface', 'interval'],
+      ignProps: ['name', 'interface', 'interval', 'datetime'],
       cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
     })
     if (src.service && src.service.length === 2) {
@@ -151,41 +151,16 @@ export default class Service {
       tgt.name = src.name || tgt.name
       tgt.interface = src.interface || tgt.interface
     }
-    if (src.condition && src.condition.split(' ').length === 6) {
-      const [sec, min, hour, day, mon, week] = src.condition.split(' ')
-      if (sec.includes('/')) {
-        tgt.interval.value = parseInt(sec.split('/')[1])
-        tgt.interval.dimen = 's'
-        tgt.interval.datetime = dayjs(null)
-      } else if (min.includes('/')) {
-        tgt.interval.value = parseInt(min.split('/')[1])
-        tgt.interval.dimen = 'm'
-        tgt.interval.datetime = dayjs(sec, 'ss')
-      } else if (hour.includes('/')) {
-        tgt.interval.value = parseInt(hour.split('/')[1])
-        tgt.interval.dimen = 'H'
-        tgt.interval.datetime = dayjs(`${min}:${sec}`, 'mm:ss')
-      } else if (day.includes('/')) {
-        tgt.interval.value = parseInt(day.split('/')[1])
-        tgt.interval.dimen = 'D'
-        tgt.interval.datetime = dayjs(`${hour}:${min}:${sec}`, 'HH:mm:ss')
-      } else if (mon.includes('/')) {
-        tgt.interval.value = parseInt(mon.split('/')[1])
-        tgt.interval.dimen = 'M'
-        tgt.interval.datetime = dayjs(
-          `${day.padStart(2, '0')} ${hour}:${min}:${sec}`,
-          'DD HH:mm:ss'
-        )
-      } else if (week !== '?') {
-        tgt.interval.value = parseInt(week)
-        tgt.interval.dimen = 'W'
-        tgt.interval.datetime = dayjs(`${hour}:${min}:${sec}`, 'HH:mm:ss')
+    if (src.condition) {
+      if (src.condition.split(' ').length === 2) {
+        [tgt.interval.value, tgt.interval.dimen] = src.condition.split(' ')
+      } else if (src.condition.includes('/') && src.condition.includes(':')) {
+        tgt.datetime = dayjs(src.condition, 'YYYY/MM/DDTHH:mm:ss')
       }
       tgt.interval.rightnow = true
     } else if (force) {
       tgt.interval.value = 1
-      tgt.interval.dimen = 's'
-      tgt.interval.datetime = dayjs('1970/01/01T00:00:00', 'YYYY/MM/DDTHH:mm:ss')
+      tgt.interval.dimen = 'seconds'
       tgt.interval.rightnow = true
     }
     return tgt

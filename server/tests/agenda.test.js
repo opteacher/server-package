@@ -4,7 +4,12 @@ import { beforeAll, beforeEach, afterAll, expect, test, describe, jest } from '@
 import { Agenda } from '@hokify/agenda'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import mongoose from 'mongoose'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 
+dayjs.extend(utc)
+dayjs.extend(timezone)
 const address = globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
 const agenda = new Agenda({
   db: {
@@ -170,7 +175,7 @@ describe('# Agenda定时任务测试', () => {
         const callback = jest.fn()
         agenda.define('my_job', callback)
         await agenda.start()
-        await agenda.every('0/5 * * * * ?', 'my_job')
+        await agenda.every('0/5 * * * *', 'my_job', undefined, { timezone: 'Asia/Shanghai' })
         await new Promise(resolve => {
           setTimeout(() => {
             console.log('首次执行')

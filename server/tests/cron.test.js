@@ -6,8 +6,10 @@ import { DateTime } from 'luxon'
 
 describe('cron分析器', () => {
   test('一般分析', () => {
-    const current = DateTime.fromJSDate(new Date(), { zone: 'Asia/Shanghai' })
-    console.log(current.toJSDate())
+    const date = new Date()
+    console.log(date)
+    const current = DateTime.fromJSDate(date, { zone: 'Asia/Shanghai' })
+    console.log(current.toLocal())
     const cronTime = cronParser.parseExpression('*/5 * * * * ?', {
       currentDate: current.toJSDate(),
       tz: 'Asia/Shanghai'

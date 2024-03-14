@@ -68,54 +68,10 @@ function onAddSvcClicked() {
 function onBefSave(svc: Service) {
   if (svc.emit === 'timeout') {
     svc.path = `/job/v1/${svc.name}/${svc.interface}`
-    svc.condition = svc.interval.datetime.format('YYYY/MM/DDTHH:mm:ss')
+    svc.condition = svc.datetime.format('YYYY/MM/DDTHH:mm:ss')
   } else if (svc.emit === 'interval') {
     svc.path = `/job/v1/${svc.name}/${svc.interface}`
-    switch (svc.interval.dimen) {
-      case 's':
-        svc.condition = ['*/' + svc.interval.value, '* * * * ?'].join(' ')
-        break
-      case 'm':
-        svc.condition = [svc.interval.datetime.second(), '*/' + svc.interval.value, '* * * ?'].join(
-          ' '
-        )
-        break
-      case 'H':
-        svc.condition = [
-          svc.interval.datetime.second(),
-          svc.interval.datetime.minute(),
-          '*/' + svc.interval.value,
-          '* * ?'
-        ].join(' ')
-        break
-      case 'D':
-        svc.condition = [
-          svc.interval.datetime.second(),
-          svc.interval.datetime.minute(),
-          svc.interval.datetime.hour(),
-          '*/' + svc.interval.value,
-          '* ?'
-        ].join(' ')
-        break
-      case 'W':
-        svc.condition = [
-          svc.interval.datetime.second(),
-          svc.interval.datetime.minute(),
-          svc.interval.datetime.hour(),
-          '? *',
-          svc.interval.value
-        ].join(' ')
-        break
-      case 'M':
-        svc.condition = [
-          svc.interval.datetime.second(),
-          svc.interval.datetime.minute(),
-          svc.interval.datetime.hour(),
-          svc.interval.datetime.date(),
-          `*/${svc.interval.value} ?`
-        ].join(' ')
-        break
-    }
+    svc.condition = [svc.interval.value, svc.interval.dimen].join(' ')
   }
 }
 function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
@@ -144,20 +100,6 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
         object: { svcId: svc.key, impFile: [] }
       })
       break
-  }
-}
-function getTimeFormat(svc: Service) {
-  switch (svc.interval.dimen) {
-    case 'm':
-      return 'ss秒'
-    case 'H':
-      return 'mm分ss秒'
-    case 'D':
-      return 'HH时mm分ss秒'
-    case 'W':
-      return 'HH时mm分ss秒'
-    case 'M':
-      return 'DD日/HH时mm分ss秒'
   }
 }
 </script>
@@ -189,13 +131,7 @@ function getTimeFormat(svc: Service) {
           {{ dayjs(svc.condition, 'YYYY/MM/DDTHH:mm:ss').format('YY/MM/DD HH:mm:ss') }}
         </template>
         <template v-else-if="svc.emit === 'interval'">
-          <template v-if="svc.interval.dimen === 'W'"></template>
-          <template v-else>
-            {{ ['每', svc.interval.value, itvlDimenMapper[svc.interval.dimen]].join('') }}
-            <template v-if="svc.interval.dimen !== 's'">
-              {{ ['在', svc.interval.datetime.format(getTimeFormat(svc)), '执行一次'].join('') }}
-            </template>
-          </template>
+          {{ ['每', svc.interval.value, itvlDimenMapper[svc.interval.dimen], '执行一次'].join('') }}
         </template>
         <template v-else>-</template>
       </template>
@@ -289,39 +225,7 @@ function getTimeFormat(svc: Service) {
                 :options="itvlDimen"
                 v-model:value="svc.interval.dimen"
               />
-              <span v-if="svc.interval.dimen !== 's'">在</span>
-              <a-time-picker
-                v-if="
-                  svc.interval.dimen === 'm' ||
-                  svc.interval.dimen === 'H' ||
-                  svc.interval.dimen === 'D'
-                "
-                :show-now="false"
-                :format="getTimeFormat(svc)"
-                placeholder="指定时间"
-                v-model:value="svc.interval.datetime"
-              />
-              <template v-else-if="svc.interval.dimen === 'W'">
-                <a-select
-                  class="w-28"
-                  placeholder="指定周几"
-                  :options="weekDays"
-                  v-model:value="svc.interval.value"
-                />
-                <a-time-picker
-                  :show-now="false"
-                  placeholder="指定时间"
-                  :format="getTimeFormat(svc)"
-                  v-model:value="svc.interval.datetime"
-                />
-              </template>
-              <a-date-picker
-                v-else-if="svc.interval.dimen === 'M'"
-                show-time
-                placeholder="指定时间"
-                v-model:value="svc.interval.datetime"
-              />
-              <span>执行一次，并立即执行</span>
+              <span>执行，并立即执行</span>
               <a-checkbox v-model:checked="svc.interval.rightnow" />
             </div>
           </a-form-item-rest>
