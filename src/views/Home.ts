@@ -116,6 +116,8 @@ export const mapper = new Mapper({
       volumes: {
         label: '共享文件/夹',
         type: 'EditList',
+        lblProp: 'host',
+        subProp: 'ctnr',
         mapper: {
           host: {
             type: 'Input',
