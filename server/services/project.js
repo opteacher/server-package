@@ -550,18 +550,6 @@ export async function generate(pid) {
   } catch (e) {
     fs.mkdirSync(cchPath)
   }
-  const nmodTmp = Path.join(cchPath, '.npm')
-  try {
-    fs.accessSync(nmodTmp, fs.constants.R_OK)
-  } catch (e) {
-    logger.log('info', '解压缩npm文件，减少install时间')
-    spawnSync(`tar -zxf ${Path.join(tmpPath, 'npm.tar')} -C ${cchPath}`, {
-      stdio: 'inherit',
-      shell: true
-    })
-  }
-  logger.log('info', `复制npm文件夹到生成目录：${nmodTmp} -> ${Path.join(genPath, '.npm')}`)
-  copyDir(nmodTmp, Path.join(genPath, '.npm'))
   return project
 }
 
