@@ -20,7 +20,7 @@
     :class="{ 'card-hover': mosMvOver && active !== field.key }"
     class="cursor-pointer rounded z-30"
     :style="{
-      border: active === field.key ? '2px solid #1890ff' : ''
+      border: active === field.key ? '2px solid #1890ff' : '2px solid white'
     }"
     @click.stop="$emit('update:active', field)"
     :draggable="true"
@@ -50,7 +50,7 @@
       class="p-2.5 m-0 relative"
       :form="form"
       :skey="field.refer"
-      :mapper="mapper"
+      :mapper="{ ...mapper, disabled: true }"
     />
   </div>
   <div
