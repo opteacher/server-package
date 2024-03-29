@@ -2,10 +2,26 @@ import Path from 'path'
 import { readConfig } from '../lib/backend-library/utils/index.js'
 import Mongo from '../lib/backend-library/databases/mongo.js'
 import axios from 'axios'
+import winston from 'winston'
+import SseTransport from '../types/SseTransport.js'
+import RedisTransport from '../types/RedisTransport.js'
 
 export const cfgPath = Path.resolve('configs')
+export const dbConfig = readConfig(Path.join(cfgPath, 'db'), true)
 
-export const db = new Mongo(readConfig(Path.join(cfgPath, 'db'), true).mongo)
+// MongoDB数据库终端
+export const db = new Mongo(dbConfig.mongo)
+
+// 日志实例
+export const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.simple(),
+  transports: [
+    new winston.transports.Console(),
+    SseTransport.thisOne(),
+    await RedisTransport.thisOne().open()
+  ]
+})
 
 export function pickOrIgnore(obj, attrs, ignore = true) {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))

@@ -21,19 +21,13 @@ import Node from '../models/node.js'
 import Project from '../models/project.js'
 import Service from '../models/service.js'
 import Typo from '../models/typo.js'
-import { db, genDefault, pickOrIgnore } from '../utils/index.js'
-import winston from 'winston'
+import { db, genDefault, pickOrIgnore, logger } from '../utils/index.js'
 import SseTransport from '../types/SseTransport.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const jobCfg = readConfig(Path.resolve('configs', 'job'))
 const tmpPath = Path.resolve('resources', 'app-temp')
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.simple(),
-  transports: [new winston.transports.Console()]
-})
 
 function formatToStr(value, vtype) {
   if (typeof value === 'undefined' || value === null) {
@@ -284,24 +278,13 @@ export async function recuNode(key, indent, callback, endKey) {
 }
 
 export function watchSync(ctx) {
-  const stream = new PassThrough()
-  stream.on('close', () => {
-    stream.destroy()
-    logger.transports.splice(logger.transports.findIndex(tp => tp instanceof SseTransport))
-  })
   ctx.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive'
   })
   ctx.status = 200
-  ctx.body = stream
-  const transport = logger.transports.find(tp => tp instanceof SseTransport)
-  if (transport) {
-    transport.stream = stream
-  } else {
-    logger.add(new SseTransport({ stream }))
-  }
+  ctx.body = SseTransport.thisOne().stream
 }
 
 export async function sync(pid) {
@@ -633,7 +616,7 @@ export async function run(pjt) {
     })
     .on('exit', () => {
       logger.log('info', '运行成功！')
-      logger.transports.find(transport => transport instanceof SseTransport)?.close()
+      // SseTransport.thisOne().stream.close()
     })
   // childPcs.stdout.pipe(process.stdout)
   // childPcs.stderr.pipe(process.stderr)

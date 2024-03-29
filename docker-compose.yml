@@ -25,6 +25,15 @@ services:
       - /data/server-package/mongo/db:/data/db
       - /data/server-package/mongo/config:/data/config
 
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: server-package_redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    environment:
+      REDIS_ARGS: "--requirepass 12345"
+
   default:
     container_name: server-package_default
     build:
