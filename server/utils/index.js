@@ -3,8 +3,8 @@ import { readConfig } from '../lib/backend-library/utils/index.js'
 import Mongo from '../lib/backend-library/databases/mongo.js'
 import axios from 'axios'
 import winston from 'winston'
-import SseTransport from '../types/SseTransport.js'
-import RedisTransport from '../types/RedisTransport.js'
+import SseTransport from '../transports/SseTransport.js'
+import RedisTransport from '../transports/RedisTransport.js'
 
 export const cfgPath = Path.resolve('configs')
 export const dbConfig = readConfig(Path.join(cfgPath, 'db'), true)

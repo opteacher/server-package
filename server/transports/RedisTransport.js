@@ -27,7 +27,10 @@ export default class RedisTransport extends Transport {
     })
 
     if (!this.#redisCli.isReady) {
-      this.#redisCli.publish(rdsCfg.topic, info.message)
+      await this.#redisCli.connect()
+    }
+    if (info.message) {
+      await this.#redisCli.publish(redis.topic, info.message)
     }
 
     callback()

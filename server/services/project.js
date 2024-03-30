@@ -22,7 +22,7 @@ import Project from '../models/project.js'
 import Service from '../models/service.js'
 import Typo from '../models/typo.js'
 import { db, genDefault, pickOrIgnore, logger } from '../utils/index.js'
-import SseTransport from '../types/SseTransport.js'
+import SseTransport from '../transports/SseTransport.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)

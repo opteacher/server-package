@@ -14,7 +14,7 @@ export default class SseTransport extends Transport {
       this.emit('logged', info)
     })
 
-    if (this.#stream) {
+    if (this.#stream && info.message) {
       this.#stream.write('event: message\n')
       this.#stream.write(`data: ${info.message}\n\n`)
     }
