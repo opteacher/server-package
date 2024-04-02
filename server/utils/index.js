@@ -4,7 +4,7 @@ import Mongo from '../lib/backend-library/databases/mongo.js'
 import axios from 'axios'
 import winston from 'winston'
 import SseTransport from '../transports/SseTransport.js'
-import RedisTransport from '../transports/RedisTransport.js'
+import MqttTransport from '../transports/MqttTransport.js'
 
 export const cfgPath = Path.resolve('configs')
 export const dbConfig = readConfig(Path.join(cfgPath, 'db'), true)
@@ -18,8 +18,8 @@ export const logger = winston.createLogger({
   format: winston.format.simple(),
   transports: [
     new winston.transports.Console(),
-    SseTransport.thisOne(),
-    await RedisTransport.thisOne().open()
+    SseTransport.instance,
+    MqttTransport.instance
   ]
 })
 

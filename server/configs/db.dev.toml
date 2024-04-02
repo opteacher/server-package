@@ -2,11 +2,15 @@
 database="server-package"
 username="root"
 password="12345"
-host="127.0.0.1"
+host="192.168.1.11"
 port=27017
 
-[redis]
+[mqtt]
 topic="server-package"
-password="12345"
+username="admin"
+password="59524148chenOP"
 host="127.0.0.1"
-port=6379
+cliPrefix="emqx_"
+mqttPort=1883
+wsPort=8083
+qos=0

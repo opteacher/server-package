@@ -27,6 +27,11 @@ export default ({ mode }) =>
           target: 'http://127.0.0.1:7132',
           ws: true,
           changeOrigin: true
+        },
+        '/mqtt$': {
+          target: 'ws://192.168.1.11:8083/mqtt',
+          ws: true,
+          changeOrigin: true
         }
       }
     },

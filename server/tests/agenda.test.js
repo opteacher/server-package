@@ -1,9 +1,9 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
-import { beforeAll, beforeEach, afterAll, expect, test, describe, jest } from '@jest/globals'
+import { beforeEach, afterAll, expect, test, describe, jest } from '@jest/globals'
 import { Agenda } from '@hokify/agenda'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import mongoose from 'mongoose'
+import { MongoClient } from 'mongodb'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -11,10 +11,11 @@ import timezone from 'dayjs/plugin/timezone'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 const address = globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
+const collection = 'agendaJobs'
 const agenda = new Agenda({
   db: {
     address,
-    collection: 'agendaJobs'
+    collection
   }
 })
 let connection = null
@@ -22,13 +23,13 @@ let connection = null
 describe('# Agenda定时任务测试', () => {
   beforeEach(async () => {
     try {
-      connection = await mongoose.connect(address)
-      await connection.db.dropCollection('agendaJob')
+      connection = await MongoClient.connect(globalThis.__MONGO_URI__)
+      await connection.db(globalThis.__MONGO_DB_NAME__).dropCollection(collection)
     } catch (e) {}
   })
 
   afterAll(async () => {
-    await connection.disconnect()
+    await connection.close()
   })
 
   describe('# 定义任务', () => {
@@ -115,28 +116,22 @@ describe('# Agenda定时任务测试', () => {
         const callback = jest.fn()
         agenda.define('my_job', callback)
         await agenda.start()
-        await agenda.every('5 second', 'my_job')
-        await new Promise(resolve => {
-          setTimeout(() => {
-            console.log('首次执行')
-            expect(callback).toBeCalled()
-            resolve()
-          }, 100)
-        })
-        await new Promise(resolve => {
-          setTimeout(() => {
-            console.log('5秒后第一次执行')
-            expect(callback).toBeCalledTimes(2)
-            resolve()
-          }, 5100)
-        })
-        await new Promise(resolve => {
-          setTimeout(() => {
-            console.log('5秒后第二次执行')
-            expect(callback).toBeCalledTimes(3)
-            resolve()
-          }, 5100)
-        })
+        await agenda.every('3 months', 'my_job')
+        await new Promise(resolve => setTimeout(() => {
+          console.log('首次执行')
+          expect(callback).toBeCalled()
+          resolve()
+        }, 100))
+        await new Promise(resolve => setTimeout(() => {
+          console.log('5秒后第一次执行')
+          expect(callback).toBeCalledTimes(2)
+          resolve()
+        }, 5100))
+        await new Promise(resolve => setTimeout(() => {
+          console.log('5秒后第二次执行')
+          expect(callback).toBeCalledTimes(3)
+          resolve()
+        }, 5100))
         await agenda.cancel({ name: 'my_job' })
       }, 60000)
       test('# 数字', async () => {

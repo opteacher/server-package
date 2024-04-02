@@ -2,12 +2,8 @@ import Transport from 'winston-transport'
 import { PassThrough } from 'stream'
 
 export default class SseTransport extends Transport {
-  static #instance = new SseTransport()
+  static instance = new SseTransport()
   #stream = new PassThrough()
-
-  constructor(opts) {
-    super(opts)
-  }
 
   log (info, callback) {
     setImmediate(() => {
@@ -22,10 +18,6 @@ export default class SseTransport extends Transport {
     callback()
   }
 
-  static thisOne() {
-    return SseTransport.#instance
-  }
-
   get stream() {
     return this.#stream
   }
@@ -36,5 +28,4 @@ export default class SseTransport extends Transport {
       this.#stream.write('data: \n\n')
     }
   }
-
 }

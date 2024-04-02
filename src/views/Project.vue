@@ -407,7 +407,7 @@ const ctnrLogs = reactive<{
 })
 const esURL = computed(() =>
   pjtStt.value.stat === 'loading'
-    ? `/${getDftPjt()}/api/v1/project/${pid}/sync/watch`
+    ? '/mqtt'
     : `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
 )
 const actMdlTab = ref('struct')
