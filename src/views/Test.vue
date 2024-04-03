@@ -1,23 +1,14 @@
 <template>
   <div class="h-full p-5">
-    <OptSclPnl
-      url="/stock-crawler/api/v1/stock/watch"
-      @before-start="onAftStart"
-      @after-end="onAftEnd"
-    />
+    <OptSclPnl topic="server-package" @before-start="onAftStart" @after-end="onAftEnd" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reqDelete, reqPost } from '@/utils'
+import { reqDelete, reqGet, reqPost } from '@/utils'
 import OptSclPnl from '@lib/components/OptSclPnl.vue'
 
-const onAftStart = () =>
-  reqPost('stock', undefined, {
-    project: 'stock-crawler',
-    type: 'job',
-    action: 'crawl'
-  })
+const onAftStart = () => reqGet('temp', 'test', { project: 'server-package', type: 'api' })
 const onAftEnd = () =>
   reqDelete('stock', 'update/stock_crawl', {
     project: 'stock-crawler',

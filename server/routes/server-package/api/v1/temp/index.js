@@ -2,6 +2,7 @@ import Router from 'koa-router'
 import Path from 'path'
 import { renameSync } from 'fs'
 import { uploadImage } from '../../../../../services/cdn.js'
+import { logger } from '../../../../../utils/index.js'
 
 const router = new Router()
 
@@ -22,6 +23,15 @@ router.post('/file', async ctx => {
 router.post('/image', async ctx => {
   ctx.body = {
     result: await uploadImage((ctx.request.files?.file).path)
+  }
+})
+
+router.get('/test', ctx => {
+  setInterval(() => {
+    logger.log('info', Math.random().toString(16))
+  }, 2000)
+  ctx.body = {
+    result: 'abcd'
   }
 })
 

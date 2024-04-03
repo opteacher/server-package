@@ -30,7 +30,15 @@
           :footer="null"
           v-model:open="ctnrLogs.visible"
         >
-          <OptSclPnl :url="esURL" :emitter="ctnrLogs.emitter" />
+          <OptSclPnl
+            :url="
+              project.status.stat === 'running'
+                ? `/server-package/api/v1/project/${pid}/docker/logs/access`
+                : ''
+            "
+            topic="server-package"
+            :emitter="ctnrLogs.emitter"
+          />
         </a-modal>
       </template>
       <template #extra>
@@ -405,11 +413,6 @@ const ctnrLogs = reactive<{
   content: '',
   emitter: new TinyEmitter()
 })
-const esURL = computed(() =>
-  pjtStt.value.stat === 'loading'
-    ? '/mqtt'
-    : `/${getDftPjt()}/api/v1/project/${pid}/docker/logs/access`
-)
 const actMdlTab = ref('struct')
 
 watch(
