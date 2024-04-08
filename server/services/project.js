@@ -350,12 +350,10 @@ export async function generate(pid) {
   const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
   logger.log('info', `调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
   adjustFile(mdlCfgTmp, mdlCfgGen, { project })
-  if (project.services.some(svc => svc.emit === 'timeout' || svc.emit === 'interval')) {
-    const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
-    const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
-    logger.log('info', `调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
-    adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
-  }
+  const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
+  const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
+  logger.log('info', `调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
+  adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
   if (project.independ) {
     const svrCfgTmp = Path.join(tmpPath, 'configs', 'server.toml')
     const svrCfgGen = Path.join(genPath, 'configs', 'server.toml')
