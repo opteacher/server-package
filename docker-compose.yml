@@ -25,14 +25,21 @@ services:
       - /data/server-package/mongo/db:/data/db
       - /data/server-package/mongo/config:/data/config
 
-  redis:
-    image: redis/redis-stack-server:latest
-    container_name: server-package_redis
+  emqx:
+    image: emqx/emqx:latest
+    container_name: emqx_default
     restart: unless-stopped
+    privileged: true
     ports:
-      - 6379:6379
-    environment:
-      REDIS_ARGS: "--requirepass 12345"
+      - 0.0.0.0:1883:1883
+      - 0.0.0.0:8083:8083
+      - 0.0.0.0:8084:8084
+      - 0.0.0.0:8883:8883
+      - 0.0.0.0:18083:18083
+    volumes:
+      - /data/server-package/emqx/etc:/opt/emqx/etc
+      - /data/server-package/emqx/data:/opt/emqx/data
+      - /data/server-package/emqx/log:/opt/emqx/log
 
   default:
     container_name: server-package_default
