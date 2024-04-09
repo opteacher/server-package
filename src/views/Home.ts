@@ -178,7 +178,7 @@ export const mapper = new Mapper({
     type: 'Button',
     inner: '删除项目',
     danger: true,
-    onClick: () => {
+    onClick: (project: Project) => {
       Modal.confirm({
         title: '是否删除项目？',
         icon: createVNode(ExclamationCircleOutlined),
@@ -189,7 +189,7 @@ export const mapper = new Mapper({
         onOk: async () => {
           mapper.operation.disabled = true
           mapper.operation.loading = true
-          await api.remove(store.getters['project/ins'].key)
+          await api.remove(project)
           emitter.emit('show', false)
           mapper.operation.disabled = false
           mapper.operation.loading = false

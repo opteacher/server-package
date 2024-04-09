@@ -27,7 +27,7 @@ services:
 
   emqx:
     image: emqx/emqx:latest
-    container_name: emqx_default
+    container_name: server-package_emqx
     restart: unless-stopped
     privileged: true
     ports:
