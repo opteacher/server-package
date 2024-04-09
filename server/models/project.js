@@ -29,6 +29,7 @@ export default db.defineModel(
       roles: [
         {
           name: db.PropTypes.String,
+          extend: db.PropTypes.String,
           rules: [
             {
               method: db.PropTypes.String,

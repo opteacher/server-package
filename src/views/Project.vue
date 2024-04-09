@@ -272,7 +272,7 @@
         </EditableTable>
         <FormDialog
           title="导出类"
-          v-model:show="expClsVsb"
+          v-model:visible="expClsVsb"
           :object="expClsObj"
           :new-fun="() => newOne(ExpCls)"
           :mapper="expMapper"

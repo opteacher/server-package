@@ -36,7 +36,7 @@
     <FormDialog
       title="配置签发逻辑"
       width="40vw"
-      :show="showSgn"
+      :visible="showSgn"
       :new-fun="() => newOne(Sign)"
       :mapper="signMapper"
       :emitter="signEmitter"

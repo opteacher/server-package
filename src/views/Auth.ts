@@ -18,11 +18,20 @@ import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode, ref } from 'vue'
 
 import { authAPI, mdlAPI } from '../apis'
+import Role from '@/types/role'
 
 export async function refresh() {
   await store.dispatch('project/refresh')
   apiEmitter.emit('refresh')
   roleEmitter.emit('refresh')
+  roleEmitter.emit('update:mprop', {
+    'extend.options': store.getters['project/ins'].auth.roles.map((role: Role) => {
+      return {
+        label: role.name,
+        value: role.name
+      }
+    })
+  })
   ruleEmitter.emit('refresh')
 }
 
@@ -95,12 +104,17 @@ export async function onAuthShow(show: boolean) {
   authVsb.value = show
 }
 
-export const roleColumns = [new Column('角色名', 'name')]
+export const roleColumns = [new Column('角色名', 'name'), new Column('继承于', 'extend')]
 
 export const roleMapper = new Mapper({
   name: {
     label: '角色名',
     type: 'Input'
+  },
+  extend: {
+    label: '继承于',
+    type: 'Select',
+    desc: '会继承该角色的所有权限'
   },
   props: {
     display: false

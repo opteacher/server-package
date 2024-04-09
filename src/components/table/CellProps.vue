@@ -19,7 +19,7 @@
             title="条件"
             width="30vw"
             :copy="condStatic.copy"
-            v-model:show="condStatic.visible"
+            v-model:visible="condStatic.visible"
             :mapper="condStatic.mapper"
             :emitter="condStatic.emitter"
             @submit="onCondSubmit"

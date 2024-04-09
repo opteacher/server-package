@@ -71,7 +71,7 @@
     </EditableTable>
     <FormDialog
       title="绑定账户模型"
-      :show="authVsb"
+      :visible="authVsb"
       :new-fun="() => newOne(Auth)"
       :mapper="mapper"
       :emitter="emitter"

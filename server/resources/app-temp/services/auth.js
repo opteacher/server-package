@@ -99,7 +99,7 @@ export async function verifyDeep(ctx) {
   if (!role) {
     return { error: '未找到指定角色！' }
   }
-  for (const rule of role.rules) {
+  for (const rule of role.rules.concat(role.extend ? project.auth.roles[role.extend].rules : [])) {
     if (rule.method !== 'ALL' && rule.method.toLowerCase() !== ctx.method.toLowerCase()) {
       continue
     }

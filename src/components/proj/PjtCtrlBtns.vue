@@ -37,7 +37,7 @@
           <FormDialog
             title="投放文件"
             :new-fun="() => newOne(Transfer)"
-            v-model:show="visibles.tsfFiles"
+            v-model:visible="visibles.tsfFiles"
             :mapper="tsMapper"
             :emitter="tsEmitter"
             @submit="onTransfer"
