@@ -19,7 +19,7 @@ export default ({ mode }) =>
     server: {
       proxy: {
         '^/server-package/(mdl|api)': {
-          target: 'http://192.168.1.11:6031',
+          target: 'http://127.0.0.1:4000',
           ws: true,
           changeOrigin: true
         },

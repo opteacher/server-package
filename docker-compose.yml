@@ -30,6 +30,11 @@ services:
     container_name: server-package_emqx
     restart: unless-stopped
     privileged: true
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
     ports:
       - 0.0.0.0:1883:1883
       - 0.0.0.0:8083:8083

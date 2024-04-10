@@ -26,7 +26,7 @@ import SseTransport from '../transports/SseTransport.js'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
-const jobCfg = readConfig(Path.resolve('configs', 'job'))
+const jobCfg = readConfig(Path.resolve('configs', 'job'), true)
 const tmpPath = Path.resolve('resources', 'app-temp')
 
 function formatToStr(value, vtype) {

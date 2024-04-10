@@ -4,11 +4,16 @@ import { db, makeRequest } from '../utils/index.js'
 import { readConfig } from '../lib/backend-library/utils/index.js'
 /*return deps.map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
-const svrPkgURL = `http://${
-  typeof process.env.BASE_URL !== 'undefined'
-  ? process.env.BASE_URL
-  : (process.env.NODE_ENV === 'test' ? 'host.docker.internal' : 'server-package')
-}:4000/server-package`
+let svrPkgURL = ''
+if (typeof process.env.BASE_URL !== 'undefined') {
+  svrPkgURL = `http://${process.env.BASE_URL}:4000/server-package`
+} else if (process.env.NODE_ENV === 'test') {
+  svrPkgURL = 'http://host.docker.internal:4000/server-package'
+} else if (process.env.NODE_ENV === 'dev') {
+  svrPkgURL = 'http://127.0.0.1:4000/server-package'
+} else {
+  svrPkgURL = 'http://server-package:4000/server-package'
+}
 
 async function getSecret() {
   try {
