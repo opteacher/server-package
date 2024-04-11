@@ -157,7 +157,7 @@ export const mapper = new Mapper({
           )
           evarsEmitter.emit('update:visible', false)
         },
-        edtable: false
+        editable: false
       },
       expPorts: {
         label: '暴露端口',

@@ -9,11 +9,10 @@ if (typeof process.env.BASE_URL !== 'undefined') {
   svrPkgURL = `http://${process.env.BASE_URL}:4000/server-package`
 } else if (process.env.NODE_ENV === 'test') {
   svrPkgURL = 'http://host.docker.internal:4000/server-package'
-} else if (process.env.NODE_ENV === 'dev') {
-  svrPkgURL = 'http://127.0.0.1:4000/server-package'
 } else {
   svrPkgURL = 'http://server-package:4000/server-package'
 }
+console.log(svrPkgURL)
 
 async function getSecret() {
   try {
@@ -46,10 +45,11 @@ export async function verify(ctx) {
   try {
     let payload = null
     switch (tokens[0].toLowerCase()) {
-      case 'bearer': {
-        payload = jwt.verify(tokens[1], await getSecret())
-      }
-      break
+      case 'bearer':
+        {
+          payload = jwt.verify(tokens[1], await getSecret())
+        }
+        break
       default:
         throw new Error(`未知鉴权方式：${tokens[0]}`)
     }
@@ -75,7 +75,7 @@ export async function verifyDeep(ctx) {
   if (!verRes.error && payload) {
     console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
-    const visitor = await db.select(0/*return mdlName*/, { _index: payload.sub })
+    const visitor = await db.select(0 /*return mdlName*/, { _index: payload.sub })
     if (visitor && 'role' in visitor) {
       rname = visitor['role']
     } else {
@@ -95,7 +95,7 @@ export async function verifyDeep(ctx) {
       } else {
         return { error: '未找到指定角色！' }
       }
-    } catch(e) {
+    } catch (e) {
       return { error: '访问server-package失败！' + e.message || JSON.stringify(e) }
     }
   }
@@ -143,7 +143,7 @@ export async function verifyDeep(ctx) {
 }
 
 const skips = [
-  /*return `\'/${project.name}/mdl/v1\'`*/,
+  ,/*return `\'/${project.name}/mdl/v1\'`*/
   /*return skips.map(skip => `\'/${project.name}${skip}\'`).join(',\n  ')*/
 ]
 
@@ -169,12 +169,15 @@ export async function chkReqAva(ctx) {
 
 export function auth() {
   return async (ctx, next) => {
-    const canSkip = skips.map((skip) => skip === ctx.path).reduce((a, b) => a || b)
+    const canSkip = skips.map(skip => skip === ctx.path).reduce((a, b) => a || b)
     if (!canSkip) {
       if (await chkReqAva(ctx)) {
         const result = await verifyDeep(ctx)
         if (!result || result.error) {
-          ctx.throw(403, `授权验证失败！${result && result.error ? result.error.message : ''}`)
+          ctx.throw(
+            403,
+            `授权验证失败！${result && result.error ? result.error.message || JSON.stringify(result.error) : ''}`
+          )
         }
       }
     }
