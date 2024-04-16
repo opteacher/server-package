@@ -2,11 +2,28 @@ import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { beforeAll, beforeEach, afterAll, expect, test, jest } from '@jest/globals'
 import { newEnforcer } from 'casbin'
+import { MongoClient } from 'mongodb'
+import { MongooseAdapter } from 'casbin-mongoose-adapter'
+import csv from 'fast-csv'
+import mongoose from 'mongoose'
 
 const bscMdlConf = './tests/casbin/basic_model.conf'
 const bscPlcyCsv = './tests/casbin/basic_policy.csv'
 const kmMdlConf = './tests/casbin/keymatch_model.conf'
 const kmPlcyCsv = './tests/casbin/keymatch_policy.csv'
+
+const PolicyModel = mongoose.model(
+  'policy',
+  mongoose.Schema({
+    ptype: { type: String, required: true },
+    v0: { type: String, required: true },
+    v1: { type: String, required: true },
+    v2: { type: String, required: true },
+    v3: { type: String, required: true },
+    v4: { type: String, required: true },
+    v5: { type: String, required: true }
+  })
+)
 
 describe('# Casbin', () => {
   describe('# 文件配置和策略，模型ACL', () => {
@@ -66,15 +83,27 @@ describe('# Casbin', () => {
       expect(res).toBeTruthy()
     })
 
-    test('# 通过，前缀匹配（多子路径），指定method', async () => {
+    test('# 通过，前缀匹配（单层子路径），指定method', async () => {
       const enforcer = await newEnforcer(kmMdlConf, kmPlcyCsv)
-      const res = await enforcer.enforce('cathy', '/cathy_data/abcd', 'PUT')
+      const res = await enforcer.enforce('cathy', '/cathy_data/s', 'PUT')
       expect(res).toBeTruthy()
     })
 
-    test('# 通过，全路径匹配，多method', async () => {
+    test('# 不通过，前缀匹配（多层子路径），指定method', async () => {
+      const enforcer = await newEnforcer(kmMdlConf, kmPlcyCsv)
+      const res = await enforcer.enforce('cathy', '/cathy_data/s/a', 'PUT')
+      expect(res).toBeFalsy()
+    })
+
+    test('# 通过，全路径匹配，多method，GET', async () => {
       const enforcer = await newEnforcer(kmMdlConf, kmPlcyCsv)
       const res = await enforcer.enforce('cathy', '/cathy_data', 'GET')
+      expect(res).toBeTruthy()
+    })
+
+    test('# 通过，全路径匹配，多method，POST', async () => {
+      const enforcer = await newEnforcer(kmMdlConf, kmPlcyCsv)
+      const res = await enforcer.enforce('cathy', '/cathy_data', 'POST')
       expect(res).toBeTruthy()
     })
 
@@ -98,5 +127,34 @@ describe('# Casbin', () => {
   })
 
   describe('# 数据库（mongodb）配置和策略，模型ACL', () => {
+    beforeEach(async () => {
+      try {
+        const connection = await MongoClient.connect(globalThis.__MONGO_URI__)
+        await connection.db(globalThis.__MONGO_DB_NAME__).dropCollection(collection)
+        const policies = []
+        csv
+          .parseFile(kmPlcyCsv, { headers: false, ignoreEmpty: true })
+          .on('data', data => {
+            data['_id'] = new mongoose.Types.ObjectId()
+            policies.push(data)
+          })
+          .on('end', () => {
+            PolicyModel.create(policies, err => {
+              if (err) {
+                throw err
+              }
+            })
+          })
+      } catch (e) {}
+    })
+
+    test('# 通过', async () => {
+      const adapter = await MongooseAdapter.newAdapter(
+        globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
+      )
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      const res = await enforcer.enforce('alice', '/alice_data/resource1', 'POST')
+      expect(res).toBeTruthy()
+    }, 60000)
   })
 })
