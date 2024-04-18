@@ -214,3 +214,9 @@ export async function genSign(pid, props) {
     ).filter(dep => dep)
   })
 }
+
+export async function db2StrPolicy(pid) {
+  const project = await db.select(Project, { _index: pid })
+  console.log(project.auth)
+  return 'abcd'
+}
