@@ -2,10 +2,10 @@ import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { beforeAll, beforeEach, afterAll, expect, test, jest } from '@jest/globals'
 import { newEnforcer } from 'casbin'
-import { MongoClient } from 'mongodb'
 import { MongooseAdapter } from 'casbin-mongoose-adapter'
 import csv from 'fast-csv'
 import mongoose from 'mongoose'
+mongoose.Promise = global.Promise
 
 const bscMdlConf = './tests/casbin/basic_model.conf'
 const bscPlcyCsv = './tests/casbin/basic_policy.csv'
@@ -16,13 +16,14 @@ const PolicyModel = mongoose.model(
   'policy',
   mongoose.Schema({
     ptype: { type: String, required: true },
-    v0: { type: String, required: true },
-    v1: { type: String, required: true },
-    v2: { type: String, required: true },
-    v3: { type: String, required: true },
-    v4: { type: String, required: true },
-    v5: { type: String, required: true }
-  })
+    v0: { type: String },
+    v1: { type: String },
+    v2: { type: String },
+    v3: { type: String },
+    v4: { type: String },
+    v5: { type: String }
+  }),
+  'casbin_rule'
 )
 
 describe('# Casbin', () => {
@@ -129,23 +130,47 @@ describe('# Casbin', () => {
   describe('# 数据库（mongodb）配置和策略，模型ACL', () => {
     beforeEach(async () => {
       try {
-        const connection = await MongoClient.connect(globalThis.__MONGO_URI__)
-        await connection.db(globalThis.__MONGO_DB_NAME__).dropCollection(collection)
+        mongoose.connect(globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__, {
+          useNewUrlParser: true,
+          keepAlive: false
+        })
+        await PolicyModel.deleteMany()
         const policies = []
-        csv
-          .parseFile(kmPlcyCsv, { headers: false, ignoreEmpty: true })
-          .on('data', data => {
-            data['_id'] = new mongoose.Types.ObjectId()
-            policies.push(data)
-          })
-          .on('end', () => {
-            PolicyModel.create(policies, err => {
-              if (err) {
-                throw err
-              }
-            })
-          })
+        await new Promise((resolve, reject) =>
+          csv
+            .parseFile(kmPlcyCsv, { headers: false, ignoreEmpty: true })
+            .on('data', data =>
+              policies.push({
+                _id: new mongoose.Types.ObjectId(),
+                ptype: data[0],
+                v0: data[1],
+                v1: data[2],
+                v2: data[3]
+              })
+            )
+            .on('error', reject)
+            .on('end', () => PolicyModel.create(policies).then(resolve).catch(reject))
+        )
       } catch (e) {}
+    })
+
+    test('# 添加策略', async () => {
+      const adapter = await MongooseAdapter.newAdapter(
+        globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
+      )
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      await enforcer.addPolicy('p', 'op', '/asd/dsfsd', 'POST')
+      expect(await enforcer.hasPolicy('p', 'op', '/asd/dsfsd', 'POST'))
+    })
+
+    test('# 罗列策略', async () => {
+      const adapter = await MongooseAdapter.newAdapter(
+        globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
+      )
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      const policies = await enforcer.getPolicy()
+      expect(policies.length).not.toBe(0)
+      expect(policies[0]).toStrictEqual(['alice', '/alice_data/*', 'GET'])
     })
 
     test('# 通过', async () => {
@@ -155,6 +180,15 @@ describe('# Casbin', () => {
       const enforcer = await newEnforcer(kmMdlConf, adapter)
       const res = await enforcer.enforce('alice', '/alice_data/resource1', 'POST')
       expect(res).toBeTruthy()
-    }, 60000)
+    })
+
+    test('# 不通过', async () => {
+      const adapter = await MongooseAdapter.newAdapter(
+        globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__
+      )
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      const res = await enforcer.enforce('cathy', '/cathy_data/s/a', 'PUT')
+      expect(res).toBeFalsy()
+    })
   })
 })
