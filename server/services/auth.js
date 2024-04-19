@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import _ from 'lodash'
-import { db } from '../utils/index.js'
+import jwt from 'jsonwebtoken'
+import { db, makeRequest } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import Service from '../models/service.js'
 import Dep from '../models/dep.js'
 import Node from '../models/node.js'
 import { rmv as rmvNode, save as saveNode, scanNextss } from './node.js'
+import { readConfig } from '../lib/backend-library/utils/index.js'
+import { StringAdapter, newEnforcer } from 'casbin'
 
 export async function bind(pid, auth) {
   let project = await db.select(Project, { _index: pid }, { ext: true })
@@ -215,8 +218,134 @@ export async function genSign(pid, props) {
   })
 }
 
-export async function db2StrPolicy(pid) {
-  const project = await db.select(Project, { _index: pid })
-  console.log(project.auth)
-  return 'abcd'
+export async function db2StrPolicy(pjt) {
+  const project = typeof pjt === 'string' ? await db.select(Project, { _index: pid }) : pjt
+  const valMap = {
+    '/': '',
+    s: '/s$',
+    ':i': '/[^/]+$',
+    '*': '/[^/]+$',
+    '*/*': '/*'
+  }
+  const policies = []
+  for (const role of project.auth.roles) {
+    for (const rule of role.rules) {
+      policies.push(
+        [
+          'p',
+          role.name,
+          [
+            '/' + project.name,
+            rule.path,
+            valMap[rule.value],
+            rule.action ? '/' + rule.action : ''
+          ].join(''),
+          rule.method === 'ALL' ? '(GET)|(POST)|(PUT)|(DELETE)' : rule.method
+        ].join(',')
+      )
+    }
+  }
+  return policies
+}
+
+export async function getSecret() {
+  try {
+    return process.env['server_secret'] || readConfig('configs/server').secret
+  } catch (e) {
+    const result = await makeRequest('GET', `${svrPkgURL}/api/v1/server/secret`)
+    if (result.error) {
+      return result
+    }
+    return result.secret
+  }
+}
+
+export async function verify(ctx) {
+  if (!ctx.headers) {
+    return { error: '无鉴权口令' }
+  }
+  const token = ctx.headers['authorization']
+  if (!token) {
+    return { error: '无鉴权口令' }
+  }
+  const tokens = token.split(' ')
+  if (tokens.length !== 2) {
+    return { error: '错误的鉴权请求！' }
+  }
+  try {
+    let payload = null
+    switch (tokens[0].toLowerCase()) {
+      case 'bearer':
+        {
+          payload = jwt.verify(tokens[1], await getSecret())
+        }
+        break
+      default:
+        throw new Error(`未知鉴权方式：${tokens[0]}`)
+    }
+    return {
+      payload,
+      message: '验证通过！'
+    }
+  } catch (e) {
+    return { error: `鉴权失败！${e.message || JSON.stringify(e)}` }
+  }
+}
+
+export async function verifyDeep(ctx) {
+  const pjtName = ctx.path.split('/').filter(p => p)[0]
+  const result = await db.select(Project, { name: pjtName })
+  if (result.length !== 1) {
+    return { error: '错误的路由前缀（未知项目名）！' }
+  }
+  const project = result[0]
+  if (!project.auth || !project.auth.model) {
+    return { error: '未配置权限系统' }
+  }
+  const authModel = await db.select(Model, { _index: project.auth.model })
+  console.log('获取token解析出来的载荷')
+  let rname = 'guest'
+  const verRes = await verify(ctx)
+  const payload = verRes.payload
+  if (!verRes.error && payload) {
+    console.log(payload)
+    // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
+    const visitor = await db.select(await import(`../models/${authModel.name}`), {
+      _index: payload.sub
+    })
+    if (visitor && 'role' in visitor) {
+      rname = visitor['role']
+    } else {
+      rname = ''
+    }
+  } else {
+    // @_@：让guest角色起效
+    // return verRes
+  }
+  console.log(rname)
+  if (!rname) {
+    if (project.independ) {
+      return { error: '未找到指定角色！' }
+    }
+    console.log('如果角色为空，检查是否是server-package的超级管理员')
+    try {
+      if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
+        return {}
+      } else {
+        return { error: '未找到指定角色！' }
+      }
+    } catch (e) {
+      return { error: '访问server-package失败！' + e.message || JSON.stringify(e) }
+    }
+  }
+  console.log('调用Casbin进行鉴权')
+  const adapter = new StringAdapter(
+    await db2StrPolicy(project).then(policies => policies.join('\n'))
+  )
+  const enforcer = await newEnforcer('../configs/keymatch_model.conf', adapter)
+  if (await enforcer.enforce(rname, ctx.path, ctx.method.toUpperCase())) {
+    return {}
+  } else {
+    return { error: '你不具备访问该资源的权限！' }
+  }
 }

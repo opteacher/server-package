@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@hokify/agenda": "^6.3.0",
+    "@shopify/jest-koa-mocks": "^5.1.1",
     "axios": "^0.25.0",
     "casbin": "^5.29.0",
     "casbin-mongoose-adapter": "^5.3.1",

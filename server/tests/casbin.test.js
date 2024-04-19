@@ -1,11 +1,12 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { beforeAll, beforeEach, afterAll, expect, test, jest } from '@jest/globals'
-import { newEnforcer } from 'casbin'
+import { StringAdapter, newEnforcer } from 'casbin'
 import { MongooseAdapter } from 'casbin-mongoose-adapter'
 import csv from 'fast-csv'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
+import fs from 'fs'
 
 const bscMdlConf = './tests/casbin/basic_model.conf'
 const bscPlcyCsv = './tests/casbin/basic_policy.csv'
@@ -127,7 +128,29 @@ describe('# Casbin', () => {
     })
   })
 
-  describe('# 数据库（mongodb）配置和策略，模型ACL', () => {
+  describe('# 字符串配置的策略，模型RESTFUL', () => {
+    let strPolicy = ''
+    beforeAll(async () => {
+      const buffer = fs.readFileSync(kmPlcyCsv)
+      strPolicy = buffer.toString()
+    })
+
+    test('# 通过', async () => {
+      const adapter = new StringAdapter(strPolicy)
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      const res = await enforcer.enforce('alice', '/alice_data/resource1', 'POST')
+      expect(res).toBeTruthy()
+    })
+
+    test('# 不通过', async () => {
+      const adapter = new StringAdapter(strPolicy)
+      const enforcer = await newEnforcer(kmMdlConf, adapter)
+      const res = await enforcer.enforce('alice', '/bob_data/resource1', 'POST')
+      expect(res).toBeFalsy()
+    })
+  })
+
+  describe('# 数据库（mongodb）配置和策略，模型RESTFUL', () => {
     beforeEach(async () => {
       try {
         mongoose.connect(globalThis.__MONGO_URI__ + globalThis.__MONGO_DB_NAME__, {
