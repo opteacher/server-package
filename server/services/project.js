@@ -360,6 +360,12 @@ export async function generate(pid) {
     logger.log('info', `调整服务配置文件：${svrCfgTmp} -> ${svrCfgGen}`)
     adjustFile(svrCfgTmp, svrCfgGen, { secret: svrCfg.secret })
   }
+  if (project.auth.model) {
+    const kmMdlTmp = Path.resolve('configs', 'keymatch_model.conf')
+    const kmMdlGen = Path.join(genPath, 'configs', 'keymatch_model.conf')
+    logger.log('info', `调整授权配置文件：${kmMdlTmp} -> ${kmMdlGen}`)
+    fs.copyFileSync(kmMdlTmp, kmMdlGen)
+  }
 
   const appTmp = Path.join(tmpPath, 'app.js')
   const appGen = Path.join(genPath, 'app.js')
@@ -393,7 +399,7 @@ export async function generate(pid) {
   const svcPath = Path.join(genPath, 'services')
   fs.mkdirSync(svcPath)
   if (project.auth.model) {
-    Object.assign(deps, await genAuth(project, tmpPath, genPath))
+    Object.assign(deps, await genAuth(project, genPath))
   }
 
   fs.mkdirSync(Path.join(genPath, 'views'))
@@ -534,12 +540,14 @@ export async function generate(pid) {
   return project
 }
 
-export async function genAuth(project, tmpPath, genPath) {
+export async function genAuth(project, genPath) {
   const deps = {}
-  const authTmp = Path.join(tmpPath, 'services', 'auth.js')
+  const authTmp = Path.resolve('services', 'auth2.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   logger.log('info', `复制授权服务文件：${authTmp} -> ${authGen}`)
-  const apis = await getAllAPIs(project.id)
+  adjustFile(authTmp, authGen, project)
+
+  const apis = await getAllAPIs(project)
   const args = {
     secret: svrCfg.secret,
     project,
@@ -913,9 +921,9 @@ export async function transfer(info) {
   })
 }
 
-export async function getAllAPIs(pid) {
+export async function getAllAPIs(pjt) {
   const ret = []
-  const project = await db.select(Project, { _index: pid }, { ext: true })
+  const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }, { ext: true }) : pjt
   for (const service of project.services.map(svc => svc.toJSON())) {
     switch (service.emit) {
       case 'api':
@@ -985,11 +993,11 @@ export async function buildMid(project) {
   console.log('生成json数据：project.json和models.json')
   fs.mkdirSync(Path.join(genSrcPath, 'json'), { recursive: true })
   fs.writeFileSync(
-    Path.join(genSrcPath, 'json/project.json'),
+    Path.join(genSrcPath, 'models/project.json'),
     JSON.stringify(pickOrIgnore(project, ['models']))
   )
   fs.writeFileSync(
-    Path.join(genSrcPath, 'json/models.json'),
+    Path.join(genSrcPath, 'models/models.json'),
     JSON.stringify(Object.fromEntries(project.models.map(model => [model.name, model])))
   )
   console.log('根据权限生成登录页面，并配置路由……')

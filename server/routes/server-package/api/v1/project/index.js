@@ -20,6 +20,7 @@ import {
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
+import { db2StrPolicy } from '../../../../../services/auth2.js'
 
 const router = new Router()
 
@@ -132,6 +133,12 @@ router.delete('/:pid/docker/logs/exit', extCtnrLogs)
 router.get('/:pid/docker/runCmd', async ctx => {
   ctx.body = {
     result: await pjtRunCmd(ctx.params.pid)
+  }
+})
+
+router.get('/:pid/auth/policy/s', async ctx => {
+  ctx.body = {
+    result: await db2StrPolicy(ctx.params.pid)
   }
 })
 
