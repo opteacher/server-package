@@ -545,34 +545,13 @@ export async function genAuth(project, genPath) {
   const authTmp = Path.resolve('services', 'auth2.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   logger.log('info', `复制授权服务文件：${authTmp} -> ${authGen}`)
-  adjustFile(authTmp, authGen, project)
-
-  const apis = await getAllAPIs(project)
-  const args = {
-    secret: svrCfg.secret,
-    project,
-    mdlName: 'test',
-    skips: project.auth.skips || [],
-    apis: apis
-      .filter(api => api.name !== 'auth')
-      .map(api => {
-        if (api.path.includes(':')) {
-          api.path = new RegExp(`/${project.name}${api.path.replace(/:([^\/]*)/g, '([^/]*)')}`)
-        } else {
-          api.path = `/${project.name}${api.path}`
-        }
-        api.method = api.method.toUpperCase()
-        return api
-      }),
-    nodes: [],
-    deps: []
-  }
-  const authSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
+  const authSvcs = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const mdlDep = await db.select(Dep, { _index: project.auth.model })
+  const args = { nodes: [], deps: [] }
   args.mdlName = mdlDep.exports[0]
   deps[mdlDep.id] = mdlDep.toObject()
-  if (authSvc && authSvc.flow) {
-    args.nodes = await recuNode(authSvc.flow, 4, node => {
+  if (authSvcs && authSvcs.flow) {
+    args.nodes = await recuNode(authSvcs.flow, 4, node => {
       for (const dep of node.deps) {
         if (!(dep.id in deps)) {
           deps[dep.id] = dep.toObject()
@@ -581,7 +560,7 @@ export async function genAuth(project, genPath) {
     })
     args.deps = Object.values(deps)
   }
-  adjustFile(fs.readFileSync(authTmp), authGen, args)
+  adjustFile(authTmp, authGen, args)
   return deps
 }
 
@@ -923,7 +902,8 @@ export async function transfer(info) {
 
 export async function getAllAPIs(pjt) {
   const ret = []
-  const project = typeof pjt === 'string' ? await db.select(Project, { _index: pjt }, { ext: true }) : pjt
+  const project =
+    typeof pjt === 'string' ? await db.select(Project, { _index: pjt }, { ext: true }) : pjt
   for (const service of project.services.map(svc => svc.toJSON())) {
     switch (service.emit) {
       case 'api':

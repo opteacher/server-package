@@ -17,6 +17,7 @@
     "@hokify/agenda": "^6.3.0",
     "agendash": "^4.0.0",
     "axios": "^0.25.0",
+    "casbin": "^5.29.0",
     "dayjs": "^1.11.3",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.1",
