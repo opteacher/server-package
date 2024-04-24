@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import _ from 'lodash'
-import { db } from '../utils/index.js'
+import { db, logger } from '../utils/index.js'
 import Project from '../models/project.js'
 import Model from '../models/model.js'
 import Service from '../models/service.js'
@@ -12,7 +12,7 @@ import { rmv as rmvNode, save as saveNode, scanNextss } from './node.js'
 export async function bind(pid, auth) {
   let project = await db.select(Project, { _index: pid }, { ext: true })
   const model = await db.select(Model, { _index: auth.model })
-  // 查看欲绑定的模型下是否有role字段，没有则创建
+  logger.log('info', '查看欲绑定的模型下是否有role字段，没有则创建')
   const roleIdx = model.props.findIndex(prop => prop.name === 'role')
   if (roleIdx === -1) {
     await db.saveOne(
@@ -30,8 +30,8 @@ export async function bind(pid, auth) {
       { updMode: 'append' }
     )
   }
-  // 检查模型是否具有签发、验证接口，没有则添加
-  const skips = project.auth.skips
+  logger.log('info', '检查模型是否具有签发、验证接口，没有则添加')
+  const skips = []
   let svcIdx = project.services.findIndex(svc => svc.name === 'auth' && svc.interface === 'sign')
   if (svcIdx === -1) {
     const sgnSvc = await db.save(Service, {
@@ -71,8 +71,11 @@ export async function bind(pid, auth) {
     await db.saveOne(Project, pid, { services: vfySvc.id }, { updMode: 'append' })
     skips.push(vfySvc.path)
   }
-  // 跳过的路由附加到授权系统中
-  auth.skips = (auth.skips || []).concat(Array.from(new Set(skips)))
+  logger.log('info', '跳过的路由附加到授权系统中')
+  auth.skips = (project.auth.skips || []).concat(Array.from(new Set(skips)))
+  if (auth.model) {
+    await db.saveOne(Project, pid, { 'auth.model': auth.model.key || auth.model })
+  }
   project = await db.saveOne(Project, pid, { auth }, { updMode: 'merge' })
   return project.auth
 }
@@ -82,7 +85,7 @@ export async function unbind(pid) {
   if (!project.auth.model) {
     return { error: '项目未绑定模型' }
   }
-  // 收集模型权限相关的接口
+  logger.log('info', '收集模型权限相关的接口')
   const model = await db.select(Model, { _index: project.auth.model }, { ext: true })
   const sgnSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const sgnSid = sgnSvc ? sgnSvc.id : null
@@ -109,20 +112,16 @@ export async function unbind(pid) {
     await db.remove(Service, { _index: vfySid })
     await db.saveOne(Project, pid, { service: vfySid }, { updMode: 'delete' })
   }
-  // 清除模型role字段
+  logger.log('info', '清除模型role字段')
   await db.saveOne(Model, project.auth.model, { 'props[{name:role}]': null }, { updMode: 'delete' })
-  return db.saveOne(
-    Project,
-    pid,
-    { auth: { model: '', skips: [], props: [] } },
-    { updMode: 'merge' }
-  )
+  await db.saveOne(Project, pid, { 'auth.model': null }, { updMode: 'delete' })
+  return db.saveOne(Project, pid, { auth: { skips: [], props: [] } }, { updMode: 'merge' })
 }
 
 /**
  *
- * @param {*} pid
- * @param {*} { props } { props: { name: string; alg: string }[] }
+ * @param {string} pid - 项目ID
+ * @param {{ name: string; alg: string }[]} props - 校验字段
  * @returns
  */
 export async function genSign(pid, props) {
@@ -130,14 +129,14 @@ export async function genSign(pid, props) {
   if (!project.auth || !project.auth.model) {
     return { error: '项目未绑定模型！' }
   }
-  // 更新比对字段
+  logger.log('info', '更新比对字段')
   await db.saveOne(Project, pid, { 'auth.props': props })
   const model = await db.select(Model, { _index: project.auth.model })
   const sgnSvc = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   if (!sgnSvc) {
     return { error: '未找到签名服务！' }
   }
-  // 清除之前签名的流程节点
+  logger.log('info', '清除之前签名的流程节点')
   const service = await db.select(Service, { _index: sgnSvc.id }, { ext: true })
   if (service.flow && service.flow.id) {
     const { allNodes } = await scanNextss(service.flow, '')

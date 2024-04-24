@@ -4,10 +4,10 @@ import { verify, verifyDeep } from '../../../../../services/auth2.js'
 const router = new Router()
 
 /**
- * @param ctx.request.body:
- * @member headers: { authorization: string; Bearer加密token }
- * @member method: 'GET' | 'POST' | 'PUT' | 'DELETE'
- * @member path: string
+ * @param {object} ctx.request.body
+ * @property {authorization} headers - Bearer加密token
+ * @property {'GET'|'POST'|'PUT'|'DELETE'} method
+ * @property {string} path
  */
 router.post('/verify', ctx => {
   ctx.body = {

@@ -1,30 +1,41 @@
 import jwt from 'jsonwebtoken'
+import { readFileSync } from 'fs'
 import { db, makeRequest } from '../utils/index.js'
 import { readConfig } from '../lib/backend-library/utils/index.js'
 import { StringAdapter, newEnforcer } from 'casbin'
 /*return deps.map(dep => `import ${dep.default ? dep.exports[0] : ('{ ' + dep.exports.join(', ') + ' }')} from '${dep.from}'`).join('\n')*/
 
+let svrPkgURL = ''
+if (typeof process.env.BASE_URL !== 'undefined') {
+  svrPkgURL = `http://${process.env.BASE_URL}:4000/server-package`
+} else if (process.env.NODE_ENV === 'test') {
+  svrPkgURL = 'http://host.docker.internal:4000/server-package'
+} else {
+  svrPkgURL = 'http://server-package:4000/server-package'
+}
+console.log(svrPkgURL)
+
 export async function sign(ctx) {
   /*return `try {\n${nodes.join('\n\n')}\n  } catch (e) {\n    return { error: e.message || JSON.stringify(e) }\n  }\n`*/
 }
 
-export async function loadInst(mname, conds) {
+export async function loadProj(conds) {
   try {
     // 测试模式
     if (!conds) {
       // 如果不指定条件，这直接定义为生产模式
       throw new Error()
     }
-    const Mdl = await import(`../models/${mname}.js`).then(exp => exp.default)
+    const Mdl = await import('../models/project.js').then(exp => exp.default)
     return db.select(Mdl, conds).then(res => (conds._index ? res : res[0]))
   } catch (e) {
     // 生产模式
-    return import(`../models/${mname}.json`).then(exp => exp.default)
+    return JSON.parse(readFileSync('./jsons/project.json', 'utf8'))
   }
 }
 
 export async function db2StrPolicy(pjt) {
-  const project = typeof pjt === 'string' ? await loadInst('project', { _index: pjt }) : pjt
+  const project = typeof pjt === 'string' ? await loadProj({ _index: pjt }) : pjt
   const valMap = {
     '/': '',
     s: '/s$',
@@ -52,16 +63,6 @@ export async function db2StrPolicy(pjt) {
   }
   return policies
 }
-
-let svrPkgURL = ''
-if (typeof process.env.BASE_URL !== 'undefined') {
-  svrPkgURL = `http://${process.env.BASE_URL}:4000/server-package`
-} else if (process.env.NODE_ENV === 'test') {
-  svrPkgURL = 'http://host.docker.internal:4000/server-package'
-} else {
-  svrPkgURL = 'http://server-package:4000/server-package'
-}
-console.log(svrPkgURL)
 
 export async function getSecret() {
   try {
@@ -109,8 +110,8 @@ export async function verify(ctx) {
 
 export async function verifyDeep(ctx) {
   const pjtName = ctx.path.split('/').filter(p => p)[0]
-  const project = await loadInst('project', { name: pjtName })
-  const authModel = await loadInst('model', { _index: project.auth.model })
+  const project = await loadProj({ name: pjtName })
+  const mdlName = '' /*return `\'${authName}\'.toLowerCase()`*/
   console.log('获取token解析出来的载荷')
   let rname = 'guest'
   const verRes = await verify(ctx)
@@ -119,7 +120,7 @@ export async function verifyDeep(ctx) {
     console.log(payload)
     // 获取访问者角色信息（权限绑定模型之后，会给模型添加一个role字段，用于记录用户模型的角色ID，类型是字符串）
     const visitor = await db.select(
-      await import(`../models/${authModel.name}.js`).then(exp => exp.default),
+      await import(`../models/${mdlName}.js`).then(exp => exp.default),
       { _index: payload.sub }
     )
     if (visitor && 'role' in visitor) {
@@ -165,7 +166,7 @@ export async function auth(ctx, next) {
   if (!sectors.length) {
     return ctx.throw(403, '授权验证失败！错误的路由前缀（路由为空）')
   }
-  const project = await loadInst('project', { name: sectors[0] })
+  const project = await loadProj({ name: sectors[0] })
   if (!project) {
     return ctx.throw(403, '授权验证失败！错误的路由前缀（未知项目名）')
   }

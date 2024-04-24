@@ -541,15 +541,18 @@ export async function generate(pid) {
 }
 
 export async function genAuth(project, genPath) {
-  const deps = {}
+  logger.log('info', `生成项目JSON到指定文件`)
+  const jsonPath = Path.join(genPath, 'jsons')
+  fs.mkdirSync(jsonPath)
+  fs.writeFileSync(Path.join(jsonPath, 'project.json'), JSON.stringify(project))
   const authTmp = Path.resolve('services', 'auth2.js')
   const authGen = Path.join(genPath, 'services', 'auth.js')
   logger.log('info', `复制授权服务文件：${authTmp} -> ${authGen}`)
   const authSvcs = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
   const mdlDep = await db.select(Dep, { _index: project.auth.model })
-  const args = { nodes: [], deps: [] }
-  args.mdlName = mdlDep.exports[0]
-  deps[mdlDep.id] = mdlDep.toObject()
+  const args = { project, authName: '', nodes: [], deps: [] }
+  args.authName = mdlDep.exports[0]
+  const deps = { [mdlDep.id]: mdlDep.toObject() }
   if (authSvcs && authSvcs.flow) {
     args.nodes = await recuNode(authSvcs.flow, 4, node => {
       for (const dep of node.deps) {
@@ -703,7 +706,7 @@ export function adjustFile(src, dest, args) {
     src = fs.readFileSync(src)
   }
   const strData = src.toString()
-  const slotRegex = /(\/\*|##).*\*\//gm
+  const slotRegex = /(\/\*|##)return\s.*\*\//gm
   let resAry = null
   const slots = []
   while ((resAry = slotRegex.exec(strData)) !== null) {
@@ -971,7 +974,7 @@ export async function buildMid(project) {
   console.log(`复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
   console.log('生成json数据：project.json和models.json')
-  fs.mkdirSync(Path.join(genSrcPath, 'json'), { recursive: true })
+  fs.mkdirSync(Path.join(genSrcPath, 'models'), { recursive: true })
   fs.writeFileSync(
     Path.join(genSrcPath, 'models/project.json'),
     JSON.stringify(pickOrIgnore(project, ['models']))

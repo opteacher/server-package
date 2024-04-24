@@ -41,7 +41,9 @@ export async function makeRequest(method, path) {
 }
 
 export function pickOrIgnore(obj, attrs, ignore = true) {
-  return Object.fromEntries(Object.entries(obj).filter(([key]) => ignore ? !attrs.includes(key) : attrs.includes(key)))
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => (ignore ? !attrs.includes(key) : attrs.includes(key)))
+  )
 }
 
 export function genDefault(type, dftVal) {

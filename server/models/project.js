@@ -23,7 +23,7 @@ export default db.defineModel(
     services: [{ type: db.PropTypes.Id, ref: 'service' }],
     typos: [{ type: db.PropTypes.Id, ref: 'typo' }],
     auth: {
-      model: db.PropTypes.String,
+      model: { type: db.PropTypes.Id, ref: 'model' },
       skips: db.PropTypes.Array,
       props: db.PropTypes.Array,
       roles: [
