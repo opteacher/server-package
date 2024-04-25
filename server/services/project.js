@@ -58,7 +58,7 @@ function formatToStr(value, vtype) {
 
 /**
  *
- * @param {*} node {
+ * @param {*} node - {
     title: string
     inputs: { type: string; remark: string; name: string }[]
     outputs: { type: string; remark: string }[]
@@ -541,6 +541,7 @@ export async function generate(pid) {
 }
 
 export async function genAuth(project, genPath) {
+  project.auth.model = await db.select(Model, { _index: project.auth.model })
   logger.log('info', `生成项目JSON到指定文件`)
   const jsonPath = Path.join(genPath, 'jsons')
   fs.mkdirSync(jsonPath)

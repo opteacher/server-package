@@ -26,8 +26,16 @@ export async function loadProj(conds) {
       // 如果不指定条件，这直接定义为生产模式
       throw new Error()
     }
-    const Mdl = await import('../models/project.js').then(exp => exp.default)
-    return db.select(Mdl, conds).then(res => (conds._index ? res : res[0]))
+    const Pjt = await import('../models/project.js').then(exp => exp.default)
+    return db
+      .select(Pjt, conds)
+      .then(res => (conds._index ? res : res[0]))
+      .then(async pjt => {
+        console.log(conds, pjt)
+        const Mdl = await import('../models/model.js').then(exp => exp.default)
+        pjt.auth.model = await db.select(Mdl, { _index: pjt.auth.model })
+        return pjt
+      })
   } catch (e) {
     // 生产模式
     return JSON.parse(readFileSync('./jsons/project.json', 'utf8'))
@@ -111,10 +119,11 @@ export async function verify(ctx) {
 export async function verifyDeep(ctx) {
   const pjtName = ctx.path.split('/').filter(p => p)[0]
   const project = await loadProj({ name: pjtName })
-  const mdlName = '' /*return `\'${authName}\'.toLowerCase()`*/
+  const mdlName = project.auth.model.name
   console.log('获取token解析出来的载荷')
   let rname = 'guest'
   const verRes = await verify(ctx)
+  console.log(verRes)
   const payload = verRes.payload
   if (!verRes.error && payload) {
     console.log(payload)
@@ -123,6 +132,7 @@ export async function verifyDeep(ctx) {
       await import(`../models/${mdlName}.js`).then(exp => exp.default),
       { _index: payload.sub }
     )
+    console.log(visitor)
     if (visitor && 'role' in visitor) {
       rname = visitor['role']
     } else {
@@ -132,13 +142,14 @@ export async function verifyDeep(ctx) {
     // @_@：让guest角色起效
     // return verRes
   }
-  console.log(rname)
+  console.log('角色名：', rname)
   if (!rname) {
     if (project.independ) {
       return { error: '未找到指定角色！' }
     }
     console.log('如果角色为空，检查是否是server-package的超级管理员')
     try {
+      console.log(await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`))
       if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
         return {}
       } else {
@@ -172,7 +183,7 @@ export async function auth(ctx, next) {
   }
   const canSkip = ['/mdl/v1']
     .concat(project.skips || [])
-    .map(skip => `/${sectors[0]}/${skip}` === ctx.path)
+    .map(skip => `/${sectors[0]}${skip}` === ctx.path)
     .reduce((a, b) => a || b)
   if (!canSkip) {
     const result = await verifyDeep(ctx)

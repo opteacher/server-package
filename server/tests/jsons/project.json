@@ -1,0 +1,231 @@
+{
+  "_id": "6625b38e50ba2c62a470d032",
+  "name": "test_auth2",
+  "desc": "权限系统测试用",
+  "port": 7480,
+  "volumes": [],
+  "thread": 0,
+  "database": "6563f9a4245342bd0a2651e9",
+  "dropDbs": false,
+  "commands": "",
+  "https": false,
+  "independ": false,
+  "envVars": [],
+  "expPorts": [],
+  "models": ["6625b3ac50ba2c62a470d37c"],
+  "services": [
+    "6625b3ac50ba2c62a470d387",
+    "6625b3ac50ba2c62a470d38d",
+    "6625b3ac50ba2c62a470d393",
+    "6625b3ac50ba2c62a470d399",
+    "6625b3cf50ba2c62a470d4f0",
+    "6625b3cf50ba2c62a470d4f6",
+    "6625b3cf50ba2c62a470d4fc"
+  ],
+  "typos": [],
+  "auth": {
+    "model": {
+      "_id": "6625b3ac50ba2c62a470d37c",
+      "name": "test_anth2_model",
+      "label": "账户",
+      "icon": "BorderlessTableOutlined",
+      "disp": true,
+      "desc": "",
+      "logTime": true,
+      "props": [
+        {
+          "name": "username",
+          "label": "用户名",
+          "ptype": "String",
+          "index": true,
+          "unique": true,
+          "visible": true,
+          "relative": {
+            "model": "",
+            "belong": false,
+            "isArray": false,
+            "_id": "6625b3bd50ba2c62a470d3d4"
+          },
+          "remark": "",
+          "dftVal": "",
+          "_id": "6625b3bd50ba2c62a470d3d3"
+        },
+        {
+          "name": "password",
+          "label": "密码",
+          "ptype": "String",
+          "index": false,
+          "unique": false,
+          "visible": true,
+          "relative": {
+            "model": "",
+            "belong": false,
+            "isArray": false,
+            "_id": "6625b3c750ba2c62a470d41b"
+          },
+          "remark": "",
+          "dftVal": "",
+          "_id": "6625b3c750ba2c62a470d41a"
+        },
+        {
+          "name": "role",
+          "label": "角色",
+          "ptype": "String",
+          "visible": true,
+          "remark": "权限系统标识",
+          "_id": "6625b3cf50ba2c62a470d4ee"
+        }
+      ],
+      "form": {
+        "title": "新增/编辑",
+        "width": 50,
+        "labelWidth": 4,
+        "fields": [
+          {
+            "label": "用户名",
+            "ftype": "Input",
+            "rules": [],
+            "refer": "username",
+            "_id": "6625b3bd50ba2c62a470d3d5"
+          },
+          {
+            "label": "密码",
+            "ftype": "Input",
+            "rules": [],
+            "refer": "password",
+            "_id": "6625b3c750ba2c62a470d41c"
+          }
+        ],
+        "_id": "6625b3ac50ba2c62a470d3a1"
+      },
+      "table": {
+        "title": "数据表",
+        "operaStyle": "button",
+        "size": "default",
+        "hasPages": true,
+        "refresh": [],
+        "operable": [],
+        "imExport": [],
+        "columns": [
+          {
+            "title": "用户名",
+            "dataIndex": "username",
+            "group": [],
+            "_id": "6625b3bd50ba2c62a470d3d6"
+          },
+          {
+            "title": "密码",
+            "dataIndex": "password",
+            "group": [],
+            "_id": "6625b3c750ba2c62a470d41d"
+          }
+        ],
+        "cells": [
+          {
+            "refer": "username",
+            "cdCell": {},
+            "color": "#000000",
+            "prefix": "",
+            "suffix": "",
+            "_id": "6625b3bd50ba2c62a470d3dc"
+          },
+          {
+            "refer": "password",
+            "cdCell": {},
+            "color": "#000000",
+            "prefix": "",
+            "suffix": "",
+            "_id": "6625b3c750ba2c62a470d427"
+          }
+        ],
+        "_id": "6625b3ac50ba2c62a470d3a5"
+      },
+      "__v": 5
+    },
+    "skips": [
+      "/api/v1/test_anth2_model/sign",
+      "/api/v1/test_anth2_model/verify",
+      "/api/v1/test_anth2_model/verify/deep"
+    ],
+    "props": [
+      {
+        "key": "b6a95e6e-674b-4d37-8ce5-976ef66d5161",
+        "name": "username",
+        "alg": "none"
+      },
+      {
+        "key": "57720d37-47b1-469d-9a5b-6a865a17f9b1",
+        "name": "password",
+        "alg": "sha256"
+      }
+    ],
+    "roles": [
+      {
+        "name": "guest",
+        "extend": "",
+        "rules": [
+          {
+            "method": "POST",
+            "path": "/mdl/v1/test_anth2_model",
+            "value": "/",
+            "idens": [],
+            "action": "",
+            "_id": "6625b3cf50ba2c62a470d506"
+          }
+        ],
+        "_id": "6625b3cf50ba2c62a470d505"
+      },
+      {
+        "name": "admin",
+        "extend": "",
+        "rules": [
+          {
+            "method": "GET",
+            "path": "/mdl/v1/test_anth2_model",
+            "value": "s",
+            "idens": [],
+            "action": "",
+            "_id": "6625b47250ba2c62a470d5fa"
+          }
+        ],
+        "_id": "6625b3ee50ba2c62a470d5c4"
+      }
+    ],
+    "apis": [],
+    "_id": "6625b38e50ba2c62a470d033"
+  },
+  "middle": {
+    "lclDep": true,
+    "prefix": "",
+    "login": {
+      "path": "/login",
+      "bkgdColor": "#cdcdcd",
+      "background": "",
+      "title": "登录标题",
+      "lblWidth": 4,
+      "width": 50,
+      "align": "center",
+      "padding": 24,
+      "radius": 0,
+      "fmBkgdColor": "#EFEFEF",
+      "registerable": false,
+      "logAccount": true,
+      "hasLabel": true,
+      "_id": "6625b38e50ba2c62a470d037"
+    },
+    "navigate": {
+      "path": "/home",
+      "theme": "dark",
+      "logo": "",
+      "_id": "6625b38e50ba2c62a470d038"
+    },
+    "dashboard": {
+      "bkgdColor": "#FFFFFF",
+      "padding": [16, 16],
+      "children": [],
+      "_id": "6625b38e50ba2c62a470d039"
+    },
+    "_id": "6625b38e50ba2c62a470d036"
+  },
+  "__v": 11
+}

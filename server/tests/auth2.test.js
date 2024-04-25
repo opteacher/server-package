@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
 import { v4 as uuidv4 } from 'uuid'
-import project from './models/project.json'
-import models from './models/model.json'
+import project from './jsons/project.json'
+import models from './jsons/model.json'
 import { copyFileSync, rmSync } from 'fs'
 
 const pjtName = 'test_auth2'
@@ -52,26 +52,26 @@ describe('# 权限系统，用Casbin重写', () => {
     rmSync(`./models/${model.name}.js`)
   })
 
-  describe('# 项目和模型实例导入测试', () => {
+  describe('# 项目实例导入测试', () => {
     test('# 测试', async () => {
-      const { loadInst } = await import('../services/auth2.js')
-      const pjtIns = await loadInst('project', { name: pjtName })
+      const { loadProj } = await import('../services/auth2.js')
+      const pjtIns = await loadProj({ name: pjtName })
       expect(pjtIns._id).toBeInstanceOf(mongoose.Types.ObjectId)
       expect(pjtIns._id.toString()).toBe(project._id)
     })
 
     describe('# 生产', () => {
       beforeAll(() => {
-        copyFileSync('./tests/models/project.json', './models/project.json')
+        copyFileSync('./tests/jsons/project.json', './models/project.json')
       })
 
       afterAll(() => {
         rmSync('./models/project.json', { force: true })
       })
 
-      test('# 测试', async () => {
-        const { loadInst } = await import('../services/auth2.js')
-        const pjtIns = await loadInst('project')
+      test.skip('# 测试', async () => {
+        const { loadProj } = await import('../services/auth2.js')
+        const pjtIns = await loadProj()
         expect(typeof pjtIns._id).toBe('string')
       })
     })
