@@ -123,7 +123,6 @@ export async function verifyDeep(ctx) {
   console.log('获取token解析出来的载荷')
   let rname = 'guest'
   const verRes = await verify(ctx)
-  console.log(verRes)
   const payload = verRes.payload
   if (!verRes.error && payload) {
     console.log(payload)
@@ -139,6 +138,7 @@ export async function verifyDeep(ctx) {
       rname = ''
     }
   } else {
+    console.log(`解析token错误：${verRes.error || JSON.stringify(verRes)}`)
     // @_@：让guest角色起效
     // return verRes
   }
@@ -149,8 +149,9 @@ export async function verifyDeep(ctx) {
     }
     console.log('如果角色为空，检查是否是server-package的超级管理员')
     try {
-      console.log(await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`))
-      if (await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)) {
+      const result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)
+      if (result) {
+        console.log(`检测到为超级管理员，名称为：${result.name}`)
         return {}
       } else {
         return { error: '未找到指定角色！' }

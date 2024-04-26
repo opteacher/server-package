@@ -990,8 +990,8 @@ export async function buildMid(project) {
   const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
   if (project.auth.model) {
     let auth = project.auth.model
-    if (typeof auth === 'string') {
-      auth = await db.select(Model, { _index: project.auth.model }).then(res => res.toJSON())
+    if (!auth.form) {
+      auth = await db.select(Model, { _index: auth }).then(res => res.toJSON())
     }
     const apiTmp = Path.join(tmpSrcPath, 'apis/login.ts')
     const apiGen = Path.join(genSrcPath, 'apis/login.ts')
@@ -1058,8 +1058,8 @@ export async function genMiddle(ctx) {
     stdio: 'inherit',
     shell: true
   })
-  const phName = Path.join(svrCfg.apps, flName)
-  ctx.attachment(phName)
+  const phName = Path.resolve(svrCfg.apps, flName)
+  ctx.attachment(flName)
   await sendfile(ctx, phName)
 }
 

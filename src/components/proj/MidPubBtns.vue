@@ -79,6 +79,7 @@ const visibles = reactive({
 const route = useRoute()
 const store = useStore()
 const pid = route.params.pid as string
+const pjtName = computed(() => store.getters['project/ins'].name)
 const loading = ref(false)
 const emitter = new Emitter()
 const mapper = new Mapper({
@@ -100,6 +101,15 @@ const mapper = new Mapper({
 })
 const genOrPub = ref<OperType>('export')
 const middle = computed(() => store.getters['project/middle'])
+
+emitter.on('update:visible', (visible: boolean) => {
+  if (visible) {
+    emitter.emit('update:dprop', {
+      title: pjtName.value,
+      prefix: '/' + pjtName.value
+    })
+  }
+})
 
 function onMidPubClick({ key }: { key: OperType }) {
   if (key === 'export' || key === 'publish') {
