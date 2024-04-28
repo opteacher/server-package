@@ -11,7 +11,7 @@ if (typeof process.env.BASE_URL !== 'undefined') {
 } else if (process.env.NODE_ENV === 'test') {
   svrPkgURL = 'http://host.docker.internal:4000/server-package'
 } else {
-  svrPkgURL = 'http://server-package:4000/server-package'
+  svrPkgURL = 'http://server-package_default:4000/server-package'
 }
 console.log(svrPkgURL)
 
