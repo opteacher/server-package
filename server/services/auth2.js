@@ -174,17 +174,21 @@ export async function verifyDeep(ctx) {
 }
 
 export async function auth(ctx, next) {
-  const sectors = ctx.path.split('/').filter(sec => sec)
-  if (!sectors.length) {
+  const [pjtName] = ctx.path.split('/').filter(sec => sec)
+  if (!pjtName) {
     return ctx.throw(403, '授权验证失败！错误的路由前缀（路由为空）')
   }
-  const project = await loadProj({ name: sectors[0] })
+  const project = await loadProj({ name: pjtName })
   if (!project) {
     return ctx.throw(403, '授权验证失败！错误的路由前缀（未知项目名）')
   }
+  console.log(
+    ['/mdl/v1'].concat(project.skips || []).map(skip => `/${pjtName}${skip}`),
+    ctx.path
+  )
   const canSkip = ['/mdl/v1']
     .concat(project.skips || [])
-    .map(skip => `/${sectors[0]}${skip}` === ctx.path)
+    .map(skip => `/${pjtName}${skip}` === ctx.path)
     .reduce((a, b) => a || b)
   if (!canSkip) {
     const result = await verifyDeep(ctx)
