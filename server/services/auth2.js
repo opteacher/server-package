@@ -182,15 +182,9 @@ export async function auth(ctx, next) {
   if (!project) {
     return ctx.throw(403, '授权验证失败！错误的路由前缀（未知项目名）')
   }
-  console.log(
-    ['/mdl/v1'].concat(project.skips || []).map(skip => `/${pjtName}${skip}`),
-    ctx.path
-  )
-  const canSkip = ['/mdl/v1']
-    .concat(project.skips || [])
-    .map(skip => `/${pjtName}${skip}` === ctx.path)
-    .reduce((a, b) => a || b)
-  if (!canSkip) {
+  const skipPaths = ['/mdl/v1'].concat(project.auth.skips || []).map(skip => `/${pjtName}${skip}`)
+  console.log(skipPaths, ctx.path)
+  if (!skipPaths.includes(ctx.path)) {
     const result = await verifyDeep(ctx)
     if (!result || result.error) {
       return ctx.throw(

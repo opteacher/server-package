@@ -128,7 +128,8 @@ export const ruleColumns = [
   new Column('路径', 'path'),
   new Column('匹配', 'value'),
   new Column('指定项', 'idens'),
-  new Column('动作', 'action')
+  new Column('动作', 'action'),
+  new Column('备注', 'remark')
 ]
 
 export const ruleMapper = new Mapper({
