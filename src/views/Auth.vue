@@ -53,17 +53,28 @@
           <template #pathEDT="{ editing, mapper }">
             <a-input-group compact>
               <a-form-item-rest>
-                <a-input :value="`/ ${pjtName}`" class="w-1/5 text-right" disabled />
+                <a-button
+                  class="w-2/5"
+                  @click="
+                    () => {
+                      selMode = !selMode
+                    }
+                  "
+                >
+                  /{{ pjtName }}【{{ selMode ? '选择路由' : '自定义路由' }}】
+                </a-button>
               </a-form-item-rest>
               <a-cascader
+                v-if="selMode"
                 :options="mapper.options"
                 :value="editing.path.split('/')"
-                class="w-4/5"
+                class="w-3/5"
                 expand-trigger="hover"
                 change-on-select
                 :allow-clear="true"
                 @change="(val: any) => onPathChange(editing, val)"
               />
+              <a-input v-else class="w-3/5" v-model:value="editing.path" />
             </a-input-group>
           </template>
         </EditableTable>
@@ -120,6 +131,7 @@ const auth = computed(() => store.getters['project/ins'].auth)
 const pjtName = computed(() => store.getters['project/ins'].name)
 const bindMdl = computed(() => store.getters['project/ins'].auth.model)
 const showGuest = ref(false)
+const selMode = ref(true)
 
 onMounted(refresh)
 watch(

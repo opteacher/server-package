@@ -193,6 +193,10 @@ export const ruleMapper = new Mapper({
   action: {
     label: '动作',
     type: 'Input'
+  },
+  remark: {
+    label: '备注',
+    type: 'Textarea'
   }
 })
 
