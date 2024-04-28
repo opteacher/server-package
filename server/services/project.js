@@ -975,13 +975,13 @@ export async function buildMid(project) {
   console.log(`复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
   console.log('生成json数据：project.json和models.json')
-  fs.mkdirSync(Path.join(genSrcPath, 'models'), { recursive: true })
+  fs.mkdirSync(Path.join(genSrcPath, 'jsons'), { recursive: true })
   fs.writeFileSync(
-    Path.join(genSrcPath, 'models/project.json'),
+    Path.join(genSrcPath, 'jsons/project.json'),
     JSON.stringify(pickOrIgnore(project, ['models']))
   )
   fs.writeFileSync(
-    Path.join(genSrcPath, 'models/models.json'),
+    Path.join(genSrcPath, 'jsons/models.json'),
     JSON.stringify(Object.fromEntries(project.models.map(model => [model.name, model])))
   )
   console.log('根据权限生成登录页面，并配置路由……')
