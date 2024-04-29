@@ -15,6 +15,7 @@ export default db.defineModel(
       }
     ],
     isAsync: db.PropTypes.Boolean,
+    isStatic: db.PropTypes.Boolean,
     remark: db.PropTypes.String,
     flow: { type: db.PropTypes.Id, ref: 'node' }
   },

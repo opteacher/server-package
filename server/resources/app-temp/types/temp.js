@@ -11,5 +11,5 @@ export default class /*return typo.name + (typo.super ? ` extends ${typo.super.e
     /*return typo.props.map(prop => `this.${prop.name} = ${prop.index ? 'p_' + prop.name : genDefault(prop.ptype, prop.dftVal)}`).join('\n    ')*/
   }
 
-/*return typo.funcs.map(func => `${genFuncAnno(func)}\n  ${func.isAsync ? 'async ' : ''}${func.name} (${func.args.map(arg => arg.name).join(', ')}) {\n${func.codes}\n  }\n`).join('\n')*/
+/*return typo.funcs.map(func => `${genFuncAnno(func)}\n  ${func.isStatic ? 'static ' : ''}${func.isAsync ? 'async ' : ''}${func.name} (${func.args.map(arg => arg.name).join(', ')}) {\n${func.codes}\n  }\n`).join('\n')*/
 }

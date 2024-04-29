@@ -389,6 +389,10 @@ export const clsFunMapper = new Mapper({
     label: 'Async前缀',
     type: 'Checkbox'
   },
+  isStatic: {
+    label: '静态函数',
+    type: 'Checkbox'
+  },
   remark: {
     label: '备注',
     type: 'Textarea'
