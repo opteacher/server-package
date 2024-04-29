@@ -10,6 +10,7 @@ export class Func {
   label: string
   args: Property[]
   isAsync: boolean
+  isStatic: boolean
   remark: string
   flow: Node | string
 
@@ -19,6 +20,7 @@ export class Func {
     this.label = ''
     this.args = []
     this.isAsync = false
+    this.isStatic = false
     this.remark = ''
     this.flow = ''
   }
@@ -29,6 +31,7 @@ export class Func {
     this.label = ''
     this.args = []
     this.isAsync = false
+    this.isStatic = false
     this.remark = ''
     this.flow = ''
   }
