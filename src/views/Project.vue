@@ -31,12 +31,8 @@
           v-model:open="ctnrLogs.visible"
         >
           <OptSclPnl
-            :url="
-              project.status.stat === 'running'
-                ? `/server-package/api/v1/project/${pid}/docker/logs/access`
-                : ''
-            "
-            topic="server-package"
+            :url="optUrl"
+            :topic="project.status.stat === 'running' ? '' : 'server-package'"
             :emitter="ctnrLogs.emitter"
           />
         </a-modal>
@@ -329,7 +325,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Typo from '@/types/typo'
-import { getDftPjt, newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,
@@ -343,7 +339,7 @@ import {
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
 import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
-import { computed, h, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -414,6 +410,11 @@ const ctnrLogs = reactive<{
   emitter: new TinyEmitter()
 })
 const actMdlTab = ref('struct')
+const optUrl = computed(() =>
+  project.value.status.stat === 'running'
+    ? `/server-package/api/v1/project/${pid}/docker/logs/access`
+    : import.meta.env.VITE_MQTT_URL
+)
 
 watch(
   () => ctnrLogs.visible,

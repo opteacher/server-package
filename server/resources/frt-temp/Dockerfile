@@ -1,7 +1,7 @@
 FROM node:latest
 WORKDIR /app
 COPY . /app
-RUN npm config set registry http://registry.npm.taobao.org
+RUN npm config set registry https://registry.npmmirror.com
 RUN npm install --unsafe-perm=true --allow-root
 RUN npm run build
 

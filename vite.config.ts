@@ -19,7 +19,7 @@ export default ({ mode }) =>
     server: {
       proxy: {
         '^/server-package/(mdl|api)': {
-          target: 'http://192.168.1.11:4009',
+          target: 'http://127.0.0.1:4000',
           ws: true,
           changeOrigin: true
         },
@@ -29,7 +29,7 @@ export default ({ mode }) =>
           changeOrigin: true
         },
         '/mqtt$': {
-          target: 'ws://192.168.1.11:8083/mqtt',
+          target: 'ws://127.0.0.1:8083/mqtt',
           ws: true,
           changeOrigin: true
         }
