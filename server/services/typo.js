@@ -7,8 +7,11 @@ import { db, pickOrIgnore } from '../utils/index.js'
 import { colcNodes } from './service.js'
 
 export async function add(typo, pid) {
-  const newTyp = await db.save(Typo, pickOrIgnore(typo, ['funcs']))
+  const newTyp = await db.save(Typo, pickOrIgnore(typo, ['super', 'funcs']))
   await db.saveOne(Project, pid, { typos: newTyp }, { updMode: 'append' })
+  if (typo.super) {
+    await db.saveOne(Typo, newTyp._id, { super: typo.super })
+  }
   for (const func of typo.funcs) {
     const newFun = await db.save(Func, func)
     await db.saveOne(Typo, newTyp.id, { funcs: newFun.id }, { updMode: 'append' })
@@ -25,6 +28,9 @@ export async function add(typo, pid) {
 }
 
 export async function update(typo) {
+  if (typo.super) {
+    await db.saveOne(Typo, typo.key, { super: typo.super })
+  }
   const funcs = []
   for (const func of typo.funcs) {
     if (func.key) {
@@ -37,7 +43,7 @@ export async function update(typo) {
   return db.saveOne(
     Typo,
     typo.key,
-    Object.assign(typo, { funcs })
+    pickOrIgnore(Object.assign(typo, { funcs }), ['super'])
   )
 }
 
