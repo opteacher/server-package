@@ -98,8 +98,18 @@
       </a-descriptions>
     </a-page-header>
     <a-tabs>
+      <template #rightExtra>
+        <a-button @click="onSwitchMdlVw">
+          <template #icon>
+            <AppstoreOutlined v-if="mdlVwMod === 'grid'" />
+            <BarsOutlined v-else />
+          </template>
+        </a-button>
+      </template>
       <a-tab-pane key="model" tab="模型">
+        <MdlCardVw v-if="mdlVwMod === 'grid'" />
         <EditableTable
+          v-else
           title="模型"
           :description="`定义在项目${isFront ? 'types' : 'models'}文件夹下`"
           size="small"
@@ -334,7 +344,9 @@ import {
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
-  SyncOutlined
+  SyncOutlined,
+  AppstoreOutlined,
+  BarsOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -365,6 +377,7 @@ import {
   svcMapper
 } from './Project'
 import Status from '@/types/status'
+import MdlCardVw from '@/components/proj/MdlCardVw.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -415,6 +428,7 @@ const optUrl = computed(() =>
     ? `/server-package/api/v1/project/${pid}/docker/logs/access`
     : import.meta.env.VITE_MQTT_URL
 )
+const mdlVwMod = ref<'list' | 'grid'>('list')
 
 watch(
   () => ctnrLogs.visible,
@@ -492,5 +506,8 @@ function onSyncFinish() {
   ctnrLogs.emitter.emit('clean')
   ctnrLogs.visible = true
   console.log(store.getters['project/ins'])
+}
+function onSwitchMdlVw() {
+  mdlVwMod.value = mdlVwMod.value === 'list' ? 'grid' : 'list'
 }
 </script>
