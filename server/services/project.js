@@ -638,17 +638,17 @@ async function adjAndRestartNginx(projects) {
   }
   const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
   const ngCfgGen = Path.resolve('configs', 'nginx.conf')
-  console.log(`调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
+  logger.log('info', `调整Nginx配置文件：${ngCfgTmp} -> ${ngCfgGen}`)
   adjustFile(ngCfgTmp, ngCfgGen, { svrCfg, projects })
 
-  console.log('重启Nginx……')
+  logger.log('info', '重启Nginx……')
   try {
     spawnSync(['docker stop server-package_nginx', 'docker container prune -f'].join(' && '), {
       stdio: 'inherit',
       shell: true
     })
   } catch (e) {
-    console.log('无运行中的Nginx实例')
+    logger.log('warning', '无运行中的Nginx实例')
   }
   spawnSync(
     [
@@ -944,10 +944,10 @@ export async function buildMid(project) {
   const svrCfg = await readConfig(Path.resolve('configs', 'server'))
   const tmpPath = Path.resolve('resources', 'mid-temp')
   const genPath = Path.resolve(svrCfg.apps, `${project.name}-mid`)
-  console.log('初始化中台项目……')
+  logger.log('info', '初始化中台项目……')
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
-  console.log('复制所有文件到目标目录')
+  logger.log('info', '复制所有文件到目标目录')
   const tmpSrcPath = Path.join(tmpPath, 'src')
   const genSrcPath = Path.join(genPath, 'src')
   copyDir(tmpPath, genPath, {
@@ -956,6 +956,7 @@ export async function buildMid(project) {
       Path.join(tmpPath, '.env'),
       Path.join(tmpPath, 'package.json'),
       Path.join(tmpPath, 'package-lock.json'),
+      Path.join(tmpPath, 'vite.config.ts'),
       Path.join(tmpSrcPath, 'Dockerfile'),
       Path.join(tmpSrcPath, 'apis/login.ts'),
       Path.join(tmpSrcPath, 'router/index.ts'),
@@ -964,17 +965,20 @@ export async function buildMid(project) {
   })
   const envTmp = Path.join(tmpPath, '.env')
   const envGen = Path.join(genPath, '.env')
-  console.log(`复制.env文件：${envTmp} -> ${envGen}`)
+  logger.log('info', `复制.env文件：${envTmp} -> ${envGen}`)
   adjustFile(envTmp, envGen, { project })
   const pkgTmp = Path.join(tmpPath, 'package.json')
   const pkgGen = Path.join(genPath, 'package.json')
-  console.log(`复制package.json文件：${pkgTmp} -> ${pkgGen}`)
-  adjustFile(pkgTmp, pkgGen, { project })
+  logger.log('info', `复制package.json文件：${pkgTmp} -> ${pkgGen}`)
+  const vtCfgTmp = Path.join(tmpPath, 'vite.config.ts')
+  const vtCfgGen = Path.join(genPath, 'vite.config.ts')
+  logger.log('info', `复制vite.config.ts文件：${vtCfgTmp} -> ${vtCfgGen}`)
+  adjustFile(vtCfgTmp, vtCfgGen, { project })
   const dkrTmp = Path.join(tmpPath, 'Dockerfile')
   const dkrGen = Path.join(genPath, 'Dockerfile')
-  console.log(`复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
+  logger.log('info', `复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
-  console.log('生成json数据：project.json和models.json')
+  logger.log('info', '生成json数据：project.json和models.json')
   fs.mkdirSync(Path.join(genSrcPath, 'jsons'), { recursive: true })
   fs.writeFileSync(
     Path.join(genSrcPath, 'jsons/project.json'),
@@ -984,7 +988,7 @@ export async function buildMid(project) {
     Path.join(genSrcPath, 'jsons/models.json'),
     JSON.stringify(Object.fromEntries(project.models.map(model => [model.name, model])))
   )
-  console.log('根据权限生成登录页面，并配置路由……')
+  logger.log('info', '根据权限生成登录页面，并配置路由……')
   fs.mkdirSync(Path.join(genSrcPath, 'router'), { recursive: true })
   const rtTmp = Path.join(tmpSrcPath, 'router', 'index.ts')
   const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
@@ -995,13 +999,13 @@ export async function buildMid(project) {
     }
     const apiTmp = Path.join(tmpSrcPath, 'apis/login.ts')
     const apiGen = Path.join(genSrcPath, 'apis/login.ts')
-    console.log(`复制src/apis/login.ts文件：${apiTmp} -> ${apiGen}`)
+    logger.log('info', `复制src/apis/login.ts文件：${apiTmp} -> ${apiGen}`)
     adjustFile(apiTmp, apiGen, { auth })
-    console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
+    logger.log('info', `调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
     adjustFile(rtTmp, rtGen, { auth, project })
     const lgnTmp = Path.join(tmpSrcPath, 'views/login.vue')
     const lgnGen = Path.join(genSrcPath, 'views/login.vue')
-    console.log(`复制src/views/login.vue文件：${lgnTmp} -> ${lgnGen}`)
+    logger.log('info', `复制src/views/login.vue文件：${lgnTmp} -> ${lgnGen}`)
     const fields = project.auth.props
       .map(prop => auth.form.fields.find(field => field.refer === prop.name))
       .filter(field => field)
@@ -1009,7 +1013,7 @@ export async function buildMid(project) {
     project.middle.login = pickOrIgnore(project.middle.login, ['_id'])
     adjustFile(lgnTmp, lgnGen, { fields })
   } else {
-    console.log(`调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
+    logger.log('info', `调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
     adjustFile(rtTmp, rtGen, { auth: null, project })
   }
   return Promise.resolve(genPath)
@@ -1018,7 +1022,7 @@ export async function buildMid(project) {
 export async function pubMiddle(pid, pubInfo) {
   const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
   const genPath = await buildMid(project)
-  console.log(`发布中台到目录：${genPath}`)
+  logger.log('info', `发布中台到目录：${genPath}`)
   await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
   spawnSync(
     [
@@ -1051,7 +1055,7 @@ export async function genMiddle(ctx) {
     .select(Project, { _index: ctx.params.pid }, { ext: true })
     .then(res => res.toJSON())
   await buildMid(project)
-  console.log('打包中台……')
+  logger.log('info', '打包中台……')
   const flName = `${project.name}-mid.tar`
   spawnSync(`tar -cvf ${flName} ${project.name}-mid`, {
     cwd: Path.resolve(svrCfg.apps),
