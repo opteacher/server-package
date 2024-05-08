@@ -3,7 +3,7 @@ import Compo from '@lib/types/compo'
 
 export default {
   add: (data: any) => reqPost('component', data),
-  remove: (key: any) => reqDelete('component', key),
+  remove: (data: any) => reqDelete('component', data.key),
   update: (data: any) => reqPut('component', data.key, data),
   all: (query?: any) => reqAll('component', { axiosConfig: { params: query }, copy: Compo.copy }),
   detail: (key: any) => reqGet('component', key),

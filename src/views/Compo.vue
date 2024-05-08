@@ -6,7 +6,7 @@
       :api="api"
       :columns="columns"
       :mapper="mapper"
-      :copy="Compo.copy"
+      :new-fun="() => newOne(Compo)"
       sclHeight="h-full"
     >
       <template #name="{ record: compo }">
@@ -19,7 +19,7 @@
           :api="{ all: () => compo.props }"
           :columns="fldColumns"
           :mapper="fldMapper"
-          :copy="Field.copy"
+          :new-fun="() => newOne(Field)"
         />
       </template>
     </EditableTable>
@@ -33,4 +33,5 @@ import Compo from '@lib/types/compo'
 import Field from '@lib/types/field'
 import { cmpAPI as api } from '../apis'
 import { cmpLblMap, CompoType } from '@lib/types'
+import { newOne } from '@/utils'
 </script>
