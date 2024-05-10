@@ -152,7 +152,7 @@ export async function verifyDeep(ctx) {
       const result = await makeRequest('GET', `${svrPkgURL}/mdl/v1/admin/${payload.sub}`)
       if (result) {
         console.log(`检测到为超级管理员，名称为：${result.name}`)
-        return {}
+        return { message: '鉴权通过！该用户是超级管理员' }
       } else {
         return { error: '未找到指定角色！' }
       }
@@ -167,7 +167,7 @@ export async function verifyDeep(ctx) {
   console.log(adapter)
   const enforcer = await newEnforcer('./configs/keymatch_model.conf', adapter)
   if (await enforcer.enforce(rname, ctx.path, ctx.method.toUpperCase())) {
-    return {}
+    return { message: '鉴权通过！该用户是' + rname }
   } else {
     return { error: '你不具备访问该资源的权限！' }
   }
