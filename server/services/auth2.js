@@ -60,9 +60,10 @@ export async function db2StrPolicy(pjt) {
           role.name,
           [
             '/' + project.name,
-            rule.path,
+            rule.path.replaceAll(/\:[^/]+/g, '[^/]+'),
             valMap[rule.value],
-            rule.action ? '/' + rule.action : ''
+            rule.action ? '/' + rule.action.replaceAll(/\:[^/]+/g, '[^/]+') : '',
+            '$'
           ].join(''),
           rule.method === 'ALL' ? '(GET)|(POST)|(PUT)|(DELETE)' : rule.method
         ].join(',')
