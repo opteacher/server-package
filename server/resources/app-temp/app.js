@@ -10,13 +10,13 @@ import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
 import Agendash from 'agendash'
-import { agenda } from './utils/index.js'
+import { db, agenda } from './utils/index.js'
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 /*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
 const router = await genApiRoutes(path.resolve('routes'))
-const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'))
+const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'), db)
 const app = new Koa()
 app.proxy = true
 // 跨域配置
