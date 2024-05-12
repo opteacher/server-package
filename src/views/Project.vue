@@ -196,39 +196,35 @@
                   <template #relativeEDT="{ editing }">
                     <a-input-group>
                       <a-row :gutter="8" type="flex" justify="space-around" align="middle">
-                        <a-col :span="4">
+                        <a-col :span="6" class="text-center">
                           <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
-                            <a-select
+                            <a-radio-group
                               class="w-full"
                               :disabled="mdlOpns.length === 1"
                               :value="editing.relative.belong ? 'belong' : 'has'"
-                              @change="
-                                (val: string) => {
-                                  editing.relative.belong = val === 'belong'
-                                }
-                              "
+                              button-style="solid"
+                              @change="(e: any) => onRelMdlBelongChange(editing, e)"
                             >
-                              <a-select-option value="belong">属于</a-select-option>
-                              <a-select-option value="has">拥有</a-select-option>
-                            </a-select>
+                              <a-radio-button class="w-1/2" value="belong">属于</a-radio-button>
+                              <a-radio-button class="w-1/2" value="has">拥有</a-radio-button>
+                            </a-radio-group>
                           </a-form-item>
                         </a-col>
-                        <a-col :span="4" class="text-center">
+                        <a-col :span="6" class="text-center">
                           <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
-                            <a-checkbox
+                            <a-radio-group
+                              class="w-full"
                               :disabled="mdlOpns.length === 1"
-                              v-model:checked="editing.relative.isArray"
-                              @change="
-                                (checked: boolean) => {
-                                  editing.ptype = checked ? 'Array' : 'Id'
-                                }
-                              "
+                              :value="editing.relative.isArray ? 'many' : 'one'"
+                              button-style="solid"
+                              @change="(e: any) => onRelMdlWhoChange(editing, e)"
                             >
-                              {{ editing.relative.isArray ? '多个' : '一个' }}
-                            </a-checkbox>
+                              <a-radio-button class="w-1/2" value="many">多个</a-radio-button>
+                              <a-radio-button class="w-1/2" value="one">一个</a-radio-button>
+                            </a-radio-group>
                           </a-form-item>
                         </a-col>
-                        <a-col :span="16">
+                        <a-col :span="12">
                           <a-form-item class="mb-0" ref="relative.model" name="relative.model">
                             <a-select
                               class="w-full"
@@ -355,7 +351,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, pjtAPI, typAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, typAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -378,6 +374,7 @@ import {
 } from './Project'
 import Status from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
+import { pluralize, singularize } from 'inflection'
 
 const route = useRoute()
 const router = useRouter()
@@ -467,12 +464,26 @@ function onRelMdlChange(prop: Property, mname: string) {
     return prop.reset()
   }
   const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
-  prop.name = model.name + 's'
+  prop.name = model.name
   prop.label = model.label || ''
   prop.ptype = 'Id'
   prop.index = false
   prop.unique = false
   prop.visible = true
+  prop.relative.belong = false
+  prop.relative.isArray = false
+}
+function onRelMdlBelongChange(editing: Property, e: any) {
+  editing.relative.belong = e.target.value === 'belong'
+}
+function onRelMdlWhoChange(editing: Property, e: any) {
+  if (e.target.value === 'many') {
+    editing.name = pluralize(editing.name)
+    editing.relative.isArray = true
+  } else {
+    editing.name = singularize(editing.name)
+    editing.relative.isArray = false
+  }
 }
 function onExpClsClick(model: Model) {
   expClsObj.update(model)
