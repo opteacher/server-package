@@ -41,10 +41,6 @@ services:
       - 0.0.0.0:8084:8084
       - 0.0.0.0:8883:8883
       - 0.0.0.0:18083:18083
-    volumes:
-      - /data/server-package/emqx/etc:/opt/emqx/etc
-      - /data/server-package/emqx/data:/opt/emqx/data
-      - /data/server-package/emqx/log:/opt/emqx/log
 
   default:
     container_name: server-package_default
@@ -60,4 +56,5 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
+      - /usr/bin/com.docker.cli:/usr/bin/com.docker.cli:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
