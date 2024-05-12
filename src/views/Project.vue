@@ -464,7 +464,7 @@ function onRelMdlChange(prop: Property, mname: string) {
     return prop.reset()
   }
   const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
-  prop.name = model.name
+  prop.name = model.name + 'FK'
   prop.label = model.label || ''
   prop.ptype = 'Id'
   prop.index = false
@@ -481,7 +481,7 @@ function onRelMdlWhoChange(editing: Property, e: any) {
     editing.name = pluralize(editing.name)
     editing.relative.isArray = true
   } else {
-    editing.name = singularize(editing.name)
+    editing.name = singularize(editing.name) + 'FK'
     editing.relative.isArray = false
   }
 }
