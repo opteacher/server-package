@@ -46,10 +46,10 @@ export async function db2StrPolicy(pjt) {
   const project = typeof pjt === 'string' ? await loadProj({ _index: pjt }) : pjt
   const valMap = {
     '/': '',
-    s: '/s$',
-    ':i': '/[^/]+$',
-    '*': '/[^/]+$',
-    '*/*': '/*'
+    s: '/s',
+    ':i': '/[^/]+',
+    '*': '/[^/]+',
+    '*/*': '/.*'
   }
   const policies = []
   for (const role of project.auth.roles) {

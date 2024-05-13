@@ -374,7 +374,7 @@ import {
 } from './Project'
 import Status from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
-import { pluralize, singularize } from 'inflection'
+import { pluralize, singularize, capitalize } from 'inflection'
 
 const route = useRoute()
 const router = useRouter()
@@ -464,7 +464,7 @@ function onRelMdlChange(prop: Property, mname: string) {
     return prop.reset()
   }
   const model = store.getters['project/models'].find((mdl: Model) => mdl.name === mname)
-  prop.name = model.name + 'FK'
+  prop.name = 'fk' + capitalize(model.name)
   prop.label = model.label || ''
   prop.ptype = 'Id'
   prop.index = false
@@ -478,10 +478,10 @@ function onRelMdlBelongChange(editing: Property, e: any) {
 }
 function onRelMdlWhoChange(editing: Property, e: any) {
   if (e.target.value === 'many') {
-    editing.name = pluralize(editing.name)
+    editing.name = 'fk' + capitalize(pluralize(editing.name))
     editing.relative.isArray = true
   } else {
-    editing.name = singularize(editing.name) + 'FK'
+    editing.name = 'fk' + capitalize(singularize(editing.name))
     editing.relative.isArray = false
   }
 }
