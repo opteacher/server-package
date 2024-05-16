@@ -2,4 +2,4 @@
 
 /*return (stcVars || []).map(v => `// ${v.remark}\nvar ${v.name} = ${genDefault(v.vtype, v.default)}\n`).join('\n')*/
 
-/*return services.map(svc => `export async function ${svc.interface} (ctx) {\n  try {\n${svc.codes}\n  } catch (e) {\n    console.error(e)\n    return { error: e.message || JSON.stringify(e) }\n  }\n}`).join('\n')*/
+/*return services.map(svc => `export async function ${svc.interface} (ctx) {\n  try {\n${svc.codes}\n  } catch (e) {\n    console.error(e)\n    ctx.throw(400, e.message || JSON.stringify(e))\n  }\n}`).join('\n')*/
