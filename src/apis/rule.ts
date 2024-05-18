@@ -7,21 +7,21 @@ export default (rid: string) => ({
       'project',
       store.getters['project/ins'].key,
       { [`auth.roles[{_id:${rid}}].rules`]: data },
-      { axiosConfig: { params: { updMode: 'append' } } }
+      { axiosConfig: { params: { _updMode: 'append' } } }
     ),
   remove: (key: any) =>
     reqPut(
       'project',
       store.getters['project/ins'].key,
       { [`auth.roles[{_id:${rid}}].rules[{_id:${key}}]`]: null },
-      { axiosConfig: { params: { updMode: 'delete' } } }
+      { axiosConfig: { params: { _updMode: 'delete' } } }
     ),
   update: (data: any) =>
     reqPut(
       'project',
       store.getters['project/ins'].key,
       { [`auth.roles[{_id:${rid}}].rules[{_id:${data.key}}]`]: pickOrIgnore(data, ['key']) },
-      { axiosConfig: { params: { updMode: 'merge' } } }
+      { axiosConfig: { params: { _updMode: 'merge' } } }
     ),
   all: () =>
     store.getters['project/ins'].auth.roles

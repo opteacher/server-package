@@ -7,14 +7,14 @@ export default {
       'project',
       store.getters['project/ins'].key,
       { 'auth.apis': data },
-      { axiosConfig: { params: { updMode: 'append' } } }
+      { axiosConfig: { params: { _updMode: 'append' } } }
     ),
   remove: (key: any) =>
     reqPut(
       'project',
       store.getters['project/ins'].key,
       { [`auth.apis[{_id:${key}}]`]: null },
-      { axiosConfig: { params: { updMode: 'delete' } } }
+      { axiosConfig: { params: { _updMode: 'delete' } } }
     ),
   update: (data: any) =>
     reqPut('project', store.getters['project/ins'].key, {

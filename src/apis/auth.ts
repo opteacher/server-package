@@ -12,14 +12,14 @@ export default {
         'project',
         store.getters['project/ins'].key,
         { 'auth.props': data },
-        { axiosConfig: { params: { updMode: 'append' } } }
+        { axiosConfig: { params: { _updMode: 'append' } } }
       ),
     rmv: (key: any) =>
       reqPut(
         'project',
         store.getters['project/ins'].key,
         { [`auth.props[{_id:${key}}]`]: null },
-        { axiosConfig: { params: { updMode: 'delete' } } }
+        { axiosConfig: { params: { _updMode: 'delete' } } }
       )
   },
   sign: {

@@ -8,7 +8,7 @@ export default (typo: Typo) => ({
       'typo',
       typo.key,
       { funcs: pickOrIgnore(func, ['flow']) },
-      { axiosConfig: { params: { updMode: 'append' } } }
+      { axiosConfig: { params: { _updMode: 'append' } } }
     ),
   update: (func: Func) =>
     reqPut('typo', typo.key, { [`funcs[{id:${func.key}}]`]: pickOrIgnore(func, ['flow']) }),
@@ -17,6 +17,6 @@ export default (typo: Typo) => ({
       'typo',
       typo.key,
       { [`funcs[{id:${func.key}}]`]: null },
-      { axiosConfig: { params: { updMode: 'delete' } } }
+      { axiosConfig: { params: { _updMode: 'delete' } } }
     )
 })

@@ -172,7 +172,7 @@ export default {
           'project',
           key,
           { 'middle.dashboard': pickOrIgnore(data, ['children']) },
-          { axiosConfig: { params: { updMode: 'merge' } } }
+          { axiosConfig: { params: { _updMode: 'merge' } } }
         )
         if (next) {
           await next()
@@ -184,7 +184,7 @@ export default {
             'project',
             key,
             { 'middle.dashboard.children': data },
-            { axiosConfig: { params: { updMode: 'append' } } }
+            { axiosConfig: { params: { _updMode: 'append' } } }
           )
           if (next) {
             await next()
@@ -206,7 +206,7 @@ export default {
             'project',
             pkey,
             { [`middle.dashboard.${childKey}`]: null },
-            { axiosConfig: { params: { updMode: 'delete' } } }
+            { axiosConfig: { params: { _updMode: 'delete' } } }
           )
           if (next) {
             await next()
@@ -217,7 +217,7 @@ export default {
             'project',
             store.getters['project/ins'].key,
             { [`middle.dashboard.children[{_id:${key}}]`]: data },
-            { axiosConfig: { params: { updMode: 'merge' } } }
+            { axiosConfig: { params: { _updMode: 'merge' } } }
           ),
         child: {
           opera: async (
@@ -225,7 +225,7 @@ export default {
             ckey: string,
             props: string,
             data: any = null,
-            updMode = 'cover',
+            _updMode = 'cover',
             next?: () => Promise<any>
           ) => {
             await reqPut(
@@ -234,7 +234,7 @@ export default {
               {
                 [`middle.dashboard.children[{_id:${ckey}}].${props}`]: data
               },
-              { axiosConfig: { params: { updMode } } }
+              { axiosConfig: { params: { _updMode } } }
             )
             if (next) {
               await next()
