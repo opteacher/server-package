@@ -9,11 +9,11 @@ export default {
       { 'auth.apis': data },
       { axiosConfig: { params: { _updMode: 'append' } } }
     ),
-  remove: (key: any) =>
+  remove: (data: any) =>
     reqPut(
       'project',
       store.getters['project/ins'].key,
-      { [`auth.apis[{_id:${key}}]`]: null },
+      { [`auth.apis[{_id:${data.key}}]`]: null },
       { axiosConfig: { params: { _updMode: 'delete' } } }
     ),
   update: (data: any) =>

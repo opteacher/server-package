@@ -9,11 +9,11 @@ export default (rid: string) => ({
       { [`auth.roles[{_id:${rid}}].rules`]: data },
       { axiosConfig: { params: { _updMode: 'append' } } }
     ),
-  remove: (key: any) =>
+  remove: (data: any) =>
     reqPut(
       'project',
       store.getters['project/ins'].key,
-      { [`auth.roles[{_id:${rid}}].rules[{_id:${key}}]`]: null },
+      { [`auth.roles[{_id:${rid}}].rules[{_id:${data.key}}]`]: null },
       { axiosConfig: { params: { _updMode: 'delete' } } }
     ),
   update: (data: any) =>

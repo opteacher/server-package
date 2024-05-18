@@ -24,9 +24,9 @@ export default {
       axiosConfig: { params: { flowMod: flowCtnr[0] } }
     })
   },
-  remove: (key: any) => {
+  remove: (data: any) => {
     const flowCtnr = getFlowCtnr()
-    return reqDelete(`service/${flowCtnr[1]}`, `node/${key}`, {
+    return reqDelete(`service/${flowCtnr[1]}`, `node/${data.key}`, {
       type: 'api',
       axiosConfig: { params: { flowMod: flowCtnr[0] } }
     })

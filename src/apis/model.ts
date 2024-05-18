@@ -187,11 +187,11 @@ const expDft = {
         )
         await store.dispatch('model/refresh')
       },
-      remove: async (key: any) => {
+      remove: async (field: any) => {
         await reqPut(
           'model',
           store.getters['model/ins'].key,
-          { [`form.fields[{id:${key}}]`]: null },
+          { [`form.fields[{id:${field.key}}]`]: null },
           { axiosConfig: { params: { _updMode: 'delete' } }, messages: { notShow: true } }
         )
         await store.dispatch('model/refresh')

@@ -3,7 +3,7 @@ import Database from '../types/database'
 
 export default {
   add: (data: any) => reqPost('database', data),
-  remove: (key: any) => reqDelete('database', key),
+  remove: (data: any) => reqDelete('database', data.key),
   update: (data: any) => reqPut('database', data.key, data),
   all: (offset: number, limit: number) =>
     reqAll('database', { axiosConfig: { params: { offset, limit } }, copy: Database.copy }),
