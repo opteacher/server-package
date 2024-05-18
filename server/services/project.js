@@ -541,7 +541,8 @@ export async function generate(pid) {
 }
 
 export async function genAuth(project, genPath) {
-  project.auth.model = await db.select(Model, { _index: project.auth.model })
+  const authMdlKey = project.auth.model
+  project.auth.model = await db.select(Model, { _index: authMdlKey })
   logger.log('info', `生成项目JSON到指定文件`)
   const jsonPath = Path.join(genPath, 'jsons')
   fs.mkdirSync(jsonPath)
@@ -550,7 +551,7 @@ export async function genAuth(project, genPath) {
   const authGen = Path.join(genPath, 'services', 'auth.js')
   logger.log('info', `复制授权服务文件：${authTmp} -> ${authGen}`)
   const authSvcs = project.services.find(svc => svc.name === 'auth' && svc.interface === 'sign')
-  const mdlDep = await db.select(Dep, { _index: project.auth.model })
+  const mdlDep = await db.select(Dep, { _index: authMdlKey })
   const args = { project, authName: '', nodes: [], deps: [] }
   args.authName = mdlDep.exports[0]
   const deps = { [mdlDep.id]: mdlDep.toObject() }
