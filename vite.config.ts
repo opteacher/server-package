@@ -1,6 +1,7 @@
 import vue from '@vitejs/plugin-vue'
 import { URL, fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
+import babel from '@rollup/plugin-babel'
 
 // https://vitejs.dev/config/
 export default ({ mode }) =>
@@ -9,7 +10,22 @@ export default ({ mode }) =>
     build: {
       outDir: 'server/public/server-package'
     },
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      {
+        ...babel({
+          include: [/\.vue$/, /\.ts$/, /\.tsx$/, /\.jsx$/, /\.js$/],
+          extensions: ['.vue', '.ts', '.js', '.tsx', '.jsx'],
+          presets: [
+            [
+              '@babel/preset-env',
+              { useBuiltIns: 'usage', corejs: 3, targets: { chrome: '68' }, modules: false }
+            ]
+          ]
+        }),
+        apply: 'serve'
+      }
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
