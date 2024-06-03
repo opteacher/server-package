@@ -55,7 +55,9 @@ services:
       - /data/server-package/minio/config:/etc/config.env
     environment:
       MINIO_CONFIG_ENV_FILE: /etc/config.env
-    command: server --console-address ":9001"
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: 12345
+    command: server --console-address ":9001" /mnt/data
 
   default:
     container_name: server-package_default
