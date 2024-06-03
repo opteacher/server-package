@@ -43,7 +43,7 @@ services:
       - 0.0.0.0:18083:18083
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio
     container_name: server-package_minio
     restart: unless-stopped
     privileged: true
