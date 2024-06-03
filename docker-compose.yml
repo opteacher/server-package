@@ -52,7 +52,7 @@ services:
       - 9001:9001
     volumes:
       - /data/server-package/minio/data:/mnt/data
-      - ./server/config/minio.env:/etc/config.env
+      - ./server/configs/minio.env:/etc/config.env
     environment:
       MINIO_CONFIG_ENV_FILE: /etc/config.env
     command: server --console-address ":9001"
