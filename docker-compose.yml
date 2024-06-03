@@ -42,33 +42,20 @@ services:
       - 0.0.0.0:8883:8883
       - 0.0.0.0:18083:18083
 
-  edge:
-    image: goedge/edge-instance
-    container_name: server-package_edge
+  minio:
+    image: minio/minio:latest
+    container_name: server-package_minio
     restart: unless-stopped
-    environment:
-      - EDGE_DB_HOST=server-package_mysql
-      - EDGE_DB_PASSWORD=12345
-      - EDGE_DB_NAME=edges
+    privileged: true
     ports:
-      - 0.0.0.0:7788:7788
-      - 0.0.0.0:8001:8001
-      - 0.0.0.0:8002:8002
-      - 0.0.0.0:4010:80
-      - 0.0.0.0:4013:443
+      - 9000:9000
+      - 9001:9001
     volumes:
-      - /data/server-package/edge/cache:/opt/cache
-      - /data/server-package/edge/admin/logs:/usr/local/goedge/edge-admin/logs
-      - /data/server-package/edge/admin/configs:/usr/local/goedge/edge-admin/configs
-      - /data/server-package/edge/api/logs:/usr/local/goedge/edge-api/logs
-      - /data/server-package/edge/api/configs:/usr/local/goedge/edge-api/configs
-      - /data/server-package/edge/node/logs:/usr/local/goedge/edge-node/logs
-      - /data/server-package/edge/node/configs:/usr/local/goedge/edge-node/configs
-      - /data/server-package/edge/node/data:/usr/local/goedge/edge-node/data
-      - /data/server-package/edge/user/logs:/usr/local/goedge/edge-user/logs
-      - /data/server-package/edge/user/configs:/usr/local/goedge/edge-user/configs
-    depends_on:
-      - mysql
+      - /data/server-package/minio/data:/mnt/data
+      - /data/server-package/minio/config:/etc/config.env
+    environment:
+      MINIO_CONFIG_ENV_FILE: /etc/config.env
+    command: server --console-address ":9001"
 
   default:
     container_name: server-package_default
