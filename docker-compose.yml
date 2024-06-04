@@ -43,7 +43,7 @@ services:
       - 0.0.0.0:18083:18083
 
   minio:
-    image: minio/minio:RELEASE.2024-03-03T17-50-39Z
+    image: quay.io/minio/minio
     container_name: server-package_minio
     restart: unless-stopped
     privileged: true
@@ -55,7 +55,7 @@ services:
       - ./server/configs/minio.env:/etc/config.env
     environment:
       MINIO_CONFIG_ENV_FILE: /etc/config.env
-    command: server /mnt/data
+    command: server /mnt/data --console-address ":9001"
 
   default:
     container_name: server-package_default
