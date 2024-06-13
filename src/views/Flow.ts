@@ -415,7 +415,7 @@ export const nodeMapper = new Mapper({
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
-          await api.remove(node.key)
+          await api.remove(node)
           nodeEmitter.emit('delNode', node.key)
           nodeEmitter.emit('update:visible', false)
         }
