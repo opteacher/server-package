@@ -48,8 +48,8 @@ export async function db2StrPolicy(pjt) {
     '/': '',
     s: '/s',
     ':i': '/[^/]+',
-    '*': '/[^/]+',
-    '*/*': '/.*'
+    '*': '/?[^/]+',
+    '*/*': '/?.*'
   }
   const policies = []
   for (const role of project.auth.roles) {
