@@ -36,7 +36,7 @@ export default ({ mode }) =>
       port: 5174,
       proxy: {
         '^/server-package/(mdl|api)': {
-          target: 'http://218.242.30.111:6031',
+          target: 'http://127.0.0.1:4000',
           ws: true,
           changeOrigin: true
         },
