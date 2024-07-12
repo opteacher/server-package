@@ -1129,7 +1129,13 @@ export async function expDkrImg(ctx) {
   })
   ctx.attachment(genTar)
   await sendfile(ctx, genTar)
-  setTimeout(() => fs.rmSync(genTar), 5 * 60 * 1000)
+  setTimeout(() => {
+    try {
+      fs.rmSync(genTar)
+    } catch(e) {
+      console.log('删除镜像失败', e)
+    }
+  }, 5 * 60 * 1000)
 }
 
 export async function acsCtnrLogs(ctx) {
