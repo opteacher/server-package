@@ -92,6 +92,7 @@ const expDft = {
     downloadFile({
       data: result.content,
       headers: {
+        'content-type': 'text/plain',
         'content-disposition': '=' + window.encodeURI(result.fileName)
       }
     })
