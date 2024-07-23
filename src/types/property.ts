@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import dayjs from 'dayjs'
 import { BaseTypes } from '.'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -76,7 +77,21 @@ export default class Property {
     }
     tgt.visible = src.visible || tgt.visible
     tgt.remark = src.remark || tgt.remark
-    tgt.dftVal = typeof src.dftVal !== 'undefined' ? src.dftVal : tgt.dftVal
+    if (typeof src.dftVal !== 'undefined') {
+      switch (tgt.ptype) {
+        case 'DateTime':
+          tgt.dftVal = typeof src.dftVal === 'string' ? dayjs(src.dftVal) : src.dftVal
+          break
+        case 'Function':
+          tgt.dftVal = typeof src.dftVal === 'string' ? new Function(src.dftVal) : src.dftVal
+          break
+        case 'Object':
+          tgt.dftVal = typeof src.dftVal === 'string' ? JSON.parse(src.dftVal) : src.dftVal
+          break
+        default:
+          tgt.dftVal = src.dftVal
+      }
+    }
     return tgt
   }
 }
