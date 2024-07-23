@@ -46,6 +46,7 @@
           :new-fun="() => newOne(Rule)"
           :emitter="ruleEmitter"
           @add="onRuleEdit"
+          @edit="onRuleEdit"
           @save="refresh"
           @delete="refresh"
         >
