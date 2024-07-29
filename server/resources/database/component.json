@@ -41,7 +41,7 @@
     },
     {
       "name": "Checkbox",
-      "ctype": ["String", "Boolean"],
+      "ctype": "Boolean",
       "category": "field",
       "props": [
         {

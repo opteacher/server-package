@@ -32,7 +32,7 @@
         >
           <OptSclPnl
             :url="optUrl"
-            :topic="project.status.stat === 'running' ? '' : 'server-package'"
+            topic="server-package"
             :emitter="ctnrLogs.emitter"
           />
         </a-modal>
