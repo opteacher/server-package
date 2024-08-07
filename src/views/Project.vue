@@ -477,11 +477,12 @@ function onRelMdlBelongChange(editing: Property, e: any) {
   editing.relative.belong = e.target.value === 'belong'
 }
 function onRelMdlWhoChange(editing: Property, e: any) {
+  const model = store.getters['project/models'].find((mdl: Model) => mdl.name === editing.relative.model)
   if (e.target.value === 'many') {
-    editing.name = 'fk' + capitalize(pluralize(editing.name))
+    editing.name = 'fk' + capitalize(pluralize(model.name))
     editing.relative.isArray = true
   } else {
-    editing.name = 'fk' + capitalize(singularize(editing.name))
+    editing.name = 'fk' + capitalize(singularize(model.name))
     editing.relative.isArray = false
   }
 }
