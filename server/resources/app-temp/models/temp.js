@@ -7,6 +7,7 @@ export default db.defineModel(''/*return `\'${model.name}\'`*/,
   {
     router: {
       methods: [/*return model.services.map((svc) => `\'${svc.method}\'`).join(', ')*/]
-    }
+    },
+    timestamps: 0/*return model.logTime ? 'true' : 'false'*/
   }
 )
