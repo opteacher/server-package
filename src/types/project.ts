@@ -26,6 +26,7 @@ export default class Project {
   independ: boolean
   envVars: Variable[]
   expPorts: number[]
+  gpus: boolean
   volumes: any[]
   models: Model[]
   typos: Typo[]
@@ -49,6 +50,7 @@ export default class Project {
     this.independ = false
     this.envVars = []
     this.expPorts = []
+    this.gpus = false
     this.volumes = []
     this.typos = []
     this.models = []
@@ -73,6 +75,7 @@ export default class Project {
     this.independ = false
     this.envVars = []
     this.expPorts = []
+    this.gpus = false
     this.volumes = []
     this.typos = []
     this.models = []

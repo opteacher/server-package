@@ -169,6 +169,12 @@ export const mapper = new Mapper({
         }),
         newFun: () => ({ value: '' }),
         desc: '尽量不要暴露过多端口，这里的端口以0.0.0.0映射进容器，所以不受nginx管理，不符合sp的规则！'
+      },
+      gpus: {
+        label: '使用GPU资源',
+        type: 'Checkbox',
+        placeholder: '将直接使用所有显卡资源',
+        display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
       }
     }
   },

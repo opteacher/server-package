@@ -1209,6 +1209,7 @@ export async function pjtRunCmd(pjt) {
     'docker run --rm -itd ' +
     [
       '--network server-package_default',
+      project.gpus ? '--gpus=all' : '',
       `-p 127.0.0.1:${project.port}:${project.port}`,
       ...(project.expPorts || []).map(port => `-p 0.0.0.0:${port}:${port}`),
       ...(project.volumes || []).map(

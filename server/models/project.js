@@ -19,6 +19,7 @@ export default db.defineModel(
       value: db.PropTypes.String
     }],
     expPorts: db.PropTypes.Array,
+    gpus: db.PropTypes.Boolean,
     models: [{ type: db.PropTypes.Id, ref: 'model' }],
     services: [{ type: db.PropTypes.Id, ref: 'service' }],
     typos: [{ type: db.PropTypes.Id, ref: 'typo' }],
