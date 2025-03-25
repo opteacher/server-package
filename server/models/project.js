@@ -11,7 +11,8 @@ export default db.defineModel(
     logPid: db.PropTypes.Number,
     database: { type: db.PropTypes.Id, ref: 'database' },
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
-    commands: db.PropTypes.String,
+    bldCmds: db.PropTypes.String, // 构建时命令
+    runCmds: db.PropTypes.String, // 运行后命令
     https: db.PropTypes.Boolean,
     independ: db.PropTypes.Boolean, // 为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存
     envVars: [{

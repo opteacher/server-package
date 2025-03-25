@@ -87,11 +87,18 @@
           <a-descriptions-item label="独立部署（不依赖server-package）">
             {{ project.independ ? '是' : '否' }}
           </a-descriptions-item>
-          <a-descriptions-item v-if="project.commands" label="前置命令" :span="4">
+          <a-descriptions-item v-if="project.bldCmds" label="构建时命令" :span="4">
             <a-typography-paragraph
               class="whitespace-pre-line"
               :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-              :content="project.commands"
+              :content="project.bldCmds"
+            />
+          </a-descriptions-item>
+          <a-descriptions-item v-if="project.runCmds" label="运行时命令" :span="4">
+            <a-typography-paragraph
+              class="whitespace-pre-line"
+              :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+              :content="project.runCmds"
             />
           </a-descriptions-item>
         </template>

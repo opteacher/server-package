@@ -98,9 +98,15 @@ export const mapper = new Mapper({
     label: '高级',
     type: 'FormGroup',
     items: {
-      commands: {
-        label: '前置命令',
-        type: 'Textarea'
+      bldCmds: {
+        label: '构建时命令',
+        type: 'Textarea',
+        maxRows: 6
+      },
+      runCmds: {
+        label: '运行时命令',
+        type: 'Textarea',
+        maxRows: 6
       },
       https: {
         label: '开启https服务',

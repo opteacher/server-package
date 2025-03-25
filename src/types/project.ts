@@ -21,7 +21,8 @@ export default class Project {
   thread: number
   database?: DataBase
   dropDbs: boolean
-  commands: string
+  bldCmds: string
+  runCmds: string
   https: boolean
   independ: boolean
   envVars: Variable[]
@@ -45,7 +46,8 @@ export default class Project {
     this.thread = 0
     this.database = undefined
     this.dropDbs = false
-    this.commands = ''
+    this.bldCmds = ''
+    this.runCmds = ''
     this.https = false
     this.independ = false
     this.envVars = []
@@ -70,7 +72,8 @@ export default class Project {
     this.thread = 0
     this.database = undefined
     this.dropDbs = false
-    this.commands = ''
+    this.bldCmds = ''
+    this.runCmds = ''
     this.https = false
     this.independ = false
     this.envVars = []
