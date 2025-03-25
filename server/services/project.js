@@ -1217,7 +1217,7 @@ export async function pjtRunCmd(pjt) {
           `-v ${volume instanceof Array ? volume.join(':') : volume.host + ':' + volume.ctnr}`
       ),
       `--name ${project.name} ${project.name}`,
-      `/bin/bash -c "${project.runCmds.split('\n').join(' && ')}"`
+      project.runCmds ? `/bin/bash -c "${project.runCmds.split('\n').join(' && ')}"` : ''
     ].join(' ')
   )
 }
