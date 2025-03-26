@@ -7,11 +7,12 @@ import store from '@/store'
 import { Cond } from '@/types'
 import DataBase from '@/types/database'
 import Project from '@/types/project'
+import Transfer from '@/types/transfer'
 import { reqAll } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
-import { Modal } from 'ant-design-vue'
+import { Modal, UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { createVNode } from 'vue'
 
@@ -103,22 +104,10 @@ export const mapper = new Mapper({
         type: 'Textarea',
         maxRows: 6
       },
-      copies: {
-        label: '构建时文件',
-        type: 'EditList',
-        lblProp: 'host',
-        subProp: 'ctnr',
-        mapper: {
-          host: {
-            type: 'Input',
-            placeholder: '本机内位置'
-          },
-          ctnr: {
-            type: 'Input',
-            placeholder: '构建内位置'
-          }
-        },
-        newFun: () => ({ host: '', ctnr: '' })
+      extFiles: {
+        label: '上传传送文件',
+        type: 'UploadFile',
+        path: '/server-package/api/v1/temp/file'
       },
       runCmds: {
         label: '运行时命令',

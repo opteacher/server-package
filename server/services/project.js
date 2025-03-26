@@ -527,6 +527,11 @@ export async function generate(pid) {
     project,
     pkgDeps: Object.values(deps).filter(dep => dep.version)
   })
+  for (const extFile of project.extFiles) {
+    const dstPath = Path.join(genPath, Path.parse(extFile).name)
+    logger.log('info', `复制额外文件到根目录：${extFile} -> ${dstPath}`)
+    fs.copyFileSync(extFile, dstPath)
+  }
   // const pkgLkTmp = Path.join(tmpPath, 'package-lock.json')
   // const pkgLkGen = Path.join(genPath, 'package-lock.json')
   // logger.log('info', `调整package-lock文件：${pkgLkTmp} -> ${pkgLkGen}`)

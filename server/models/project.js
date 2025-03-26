@@ -13,7 +13,7 @@ export default db.defineModel(
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
     bldCmds: db.PropTypes.String, // 构建时命令
     runCmds: db.PropTypes.String, // 运行后命令
-    copies: db.PropTypes.Array, // 构建时传入文件
+    extFiles: db.PropTypes.Array, // 跟随项目的附加文件
     https: db.PropTypes.Boolean,
     independ: db.PropTypes.Boolean, // 为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存
     envVars: [{
