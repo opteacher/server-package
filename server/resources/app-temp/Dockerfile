@@ -1,6 +1,7 @@
 FROM node:latest
 WORKDIR /app
 COPY . /app
+##return project.copies && project.copies.length ? project.copies.map(cpy => `COPY ${cpy.host} ${cpy.ctnr}`).join('\n') : ''*/
 # RUN sed -i "s@http://deb.debian.org/debian\n@https://mirrors.tuna.tsinghua.edu.cn/debian\n@g" /etc/apt/sources.list.d/debian.sources
 # RUN apt update && apt install vim -y
 ##return project.bldCmds && project.bldCmds.length ? project.bldCmds.split('\n').map(cmd => `RUN ${cmd}`).join('\n') : ''*/

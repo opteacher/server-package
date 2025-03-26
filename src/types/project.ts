@@ -22,6 +22,7 @@ export default class Project {
   database?: DataBase
   dropDbs: boolean
   bldCmds: string
+  copies: any[]
   runCmds: string
   https: boolean
   independ: boolean
@@ -47,6 +48,7 @@ export default class Project {
     this.database = undefined
     this.dropDbs = false
     this.bldCmds = ''
+    this.copies = []
     this.runCmds = ''
     this.https = false
     this.independ = false
@@ -73,6 +75,7 @@ export default class Project {
     this.database = undefined
     this.dropDbs = false
     this.bldCmds = ''
+    this.copies = []
     this.runCmds = ''
     this.https = false
     this.independ = false

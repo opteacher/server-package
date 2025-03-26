@@ -103,6 +103,23 @@ export const mapper = new Mapper({
         type: 'Textarea',
         maxRows: 6
       },
+      copies: {
+        label: '构建时文件',
+        type: 'EditList',
+        lblProp: 'host',
+        subProp: 'ctnr',
+        mapper: {
+          host: {
+            type: 'Input',
+            placeholder: '本机内位置'
+          },
+          ctnr: {
+            type: 'Input',
+            placeholder: '构建内位置'
+          }
+        },
+        newFun: () => ({ host: '', ctnr: '' })
+      },
       runCmds: {
         label: '运行时命令',
         type: 'Textarea',
