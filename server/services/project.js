@@ -598,8 +598,13 @@ export async function run(pjt) {
   } catch (e) {
     logger.log('warn', `无运行中的${project.name}实例`)
   }
+  const aptPath = Path.resolve('resources', 'apt-temp', 'debian.sources')
   const childPcs = spawn(
-    [`docker build -t ${project.name}:latest ${appPath}`, await pjtRunCmd(project)].join(' && '),
+    [
+      `docker build -t ${project.name}:latest ${appPath}`,
+      await pjtRunCmd(project),
+      `docker cp ${aptPath} ${project.name}:/etc/apt/sources.list.d/debian.sources`
+    ].join(' && '),
     {
       stdio: ['inherit', 'pipe', 'pipe'],
       shell: true,
@@ -1134,13 +1139,16 @@ export async function expDkrImg(ctx) {
   })
   ctx.attachment(genTar)
   await sendfile(ctx, genTar)
-  setTimeout(() => {
-    try {
-      fs.rmSync(genTar)
-    } catch(e) {
-      console.log('删除镜像失败', e)
-    }
-  }, 5 * 60 * 1000)
+  setTimeout(
+    () => {
+      try {
+        fs.rmSync(genTar)
+      } catch (e) {
+        console.log('删除镜像失败', e)
+      }
+    },
+    5 * 60 * 1000
+  )
 }
 
 export async function acsCtnrLogs(ctx) {
@@ -1222,7 +1230,9 @@ export async function pjtRunCmd(pjt) {
           `-v ${volume instanceof Array ? volume.join(':') : volume.host + ':' + volume.ctnr}`
       ),
       `--name ${project.name} ${project.name}`,
-      project.runCmds ? `/bin/bash -c "${project.runCmds.split('\n').join(' && ')}" && cd /app && node app.js` : ''
+      project.runCmds
+        ? `/bin/bash -c "${project.runCmds.split('\n').join(' && ')}" && cd /app && node app.js`
+        : ''
     ].join(' ')
   )
 }
