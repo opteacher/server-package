@@ -33,7 +33,7 @@ export default class MqttTransport extends Transport {
     if (info.message) {
       this.client.publish(config.topic, info.message, { qos }, err => {
         if (err) {
-          console.error(err)
+          // console.error(err)
         }
       })
     }
