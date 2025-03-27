@@ -528,7 +528,7 @@ export async function generate(pid) {
     pkgDeps: Object.values(deps).filter(dep => dep.version)
   })
   for (const extFile of project.extFiles) {
-    const dstPath = Path.join(genPath, Path.parse(extFile).name)
+    const dstPath = Path.join(genPath, Path.parse(extFile).base)
     logger.log('info', `复制额外文件到根目录：${extFile} -> ${dstPath}`)
     fs.copyFileSync(extFile, dstPath)
   }
