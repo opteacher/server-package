@@ -107,7 +107,10 @@ export const mapper = new Mapper({
       extFiles: {
         label: '上传传送文件',
         type: 'UploadFile',
-        path: '/server-package/api/v1/temp/file'
+        path: '/server-package/api/v1/temp/file',
+        params: {
+          keepName: true
+        }
       },
       runCmds: {
         label: '运行时命令',
