@@ -1231,7 +1231,7 @@ export async function pjtRunCmd(pjt) {
       ),
       `--name ${project.name} ${project.name}`,
       project.runCmds
-        ? `/bin/bash -c "${project.runCmds.split('\n').join(' && ')}" && cd /app && node app.js`
+        ? `/bin/bash -c "${project.runCmds.split('\n').join(' && ')} && cd /app && node app.js"`
         : ''
     ].join(' ')
   )
