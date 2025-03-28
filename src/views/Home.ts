@@ -73,10 +73,14 @@ export const mapper = new Mapper({
     type: 'Input',
     rules: [{ required: true, message: '请输入项目名称！', trigger: 'blur' }]
   },
-  desc: {
-    label: '项目说明',
+  nickName: {
+    label: '项目名（中文）',
     type: 'Input',
     rules: [{ required: true, message: '请输入项目说明！', trigger: 'blur' }]
+  },
+  desc: {
+    label: '项目说明',
+    type: 'Textarea'
   },
   port: {
     label: '占用端口',

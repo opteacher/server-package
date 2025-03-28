@@ -4,6 +4,7 @@ export default db.defineModel(
   'project',
   {
     name: db.PropTypes.String,
+    nickName: db.PropTypes.String,
     desc: db.PropTypes.String,
     port: db.PropTypes.Number,
     volumes: db.PropTypes.Array, // 共享文件|夹，冒号分隔

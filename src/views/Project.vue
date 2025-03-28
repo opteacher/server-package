@@ -1,6 +1,6 @@
 <template>
   <LytProject :active="`/project/${pid}`">
-    <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.desc">
+    <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.nickName">
       <template #tags>
         <a-tooltip>
           <template #title>点击刷新状态</template>

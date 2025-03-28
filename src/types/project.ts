@@ -16,6 +16,7 @@ export default class Project {
   key: string
   ptype: 'frontend' | 'backend'
   name: string
+  nickName: string
   desc: string
   port: number
   thread: number
@@ -42,6 +43,7 @@ export default class Project {
     this.key = ''
     this.ptype = 'backend'
     this.name = ''
+    this.nickName = ''
     this.desc = ''
     this.port = 0
     this.thread = 0
@@ -69,6 +71,7 @@ export default class Project {
     this.key = ''
     this.ptype = 'backend'
     this.name = ''
+    this.nickName = ''
     this.desc = ''
     this.port = 0
     this.thread = 0
