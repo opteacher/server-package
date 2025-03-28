@@ -31,6 +31,7 @@ emitter.on('show', async () => {
 
 export const columns = [
   new Column('名称', 'name'),
+  new Column('中文', 'nickName'),
   new Column('说明', 'desc'),
   new Column('占用端口', 'port', { width: 100 }),
   new Column('数据库', 'database'),
