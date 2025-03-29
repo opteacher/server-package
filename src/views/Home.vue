@@ -73,13 +73,25 @@
           &nbsp;停止
         </a-button>
       </template>
+      <template #portEDT="{ editing }">
+        <div class="flex space-x-2">
+          <a-input-number class="flex-1" v-model:value="editing.port" />
+          <a-button
+            @click="
+              () => setProp(editing, 'port', Math.floor(Math.random() * (65535 - 2000) + 2000))
+            "
+          >
+            随机生成
+          </a-button>
+        </div>
+      </template>
     </EditableTable>
   </LytMain>
 </template>
 
 <script lang="ts" setup name="Home">
 import Project from '@/types/project'
-import { newOne } from '@/utils'
+import { newOne, setProp } from '@/utils'
 import {
   ClearOutlined,
   Html5Outlined,

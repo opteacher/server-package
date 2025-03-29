@@ -5,6 +5,7 @@ import store from './store'
 import axios, { AxiosRequestHeaders } from 'axios'
 import Antd from 'ant-design-vue'
 import MyLib from './lib/frontend-library/src/index'
+import { createTerminal } from 'vue-web-terminal'
 import './lib/frontend-library/src/assets/main.css'
 import 'ant-design-vue/dist/reset.css'
 import './styles.css'
@@ -43,4 +44,4 @@ axios.defaults.paramsSerializer = function (params: any): string {
   return ret.join('&')
 }
 
-createApp(App).use(store).use(router).use(Antd).use(MyLib).mount('#app')
+createApp(App).use(store).use(router).use(Antd).use(MyLib).use(createTerminal()).mount('#app')
