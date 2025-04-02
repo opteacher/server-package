@@ -15,7 +15,7 @@ import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
 import Typo from '@/types/typo'
-import { newOne, reqDelete, reqPost, reqPut, setProp } from '@/utils'
+import { newOne, reqDelete, reqPost, reqPut, setProp, until } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,
@@ -193,26 +193,11 @@ function onSyncFinish() {
 function onSwitchMdlVw() {
   mdlVwMod.value = mdlVwMod.value === 'list' ? 'grid' : 'list'
 }
-function onExecCmd(key: string, command: string, success: Function, failed: Function) {
-  if (key === 'fail') {
-    failed('Something wrong!!!')
-  } else {
-    let allClass = ['success', 'error', 'system', 'info', 'warning']
-
-    let clazz = allClass[Math.floor(Math.random() * allClass.length)]
-    // success({
-    //   type: 'normal',
-    //   class: clazz,
-    //   tag: 'success',
-    //   content: command
-    // })
-  }
-}
 </script>
 
 <template>
   <LytProject :active="`/project/${pid}`">
-    <a-layout>
+    <a-layout class="h-full">
       <a-layout-content class="bg-white">
         <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.nickName">
           <template #tags>
@@ -289,15 +274,6 @@ function onExecCmd(key: string, command: string, success: Function, failed: Func
                 </template>
               </a-button>
             </a-tooltip>
-            <!-- <a-modal
-              width="60vw"
-              :bodyStyle="{ height: '60vh' }"
-              title="容器日志"
-              :footer="null"
-              v-model:open="ctnrLogs.visible"
-            >
-              <OptSclPnl :url="optUrl" topic="server-package" :emitter="ctnrLogs.emitter" />
-            </a-modal> -->
           </template>
           <a-descriptions size="small" :column="4">
             <a-descriptions-item v-if="project.desc" label="描述" :span="2">
@@ -562,7 +538,13 @@ function onExecCmd(key: string, command: string, success: Function, failed: Func
         :collapsedWidth="0"
         :width="300"
       >
-        <terminal class="shadow-none" theme="light" context="" :show-header="false" @exec-cmd="onExecCmd" />
+        <OptSclPnl
+          :url="optUrl"
+          topic="server-package"
+          :emitter="ctnrLogs.emitter"
+          tboxPos="top"
+          @before-start="() => api.logs.access(pid)"
+        />
       </a-layout-sider>
     </a-layout>
   </LytProject>

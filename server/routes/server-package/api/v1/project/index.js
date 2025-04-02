@@ -14,8 +14,9 @@ import {
   depMiddle,
   pjtsWithStt,
   expDkrImg,
-  acsCtnrLogs,
-  extCtnrLogs,
+  acsDkrLogsESS,
+  extDkrLogs,
+  acsDkrLogsMQTT,
   pjtRunCmd
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
@@ -126,9 +127,11 @@ router.get('/:pid/middle/status', async ctx => {
 
 router.get('/:pid/docker/image/export', expDkrImg)
 
-router.get('/:pid/docker/logs/access', acsCtnrLogs)
+router.get('/:pid/docker/logs/access/ess', acsDkrLogsESS)
 
-router.delete('/:pid/docker/logs/exit', extCtnrLogs)
+router.delete('/:pid/docker/logs/exit', extDkrLogs)
+
+router.get('/:pid/docker/logs/access/mqtt', acsDkrLogsMQTT)
 
 router.get('/:pid/docker/runCmd', async ctx => {
   ctx.body = {

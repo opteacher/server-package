@@ -147,6 +147,8 @@ export default {
     runCmd: (key: string) => reqGet('project', key, { type: 'api', action: 'docker/runCmd' })
   },
   logs: {
+    access: (key: string) =>
+      reqGet('project', key, { type: 'api', action: 'docker/logs/access/mqtt' }),
     exit: (key: string) => reqDelete('project', `${key}/docker/logs/exit`, { type: 'api' })
   },
   middle: {

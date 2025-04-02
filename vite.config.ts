@@ -36,7 +36,7 @@ export default ({ mode }) =>
       port: 5174,
       proxy: {
         '^/server-package/(mdl|api)': {
-          target: 'http://127.0.0.1:4009',
+          target: 'http://127.0.0.1:4000',
           ws: true,
           changeOrigin: true
         },
@@ -53,6 +53,7 @@ export default ({ mode }) =>
       }
     },
     define: {
-      'process.env': loadEnv(mode, process.cwd())
+      'process.env': loadEnv(mode, process.cwd()),
+      global: {}
     }
   })

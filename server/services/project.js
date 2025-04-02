@@ -1151,7 +1151,7 @@ export async function expDkrImg(ctx) {
   )
 }
 
-export async function acsCtnrLogs(ctx) {
+export async function acsDkrLogsESS(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
     ctx.body = {
@@ -1198,7 +1198,7 @@ export async function acsCtnrLogs(ctx) {
   await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
 }
 
-export async function extCtnrLogs(ctx) {
+export async function extDkrLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.logPid) {
     ctx.body = {
@@ -1211,6 +1211,36 @@ export async function extCtnrLogs(ctx) {
   ctx.body = {
     result: { message: '监控进程停止' }
   }
+}
+
+export async function acsDkrLogsMQTT(ctx) {
+  const project = await db.select(Project, { _index: ctx.params.pid })
+  if (!project.thread) {
+    ctx.body = {
+      result: { error: '项目未启动！' }
+    }
+    return
+  }
+
+  const pname = project.name
+  const logs = spawn(`docker logs -f ${pname}`, { shell: true, detached: true })
+  logs.unref()
+  logs.stdout.on('data', data => {
+    data
+      .toString()
+      .split('\n')
+      .map(line => logger.log('info', line))
+  })
+  logs.stderr.on('data', data => {
+    data
+      .toString()
+      .split('\n')
+      .map(line => logger.log('error', line))
+  })
+  logs.on('close', () => {
+    logger.log('info', '[STOP]')
+  })
+  await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
 }
 
 export async function pjtRunCmd(pjt) {
