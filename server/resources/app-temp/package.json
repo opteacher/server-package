@@ -1,7 +1,7 @@
 {
   "name": "/*return project.name*/",
   "version": "1.0.0",
-  "description": "/*return project.desc*/",
+  "description": "/*return project.nickName*/",
   "main": "app.js",
   "type": "module",
   "directories": {
