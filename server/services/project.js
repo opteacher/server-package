@@ -1201,25 +1201,17 @@ export async function acsDkrLogsESS(ctx) {
 export async function extDkrLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.logPid) {
-    ctx.body = {
-      result: { error: '日志监控未启动！' }
-    }
-    return
+    return { error: '日志监控未启动！' }
   }
   process.kill(-project.logPid, 'SIGINT')
   await db.saveOne(Project, ctx.params.pid, { logPid: 0 })
-  ctx.body = {
-    result: { message: '监控进程停止' }
-  }
+  return { message: '监控进程停止' }
 }
 
 export async function acsDkrLogsMQTT(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
-    ctx.body = {
-      result: { error: '项目未启动！' }
-    }
-    return
+    return { error: '项目未启动！' }
   }
 
   const pname = project.name
@@ -1240,7 +1232,7 @@ export async function acsDkrLogsMQTT(ctx) {
   logs.on('close', () => {
     logger.log('info', '[STOP]')
   })
-  await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
+  return db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
 }
 
 export async function pjtRunCmd(pjt) {

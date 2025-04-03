@@ -129,9 +129,17 @@ router.get('/:pid/docker/image/export', expDkrImg)
 
 router.get('/:pid/docker/logs/access/ess', acsDkrLogsESS)
 
-router.delete('/:pid/docker/logs/exit', extDkrLogs)
+router.delete('/:pid/docker/logs/exit', async ctx => {
+  ctx.body = {
+    result: await extDkrLogs(ctx)
+  }
+})
 
-router.get('/:pid/docker/logs/access/mqtt', acsDkrLogsMQTT)
+router.get('/:pid/docker/logs/access/mqtt', async ctx => {
+  ctx.body = {
+    result: await acsDkrLogsMQTT(ctx)
+  }
+})
 
 router.get('/:pid/docker/runCmd', async ctx => {
   ctx.body = {

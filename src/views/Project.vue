@@ -95,7 +95,7 @@ const mdlOpns = computed<OpnType[]>(() =>
     }))
   )
 )
-const ctnrLogs = reactive<{
+const dkrLogs = reactive<{
   collapsed: boolean
   content: string
   emitter: TinyEmitter
@@ -111,6 +111,14 @@ const optUrl = computed(() =>
     : import.meta.env.VITE_MQTT_URL
 )
 const mdlVwMod = ref<'list' | 'grid'>('list')
+
+watch(() => dkrLogs.collapsed, () => {
+  if (dkrLogs.collapsed) {
+    dkrLogs.emitter.emit('stop')
+  } else {
+    dkrLogs.emitter.emit('start')
+  }
+})
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -186,8 +194,8 @@ async function onTypoSubmit(typo: Typo, next: Function) {
 }
 function onSyncFinish() {
   store.commit('project/SET_STATUS', 'loading')
-  ctnrLogs.emitter.emit('clean')
-  ctnrLogs.collapsed = false
+  dkrLogs.emitter.emit('clean')
+  dkrLogs.collapsed = false
   console.log(store.getters['project/ins'])
 }
 function onSwitchMdlVw() {
@@ -267,9 +275,9 @@ function onSwitchMdlVw() {
             </FormDialog>
             <a-tooltip v-if="project.status.stat !== 'stopped'">
               <template #title>查看日志</template>
-              <a-button @click="() => setProp(ctnrLogs, 'collapsed', !ctnrLogs.collapsed)">
+              <a-button @click="() => setProp(dkrLogs, 'collapsed', !dkrLogs.collapsed)">
                 <template #icon>
-                  <menu-fold-outlined v-if="ctnrLogs.collapsed" />
+                  <menu-fold-outlined v-if="dkrLogs.collapsed" />
                   <menu-unfold-outlined v-else />
                 </template>
               </a-button>
@@ -531,7 +539,7 @@ function onSwitchMdlVw() {
       </a-layout-content>
       <a-layout-sider
         class="pl-3"
-        v-model:collapsed="ctnrLogs.collapsed"
+        v-model:collapsed="dkrLogs.collapsed"
         :trigger="null"
         collapsible
         theme="light"
@@ -541,7 +549,7 @@ function onSwitchMdlVw() {
         <OptSclPnl
           :url="optUrl"
           topic="server-package"
-          :emitter="ctnrLogs.emitter"
+          :emitter="dkrLogs.emitter"
           tboxPos="top"
           @before-start="() => api.logs.access(pid)"
         />
