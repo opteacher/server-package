@@ -80,3 +80,7 @@ export function updDftByType(typ: BaseTypes, emitter: TinyEmitter, options?: { p
       break
   }
 }
+
+export function getObjKey(obj: any) {
+  return typeof obj === 'string' ? obj : (['_id', 'id', 'key'].find(key => key in obj) || '')
+}

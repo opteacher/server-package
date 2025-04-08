@@ -7,12 +7,14 @@ import Typo from '@/types/typo'
 import {
   RequestOptions,
   downloadFile,
+  getObjKey,
   pickOrIgnore,
   reqAll,
   reqDelete,
   reqGet,
   reqPost,
-  reqPut
+  reqPut,
+  setProp
 } from '@/utils'
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import { Modal } from 'ant-design-vue'
@@ -39,9 +41,14 @@ export default {
     reqPost('project', Object.assign(data, { auth: { roles: [{ name: 'guest', rules: [{}] }] } })),
   remove: (data: any) => reqDelete('project', data.key, { type: 'api' }),
   update: (data: any) =>
-    reqPut('project', data.key, data, {
-      ignores: ['models', 'auth', 'middle', 'status', 'services', 'database', 'typos']
-    }),
+    reqPut(
+      'project',
+      data.key,
+      data.database ? setProp(data, 'database', getObjKey(data.database)) : data,
+      {
+        ignores: ['models', 'auth', 'middle', 'status', 'services', 'typos']
+      }
+    ),
   all: (options: RequestOptions) =>
     reqAll('project', { ...options, copy: Project.copy, axiosConfig: { params: { _ext: true } } }),
   detail: async (key: any) => {
