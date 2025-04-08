@@ -84,7 +84,7 @@ export function updDftByType(typ: BaseTypes, emitter: TinyEmitter, options?: { p
 }
 
 export function getObjKey(obj: any) {
-  return typeof obj === 'string' ? obj : (['_id', 'id', 'key'].find(key => key in obj) || '')
+  return typeof obj === 'string' ? obj : (obj['_id'] || obj['id'] || obj['key'] || '')
 }
 
 export function depExp(dep: Dep) {

@@ -1,4 +1,4 @@
-import { gnlCpy } from '@/utils'
+import { getObjKey, gnlCpy } from '@/utils'
 
 import Dep from './dep'
 import Node from './node'
@@ -89,13 +89,16 @@ export default class Typo {
   static copy(src: any, tgt?: Typo, force = false): Typo {
     tgt = gnlCpy(Typo, src, tgt, {
       force,
-      ignProps: ['super'],
+      ignProps: ['super', 'deps'],
       cpyMapper: { props: Property.copy, funcs: Func.copy }
     })
     if (src.super) {
       tgt.super = src.super._id || src.super
     } else if (force) {
       tgt.super = ''
+    }
+    if (force || src.deps) {
+      tgt.deps = src.deps.map((dep: any) => getObjKey(dep))
     }
     return tgt
   }

@@ -313,9 +313,7 @@ export const nodeMapper = new Mapper({
         emitter: depEmitter,
         newFun: () => ({ data: [] }),
         onSaved: (form: any) => form,
-        onAdded: (form: any, data: any) => {
-          form.data = data
-        }
+        onAdded: (form: any, data: any) => setProp(form, 'data', data)
       },
       code: {
         label: '代码',

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import dayjs, { Dayjs } from 'dayjs'
 
-import { gnlCpy } from '../utils'
+import { getObjKey, gnlCpy } from '../utils'
 import Node from './node'
 import Variable from './variable'
 
@@ -144,7 +144,7 @@ export default class Service {
   static copy(src: any, tgt?: Service, force = false): Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
-      ignProps: ['name', 'interface', 'interval', 'datetime'],
+      ignProps: ['name', 'interface', 'interval', 'datetime', 'deps'],
       cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
     })
     if (src.service && src.service.length === 2) {
@@ -165,6 +165,9 @@ export default class Service {
       tgt.interval.value = 1
       tgt.interval.dimen = 'seconds'
       tgt.interval.rightnow = true
+    }
+    if (force || src.deps) {
+      tgt.deps = src.deps.map((dep: any) => getObjKey(dep))
     }
     return tgt
   }
