@@ -219,7 +219,7 @@ export const svcMapper = new Mapper({
     columns: [
       new Column('参数名', 'name'),
       new Column('参数类型', 'vtype'),
-      new Column('初始值', 'default'),
+      new Column('初始值', 'dftVal'),
       new Column('备注', 'remark')
     ],
     mapper: varMapper,

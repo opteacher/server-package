@@ -424,10 +424,25 @@ export async function generate(pid) {
     project.typos.map(typ => db.select(Typo, { _index: typ.id }, { ext: true }))
   )) {
     const funcs = await Promise.all(
-      typo.funcs.map(func => nodes2Codes(func.flow).then(ress => Object.assign(func, ress)))
+      typo.funcs.map(func =>
+        nodes2Codes(func.flow).then(ress => ({
+          ...pickOrIgnore(func, 'deps'),
+          deps: _.unionBy(func.deps, ress.deps, 'id'),
+          codes: ress.codes
+        }))
+      )
+    )
+    const typoDeps = Object.values(
+      Object.fromEntries(
+        typo.funcs
+          .map(func => func.deps)
+          .flat()
+          .map(dep => [dep.name, dep])
+      )
     )
     adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
       typo: Object.assign(typo, { funcs }),
+      deps: typoDeps,
       genDefault,
       genFuncAnno
     })
@@ -468,7 +483,9 @@ export async function generate(pid) {
 
     let svcExt = await db.select(Service, { _index: service.id }, { ext: true, rawQuery: false })
     if (svcExt.flow) {
-      svcExt = Object.assign(svcExt, await nodes2Codes(svcExt.flow.id))
+      const ndsInfo = await nodes2Codes(svcExt.flow.id)
+      svcExt.codes = ndsInfo.codes
+      svcExt.deps = _.unionBy(svcExt.deps, ndsInfo.deps, 'id')
       if (svcExt.deps.length) {
         logger.log('info', '收集项目依赖模块：')
       }
@@ -503,9 +520,18 @@ export async function generate(pid) {
   }
   logger.log('info', '生成非模型服务实例……')
   for (const [aname, services] of Object.entries(svcMap)) {
+    const svcDeps = Object.values(
+      Object.fromEntries(
+        services
+          .map(svc => svc.deps)
+          .filter(deps => deps)
+          .flat()
+          .map(dep => [dep.name, dep])
+      )
+    )
     const svcGen = Path.join(svcPath, aname + '.js')
     logger.log('info', `调整服务文件：${svcTmp} -> ${svcGen}`)
-    adjustFile(svcData, svcGen, { services, stcVars: varMap[aname], genDefault })
+    adjustFile(svcData, svcGen, { deps: svcDeps, services, stcVars: varMap[aname], genDefault })
   }
   logger.log('info', '生成模型实例……')
   for (const model of project.models) {
