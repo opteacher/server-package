@@ -399,6 +399,7 @@ function onSwitchMdlVw() {
                       }"
                       :columns="propColumns"
                       :mapper="propMapper"
+                      :emitter="propEmitter"
                       :new-fun="() => newOne(Property)"
                       @save="refresh"
                       @delete="refresh"

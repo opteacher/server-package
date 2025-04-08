@@ -60,6 +60,7 @@ export default class Typo {
   params: string[]
   props: Property[]
   funcs: Func[]
+  deps: string[]
 
   constructor() {
     this.key = ''
@@ -70,6 +71,7 @@ export default class Typo {
     this.params = []
     this.props = []
     this.funcs = []
+    this.deps = []
   }
 
   reset() {
@@ -81,6 +83,7 @@ export default class Typo {
     this.params = []
     this.props = []
     this.funcs = []
+    this.deps = []
   }
 
   static copy(src: any, tgt?: Typo, force = false): Typo {

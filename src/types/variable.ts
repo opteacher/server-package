@@ -12,7 +12,7 @@ export default class Variable {
   prop: string
   index: string
   idxType: BaseTypes
-  default: any
+  dftVal: any
   required: boolean
   remark: string
 
@@ -24,7 +24,7 @@ export default class Variable {
     this.prop = ''
     this.index = ''
     this.idxType = 'Unknown'
-    this.default = undefined
+    this.dftVal = undefined
     this.required = false
     this.remark = ''
   }
@@ -37,7 +37,7 @@ export default class Variable {
     this.prop = ''
     this.index = ''
     this.idxType = 'Unknown'
-    this.default = undefined
+    this.dftVal = undefined
     this.required = false
     this.remark = ''
   }

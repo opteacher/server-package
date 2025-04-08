@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { typAPI } from '@/apis'
+import { depAPI, typAPI } from '@/apis'
 import router from '@/router'
 import store from '@/store'
+import Dep from '@/types/dep'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
 import Project from '@/types/project'
@@ -13,14 +14,12 @@ import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Typo, { Func } from '@/types/typo'
 import Variable from '@/types/variable'
-import { pickOrIgnore, updDftByType } from '@/utils'
-import { Cond, OpnType, bsTpOpns, methods } from '@lib/types'
+import { depExp, pickOrIgnore, setProp, updDftByType } from '@/utils'
+import { Cond, OpnType, bsTpOpns, methods, BaseTypes } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
-import { Moment } from 'moment'
-import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { ref } from 'vue'
+import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
 
 export const tsEmitter = new Emitter()
 
@@ -78,45 +77,9 @@ export const varMapper = new Mapper({
     label: '类型',
     type: 'Select',
     options: bsTpOpns,
-    onChange: (variable: Variable, to: string) => {
-      let vtype = 'Input'
-      switch (to) {
-        case 'Any':
-        case 'String':
-          vtype = 'Input'
-          variable.default = ''
-          break
-        case 'Number':
-          vtype = 'Number'
-          variable.default = 0
-          break
-        case 'Boolean':
-          vtype = 'Checkbox'
-          variable.default = false
-          break
-        case 'DateTime':
-          vtype = 'DateTime'
-          variable.default = ref<Moment>()
-          break
-        case 'Array':
-          vtype = 'EditList'
-          variable.default = []
-          break
-        case 'Unknown':
-          vtype = 'Input'
-          variable.default = ''
-          break
-        case 'Object':
-          vtype = 'Input'
-          variable.default = 'null'
-          break
-      }
-      varEmitter.emit('update:mprop', {
-        'value.type': vtype
-      })
-    }
+    onChange: (_var: Variable, to: BaseTypes) => updDftByType(to, varEmitter)
   },
-  default: {
+  dftVal: {
     label: '默认值',
     type: 'Input'
   },
@@ -221,6 +184,23 @@ export const svcMapper = new Mapper({
     type: 'Checkbox',
     display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })]
   },
+  deps: {
+    label: '依赖',
+    type: 'TagList',
+    subProp: 'subTitle',
+    flatItem: true,
+    mapper: new Mapper({
+      data: {
+        type: 'ListSelect',
+        height: 300,
+        options: []
+      }
+    }),
+    emitter: new TinyEmitter(),
+    newFun: () => ({ data: [] }),
+    onSaved: (form: any) => form,
+    onAdded: (form: any, data: any) => setProp(form, 'data', data)
+  },
   condition: {
     label: '延时/定时条件',
     type: 'Unknown',
@@ -265,6 +245,18 @@ export const svcMapper = new Mapper({
     label: '描述',
     type: 'Textarea'
   }
+})
+
+svcEmitter.on('show', () => {
+  const deps = store.getters['project/deps']
+  svcEmitter.emit('update:mprop', {
+    'deps.lblMapper': Object.fromEntries(deps.map((dep: Dep) => [dep.key, dep.name])),
+    'deps.mapper.data.options': deps.map((dep: Dep) => ({
+      key: dep.key,
+      title: dep.name,
+      subTitle: `import ${depExp(dep)} from '${dep.from}'`
+    }))
+  })
 })
 
 export const svcColumns = [
@@ -326,9 +318,7 @@ function genVarMapper(emitter: Emitter, prefix = '') {
       label: '类型',
       type: 'Select',
       rules: [{ required: true, message: '必须选择类型！' }],
-      options: bsTpOpns.filter(
-        ({ value }) => value !== 'Id' && value !== 'Unknown'
-      ),
+      options: bsTpOpns.filter(({ value }) => value !== 'Id' && value !== 'Unknown'),
       onChange: (prop: Property) => updDftByType(prop.ptype, emitter, { prefix })
     },
     dftVal: {
@@ -447,6 +437,23 @@ export const clsMapper = new Mapper({
     }),
     newFun: () => ({ pname: '' })
   },
+  deps: {
+    label: '依赖',
+    type: 'TagList',
+    subProp: 'subTitle',
+    flatItem: true,
+    mapper: new Mapper({
+      data: {
+        type: 'ListSelect',
+        height: 300,
+        options: []
+      }
+    }),
+    emitter: new TinyEmitter(),
+    newFun: () => ({ data: [] }),
+    onSaved: (form: any) => form,
+    onAdded: (form: any, data: any) => setProp(form, 'data', data)
+  },
   props: {
     label: '字段',
     type: 'Table',
@@ -485,9 +492,18 @@ export const clsMapper = new Mapper({
 
 export const clsEmitter = new Emitter()
 
-clsEmitter.on('show', () => clsEmitter.emit('update:mprop', {
-  'super.options': store.getters['project/deps'].map(({ key, name }) => ({
-    label: name,
-    value: key
-  }))
-}))
+clsEmitter.on('show', () => {
+  const deps = store.getters['project/deps']
+  clsEmitter.emit('update:mprop', {
+    'super.options': deps.map(({ key, name }) => ({
+      label: name,
+      value: key
+    })),
+    'deps.lblMapper': Object.fromEntries(deps.map((dep: Dep) => [dep.key, dep.name])),
+    'deps.mapper.data.options': deps.map((dep: Dep) => ({
+      key: dep.key,
+      title: dep.name,
+      subTitle: `import ${depExp(dep)} from '${dep.from}'`
+    }))
+  })
+})

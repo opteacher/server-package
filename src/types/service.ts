@@ -78,6 +78,7 @@ export default class Service {
   name: string
   interface: string
   emit: EmitType
+  deps: string[]
   flow: Node | null
   model: string
   method: Method
@@ -99,6 +100,7 @@ export default class Service {
     this.name = ''
     this.interface = ''
     this.emit = 'api'
+    this.deps = []
     this.flow = null
     this.model = ''
     this.method = 'GET'
@@ -121,6 +123,7 @@ export default class Service {
     this.name = ''
     this.interface = ''
     this.emit = 'api'
+    this.deps = []
     this.flow = null
     this.model = ''
     this.method = 'GET'

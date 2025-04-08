@@ -8,6 +8,7 @@ import NodeInPnl from '@/types/ndInPnl'
 import Node, { NodeTypeMapper, ndTpOpns } from '@/types/node'
 import Service from '@/types/service'
 import { Func } from '@/types/typo'
+import { depExp } from '@/utils'
 import { nodeEmitter, nodeMapper } from '@/views/Flow'
 import { flatten } from 'lodash'
 import { Dispatch } from 'vuex'
@@ -38,7 +39,6 @@ export default {
   mutations: {
     SET_NODE(state: NodeState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       // 更新依赖选项到表单
-      const depExp = (dep: Dep) => (dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`)
       nodeEmitter.emit('update:mprop', {
         'advanced.items.deps.lblMapper': Object.fromEntries(
           state.deps.map(dep => [dep.key, dep.name])

@@ -3,6 +3,7 @@
 import { TinyEmitter } from 'tiny-emitter'
 import { BaseTypes } from './types'
 import dayjs from 'dayjs'
+import Dep from './types/dep'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export * from '@lib/utils'
@@ -33,26 +34,27 @@ export function newOne<T>(t: { new (): T }): T {
 
 export function updDftByType(typ: BaseTypes, emitter: TinyEmitter, options?: { prefix?: string; dftVal?: any }) {
   const prefix = options?.prefix || ''
+  const key = `${prefix}dftVal.type`
   switch (typ) {
     case 'Number':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || 0 })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'Number' })
+      emitter.emit('update:mprop', { [key]: 'Number' })
       break
     case 'String':
-    case 'Unknown':
     case 'Id':
-    case 'Any':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || '' })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'Input' })
+      emitter.emit('update:mprop', { [key]: 'Input' })
       break
     case 'LongStr':
+    case 'Unknown':
+    case 'Any':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || '' })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'Textarea' })
+      emitter.emit('update:mprop', { [key]: 'Textarea' })
       break
     case 'Array':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || [] })
       emitter.emit('update:mprop', {
-        [`${prefix}dftVal.type`]: 'EditList',
+        [key]: 'EditList',
         [`${prefix}dftVal.mapper`]: {
           value: {
             type: 'Input'
@@ -64,23 +66,27 @@ export function updDftByType(typ: BaseTypes, emitter: TinyEmitter, options?: { p
       break
     case 'Boolean':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || false })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'Checkbox' })
+      emitter.emit('update:mprop', { [key]: 'Checkbox' })
       break
     case 'DateTime':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || dayjs() })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'DateTime' })
+      emitter.emit('update:mprop', { [key]: 'DateTime' })
       break
     case 'Object':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || {} })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'JsonEditor' })
+      emitter.emit('update:mprop', { [key]: 'JsonEditor' })
       break
     case 'Function':
       emitter.emit('update:dprop', { dftVal: options?.dftVal || 'return () => {}' })
-      emitter.emit('update:mprop', { [`${prefix}dftVal.type`]: 'CodeEditor' })
+      emitter.emit('update:mprop', { [key]: 'CodeEditor' })
       break
   }
 }
 
 export function getObjKey(obj: any) {
   return typeof obj === 'string' ? obj : (['_id', 'id', 'key'].find(key => key in obj) || '')
+}
+
+export function depExp(dep: Dep) {
+  return (dep.default ? dep.exports[0] : `{ ${dep.exports.join(', ')} }`)
 }

@@ -20,7 +20,8 @@ export default db.defineModel(
         index: db.PropTypes.Boolean // 是否从构造作为参数导入
       }
     ],
-    funcs: [{ type: db.PropTypes.Id, ref: 'func' }]
+    funcs: [{ type: db.PropTypes.Id, ref: 'func' }],
+    deps: [{ type: db.PropTypes.Id, ref: 'dependency' }]
   },
   {
     router: {
