@@ -40,7 +40,7 @@ export default {
   remove: (data: any) => reqDelete('project', data.key, { type: 'api' }),
   update: (data: any) =>
     reqPut('project', data.key, data, {
-      ignores: ['models', 'auth', 'middle', 'status', 'services', 'database']
+      ignores: ['models', 'auth', 'middle', 'status', 'services', 'database', 'typos']
     }),
   all: (options: RequestOptions) =>
     reqAll('project', { ...options, copy: Project.copy, axiosConfig: { params: { _ext: true } } }),
