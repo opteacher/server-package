@@ -7,6 +7,7 @@ import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
 import { PassThrough } from 'stream'
+import _ from 'lodash'
 
 import {
   copyDir,
@@ -421,12 +422,14 @@ export async function generate(pid) {
   fs.mkdirSync(typGen)
   logger.log('info', `生成自定义类文件：${typTmp} -> ${typGen}`)
   for (const typo of await Promise.all(
-    project.typos.map(typ => db.select(Typo, { _index: typ.id }, { ext: true }))
+    project.typos.map(typ =>
+      db.select(Typo, { _index: typ.id }, { ext: true }).then(res => res.toJSON())
+    )
   )) {
     const funcs = await Promise.all(
       typo.funcs.map(func =>
         nodes2Codes(func.flow).then(ress => ({
-          ...pickOrIgnore(func, 'deps'),
+          ...pickOrIgnore(func, ['deps']),
           deps: _.unionBy(func.deps, ress.deps, 'id'),
           codes: ress.codes
         }))
@@ -434,14 +437,14 @@ export async function generate(pid) {
     )
     const typoDeps = Object.values(
       Object.fromEntries(
-        typo.funcs
+        funcs
           .map(func => func.deps)
           .flat()
           .map(dep => [dep.name, dep])
       )
     )
     adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
-      typo: Object.assign(typo, { funcs }),
+      typo: { ...pickOrIgnore(typo, ['funcs']), funcs },
       deps: typoDeps,
       genDefault,
       genFuncAnno
