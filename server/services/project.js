@@ -445,7 +445,7 @@ export async function generate(pid) {
     )
     adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
       typo: { ...pickOrIgnore(typo, ['funcs']), funcs },
-      deps: typoDeps,
+      deps: _.unionBy(typo.deps, typoDeps, 'id'),
       genDefault,
       genFuncAnno
     })
