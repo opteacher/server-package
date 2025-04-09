@@ -435,17 +435,28 @@ export async function generate(pid) {
         }))
       )
     )
-    const typoDeps = Object.values(
-      Object.fromEntries(
-        funcs
-          .map(func => func.deps)
-          .flat()
-          .map(dep => [dep.name, dep])
-      )
+    const typoDeps = _.unionBy(
+      typo.deps,
+      Object.values(
+        Object.fromEntries(
+          funcs
+            .map(func => func.deps)
+            .flat()
+            .map(dep => [dep.name, dep])
+        )
+      ),
+      'id'
     )
+    logger.log('info', '收集自定义类依赖模块：')
+    for (const dep of typoDeps) {
+      if (!(dep.id in deps)) {
+        logger.log('info', `\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
+        deps[dep.id] = dep
+      }
+    }
     adjustFile(typTmp, Path.join(typGen, `${typo.name}.js`), {
       typo: { ...pickOrIgnore(typo, ['funcs']), funcs },
-      deps: _.unionBy(typo.deps, typoDeps, 'id'),
+      deps: typoDeps,
       genDefault,
       genFuncAnno
     })
