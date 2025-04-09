@@ -94,6 +94,7 @@ export async function genFlowCodes(nid, funName) {
   const svcTmp = Path.join('resources', 'app-temp', 'services', 'temp.js')
   return adjustFile(fs.readFileSync(svcTmp), undefined, {
     services: [{ interface: funName, ...res }],
+    deps: [],
     stcVars: [],
     genDefault
   })

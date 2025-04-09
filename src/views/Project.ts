@@ -184,6 +184,16 @@ export const svcMapper = new Mapper({
     type: 'Checkbox',
     display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })]
   },
+  condition: {
+    label: '延时/定时条件',
+    type: 'Unknown',
+    display: {
+      OR: [
+        new Cond({ key: 'emit', cmp: '=', val: 'timeout' }),
+        new Cond({ key: 'emit', cmp: '=', val: 'interval' })
+      ]
+    }
+  },
   deps: {
     label: '依赖',
     type: 'TagList',
@@ -200,16 +210,6 @@ export const svcMapper = new Mapper({
     newFun: () => ({ data: [] }),
     onSaved: (form: any) => form,
     onAdded: (form: any, data: any) => setProp(form, 'data', data)
-  },
-  condition: {
-    label: '延时/定时条件',
-    type: 'Unknown',
-    display: {
-      OR: [
-        new Cond({ key: 'emit', cmp: '=', val: 'timeout' }),
-        new Cond({ key: 'emit', cmp: '=', val: 'interval' })
-      ]
-    }
   },
   stcVars: {
     label: '全局变量',
