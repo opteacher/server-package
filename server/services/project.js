@@ -14,7 +14,8 @@ import {
   fixEndsWith,
   fixStartsWith,
   readConfig,
-  rmvStartsOf
+  rmvStartsOf,
+  setProp
 } from '../lib/backend-library/utils/index.js'
 import Dep from '../models/dep.js'
 import Model from '../models/model.js'
@@ -1071,27 +1072,65 @@ export async function buildMid(project) {
   return Promise.resolve(genPath)
 }
 
-export async function pubMiddle(pid, pubInfo) {
+export function saveMiddle(ctx) {
+  return db.saveOne(Project, ctx.params.pid, { middle: ctx.request.body })
+}
+
+export async function pubMiddle(pid) {
   const project = (await db.select(Project, { _index: pid }, { ext: true })).toObject()
   const genPath = await buildMid(project)
   logger.log('info', `发布中台到目录：${genPath}`)
-  await db.saveOne(Project, pid, { 'middle.lclDep': pubInfo.lclDep })
-  spawnSync(
+  await db.saveOne(Project, pid, { 'middle.lclDep': project.middle.lclDep })
+  console.log(
+    `docker exec ${project.name} /bin/bash -c '${[
+      `cd /root/${project.name}-mid`,
+      'npm config set registry https://registry.npmmirror.com',
+      'npm install --unsafe-perm=true --allow-root',
+      'nohup npm run dev &'
+    ].join(' && ')}'`
+  )
+  const pubPcs = spawn(
     [
       (process.platform === 'win32' ? 'set' : 'export') + ' NODE_OPTIONS=--max_old_space_size=2048',
       'git clone https://gitee.com/opteacher/frontend-library.git lib/frontend-library',
-      'npm config set registry https://registry.npmmirror.com',
-      'npm install --unsafe-perm=true --allow-root',
-      'npm run build',
-      `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public`,
-      `docker exec ${project.name} mv /app/public/index.html /app/views/index.html`
+      ...(project.middle.devMode
+        ? [
+            `docker cp ${genPath} ${project.name}:/root/`,
+            `docker exec ${project.name} /bin/bash -c '${[
+              `cd /root/${project.name}-mid`,
+              'npm config set registry https://registry.npmmirror.com',
+              'npm install --unsafe-perm=true --allow-root',
+              'nohup npm run dev &'
+            ].join(' && ')}'`
+          ]
+        : [
+            'npm config set registry https://registry.npmmirror.com',
+            'npm install --unsafe-perm=true --allow-root',
+            'npm run build',
+            `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public/${project.middle.prefix}`,
+            `docker exec ${project.name} mv /app/public/${project.middle.prefix}/index.html /app/views/index.html`
+          ])
     ].join(' && '),
     {
       cwd: genPath,
-      stdio: 'inherit',
       shell: true
     }
   )
+    .on('error', err => {
+      logger.log('error', err)
+    })
+    .on('exit', () => {
+      logger.log('info', '发布成功！')
+    })
+  pubPcs.stdout.on('data', msg => {
+    const strMsg = msg instanceof Buffer ? msg.toString('utf-8') : msg
+    for (const strLin of strMsg.split('\n')) {
+      logger.log('info', strLin)
+    }
+  })
+  pubPcs.stderr.on('error', err => {
+    logger.log('error', err.message || JSON.stringify(err))
+  })
   return {
     midURL: [
       `http://${process.env.NODE_ENV === 'prod' ? project.name : '127.0.0.1'}`,
@@ -1119,14 +1158,14 @@ export async function genMiddle(ctx) {
   await sendfile(ctx, phName)
 }
 
-export async function depMiddle(pid, depInfo) {
-  const idxHtml = depInfo.fileList.find(file => file.name !== 'index.html')
+export async function depMiddle(pid, options) {
+  const idxHtml = options.fileList.find(file => file.name !== 'index.html')
   if (!idxHtml) {
     return { error: '选择正确的dist文件夹：该文件夹无index.html文件' }
   }
   await transfer({
     pid,
-    files: depInfo.fileList.map(file =>
+    files: options.fileList.map(file =>
       Object.assign(file, { dest: `/public/${rmvStartsOf(file.dest, 'dist/')}` })
     )
   })

@@ -15,6 +15,14 @@ import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 /*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+import isBetween from 'dayjs/plugin/isBetween.js'
+dayjs.extend(isBetween)
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault(dayjs.tz.guess())
 const router = await genApiRoutes(path.resolve('routes'))
 const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'), db)
 const app = new Koa()

@@ -8,6 +8,7 @@ import {
   deploy,
   transfer,
   getAllAPIs,
+  saveMiddle,
   pubMiddle,
   chkMiddle,
   genMiddle,
@@ -106,12 +107,18 @@ router.post('/:pid/auth/sign', async ctx => {
 })
 
 router.post('/:pid/middle/publish', async ctx => {
+  await saveMiddle(ctx)
   ctx.body = {
-    result: await pubMiddle(ctx.params.pid, ctx.request.body)
+    result: await pubMiddle(ctx.params.pid)
   }
 })
 
-router.get('/:pid/middle/generate', genMiddle)
+router.get('/:pid/middle/generate', async ctx => {
+  await saveMiddle(ctx)
+  ctx.body = {
+    result: await genMiddle(ctx)
+  }
+})
 
 router.put('/:pid/middle/deploy', async ctx => {
   ctx.body = {

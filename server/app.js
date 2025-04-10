@@ -6,6 +6,9 @@ import logger from 'koa-logger'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
 
 import { genApiRoutes } from './lib/backend-library/router/index.js'
 import { genMdlRoutes } from './lib/backend-library/models/index.js'
@@ -15,6 +18,10 @@ import { db } from './utils/index.js'
 
 const router = await genApiRoutes(Path.resolve('routes'))
 const models = await genMdlRoutes(Path.resolve('models'), Path.resolve('configs', 'models'), db)
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault(dayjs.tz.guess())
 
 const app = new Koa()
 

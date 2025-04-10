@@ -57,6 +57,7 @@ export default db.defineModel(
     middle: {
       lclDep: db.PropTypes.Boolean,
       prefix: db.PropTypes.String,
+      devMode: db.PropTypes.Boolean,
       login: {
         path: db.PropTypes.String,
         bkgdColor: db.PropTypes.String,

@@ -1,3 +1,4 @@
+import { gnlCpy } from '@/utils'
 import MidDsb from './midDsb'
 import MidLgn from './midLgn'
 import MidNav from './midNav'
@@ -7,6 +8,7 @@ export default class Middle {
   title: string
   prefix: string
   lclDep: boolean
+  devMode: boolean
   loading: boolean
   url: string
   login: MidLgn
@@ -18,6 +20,7 @@ export default class Middle {
     this.title = ''
     this.prefix = ''
     this.lclDep = true
+    this.devMode = false
     this.loading = false
     this.url = ''
     this.login = new MidLgn()
@@ -30,6 +33,7 @@ export default class Middle {
     this.title = ''
     this.prefix = ''
     this.lclDep = true
+    this.devMode = false
     this.loading = false
     this.url = ''
     this.login = new MidLgn()
@@ -37,16 +41,10 @@ export default class Middle {
     this.dashboard = new MidDsb()
   }
 
-  static copy(src: any, tgt?: Middle): Middle {
-    tgt = tgt || new Middle()
-    tgt.title = src.title || tgt.title
-    tgt.prefix = src.prefix || tgt.prefix
-    tgt.lclDep = typeof src.lclDep !== 'undefined' ? src.lclDep : tgt.lclDep
-    tgt.loading = typeof src.loading !== 'undefined' ? src.loading : tgt.loading
-    tgt.url = src.url || tgt.url
-    tgt.login = src.login ? MidLgn.copy(src.login) : tgt.login
-    tgt.navigate = src.navigate ? MidNav.copy(src.navigate) : tgt.navigate
-    tgt.dashboard = src.dashboard ? MidDsb.copy(src.dashboard) : tgt.dashboard
-    return tgt
+  static copy(src: any, tgt?: Middle, force = false): Middle {
+    return gnlCpy(Middle, src, tgt, {
+      force,
+      cpyMapper: { login: MidLgn.copy, navigate: MidNav.copy, dashboard: MidDsb.copy }
+    })
   }
 }

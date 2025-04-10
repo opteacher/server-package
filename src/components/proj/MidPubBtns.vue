@@ -97,6 +97,11 @@ const mapper = new Mapper({
     label: '本地部署',
     placeholder: '是否部署到项目实例，【非本地部署】相当于前后端分离',
     type: 'Checkbox'
+  },
+  devMode: {
+    label: '开发模式部署',
+    type: 'Checkbox',
+    placeholder: '选中则将在目标容器中运行npm run dev，反之则在本机构建后部署打包文件'
   }
 })
 const genOrPub = ref<OperType>('export')
@@ -106,7 +111,7 @@ emitter.on('update:visible', (visible: boolean) => {
   if (visible) {
     emitter.emit('update:dprop', {
       title: pjtName.value,
-      prefix: '/' + pjtName.value
+      prefix: pjtName.value
     })
   }
 })
