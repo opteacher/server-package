@@ -682,11 +682,15 @@ export async function run(pjt) {
  * @returns
  */
 async function adjAndRestartNginx(projects) {
-  if (process.env.NODE_ENV !== 'prod') {
-    return Promise.resolve()
-  }
   if (typeof projects === 'undefined') {
-    projects = await db.select(Project)
+    projects = await db
+      .select(Project)
+      .then(pjts => pjts.map(pjt => setProp(pjt, 'host', pjt.name)))
+  }
+  if (process.env.NODE_ENV === 'prod') {
+    projects = [
+      { _id: '1', name: 'server-package', host: 'server-package', port: process.env.PORT || 4000 }
+    ].concat(projects)
   }
   const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
   const ngCfgGen = Path.resolve('configs', 'nginx.conf')
@@ -704,16 +708,13 @@ async function adjAndRestartNginx(projects) {
   }
   spawnSync(
     [
-      [
-        'docker run --rm -itd',
-        '--network server-package_default',
-        '--name server-package_nginx',
-        `-p 0.0.0.0:${svrCfg.ngPort}:${svrCfg.ngPort}`,
-        'nginx'
-      ].join(' '),
-      `docker container cp ${ngCfgGen} server-package_nginx:/etc/nginx/conf.d/default.conf`,
-      'docker container restart server-package_nginx'
-    ].join(' && '),
+      'docker run --rm -itd',
+      '--network server-package_default',
+      '--name server-package_nginx',
+      `-v ${ngCfgGen}:/etc/nginx/conf.d/default.conf`,
+      `-p 0.0.0.0:${svrCfg.ngPort}:${svrCfg.ngPort}`,
+      'nginx'
+    ].join(' '),
     {
       stdio: 'inherit',
       shell: true
@@ -1003,72 +1004,25 @@ export async function buildMid(project) {
   const tmpSrcPath = Path.join(tmpPath, 'src')
   const genSrcPath = Path.join(genPath, 'src')
   copyDir(tmpPath, genPath, {
-    ignores: [
-      Path.join(tmpPath, '.git'),
-      Path.join(tmpPath, '.env'),
-      Path.join(tmpPath, 'package.json'),
-      Path.join(tmpPath, 'package-lock.json'),
-      Path.join(tmpPath, 'vite.config.ts'),
-      Path.join(tmpSrcPath, 'Dockerfile'),
-      Path.join(tmpSrcPath, 'apis/login.ts'),
-      Path.join(tmpSrcPath, 'router/index.ts'),
-      Path.join(tmpSrcPath, 'views/login.vue')
-    ]
+    ignores: [Path.join(tmpPath, '.git')]
   })
-  const envTmp = Path.join(tmpPath, '.env')
-  const envGen = Path.join(genPath, '.env')
-  logger.log('info', `复制.env文件：${envTmp} -> ${envGen}`)
-  adjustFile(envTmp, envGen, { project })
-  const pkgTmp = Path.join(tmpPath, 'package.json')
-  const pkgGen = Path.join(genPath, 'package.json')
-  logger.log('info', `复制package.json文件：${pkgTmp} -> ${pkgGen}`)
-  adjustFile(pkgTmp, pkgGen, { project })
-  const vtCfgTmp = Path.join(tmpPath, 'vite.config.ts')
-  const vtCfgGen = Path.join(genPath, 'vite.config.ts')
-  logger.log('info', `复制vite.config.ts文件：${vtCfgTmp} -> ${vtCfgGen}`)
-  adjustFile(vtCfgTmp, vtCfgGen, { svrPort: svrCfg.port })
-  const dkrTmp = Path.join(tmpPath, 'Dockerfile')
-  const dkrGen = Path.join(genPath, 'Dockerfile')
-  logger.log('info', `复制Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
-  adjustFile(dkrTmp, dkrGen, { project })
-  logger.log('info', '生成json数据：project.json和models.json')
+  logger.log('info', '生成json数据：project.json、models.json和auth.json（如果有鉴权的话）')
   fs.mkdirSync(Path.join(genSrcPath, 'jsons'), { recursive: true })
   fs.writeFileSync(
     Path.join(genSrcPath, 'jsons/project.json'),
-    JSON.stringify(pickOrIgnore(project, ['models']))
+    JSON.stringify(pickOrIgnore(project, ['database', 'models', 'services']))
   )
+  const authId = project.auth.model.toString()
   fs.writeFileSync(
     Path.join(genSrcPath, 'jsons/models.json'),
-    JSON.stringify(Object.fromEntries(project.models.map(model => [model.name, model])))
+    JSON.stringify({
+      data: authId ? project.models.filter(mdl => mdl._id.toString() !== authId) : project.models
+    })
   )
-  logger.log('info', '根据权限生成登录页面，并配置路由……')
-  fs.mkdirSync(Path.join(genSrcPath, 'router'), { recursive: true })
-  const rtTmp = Path.join(tmpSrcPath, 'router', 'index.ts')
-  const rtGen = Path.join(genSrcPath, 'router', 'index.ts')
-  if (project.auth.model) {
-    let auth = project.auth.model
-    if (!auth.form) {
-      auth = await db.select(Model, { _index: auth }).then(res => res.toJSON())
-    }
-    const apiTmp = Path.join(tmpSrcPath, 'apis/login.ts')
-    const apiGen = Path.join(genSrcPath, 'apis/login.ts')
-    logger.log('info', `复制src/apis/login.ts文件：${apiTmp} -> ${apiGen}`)
-    adjustFile(apiTmp, apiGen, { auth })
-    logger.log('info', `调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
-    adjustFile(rtTmp, rtGen, { auth, project })
-    const lgnTmp = Path.join(tmpSrcPath, 'views/login.vue')
-    const lgnGen = Path.join(genSrcPath, 'views/login.vue')
-    logger.log('info', `复制src/views/login.vue文件：${lgnTmp} -> ${lgnGen}`)
-    const fields = project.auth.props
-      .map(prop => auth.form.fields.find(field => field.refer === prop.name))
-      .filter(field => field)
-      .map(field => Object.assign(pickOrIgnore(field, ['_id']), { key: field._id }))
-    project.middle.login = pickOrIgnore(project.middle.login, ['_id'])
-    adjustFile(lgnTmp, lgnGen, { fields })
-  } else {
-    logger.log('info', `调整src/router/index.ts文件：${rtTmp} -> ${rtGen}`)
-    adjustFile(rtTmp, rtGen, { auth: null, project })
-  }
+  fs.writeFileSync(
+    Path.join(genSrcPath, 'jsons/auth.json'),
+    JSON.stringify(authId ? project.models.find(mdl => mdl._id.toString() === authId) : {})
+  )
   return Promise.resolve(genPath)
 }
 
@@ -1081,35 +1035,25 @@ export async function pubMiddle(pid) {
   const genPath = await buildMid(project)
   logger.log('info', `发布中台到目录：${genPath}`)
   await db.saveOne(Project, pid, { 'middle.lclDep': project.middle.lclDep })
-  console.log(
-    `docker exec ${project.name} /bin/bash -c '${[
-      `cd /root/${project.name}-mid`,
-      'npm config set registry https://registry.npmmirror.com',
-      'npm install --unsafe-perm=true --allow-root',
-      'nohup npm run dev &'
-    ].join(' && ')}'`
-  )
+  const ftLibPath = Path.resolve(svrCfg.apps, 'tmp', 'frontend-library')
+  let ftLibExist = false
+  try {
+    fs.accessSync(ftLibPath)
+    ftLibExist = true
+  } catch (e) {}
   const pubPcs = spawn(
     [
       (process.platform === 'win32' ? 'set' : 'export') + ' NODE_OPTIONS=--max_old_space_size=2048',
-      'git clone https://gitee.com/opteacher/frontend-library.git lib/frontend-library',
-      ...(project.middle.devMode
-        ? [
-            `docker cp ${genPath} ${project.name}:/root/`,
-            `docker exec ${project.name} /bin/bash -c '${[
-              `cd /root/${project.name}-mid`,
-              'npm config set registry https://registry.npmmirror.com',
-              'npm install --unsafe-perm=true --allow-root',
-              'nohup npm run dev &'
-            ].join(' && ')}'`
-          ]
-        : [
-            'npm config set registry https://registry.npmmirror.com',
-            'npm install --unsafe-perm=true --allow-root',
-            'npm run build',
-            `docker cp ${Path.join(genPath, 'dist') + '/.'} ${project.name}:/app/public/${project.middle.prefix}`,
-            `docker exec ${project.name} mv /app/public/${project.middle.prefix}/index.html /app/views/index.html`
-          ])
+      !ftLibExist
+        ? `git clone https://github.com/opteacher/frontend-library.git ${ftLibPath}`
+        : 'echo "frontend-library has cached"',
+      process.platform === 'win32'
+        ? `xcopy /e/y/h/c/i ${ftLibPath} src\\lib`
+        : `cp ${ftLibPath} src/lib`,
+      'npm config set registry https://registry.npmmirror.com',
+      'npm install --unsafe-perm=true --allow-root --loglevel verbose',
+      'npm run build',
+      `docker cp dist/. ${project.name}:/app/public/${project.middle.prefix}`
     ].join(' && '),
     {
       cwd: genPath,
@@ -1120,6 +1064,7 @@ export async function pubMiddle(pid) {
       logger.log('error', err)
     })
     .on('exit', () => {
+      fs.rmSync(Path.join(genPath, 'node_modules'), { force: true, recursive: true })
       logger.log('info', '发布成功！')
     })
   pubPcs.stdout.on('data', msg => {
