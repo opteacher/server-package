@@ -1046,12 +1046,13 @@ export async function pubMiddle(pid) {
       (process.platform === 'win32' ? 'set' : 'export') + ' NODE_OPTIONS=--max_old_space_size=2048',
       !ftLibExist
         ? `git clone https://github.com/opteacher/frontend-library.git ${ftLibPath}`
-        : 'echo "frontend-library has cached"',
+        : 'echo frontend-library has cached',
       process.platform === 'win32'
         ? `xcopy /e/y/h/c/i ${ftLibPath} src\\lib`
         : `cp ${ftLibPath} src/lib`,
       'npm config set registry https://registry.npmmirror.com',
       'npm install --unsafe-perm=true --allow-root --loglevel verbose',
+      `echo VITE_PJT=${project.name} > ${genPath}/.env`,
       'npm run build',
       `docker cp dist/. ${project.name}:/app/public/${project.middle.prefix}`
     ].join(' && '),
