@@ -689,7 +689,12 @@ async function adjAndRestartNginx(projects) {
   }
   if (process.env.NODE_ENV === 'prod') {
     projects = [
-      { _id: '1', name: 'server-package', host: 'server-package_default', port: process.env.PORT || 4000 }
+      {
+        _id: '1',
+        name: 'server-package',
+        host: 'server-package_default',
+        port: process.env.PORT || 4000
+      }
     ].concat(projects)
   }
   const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
@@ -1004,18 +1009,15 @@ export async function buildMid(project) {
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
   logger.log('info', '复制所有文件到目标目录')
-  const tmpSrcPath = Path.join(tmpPath, 'src')
   const genSrcPath = Path.join(genPath, 'src')
-  copyDir(tmpPath, genPath, {
-    ignores: [Path.join(tmpPath, '.git')]
-  })
+  copyDir(tmpPath, genPath, { ignores: [Path.join(tmpPath, '.git')] })
   logger.log('info', '生成json数据：project.json、models.json和auth.json（如果有鉴权的话）')
   fs.mkdirSync(Path.join(genSrcPath, 'jsons'), { recursive: true })
   fs.writeFileSync(
     Path.join(genSrcPath, 'jsons/project.json'),
     JSON.stringify(pickOrIgnore(project, ['database', 'models', 'services']))
   )
-  const authId = project.auth.model.toString()
+  const authId = project.auth.model ? project.auth.model.toString() : ''
   fs.writeFileSync(
     Path.join(genSrcPath, 'jsons/models.json'),
     JSON.stringify({
@@ -1055,7 +1057,7 @@ export async function pubMiddle(pid) {
         : `cp -r ${ftLibPath} src/lib`,
       'npm config set registry https://registry.npmmirror.com',
       'npm install --unsafe-perm=true --allow-root --loglevel verbose',
-      `echo VITE_PJT=${project.name} > ${genPath}/.env`,
+      `echo VITE_PJT=${project.name} > .env`,
       'npm run build',
       `docker cp dist/. ${project.name}:/app/public/${project.middle.prefix}`
     ].join(' && '),
