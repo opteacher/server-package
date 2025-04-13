@@ -689,7 +689,7 @@ async function adjAndRestartNginx(projects) {
   }
   if (process.env.NODE_ENV === 'prod') {
     projects = [
-      { _id: '1', name: 'server-package', host: 'server-package', port: process.env.PORT || 4000 }
+      { _id: '1', name: 'server-package', host: 'server-package_default', port: process.env.PORT || 4000 }
     ].concat(projects)
   }
   const ngCfgTmp = Path.resolve('resources', 'ng-temp', 'nginx.conf')
