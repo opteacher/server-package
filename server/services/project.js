@@ -1052,7 +1052,7 @@ export async function pubMiddle(pid) {
         : 'echo frontend-library has cached',
       process.platform === 'win32'
         ? `xcopy /e/y/h/c/i ${ftLibPath} src\\lib`
-        : `cp ${ftLibPath} src/lib`,
+        : `cp -r ${ftLibPath} src/lib`,
       'npm config set registry https://registry.npmmirror.com',
       'npm install --unsafe-perm=true --allow-root --loglevel verbose',
       `echo VITE_PJT=${project.name} > ${genPath}/.env`,
