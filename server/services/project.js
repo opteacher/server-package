@@ -1297,45 +1297,54 @@ export async function pjtRunYml(pjt) {
     project = await db.select(Project, { _index: pjt })
   }
   return [
-    project.name + ':',
-    '  image: ' + project.name,
-    '  container_name: ' + project.name,
-    '  restart: always',
-    '  privileged: true',
-    '  networks:\n    server-package_default',
-    '  ports:',
-    '    - 127.0.0.1:' + project.port + ':' + project.port,
-    ...(project.expPorts || []).map(port => `    - 0.0.0.0:${port}:${port}`),
+    `services:\n  ${project.name}:`,
+    ''.padStart(2, '  ') + 'image: ' + project.name,
+    ''.padStart(2, '  ') + 'container_name: ' + project.name,
+    ''.padStart(2, '  ') + 'restart: always',
+    ''.padStart(2, '  ') + 'privileged: true',
+    ''.padStart(2, '  ') + 'networks:',
+    ''.padStart(3, '  ') + '- server-package_default',
+    ''.padStart(2, '  ') + 'ports:',
+    ''.padStart(3, '  ') + '- 127.0.0.1:' + project.port + ':' + project.port,
+    ...(project.expPorts || []).map(port => ''.padStart(3, '  ') + `- 0.0.0.0:${port}:${port}`),
     project.envVars.length
-      ? '  environment:\n' +
+      ? ''.padStart(2, '  ') +
+        'environment:\n' +
         project.envVars
           .concat([project.gpus ? ['NVIDIA_VISIBLE_DEVICES', 'all'] : undefined])
           .filter(e => e)
-          .map(e => `    ${e instanceof Array ? e.join(':') : [e.name, e.value].join(':')}`)
+          .map(
+            e =>
+              ''.padStart(3, '  ') +
+              (e instanceof Array ? e.join(':') : [e.name, e.value].join(':'))
+          )
           .join('\n')
       : undefined,
     project.volumes.length
-      ? '  volumes:\n' +
+      ? ''.padStart(2, '  ') +
+        'volumes:\n' +
         project.volumes
           .map(
             volume =>
-              `    - ${volume instanceof Array ? volume.join(':') : volume.host + ':' + volume.ctnr}`
+              '- '.padStart(5, '  ') +
+              (volume instanceof Array ? volume.join(':') : [volume.host, volume.ctnr].join(':'))
           )
           .join('\n')
       : undefined,
     project.gpus
       ? [
-          'deploy:'.padStart(1, '  '),
-          'resources:'.padStart(2, '  '),
-          'reservations:'.padStart(3, '  '),
-          'devices:'.padStart(4, '  '),
-          '- driver: "nvidia"'.padStart(5, '  '),
-          'count: "all"'.padStart(6, '  '),
-          'capabilities: ["gpu"]'.padStart(6, '  ')
+          ''.padStart(2, '  ') + 'deploy:',
+          ''.padStart(3, '  ') + 'resources:',
+          ''.padStart(4, '  ') + 'reservations:',
+          ''.padStart(5, '  ') + 'devices:',
+          ''.padStart(6, '  ') + '- driver: "nvidia"',
+          ''.padStart(7, '  ') + 'count: "all"',
+          ''.padStart(7, '  ') + 'capabilities: ["gpu"]'
         ].join('\n')
       : undefined,
     project.runCmds
-      ? `  command: /bin/bash -c "${project.runCmds.split('\n').join(' && ')} && cd /app && node app.js"`
+      ? ''.padStart(2, '  ') +
+        `command: /bin/bash -c "${project.runCmds.split('\n').join(' && ')} && cd /app && node app.js"`
       : undefined,
     '\nnetworks:\n  server-package_default:\n    external: true'
   ]
