@@ -15,7 +15,7 @@ import Transfer from '@/types/transfer'
 import Typo, { Func } from '@/types/typo'
 import Variable from '@/types/variable'
 import { depExp, pickOrIgnore, setProp, updDftByType } from '@/utils'
-import { Cond, OpnType, bsTpOpns, methods, BaseTypes } from '@lib/types'
+import { Cond, OpnType, typeOpns, methods, BaseTypes } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Modal, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
@@ -76,7 +76,7 @@ export const varMapper = new Mapper({
   vtype: {
     label: '类型',
     type: 'Select',
-    options: bsTpOpns,
+    options: typeOpns,
     onChange: (_var: Variable, to: BaseTypes) => updDftByType(to, varEmitter)
   },
   dftVal: {
@@ -318,7 +318,7 @@ function genVarMapper(emitter: Emitter, prefix = '') {
       label: '类型',
       type: 'Select',
       rules: [{ required: true, message: '必须选择类型！' }],
-      options: bsTpOpns.filter(({ value }) => value !== 'Id' && value !== 'Unknown'),
+      options: typeOpns.filter(({ value }) => value !== 'Id' && value !== 'Unknown'),
       onChange: (prop: Property) => updDftByType(prop.ptype, emitter, { prefix })
     },
     dftVal: {

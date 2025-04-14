@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts">
-import Field from '@lib/types/field'
+import Field, { fieldDftVal } from '@lib/types/field'
 import { computed, createVNode, defineComponent, onMounted, reactive, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
 import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
@@ -80,7 +80,7 @@ import { waitFor } from '@/utils'
 import { useStore } from 'vuex'
 import { mdlAPI as api } from '../../apis'
 import { createByFields } from '@lib/types/mapper'
-import { bsTpDefault } from '@/types'
+import { typeDftVal } from '@/types'
 
 export default defineComponent({
   name: 'FieldCard',
@@ -99,9 +99,7 @@ export default defineComponent({
     const cmpRect = reactive([0, 0, 0, 0] as [number, number, number, number])
     const rszObs = new ResizeObserver(onFieldResized)
     const mosMvOver = ref(false)
-    const form = computed(() => ({
-      [props.field.refer]: props.field.default || bsTpDefault(props.field.vtype)
-    }))
+    const form = reactive({ [props.field.refer]: fieldDftVal(props.field.ftype) })
     const mapper = computed(() => createByFields([props.field])[props.field.refer])
 
     onMounted(async () => {

@@ -75,13 +75,10 @@
         <a-mentions
           rows="3"
           class="w-full"
+          :options="ppOptions"
           v-model:value="edtCell.format.href"
           @blur="(e: any) => onFormatSave({ href: e.target.value })"
-        >
-          <a-mentions-option v-for="prop in ppOptions" :key="prop.value" :value="prop.value">
-            {{ prop.label }}
-          </a-mentions-option>
-        </a-mentions>
+        />
       </a-descriptions-item>
     </template>
   </a-descriptions>

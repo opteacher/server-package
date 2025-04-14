@@ -46,7 +46,7 @@
 import Cell from '@/types/cell'
 import Table, { Cells } from '@/types/table'
 import { pickOrIgnore } from '@/utils'
-import { bsTpDefault } from '@lib/types'
+import { typeDftVal } from '@lib/types'
 import Column from '@lib/types/column'
 import Field from '@lib/types/field'
 import Mapper, { createByFields } from '@lib/types/mapper'
@@ -90,7 +90,7 @@ async function refresh() {
     Object.fromEntries(
       store.getters['model/fields'].map((field: Field) => [
         field.refer,
-        field.default || bsTpDefault(field.vtype)
+        field.default || typeDftVal(field.vtype)
       ])
     )
   columns.value.splice(

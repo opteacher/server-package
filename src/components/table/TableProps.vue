@@ -112,13 +112,10 @@
       </template>
       <a-mentions
         rows="3"
+        :options="mdlProps.map(prop => ({ label: prop.name, value: prop.key }))"
         v-model:value="formState.expandURL"
         @blur="(e: any) => api.table.save({ expandURL: e.target.value })"
-      >
-        <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
-          {{ prop.label }}
-        </a-mentions-option>
-      </a-mentions>
+      />
     </a-descriptions-item>
     <a-descriptions-item label="折叠界面高度">
       <a-input-number

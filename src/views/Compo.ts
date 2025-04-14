@@ -1,4 +1,4 @@
-import { bsTpOpns, compoOpns } from '@/types'
+import { typeOpns, compoOpns } from '@/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 
@@ -17,7 +17,7 @@ export const mapper = new Mapper({
   ctype: {
     label: '绑定类型',
     type: 'Select',
-    options: bsTpOpns
+    options: typeOpns
   },
   category: {
     label: '类别',

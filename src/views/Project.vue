@@ -7,7 +7,7 @@ import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
 import SvcTable from '@/components/proj/SvcTable.vue'
 import TypoCard from '@/components/proj/TypoCard.vue'
 import OptSclPnl from '@/lib/frontend-library/src/components/OptSclPnl.vue'
-import { OpnType, bsTpDefault } from '@/types'
+import { OpnType, typeDftVal } from '@/types'
 import ExpCls from '@/types/expCls'
 import Frontend from '@/types/frontend'
 import Model from '@/types/model'
@@ -484,7 +484,7 @@ function onSwitchMdlVw() {
                       :new-fun="
                         () =>
                           Object.fromEntries(
-                            model.props.map((prop: any) => [prop.name, bsTpDefault(prop.ptype)])
+                            model.props.map((prop: any) => [prop.name, typeDftVal(prop.ptype)])
                           )
                       "
                       size="small"

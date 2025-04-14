@@ -333,14 +333,6 @@
           "ftype": "CodeEditor"
         },
         {
-          "label": "事件激活器",
-          "refer": "emitter",
-          "vtype": "Function",
-          "default": "return new Emitter()",
-          "ftype": "Input",
-          "disabled": true
-        },
-        {
           "label": "新增函数",
           "refer": "newFun",
           "vtype": "Function",

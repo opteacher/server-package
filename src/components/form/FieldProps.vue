@@ -1,11 +1,10 @@
 <template>
   <a-descriptions class="mb-12" title="组件基础参数" :column="1" bordered size="small">
     <a-descriptions-item label="关联">
-      <a-mentions v-model:value="fieldState.refer">
-        <a-mentions-option v-for="prop in mdlProps" :key="prop.key" :value="prop.name">
-          {{ prop.name }}
-        </a-mentions-option>
-      </a-mentions>
+      <a-mentions
+        v-model:value="fieldState.refer"
+        :options="mdlProps.map(prop => ({ label: prop.name, value: prop.key }))"
+      />
     </a-descriptions-item>
     <a-descriptions-item label="标签">
       <a-input
@@ -33,10 +32,11 @@
         class="w-full"
         v-model:value="fieldState.placeholder"
         @blur="
-          (e: any) => emit('update:field', {
-            key: fieldState.key,
-            placeholder: e.target.value
-          })
+          (e: any) =>
+            emit('update:field', {
+              key: fieldState.key,
+              placeholder: e.target.value
+            })
         "
       />
     </a-descriptions-item>

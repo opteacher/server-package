@@ -160,6 +160,7 @@ const expDft = {
       },
       extra: {
         save: async (fkey: string, extra: any) => {
+          console.log(extra)
           await reqPut(
             'model',
             store.getters['model/ins'].key,

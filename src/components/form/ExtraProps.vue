@@ -59,6 +59,11 @@
         :statusBar="false"
         @update:value="(value: any) => emit('update:extra', fldKey, { [exField.refer]: value })"
       />
+      <CodeEditor
+        v-else-if="exField.ftype === 'CodeEditor'"
+        :value="strToType(extraState[exField.refer], exField.vtype) || typeDftVal(exField.vtype)"
+        @update:value="(value: any) => onValChange(fldKey, exField, value)"
+      />
       <EditList
         v-else-if="exField.ftype === 'EditList'"
         :value="extraState[exField.refer]"
@@ -68,16 +73,16 @@
             newFun: callFunc(exField.extra.newFun)
           })
         "
-        @update:value="
-          (value: any[]) => emit('update:extra', fldKey, { [exField.refer]: value })
-        "
+        @update:value="(value: any[]) => emit('update:extra', fldKey, { [exField.refer]: value })"
       >
         <template #formItem="{ form, elKey, value }">
           <FormItem
             :form="form"
             :skey="elKey"
             :mapper="value"
-            @update:fprop="(values: any) => Object.entries(values).map(([k, v]) => setProp(form, k, v))"
+            @update:fprop="
+              (values: any) => Object.entries(values).map(([k, v]) => setProp(form, k, v))
+            "
           />
         </template>
       </EditList>
@@ -87,11 +92,18 @@
 </template>
 
 <script lang="ts" setup>
+import CodeEditor from '@lib/components/CodeEditor.vue'
+import JsonEditor from '@lib/components/JsonEditor.vue'
+import IconField from '@lib/components/IconField.vue'
+import EditList from '@lib/components/EditList.vue'
 import { callFunc, setProp } from '@/utils'
 import Compo from '@lib/types/compo'
 import Mapper from '@lib/types/mapper'
+import { typeDftVal } from '@lib/types'
 import { cloneDeep } from 'lodash'
 import { onMounted, ref, watch } from 'vue'
+import Field from '@lib/types/field'
+import { strToType } from '@lib/types'
 
 const props = defineProps({
   fldKey: { type: String, required: true },
@@ -109,5 +121,9 @@ function refresh() {
 }
 function toExMapper(exMapper: any) {
   return new Mapper(exMapper)
+}
+function onValChange(fldKey: string, exField: Field, value: Object | Function | string) {
+  console.log({ [exField.refer]: value })
+  emit('update:extra', fldKey, { [exField.refer]: value })
 }
 </script>

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Cond, bsTpOpns } from '@/types/index'
+import { Cond, typeOpns } from '@/types/index'
 import Property from '@/types/property'
 import { pickOrIgnore, updDftByType } from '@/utils'
 import Column from '@lib/types/column'
@@ -96,7 +96,7 @@ export const propMapper = new Mapper({
     label: '字段类型',
     type: 'Select',
     disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
-    options: bsTpOpns,
+    options: typeOpns,
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
     onChange: (prop: Property) => updDftByType(prop.ptype, propEmitter)
   },

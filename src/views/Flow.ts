@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import store from '@/store'
 import { NodesInPnl } from '@/store/node'
-import { Cond, baseTypes, bsTpOpns } from '@/types'
+import { Cond, baseTypes, typeOpns } from '@/types'
 import Node, { NodeType } from '@/types/node'
 import Service from '@/types/service'
 import Variable from '@/types/variable'
@@ -59,7 +59,7 @@ const iptMapper = new Mapper({
   vtype: {
     label: '类型',
     type: 'Select',
-    options: bsTpOpns,
+    options: typeOpns,
     onChange: (input: Variable, to: string) => {
       switch (to) {
         case 'Any':

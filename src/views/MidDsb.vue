@@ -20,7 +20,7 @@
                 :draggable="true"
                 @dragstart="(e: DragEvent) => onCmpDragStart(e, compo.name)"
               >
-                {{ cmpLblMap[compo.name as CompoType] || compo.name }}
+                {{ cmpNickDict[compo.name as CompoType] || compo.name }}
               </a-card>
             </a-list-item>
           </template>
@@ -124,7 +124,7 @@
 
 <script lang="ts">
 import { cmpAPI, pjtAPI } from '@/apis'
-import { CompoType, cmpLblMap } from '@/types'
+import { CompoType, cmpNickDict } from '@/types'
 import CmpIns from '@/types/cmpIns'
 import MidDsb from '@/types/midDsb'
 import {
@@ -269,7 +269,7 @@ export default defineComponent({
       pid,
       pjtAPI,
       dsbCtnr,
-      cmpLblMap,
+      cmpNickDict,
       dsbProps,
       mainHeight,
       compos,

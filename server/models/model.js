@@ -36,9 +36,13 @@ export default db.defineModel(
           label: db.PropTypes.String,
           desc: db.PropTypes.String,
           ftype: db.PropTypes.String, // 参考CompoType
+          vtype: db.PropTypes.String, // 参考BaseTypes
           rules: db.PropTypes.Array,
           refer: db.PropTypes.String, // 关联字段或字段的再处理，当然也可以为空（为单字段时，该组件与字段双向绑定）
           placeholder: db.PropTypes.String,
+          disabled: db.PropTypes.String, // return开头的为函数；方括号开头的为数组；其他则为字符串true或false
+          display: db.PropTypes.String,
+          empty: db.PropTypes.Boolean,
           extra: db.PropTypes.Object
         }
       ]
