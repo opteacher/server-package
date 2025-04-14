@@ -18,7 +18,8 @@ import {
   acsDkrLogsESS,
   extDkrLogs,
   acsDkrLogsMQTT,
-  pjtRunCmd
+  pjtRunCmd,
+  pjtRunYml
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -150,7 +151,7 @@ router.get('/:pid/docker/logs/access/mqtt', async ctx => {
 
 router.get('/:pid/docker/runCmd', async ctx => {
   ctx.body = {
-    result: await pjtRunCmd(ctx.params.pid)
+    result: ctx.query.compose ? await pjtRunYml(ctx.params.pid) : await pjtRunCmd(ctx.params.pid)
   }
 })
 

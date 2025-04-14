@@ -41,7 +41,7 @@ export default ({ mode }) =>
           changeOrigin: true
         },
         '/mqtt$': {
-          target: 'ws://127.0.0.1:8083/mqtt',
+          target: 'ws://192.168.1.11:8083/mqtt',
           ws: true,
           changeOrigin: true
         }

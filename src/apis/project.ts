@@ -151,7 +151,12 @@ export default {
       })
       saveAs(new Blob([resp.data], { type: resp.headers['content-type'] }), name)
     },
-    runCmd: (key: string) => reqGet('project', key, { type: 'api', action: 'docker/runCmd' })
+    runCmd: (key: string, query?: any) =>
+      reqGet('project', key, {
+        type: 'api',
+        action: 'docker/runCmd',
+        axiosConfig: { params: query }
+      })
   },
   logs: {
     access: (key: string) =>

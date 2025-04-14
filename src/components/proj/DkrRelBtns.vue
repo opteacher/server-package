@@ -49,11 +49,16 @@
     </a-button>
   </a-popover>
   <a-modal v-model:open="visibles.dkrInfo" title="Docker信息" :footer="null">
-    <a-tabs>
-      <a-tab-pane key="1" tab="运行指令" class="relative">
-        <a-typography-paragraph copyable>{{ runCmd }}</a-typography-paragraph>
-      </a-tab-pane>
+    <a-tabs v-model:activeKey="activeRunKey">
+      <a-tab-pane key="cmd" tab="运行指令" />
+      <a-tab-pane key="yml" tab="Compose" />
     </a-tabs>
+    <a-typography-paragraph class="docker-run">
+      <div v-html="md.render(`\`\`\`\n${dockerRun[activeRunKey]}\n\`\`\``)" />
+      <a-button class="docker-run-btn absolute top-2 right-2 hidden" @click="copyRunCmd">
+        <template #icon><copy-outlined /></template>
+      </a-button>
+    </a-typography-paragraph>
   </a-modal>
 </template>
 
@@ -62,12 +67,16 @@ import { pjtAPI } from '@/apis'
 import Icon, {
   DeploymentUnitOutlined,
   ExportOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  CopyOutlined
 } from '@ant-design/icons-vue'
 import { Modal, message } from 'ant-design-vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/atom-one-light.css'
 
 const visibles = reactive({
   dkrRel: false,
@@ -76,20 +85,22 @@ const visibles = reactive({
 const store = useStore()
 const route = useRoute()
 const pid = route.params.pid as string
-const runCmd = ref('')
+const dockerRun = reactive({ cmd: '', yml: '' })
+const md = MarkdownIt({
+  highlight: (str: string, language: string) => {
+    if (language && hljs.getLanguage(language)) {
+      try {
+        return hljs.highlight(str, { language }).value
+      } catch (__) {}
+    }
+    return ''
+  }
+})
+const activeRunKey = ref<'cmd' | 'yml'>('cmd')
 
 onMounted(async () => {
-  runCmd.value = await pjtAPI.docker.runCmd(pid).then((cmd: string) => {
-    runCmd.value = cmd
-    const fixCmd = cmd
-      .replaceAll('--network', '\n\t--network')
-      .replaceAll('--name', '\n\t--name')
-      .replaceAll('-p ', '\n\t-p ')
-      .replaceAll('-v ', '\n\t-v ')
-    const lstBlkIdx = fixCmd.lastIndexOf(' ')
-    const ret = fixCmd.slice(0, lstBlkIdx) + '\n  ' + fixCmd.substring(lstBlkIdx + 1)
-    return ret.replaceAll('\t', '  ')
-  })
+  dockerRun.cmd = await pjtAPI.docker.runCmd(pid)
+  dockerRun.yml = await pjtAPI.docker.runCmd(pid, { compose: 1 })
 })
 
 function onDkrRelClick({ key }: { key: 'export' | 'info' }) {
@@ -110,7 +121,13 @@ function onExportClick() {
   })
 }
 function copyRunCmd() {
-  navigator.clipboard.writeText(runCmd.value)
+  navigator.clipboard.writeText(dockerRun[activeRunKey.value])
   message.success('复制成功！')
 }
 </script>
+
+<style>
+.docker-run:hover .docker-run-btn {
+  display: block !important;
+}
+</style>

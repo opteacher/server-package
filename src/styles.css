@@ -1,7 +1,16 @@
 pre {
-  @apply mb-0;
+  margin: 0 !important;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
 }
 
 .popmu-p-0 .ant-popover-inner-content {
   padding: 0 !important;
+}
+
+p {
+  @apply mb-0 !important;
 }
