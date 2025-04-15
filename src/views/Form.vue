@@ -1,7 +1,7 @@
 <template>
   <LytDesign :active="`/project/${pid}/model/${mid}/form`">
     <a-layout class="h-full">
-      <a-layout-sider :width="cmpClps ? 'auto' : '20%'" class="bg-white overflow-y-auto pr-5">
+      <a-layout-sider v-show="false" :width="cmpClps ? 'auto' : '20%'" class="bg-white overflow-y-auto pr-5">
         <div v-if="!cmpClps" class="flex justify-between">
           <div class="ant-descriptions-title mb-5">
             <build-outlined />
@@ -14,7 +14,7 @@
           </a-button>
         </div>
         <div v-else class="flex flex-col">
-          <build-outlined />
+          <build-outlined class="place-self-center" />
           <p class="ant-descriptions-title mb-0 text-center mt-2">组</p>
           <p class="ant-descriptions-title mb-0 text-center">件</p>
           <a-button type="text" @click="onCmpClpsClick">

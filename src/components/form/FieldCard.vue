@@ -18,7 +18,7 @@
   </div>
   <div
     :class="{ 'card-hover': mosMvOver && active !== field.key }"
-    class="cursor-pointer rounded z-30"
+    class="cursor-pointer rounded relative"
     :style="{
       border: active === field.key ? '2px solid #1890ff' : '2px solid white'
     }"
@@ -50,8 +50,9 @@
       class="p-2.5 m-0 relative"
       :form="form"
       :skey="field.refer"
-      :mapper="{ ...mapper, disabled: true }"
+      :mapper="mapper"
     />
+    <div class="absolute top-0 bottom-0 left-0 right-0" />
   </div>
   <div
     class="px-2.5 py-0"
