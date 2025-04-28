@@ -22,6 +22,8 @@ import { saveAs } from 'file-saver'
 import { createVNode } from 'vue'
 
 import { pjtAPI } from '.'
+import API from '@/types/api'
+import Status from '@/types/status'
 
 function searchCmpIns(cmpIns: { key: string; children: CmpIns[] }, skey: string): CmpIns | null {
   if (cmpIns.key === skey) {
@@ -138,10 +140,11 @@ export default {
   status: (key: string) =>
     reqGet('project', `${key}/stat`, {
       type: 'api',
+      copy: Status.copy,
       messages: { notShow: true }
     }),
   apis: (key: string) =>
-    reqGet('project', `${key}/apis`, { type: 'api', messages: { notShow: true } }),
+    reqGet('project', `${key}/apis`, { type: 'api', copy: API.copy, messages: { notShow: true } }),
   docker: {
     expImg: async (key: string, name?: string) => {
       const resp = await reqGet('project', `${key}/docker/image/export`, {

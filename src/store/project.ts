@@ -39,7 +39,7 @@ export default {
       const pid = router.currentRoute.value.params.pid as string
       state.project = await pjtAPI.detail(pid)
       dispatch('chkStatus', state.project.thread ? 'running' : 'stopped')
-      state.apis = (await pjtAPI.apis(pid)).map((api: any) => API.copy(api))
+      state.apis = await pjtAPI.apis(pid)
       state.deps = await Promise.all([depAPI.all(), depAPI.allByPjt(true)]).then(ress => ress.flat())
     },
     chkStatus({ state }: { state: PjtState }, expect: 'running' | 'stopped') {
@@ -47,7 +47,7 @@ export default {
       intervalCheck({
         chkFun: async () => {
           try {
-            state.project.status = Status.copy(await pjtAPI.status(state.project.key))
+            state.project.status = await pjtAPI.status(state.project.key)
           } catch (e: any) {
             return false
           }

@@ -35,7 +35,7 @@ export default {
       editing: new Node(),
       deps: [],
       subNode: new Node()
-    } as NodeState),
+    }) as NodeState,
   mutations: {
     SET_NODE(state: NodeState, payload?: { key?: string; previous?: string; viewOnly?: boolean }) {
       // 更新依赖选项到表单
@@ -197,6 +197,7 @@ export default {
             }
           }
         } else if (params.force) {
+          console.log(await ndAPI.all(flowKey))
           state.nodes = flowKey
             ? Object.fromEntries(
                 await ndAPI
