@@ -383,7 +383,7 @@ export async function generate(pid) {
   logger.log('info', `调整Dockerfile文件：${dkrTmp} -> ${dkrGen}`)
   adjustFile(dkrTmp, dkrGen, { project })
 
-  const debTmp = Path.resolve('debian.sources')
+  const debTmp = Path.join(tmpPath, 'debian.sources')
   const debGen = Path.join(genPath, 'debian.sources')
   logger.log('info', `复制debian源文件：${debTmp} -> ${debGen}`)
   fs.copyFileSync(debTmp, debGen)
