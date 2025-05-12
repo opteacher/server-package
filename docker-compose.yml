@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql
+    image: mysql:8.4.5
     container_name: server-package_mysql
     restart: unless-stopped
     privileged: true
@@ -10,6 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
       - /data/server-package/mysql:/var/lib/mysql
+    command: --mysql-native-password=ON
 
   mongo:
     image: mongo:6.0.23
