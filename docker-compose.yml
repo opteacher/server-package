@@ -12,7 +12,7 @@ services:
       - /data/server-package/mysql:/var/lib/mysql
 
   mongo:
-    image: mongo
+    image: mongo:6.0.23
     container_name: server-package_mongo
     restart: unless-stopped
     ports:
