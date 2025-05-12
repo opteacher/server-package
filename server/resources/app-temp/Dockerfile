@@ -1,7 +1,7 @@
 FROM node:latest
 WORKDIR /app
 COPY . /app
-RUN sed -i "s@http://deb.debian.org@https://mirrors.tuna.tsinghua.edu.cn@g" /etc/apt/sources.list.d/debian.sources
+COPY ./debian.sources /etc/apt/sources.list.d/debian.sources
 RUN apt update && apt install vim net-tools telnet -y
 ##return project.bldCmds && project.bldCmds.length ? project.bldCmds.split('\n').map(cmd => `RUN ${cmd}`).join('\n') : ''*/
 ##return project.envVars && project.envVars.length ? project.envVars.map(evar => `ENV ${evar.name}="${evar.value}"`).join('\n') : ''*/
