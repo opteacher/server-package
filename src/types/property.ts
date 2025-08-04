@@ -77,7 +77,7 @@ export default class Property {
     }
     tgt.visible = src.visible || tgt.visible
     tgt.remark = src.remark || tgt.remark
-    if (typeof src.dftVal !== 'undefined') {
+    if (typeof src.dftVal !== 'undefined' && src.dftVal !== '') {
       switch (tgt.ptype) {
         case 'DateTime':
           tgt.dftVal = typeof src.dftVal === 'string' ? dayjs(src.dftVal) : src.dftVal
