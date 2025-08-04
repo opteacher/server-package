@@ -36,12 +36,12 @@ export default ({ mode }) =>
       port: 5174,
       proxy: {
         '^/server-package/(mdl|api)': {
-          target: 'http://192.168.1.11:4009',
+          target: 'http://124.28.221.82:6031',
           ws: true,
           changeOrigin: true
         },
         '/mqtt$': {
-          target: 'ws://192.168.1.11:8083/mqtt',
+          target: 'ws://124.28.221.82:8083/mqtt',
           ws: true,
           changeOrigin: true
         }
