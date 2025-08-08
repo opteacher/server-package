@@ -60,6 +60,7 @@ import {
 import Status from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
 import { pluralize, singularize, capitalize } from 'inflection'
+import DbSelect from '@/components/proj/DbSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -112,13 +113,16 @@ const optUrl = computed(() =>
 )
 const mdlVwMod = ref<'list' | 'grid'>('list')
 
-watch(() => dkrLogs.collapsed, () => {
-  if (dkrLogs.collapsed) {
-    dkrLogs.emitter.emit('stop')
-  } else {
-    dkrLogs.emitter.emit('start')
+watch(
+  () => dkrLogs.collapsed,
+  () => {
+    if (dkrLogs.collapsed) {
+      dkrLogs.emitter.emit('stop')
+    } else {
+      dkrLogs.emitter.emit('start')
+    }
   }
-})
+)
 
 async function refresh() {
   await store.dispatch('project/refresh')
@@ -272,6 +276,12 @@ function onSwitchMdlVw() {
                   随机生成
                 </a-button>
               </template>
+              <template #databaseSFX="{ formState }">
+                <DbSelect
+                  :form="formState"
+                  @update:form="(dbKey: any) => (formState.database = dbKey)"
+                />
+              </template>
             </FormDialog>
             <a-tooltip v-if="project.status.stat !== 'stopped'">
               <template #title>查看日志</template>
@@ -298,11 +308,11 @@ function onSwitchMdlVw() {
               <a-descriptions-item label="独立部署（不依赖server-package）">
                 {{ project.independ ? '是' : '否' }}
               </a-descriptions-item>
-              <a-descriptions-item v-if="project.bldCmds" label="构建时命令" :span="4">
+              <a-descriptions-item v-if="project.buildCmds" label="构建时命令" :span="4">
                 <a-typography-paragraph
                   class="whitespace-pre-line"
                   :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-                  :content="project.bldCmds"
+                  :content="project.buildCmds"
                 />
               </a-descriptions-item>
               <a-descriptions-item v-if="project.runCmds" label="运行时命令" :span="4">

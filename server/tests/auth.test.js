@@ -42,7 +42,7 @@ describe('# 权限服务', () => {
       port: 2000,
       database: ['mongo', 'test'],
       dropDbs: true,
-      bldCmds: 'echo "Hello World"',
+      buildCmds: 'echo "Hello World"',
       auth: {
         model: '',
         skips: [],
@@ -283,7 +283,7 @@ describe('# 权限服务', () => {
           port: 2000,
           database: ['mongo', 'test'],
           dropDbs: true,
-          bldCmds: 'echo "Hello World"',
+          buildCmds: 'echo "Hello World"',
           auth: {
             model: '',
             skips: [],

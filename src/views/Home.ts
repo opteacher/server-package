@@ -18,7 +18,9 @@ import { createVNode } from 'vue'
 
 export const emitter = new Emitter()
 
-emitter.on('show', async () => {
+emitter.on('show', updateDbOpns)
+
+export async function updateDbOpns() {
   emitter.emit('update:mprop', {
     'database.options': await api.databases().then((dbs: DataBase[]) =>
       dbs.map(db => ({
@@ -27,7 +29,7 @@ emitter.on('show', async () => {
       }))
     )
   })
-})
+}
 
 export const columns = [
   new Column('名称', 'name'),
@@ -103,7 +105,7 @@ export const mapper = new Mapper({
     label: '高级',
     type: 'FormGroup',
     items: {
-      bldCmds: {
+      buildCmds: {
         label: '构建时命令',
         type: 'Textarea',
         maxRows: 6
@@ -125,6 +127,12 @@ export const mapper = new Mapper({
         label: '开启https服务',
         type: 'Switch',
         chkLabels: ['未开启', '已开启']
+      },
+      basicTools: {
+        label: '基础工具',
+        type: 'Switch',
+        chkLabels: ['不安装', '安装'],
+        placeholder: 'vim net-tools telnet'
       },
       independ: {
         label: '独立部署',

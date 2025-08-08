@@ -7,7 +7,7 @@
   "thread": 0,
   "database": "6563f9a4245342bd0a2651e9",
   "dropDbs": false,
-  "bldCmds": "",
+  "buildCmds": "",
   "https": false,
   "independ": false,
   "envVars": [],

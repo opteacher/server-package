@@ -12,7 +12,8 @@ export default db.defineModel(
     logPid: db.PropTypes.Number,
     database: { type: db.PropTypes.Id, ref: 'database' },
     dropDbs: db.PropTypes.Boolean, // 是否在同步时清空数据库
-    bldCmds: db.PropTypes.String, // 构建时命令
+    basicTools: db.PropTypes.Boolean, //是否安装基本工具
+    buildCmds: db.PropTypes.String, // 构建时命令
     runCmds: db.PropTypes.String, // 运行后命令
     extFiles: db.PropTypes.Array, // 跟随项目的附加文件
     https: db.PropTypes.Boolean,

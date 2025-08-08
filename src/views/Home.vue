@@ -85,6 +85,22 @@
           </a-button>
         </div>
       </template>
+      <template #databaseEDT="{ editing, mapper }">
+        <DbSelect :form="editing" @update:form="(dbKey: any) => (editing.database = dbKey)">
+          <template #select>
+            <a-select
+              class="flex-1"
+              :options="mapper.options"
+              :value="editing.database"
+              :placeholder="mapper.placeholder || '请选择'"
+              :allowClear="mapper.allowClear"
+              :show-search="mapper.searchable"
+              @dropdownVisibleChange="mapper.onDropdown"
+              @change="(newVal: any) => setProp(editing, 'database', newVal)"
+            />
+          </template>
+        </DbSelect>
+      </template>
     </EditableTable>
   </LytMain>
 </template>
@@ -105,6 +121,7 @@ import { useStore } from 'vuex'
 import { pjtAPI as api } from '../apis'
 import LytMain from '../layouts/LytMain.vue'
 import { columns, emitter, mapper } from './Home'
+import DbSelect from '@/components/proj/DbSelect.vue'
 
 const store = useStore()
 

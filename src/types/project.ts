@@ -22,7 +22,8 @@ export default class Project {
   thread: number
   database?: DataBase
   dropDbs: boolean
-  bldCmds: string
+  basicTools: boolean
+  buildCmds: string
   extFiles: any[]
   runCmds: string
   https: boolean
@@ -49,7 +50,8 @@ export default class Project {
     this.thread = 0
     this.database = undefined
     this.dropDbs = false
-    this.bldCmds = ''
+    this.basicTools = false
+    this.buildCmds = ''
     this.extFiles = []
     this.runCmds = ''
     this.https = false
@@ -77,7 +79,8 @@ export default class Project {
     this.thread = 0
     this.database = undefined
     this.dropDbs = false
-    this.bldCmds = ''
+    this.basicTools = false
+    this.buildCmds = ''
     this.extFiles = []
     this.runCmds = ''
     this.https = false

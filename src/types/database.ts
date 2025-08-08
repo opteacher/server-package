@@ -2,6 +2,11 @@
 
 import { gnlCpy } from "@/utils"
 
+export const dbDict = {
+  mysql: { port: 3306, label: 'MySQL' },
+  mongo: { port: 27017, label: 'MongoDB' }
+}
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export default class DataBase {
   key: string

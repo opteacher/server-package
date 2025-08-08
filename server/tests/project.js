@@ -36,7 +36,7 @@ describe('# 项目服务', () => {
       port: 2000,
       database: ['mongo', 'test'],
       dropDbs: true,
-      bldCmds: 'echo "Hello World"'
+      buildCmds: 'echo "Hello World"'
     })
     pid = project._id
 

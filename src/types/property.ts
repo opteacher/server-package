@@ -2,7 +2,7 @@
 
 import dayjs from 'dayjs'
 import { BaseTypes } from '.'
-import { notUndefOrNull } from '@/utils'
+import { notUndefAndNull } from '@/utils'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export default class Property {
@@ -78,7 +78,7 @@ export default class Property {
     }
     tgt.visible = src.visible || tgt.visible
     tgt.remark = src.remark || tgt.remark
-    if (notUndefOrNull(src.dftVal) && src.dftVal !== '') {
+    if (notUndefAndNull(src.dftVal) && src.dftVal !== '') {
       switch (tgt.ptype) {
         case 'DateTime':
           tgt.dftVal = typeof src.dftVal === 'string' ? dayjs(src.dftVal) : src.dftVal
