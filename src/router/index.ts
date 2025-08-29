@@ -23,117 +23,121 @@ import Apis from '../views/Apis.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/login',
+    path: '/server-package/login',
     name: 'Login',
     component: Login
   },
   {
-    path: '/dash',
+    path: '/server-package/dash',
     name: 'Dashboard',
     component: Dash,
     meta: { reqLogin: true }
   },
   {
-    path: '/',
-    redirect: '/home'
+    path: '/server-package/',
+    redirect: '/server-package/home'
   },
   {
-    path: '/home',
+    path: '/',
+    redirect: '/server-package/home'
+  },
+  {
+    path: '/server-package/home',
     name: 'Home',
     component: Home,
     meta: { reqLogin: true }
   },
   {
-    path: '/database',
+    path: '/server-package/database',
     name: 'Database',
     component: Database,
     meta: { reqLogin: true }
   },
   {
-    path: '/dependency',
+    path: '/server-package/dependency',
     name: 'Dependency',
     component: Dependency,
     meta: { reqLogin: true }
   },
   {
-    path: '/component',
+    path: '/server-package/component',
     name: 'Component',
     component: Component,
     meta: { reqLogin: true }
   },
   {
-    path: '/test',
+    path: '/server-package/test',
     name: 'Test',
     component: Test
   },
   {
-    path: '/project/:pid',
+    path: '/server-package/project/:pid',
     name: 'Project',
     component: Project,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/model/:mid',
+    path: '/server-package/project/:pid/model/:mid',
     name: 'Model',
     component: Model,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/flow/:sid',
+    path: '/server-package/project/:pid/flow/:sid',
     name: 'Flow',
     component: Flow,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/typo/:tid/func/:fid',
+    path: '/server-package/project/:pid/typo/:tid/func/:fid',
     name: 'Func',
     component: Flow,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/auth/audit',
+    path: '/server-package/project/:pid/auth/audit',
     name: 'Authorization',
     component: Auth,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/auth/apis',
+    path: '/server-package/project/:pid/auth/apis',
     name: 'AuthAPIs',
     component: Apis,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/mid/login',
+    path: '/server-package/project/:pid/mid/login',
     name: 'MiddleLogin',
     component: MidLgn,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/mid/navigate',
+    path: '/server-package/project/:pid/mid/navigate',
     name: 'MiddleNavigate',
     component: MidNav,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/mid/dashboard',
+    path: '/server-package/project/:pid/mid/dashboard',
     name: 'MiddleDashboard',
     component: MidDsb,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/model/:mid/form',
+    path: '/server-package/project/:pid/model/:mid/form',
     name: 'Form',
     component: Form,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/model/:mid/table',
+    path: '/server-package/project/:pid/model/:mid/table',
     name: 'Table',
     component: Table,
     meta: { reqLogin: true }
   },
   {
-    path: '/project/:pid/model/:mid/demo',
+    path: '/server-package/project/:pid/model/:mid/demo',
     name: 'Demo',
     component: Demo,
     meta: { reqLogin: true }
@@ -141,7 +145,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('server-package'),
+  history: createWebHistory(),
   routes
 })
 

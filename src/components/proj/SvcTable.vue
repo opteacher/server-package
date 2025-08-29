@@ -82,14 +82,14 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
     onOk: async () => {
       await api.flow.import(params.svcId, { impFile: params.impFile[0] })
       impDlg.emitter.emit('update:visible', false)
-      router.push(`/project/${pid.value}/flow/${params.svcId}`)
+      router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
     }
   })
 }
 async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Service) {
   switch (selKey) {
     case 'design':
-      await router.push(`/project/${pid.value}/flow/${svc.key}`)
+      await router.push(`/server-package/project/${pid.value}/flow/${svc.key}`)
       break
     case 'export':
       await api.flow.export(svc.key)

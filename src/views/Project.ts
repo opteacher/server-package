@@ -395,7 +395,7 @@ export const clsFunMapper = new Mapper({
     onClick: (func: Func) => {
       const project = store.getters['project/ins'] as Project
       const typo = project.typos.find(typo => typo.funcs.find(fun => fun.key === func.key)) as Typo
-      router.push(`/project/${project.key}/typo/${typo.key}/func/${func.key}`)
+      router.push(`/server-package/project/${project.key}/typo/${typo.key}/func/${func.key}`)
     }
   }
 })

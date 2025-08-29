@@ -36,7 +36,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, typAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, propAPI, typAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -107,7 +107,10 @@ const dkrLogs = reactive<{
   content: '',
   emitter: new TinyEmitter()
 })
-const actMdlTab = ref('struct')
+const actModel = reactive({
+  tab: 'struct',
+  sel: new Model()
+})
 const optUrl = computed(() =>
   project.value.status.stat === 'running'
     ? `/server-package/api/v1/project/${pid}/docker/logs/access`
@@ -182,7 +185,7 @@ async function onExpClsSbt(formData: any) {
 function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
   switch (selKey) {
     case 'design':
-      router.push(`/project/${pid}/model/${model.key}/form`)
+      router.push(`/server-package/project/${pid}/model/${model.key}/form`)
       break
     case 'export':
       onExpClsClick(model)
@@ -209,6 +212,20 @@ function onSwitchMdlVw() {
 }
 function onRandPortGen(form: object) {
   setProp(form, 'port', Math.floor(Math.random() * (65535 - 2000) + 2000))
+}
+async function onPropSave(prop: Property) {
+  if (prop.key === '') {
+    await propAPI(actModel.sel, refresh).add(prop)
+  } else {
+    await propAPI(actModel.sel, refresh).update(prop)
+  }
+  propEmitter.emit('update:visible', false)
+  propEmitter.emit('refresh')
+  actModel.sel.reset()
+}
+function onPropClick(model: Model, prop?: Property) {
+  Model.copy(model, actModel.sel, true)
+  propEmitter.emit('update:visible', prop ? { show: true, object: prop } : true)
 }
 </script>
 
@@ -323,7 +340,7 @@ function onRandPortGen(form: object) {
             </template>
           </a-descriptions>
         </a-page-header>
-        <a-tabs>
+        <a-tabs :tabBarStyle="{ 'margin-bottom': 0 }">
           <template #rightExtra>
             <a-button @click="onSwitchMdlVw">
               <template #icon>
@@ -385,36 +402,19 @@ function onRandPortGen(form: object) {
                 </a-popover>
               </template>
               <template #expandedRowRender="{ record: model }">
-                <a-tabs v-model:activeKey="actMdlTab" type="card">
+                <a-tabs v-model:activeKey="actModel.tab" type="card">
                   <a-tab-pane key="struct" tab="结构">
                     <EditableTable
                       title="字段"
                       :need-fm-dlg="false"
                       size="small"
-                      :api="{
-                        all: () => model.props,
-                        add: (data: any) =>
-                          reqPost('model/' + model.key + '/property', data, { type: 'api' }).then(
-                            refresh
-                          ),
-                        remove: (prop: any) =>
-                          reqDelete('model/' + model.key, 'property/' + prop.key, {
-                            type: 'api'
-                          }).then(refresh),
-                        update: (data: any) =>
-                          reqPut('model/' + model.key, 'property/' + data.key, data, {
-                            type: 'api'
-                          }).then(refresh)
-                      }"
+                      :api="propAPI(model, refresh)"
                       :columns="propColumns"
                       :mapper="propMapper"
                       :emitter="propEmitter"
                       :new-fun="() => newOne(Property)"
-                      @add="() => propEmitter.emit('update:visible', true)"
-                      @edit="
-                        (record: any) =>
-                          propEmitter.emit('update:visible', { show: true, object: record })
-                      "
+                      @add="() => onPropClick(model)"
+                      @edit="(record: any) => onPropClick(model, record)"
                       @save="refresh"
                       @delete="refresh"
                     >
@@ -527,6 +527,7 @@ function onRandPortGen(form: object) {
       :new-fun="() => newOne(Property)"
       :emitter="propEmitter"
       :mapper="propMapper"
+      @submit="onPropSave"
     >
       <template #relative="{ formState }: any">
         <a-input-group>

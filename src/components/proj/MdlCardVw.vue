@@ -83,7 +83,7 @@ onMounted(async () => {
 function onMdlOprClick(selKey: 'design' | 'export' | 'delete', model: Model) {
   switch (selKey) {
     case 'design':
-      router.push(`/project/${pid}/model/${model.key}/form`)
+      router.push(`/server-package/project/${pid}/model/${model.key}/form`)
       break
     case 'export':
       // onExpClsClick(model)

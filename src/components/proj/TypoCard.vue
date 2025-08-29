@@ -30,7 +30,7 @@
         v-for="func of typo.funcs"
         :key="func.key"
         class="px-1 pb-0.5 hover:bg-gray-200"
-        @click.stop="() => router.push(`/project/${pid}/typo/${typo.key}/func/${func.key}`)"
+        @click.stop="() => router.push(`/server-package/project/${pid}/typo/${typo.key}/func/${func.key}`)"
       >
         <b>+</b>
         {{ (func.isAsync ? 'async ' : '') + func.name }}&nbsp;(

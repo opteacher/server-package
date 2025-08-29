@@ -1,17 +1,11 @@
-import store from '@/store'
+import Model from '@/types/model'
 import { reqDelete, reqPost, reqPut } from '@/utils'
 
-export default {
-  add: (data: any) =>
-    reqPost('model/' + store.getters['model/ins'].key + '/property', data, { type: 'api' }),
+export default (model: Model, refresh: () => any) => ({
+  all: () => model.props,
+  add: (data: any) => reqPost(`model/${model.key}/property`, data, { type: 'api' }).then(refresh),
   remove: (prop: any) =>
-    reqDelete('model/' + store.getters['model/ins'].key, 'property/' + prop.key, { type: 'api' }),
+    reqDelete(`model/${model.key}`, `property/${prop.key}`, { type: 'api' }).then(refresh),
   update: (data: any) =>
-    reqPut('model/' + store.getters['model/ins'].key, 'property/' + data.key, data, {
-      type: 'api'
-    }),
-  all: () => [],
-  detail: (key: any) => {
-    console.log(key)
-  }
-}
+    reqPut(`model/${model.key}`, `property/${data.key}`, data, { type: 'api' }).then(refresh)
+})

@@ -105,6 +105,6 @@ const mdlName = computed(() => store.getters['model/ins'].name)
 const collapsed = ref<boolean>(false)
 
 function onItemSelected({ key }: { key: any }) {
-  router.push(key)
+  router.push('/server-package' + key)
 }
 </script>
