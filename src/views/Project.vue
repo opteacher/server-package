@@ -61,6 +61,8 @@ import Status from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
 import { pluralize, singularize, capitalize } from 'inflection'
 import DbSelect from '@/components/proj/DbSelect.vue'
+import EditableTable from '@lib/components/EditableTable.vue'
+import FormDialog from '@lib/components/FormDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -205,6 +207,9 @@ function onSyncFinish() {
 function onSwitchMdlVw() {
   mdlVwMod.value = mdlVwMod.value === 'list' ? 'grid' : 'list'
 }
+function onRandPortGen(form: object) {
+  setProp(form, 'port', Math.floor(Math.random() * (65535 - 2000) + 2000))
+}
 </script>
 
 <template>
@@ -267,14 +272,7 @@ function onSwitchMdlVw() {
               @submit="onConfigSbt"
             >
               <template #portSFX="{ formState }">
-                <a-button
-                  @click="
-                    () =>
-                      setProp(formState, 'port', Math.floor(Math.random() * (65535 - 2000) + 2000))
-                  "
-                >
-                  随机生成
-                </a-button>
+                <a-button @click="() => onRandPortGen(formState)">随机生成</a-button>
               </template>
               <template #databaseSFX="{ formState }">
                 <DbSelect
@@ -349,12 +347,12 @@ function onSwitchMdlVw() {
               @save="refresh"
               @delete="refresh"
             >
-              <template #name="{ record: model }">
+              <template #name="{ record: model }: any">
                 <a :href="`/server-package/project/${pid}/model/${model.key}`" @click.stop>
                   {{ model.name }}
                 </a>
               </template>
-              <template #methods="{ record: model }">
+              <template #methods="{ record: model }: any">
                 <a-tooltip v-for="svc in mSvcMapper[model.key]" :key="svc.key">
                   <template #title>{{ svc.path }}</template>
                   <a-tag class="cursor-pointer" :color="mthdClrs[svc.method]">
@@ -362,7 +360,7 @@ function onSwitchMdlVw() {
                   </a-tag>
                 </a-tooltip>
               </template>
-              <template #methodsEDT="{ editing: model }">
+              <template #methodsEDT="{ editing: model }: any">
                 <MsvcSelect
                   :methods="model.methods"
                   @update:methods="(mthds: Method[]) => setProp(model, 'methods', mthds)"
@@ -391,6 +389,7 @@ function onSwitchMdlVw() {
                   <a-tab-pane key="struct" tab="结构">
                     <EditableTable
                       title="字段"
+                      :need-fm-dlg="false"
                       size="small"
                       :api="{
                         all: () => model.props,
@@ -411,70 +410,22 @@ function onSwitchMdlVw() {
                       :mapper="propMapper"
                       :emitter="propEmitter"
                       :new-fun="() => newOne(Property)"
+                      @add="() => propEmitter.emit('update:visible', true)"
+                      @edit="
+                        (record: any) =>
+                          propEmitter.emit('update:visible', { show: true, object: record })
+                      "
                       @save="refresh"
                       @delete="refresh"
                     >
-                      <template #relative="{ record }">
+                      <template #relative="{ record }: any">
                         <partition-outlined
                           v-if="record.relative.isArray"
                           :rotate="record.relative.belong ? 180 : 0"
                         />
                         {{ record.relative.model }}
                       </template>
-                      <template #relativeEDT="{ editing }">
-                        <a-input-group>
-                          <a-row :gutter="8" type="flex" justify="space-around" align="middle">
-                            <a-col :span="6" class="text-center">
-                              <a-form-item
-                                class="mb-0"
-                                ref="relative.belong"
-                                name="relative.belong"
-                              >
-                                <a-radio-group
-                                  class="w-full"
-                                  :disabled="mdlOpns.length === 1"
-                                  :value="editing.relative.belong ? 'belong' : 'has'"
-                                  button-style="solid"
-                                  @change="(e: any) => onRelMdlBelongChange(editing, e)"
-                                >
-                                  <a-radio-button class="w-1/2" value="belong">属于</a-radio-button>
-                                  <a-radio-button class="w-1/2" value="has">拥有</a-radio-button>
-                                </a-radio-group>
-                              </a-form-item>
-                            </a-col>
-                            <a-col :span="6" class="text-center">
-                              <a-form-item
-                                class="mb-0"
-                                ref="relative.isArray"
-                                name="relative.isArray"
-                              >
-                                <a-radio-group
-                                  class="w-full"
-                                  :disabled="mdlOpns.length === 1"
-                                  :value="editing.relative.isArray ? 'many' : 'one'"
-                                  button-style="solid"
-                                  @change="(e: any) => onRelMdlWhoChange(editing, e)"
-                                >
-                                  <a-radio-button class="w-1/2" value="many">多个</a-radio-button>
-                                  <a-radio-button class="w-1/2" value="one">一个</a-radio-button>
-                                </a-radio-group>
-                              </a-form-item>
-                            </a-col>
-                            <a-col :span="12">
-                              <a-form-item class="mb-0" ref="relative.model" name="relative.model">
-                                <a-select
-                                  class="w-full"
-                                  :disabled="mdlOpns.length === 1"
-                                  v-model:value="editing.relative.model"
-                                  :options="mdlOpns"
-                                  @change="(relMdl: string) => onRelMdlChange(editing, relMdl)"
-                                />
-                              </a-form-item>
-                            </a-col>
-                          </a-row>
-                        </a-input-group>
-                      </template>
-                      <template #remark="{ record: mdl }">
+                      <template #remark="{ record: mdl }: any">
                         <pre v-if="mdl.remark" class="max-w-xs">{{ mdl.remark }}</pre>
                         <template v-else>-</template>
                       </template>
@@ -546,7 +497,12 @@ function onSwitchMdlVw() {
             />
           </a-tab-pane>
         </a-tabs>
-        <SvcTable class="mt-10" :mapper="svcMapper" :columns="svcColumns" :emitter="svcEmitter" />
+        <SvcTable
+          class="mt-10 pb-5"
+          :mapper="svcMapper"
+          :columns="svcColumns"
+          :emitter="svcEmitter"
+        />
       </a-layout-content>
       <a-layout-sider
         class="pl-3"
@@ -566,5 +522,57 @@ function onSwitchMdlVw() {
         />
       </a-layout-sider>
     </a-layout>
+    <FormDialog
+      title="编辑字段"
+      :new-fun="() => newOne(Property)"
+      :emitter="propEmitter"
+      :mapper="propMapper"
+    >
+      <template #relative="{ formState }: any">
+        <a-input-group>
+          <a-row :gutter="8" type="flex" justify="space-around" align="middle">
+            <a-col :span="6" class="text-center">
+              <a-form-item class="mb-0" ref="relative.belong" name="relative.belong">
+                <a-radio-group
+                  class="w-full"
+                  :disabled="mdlOpns.length === 1"
+                  :value="formState.relative.belong ? 'belong' : 'has'"
+                  button-style="solid"
+                  @change="(e: any) => onRelMdlBelongChange(formState, e)"
+                >
+                  <a-radio-button class="w-1/2" value="belong">属于</a-radio-button>
+                  <a-radio-button class="w-1/2" value="has">拥有</a-radio-button>
+                </a-radio-group>
+              </a-form-item>
+            </a-col>
+            <a-col :span="6" class="text-center">
+              <a-form-item class="mb-0" ref="relative.isArray" name="relative.isArray">
+                <a-radio-group
+                  class="w-full"
+                  :disabled="mdlOpns.length === 1"
+                  :value="formState.relative.isArray ? 'many' : 'one'"
+                  button-style="solid"
+                  @change="(e: any) => onRelMdlWhoChange(formState, e)"
+                >
+                  <a-radio-button class="w-1/2" value="many">多个</a-radio-button>
+                  <a-radio-button class="w-1/2" value="one">一个</a-radio-button>
+                </a-radio-group>
+              </a-form-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-item class="mb-0" ref="relative.model" name="relative.model">
+                <a-select
+                  class="w-full"
+                  :disabled="mdlOpns.length === 1"
+                  v-model:value="formState.relative.model"
+                  :options="mdlOpns"
+                  @change="(relMdl: string) => onRelMdlChange(formState, relMdl)"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+        </a-input-group>
+      </template>
+    </FormDialog>
   </LytProject>
 </template>
