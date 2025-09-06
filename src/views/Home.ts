@@ -33,12 +33,11 @@ export async function updateDbOpns() {
 
 export const columns = [
   new Column('名称', 'name'),
-  new Column('中文', 'nickName'),
-  new Column('占用端口', 'port', { width: 100 }),
+  new Column('标题', 'nickName'),
+  new Column('占用端口', 'port'),
   new Column('数据库', 'database'),
-  new Column('独立部署', 'independ', { width: 80 }),
-  new Column('状态', 'status', { width: 80 }),
-  new Column('操作项目', 'operation', { width: 200 })
+  new Column('状态', 'status'),
+  new Column('操作项目', 'operation')
 ]
 
 const evarsEmitter = new Emitter()
