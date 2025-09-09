@@ -73,3 +73,4 @@ services:
       - /usr/bin/docker:/usr/bin/docker:ro
       - /usr/bin/com.docker.cli:/usr/bin/com.docker.cli:ro
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose:ro
+      - /tmp:/tmp
