@@ -44,11 +44,13 @@ export async function makeRequest(method, path) {
 export function genDefault(type, dftVal) {
   switch (type) {
     case 'Any':
+    case 'Unknown':
       return dftVal || 'null'
     case 'String':
     case 'LongStr':
       return `'${dftVal || ''}'`
     case 'Number':
+    case 'Decimal':
       return dftVal || '0'
     case 'Boolean':
       return typeof dftVal === 'undefined' ? 'false' : dftVal ? 'true' : 'false'
