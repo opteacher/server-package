@@ -52,7 +52,7 @@ export const mapper = new Mapper({
       { label: '后端', value: 'backend' }
     ],
     style: 'button',
-    disabled: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    disabled: [new Cond({ prop: 'key', compare: '!=', value: '' })],
     onChange: async (_pjt: Project, selected: 'frontend' | 'backend') => {
       emitter.emit('update:mprop', {
         'database.rules[0].required': selected === 'backend'
@@ -93,12 +93,12 @@ export const mapper = new Mapper({
     type: 'Select',
     options: [],
     rules: [{ required: true, message: '请选择数据库！', trigger: 'change' }],
-    display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+    display: [new Cond({ prop: 'ptype', compare: '!=', value: 'frontend' })]
   },
   dropDbs: {
     label: '启动时清空数据库',
     type: 'Checkbox',
-    display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+    display: [new Cond({ prop: 'ptype', compare: '!=', value: 'frontend' })]
   },
   commands: {
     label: '高级',
@@ -137,7 +137,7 @@ export const mapper = new Mapper({
         label: '独立部署',
         type: 'Checkbox',
         placeholder: '为true时项目将不依赖server-package，可以单独部署，但秘钥也将独立保存',
-        display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+        display: [new Cond({ prop: 'ptype', compare: '!=', value: 'frontend' })]
       },
       volumes: {
         label: '共享文件/夹',
@@ -200,13 +200,13 @@ export const mapper = new Mapper({
         label: '使用GPU资源',
         type: 'Checkbox',
         placeholder: '将直接使用所有显卡资源',
-        display: [new Cond({ key: 'ptype', cmp: '!=', val: 'frontend' })]
+        display: [new Cond({ prop: 'ptype', compare: '!=', value: 'frontend' })]
       }
     }
   },
   operation: {
     label: '操作项目',
-    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    display: [new Cond({ prop: 'key', compare: '!=', value: '' })],
     type: 'Button',
     inner: '删除项目',
     danger: true,

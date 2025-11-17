@@ -118,8 +118,8 @@ export const svcMapper = new Mapper({
     desc: '所在文件，可以直接选择为模型名',
     type: 'SelOrIpt',
     disabled: [
-      new Cond({ key: 'model', cmp: '!=', val: '' }),
-      new Cond({ key: 'model', cmp: '!=', val: undefined })
+      new Cond({ prop: 'model', compare: '!=', value: '' }),
+      new Cond({ prop: 'model', compare: '!=', value: undefined })
     ],
     rules: [{ required: true, message: '必须填入文件名！' }]
   },
@@ -128,8 +128,8 @@ export const svcMapper = new Mapper({
     desc: '指定函数，不可使用关键字：import',
     type: 'Input',
     disabled: [
-      new Cond({ key: 'model', cmp: '!=', val: '' }),
-      new Cond({ key: 'model', cmp: '!=', val: undefined })
+      new Cond({ prop: 'model', compare: '!=', value: '' }),
+      new Cond({ prop: 'model', compare: '!=', value: undefined })
     ],
     rules: [{ required: true, message: '必须填入方法！' }]
   },
@@ -137,8 +137,8 @@ export const svcMapper = new Mapper({
     label: '模型路由',
     type: 'Select',
     allowClear: true,
-    display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })],
-    disabled: [new Cond({ key: 'method', cmp: '=', val: 'LINK' })],
+    display: [new Cond({ prop: 'emit', compare: '==', value: 'api' })],
+    disabled: [new Cond({ prop: 'method', compare: '==', value: 'LINK' })],
     onChange: (svcState: Service, to: string) => {
       if (to) {
         svcState.name = (svcMapper['model'].options as OpnType[]).find(
@@ -162,15 +162,15 @@ export const svcMapper = new Mapper({
         svc.path = genMdlPath(svc)
       }
     },
-    display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })]
+    display: [new Cond({ prop: 'emit', compare: '==', value: 'api' })]
   },
   path: {
     label: '路由',
     type: 'Input',
-    display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })],
+    display: [new Cond({ prop: 'emit', compare: '==', value: 'api' })],
     disabled: [
-      new Cond({ key: 'model', cmp: '!=', val: '' }),
-      new Cond({ key: 'model', cmp: '!=', val: undefined })
+      new Cond({ prop: 'model', compare: '!=', value: '' }),
+      new Cond({ prop: 'model', compare: '!=', value: undefined })
     ],
     onChange: (svc: Service, path: string) => {
       if (!path.startsWith('/')) {
@@ -182,15 +182,15 @@ export const svcMapper = new Mapper({
     label: '是否返回',
     desc: '是否返回一个result，选择否则可以自定义返回体ctx.body = X',
     type: 'Checkbox',
-    display: [new Cond({ key: 'emit', cmp: '=', val: 'api' })]
+    display: [new Cond({ prop: 'emit', compare: '==', value: 'api' })]
   },
   condition: {
     label: '延时/定时条件',
     type: 'Unknown',
     display: {
       OR: [
-        new Cond({ key: 'emit', cmp: '=', val: 'timeout' }),
-        new Cond({ key: 'emit', cmp: '=', val: 'interval' })
+        new Cond({ prop: 'emit', compare: '==', value: 'timeout' }),
+        new Cond({ prop: 'emit', compare: '==', value: 'interval' })
       ]
     }
   },
@@ -391,7 +391,7 @@ export const clsFunMapper = new Mapper({
     label: '流程',
     type: 'Button',
     inner: '流程设计',
-    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    display: [new Cond({ prop: 'key', compare: '!=', value: '' })],
     onClick: (func: Func) => {
       const project = store.getters['project/ins'] as Project
       const typo = project.typos.find(typo => typo.funcs.find(fun => fun.key === func.key)) as Typo
@@ -475,7 +475,7 @@ export const clsMapper = new Mapper({
     type: 'Button',
     inner: '删除',
     danger: true,
-    display: [new Cond({ key: 'key', cmp: '!=', val: '' })],
+    display: [new Cond({ prop: 'key', compare: '!=', value: '' })],
     onClick: (typo: Typo) => {
       Modal.confirm({
         title: '确定删除适配器',

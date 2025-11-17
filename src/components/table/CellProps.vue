@@ -143,7 +143,7 @@ export default defineComponent({
       emitter: new Emitter(),
       visible: false,
       copy: (src: any, tgt: any): any => {
-        tgt = tgt || { prop: '', cmp: '=', value: '' }
+        tgt = tgt || { prop: '', compare: '==', value: '' }
         tgt.prop = src.prop || tgt.prop
         tgt.cmp = src.cmp || tgt.cmp
         tgt.value = src.value || tgt.value

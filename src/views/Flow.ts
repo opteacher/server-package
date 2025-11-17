@@ -126,15 +126,15 @@ const iptMapper = new Mapper({
     label: '对象值分量',
     desc: '如果还定义索引，则默认索引在前，分量在后（e.g: object[index].prop）',
     type: 'Input',
-    display: [new Cond({ key: 'vtype', cmp: '=', val: 'Object' })]
+    display: [new Cond({ prop: 'vtype', compare: '==', value: 'Object' })]
   },
   index: {
     label: '索引',
     type: 'Input',
     display: {
       OR: [
-        new Cond({ key: 'vtype', cmp: '=', val: 'Object' }),
-        new Cond({ key: 'vtype', cmp: '=', val: 'Array' })
+        new Cond({ prop: 'vtype', compare: '==', value: 'Object' }),
+        new Cond({ prop: 'vtype', compare: '==', value: 'Array' })
       ]
     }
   },
@@ -147,8 +147,8 @@ const iptMapper = new Mapper({
     })),
     display: {
       OR: [
-        new Cond({ key: 'vtype', cmp: '=', val: 'Object' }),
-        new Cond({ key: 'vtype', cmp: '=', val: 'Array' })
+        new Cond({ prop: 'vtype', compare: '==', value: 'Object' }),
+        new Cond({ prop: 'vtype', compare: '==', value: 'Array' })
       ]
     }
   },
@@ -166,13 +166,13 @@ export const nodeMapper = new Mapper({
   title: {
     label: '标题',
     type: 'Input',
-    display: [new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })],
+    display: [new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })],
     rules: [{ required: true, message: '标题不能为空！' }]
   },
   desc: {
     label: '描述',
     type: 'Textarea',
-    display: [new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })],
+    display: [new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })],
     maxRows: 2
   },
   ntype: {
@@ -188,8 +188,8 @@ export const nodeMapper = new Mapper({
     label: '开发者配置',
     type: 'FormGroup',
     display: [
-      new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-      new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+      new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+      new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })
     ],
     items: {
       inputs: {
@@ -197,8 +197,8 @@ export const nodeMapper = new Mapper({
         type: 'Table',
         emitter: new Emitter(),
         display: [
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })
         ],
         columns: [
           new Column('参数名', 'name'),
@@ -241,8 +241,8 @@ export const nodeMapper = new Mapper({
             1
           )
         },
-        addable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
-        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        addable: [new Cond({ prop: 'ntype', compare: '!=', value: 'traversal' })],
+        delable: [new Cond({ prop: 'ntype', compare: '!=', value: 'traversal' })],
         editable: true
       },
       outputs: {
@@ -250,10 +250,10 @@ export const nodeMapper = new Mapper({
         type: 'Table',
         emitter: new Emitter(),
         display: [
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condNode' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'subNode' })
         ],
         columns: [
           new Column('返回名', 'name'),
@@ -290,16 +290,16 @@ export const nodeMapper = new Mapper({
             1
           )
         },
-        delable: [new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' })],
+        delable: [new Cond({ prop: 'ntype', compare: '!=', value: 'traversal' })],
         editable: true
       },
       deps: {
         label: '依赖',
         type: 'TagList',
         display: [
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'subNode' })
         ],
         subProp: 'subTitle',
         flatItem: true,
@@ -319,10 +319,10 @@ export const nodeMapper = new Mapper({
         label: '代码',
         type: 'CodeEditor',
         display: [
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'subNode' })
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'traversal' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'subNode' })
         ],
         maxRows: 6
       },
@@ -332,10 +332,10 @@ export const nodeMapper = new Mapper({
         placeholder: '函数式调用相对更加优雅，不会做输入输出的替换，代码也不会变化，推荐使用',
         type: 'Checkbox',
         display: [
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condition' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'traversal' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'condNode' }),
-          new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condition' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'traversal' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'condNode' }),
+          new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })
         ],
         onChange: (node: Node, checked: boolean) => {
           if (node.ntype === 'subNode') {
@@ -364,8 +364,8 @@ export const nodeMapper = new Mapper({
         placeholder: '为真则会添加async/await前缀',
         display: {
           OR: [
-            new Cond({ key: 'ntype', cmp: '=', val: 'traversal' }),
-            new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })
+            new Cond({ prop: 'ntype', compare: '==', value: 'traversal' }),
+            new Cond({ prop: 'ntype', compare: '==', value: 'subNode' })
           ]
         }
       },
@@ -373,7 +373,7 @@ export const nodeMapper = new Mapper({
         label: '是否使用for……in循环',
         desc: '默认for……of循环',
         type: 'Checkbox',
-        display: [new Cond({ key: 'ntype', cmp: '=', val: 'traversal' })]
+        display: [new Cond({ prop: 'ntype', compare: '==', value: 'traversal' })]
       }
     }
   },
@@ -386,8 +386,8 @@ export const nodeMapper = new Mapper({
     label: '子流程',
     type: 'Button',
     display: [
-      new Cond({ key: 'key', cmp: '!=', val: '' }),
-      new Cond({ key: 'ntype', cmp: '=', val: 'subNode' })
+      new Cond({ prop: 'key', compare: '!=', value: '' }),
+      new Cond({ prop: 'ntype', compare: '==', value: 'subNode' })
     ],
     inner: '流程设计',
     onClick: async (node: Node) => {
@@ -399,8 +399,8 @@ export const nodeMapper = new Mapper({
     label: '操作',
     type: 'Button',
     display: [
-      new Cond({ key: 'key', cmp: '!=', val: '' }),
-      new Cond({ key: 'ntype', cmp: '!=', val: 'endNode' })
+      new Cond({ prop: 'key', compare: '!=', value: '' }),
+      new Cond({ prop: 'ntype', compare: '!=', value: 'endNode' })
     ],
     inner: '删除节点',
     danger: true,

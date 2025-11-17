@@ -84,7 +84,7 @@ export const propMapper = new Mapper({
     label: '字段名',
     type: 'Input',
     desc: '不可取名：type、offset、limit、opera！',
-    disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
+    disabled: [new Cond({ prop: 'relative.model', compare: '!=', value: '' })],
     rules: [{ required: true, message: '请输入字段名！', trigger: 'blur' }]
   },
   label: {
@@ -95,7 +95,7 @@ export const propMapper = new Mapper({
   ptype: {
     label: '字段类型',
     type: 'Select',
-    disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
+    disabled: [new Cond({ prop: 'relative.model', compare: '!=', value: '' })],
     options: typeOpns,
     rules: [{ required: true, message: '请选择字段类型！', trigger: 'change' }],
     onChange: (prop: Property) => updDftByType(prop.ptype, propEmitter)
@@ -103,13 +103,13 @@ export const propMapper = new Mapper({
   index: {
     label: '是否为索引',
     type: 'Checkbox',
-    disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
+    disabled: [new Cond({ prop: 'relative.model', compare: '!=', value: '' })],
     placeholder: '索引可加速查找记录，但样本空间必须够大'
   },
   unique: {
     label: '是否唯一',
     type: 'Checkbox',
-    disabled: [new Cond({ key: 'relative.model', cmp: '!=', val: '' })],
+    disabled: [new Cond({ prop: 'relative.model', compare: '!=', value: '' })],
     placeholder: '重复的记录无法持久化'
   },
   dftVal: {

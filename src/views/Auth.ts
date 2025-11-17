@@ -80,7 +80,7 @@ export const mapper = new Mapper({
         }
       })
     },
-    display: [new Cond({ key: 'model', cmp: '!=', val: '' })]
+    display: [new Cond({ prop: 'model', compare: '!=', value: '' })]
   }
 })
 
@@ -161,7 +161,7 @@ export const ruleMapper = new Mapper({
     label: '指定项',
     desc: '需要启动项目，才能在此检索到模型数据ID',
     type: 'EditList',
-    display: [new Cond({ key: 'value', cmp: '=', val: ':i' })],
+    display: [new Cond({ prop: 'value', compare: '==', value: ':i' })],
     inline: false,
     mapper: {
       model: {
