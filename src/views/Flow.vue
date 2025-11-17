@@ -5,7 +5,7 @@
         <template #icon><arrow-left-outlined /></template>
       </a-button>
       <a-breadcrumb>
-        <a-breadcrumb-item><a href="/">项目</a></a-breadcrumb-item>
+        <a-breadcrumb-item><a href="/server-package/">项目</a></a-breadcrumb-item>
         <a-breadcrumb-item>
           <a :href="`/server-package/project/${pid}`">
             {{ pname }}
