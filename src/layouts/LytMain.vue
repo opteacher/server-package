@@ -23,6 +23,10 @@
           <build-outlined />
           <span>组件</span>
         </a-menu-item>
+        <a-menu-item key="gateway">
+          <GatewayOutlined />
+          <span>网关</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout class="flex flex-col">
@@ -64,7 +68,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   PartitionOutlined,
-  BuildOutlined
+  BuildOutlined,
+  GatewayOutlined
 } from '@ant-design/icons-vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'

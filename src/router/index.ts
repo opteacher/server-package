@@ -20,6 +20,7 @@ import Project from '../views/Project.vue'
 import Table from '../views/Table.vue'
 import Test from '../views/Test.vue'
 import Apis from '../views/Apis.vue'
+import Gateway from '../views/Gateway.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -63,6 +64,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/server-package/component',
     name: 'Component',
     component: Component,
+    meta: { reqLogin: true }
+  },
+  {
+    path: '/server-package/gateway',
+    name: 'Gateway',
+    component: Gateway,
     meta: { reqLogin: true }
   },
   {

@@ -205,7 +205,6 @@ function onSyncFinish() {
   store.commit('project/SET_STATUS', 'loading')
   dkrLogs.emitter.emit('clean')
   dkrLogs.collapsed = false
-  console.log(store.getters['project/ins'])
 }
 function onSwitchMdlVw() {
   mdlVwMod.value = mdlVwMod.value === 'list' ? 'grid' : 'list'
@@ -254,7 +253,7 @@ function onPropClick(model: Model, prop?: Property) {
           <template #extra>
             <a-button v-if="isFront" @click="() => frtEmitter.emit('update:visible', true)">
               <template #icon><Html5Outlined /></template>
-              &nbsp;前端配置
+              前端配置
             </a-button>
             <FormDialog
               title="配置前端"
