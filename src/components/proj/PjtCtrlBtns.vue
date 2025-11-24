@@ -74,7 +74,25 @@ const emit = defineEmits(['sync_fin'])
 const store = useStore()
 const project = computed<Project>(() => store.getters['project/ins'])
 const emitter = new Emitter()
-const mapper = new Mapper({})
+const mapper = new Mapper(
+  project.value.database
+    ? {
+        dropDbs: {
+          label: '启动时清空数据库',
+          type: 'Checkbox'
+        }
+      }
+    : {
+        extFiles: {
+          label: '上传传送文件',
+          type: 'UploadFile',
+          path: '/server-package/api/v1/temp/file',
+          params: {
+            keepName: true
+          }
+        }
+      }
+)
 const visibles = reactive({
   ctrlMenu: false,
   tsfFiles: false

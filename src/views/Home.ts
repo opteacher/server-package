@@ -100,8 +100,8 @@ export const mapper = new Mapper({
     type: 'Checkbox',
     display: [new Cond({ prop: 'ptype', compare: '!=', value: 'frontend' })]
   },
-  commands: {
-    label: '高级',
+  docker: {
+    label: '容器配置',
     type: 'FormGroup',
     items: {
       buildCmds: {
