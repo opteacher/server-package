@@ -39,7 +39,9 @@
   </a-popover>
   <FormDialog
     title="同步"
-    width="30vw"
+    width="50vw"
+    lblAlgn="left"
+    :lblWid="6"
     :mapper="mapper"
     :new-fun="() => ({})"
     :emitter="emitter"
@@ -54,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { pjtAPI as api } from '@/apis'
+import { pjtAPI as api, pjtAPI } from '@/apis'
 import Project from '@/types/project'
 import Transfer from '@/types/transfer'
 import { newOne } from '@/utils'
@@ -66,6 +68,7 @@ import {
   UploadOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
+import { type UploadChangeParam } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, reactive } from 'vue'
 import { useStore } from 'vuex'
@@ -79,7 +82,9 @@ const mapper = new Mapper(
     ? {
         dropDbs: {
           label: '启动时清空数据库',
-          type: 'Checkbox'
+          type: 'Checkbox',
+          placeholder: '清空对应数据库会丢失数据，请慎重！',
+          onChange: () => ({})
         }
       }
     : {
@@ -87,8 +92,25 @@ const mapper = new Mapper(
           label: '上传传送文件',
           type: 'UploadFile',
           path: '/server-package/api/v1/temp/file',
+          directory: true,
           params: {
             keepName: true
+          },
+          onChange: async (_formState: any, info: UploadChangeParam | string[]) => {
+            if (!Array.isArray(info)) {
+              return
+            }
+            const extFiles = info as string[]
+            let dirPath = extFiles.find(
+              flPath => flPath.length === Math.min(...extFiles.map(fp => fp.length))
+            )
+            const sec = dirPath.indexOf('\\') !== -1 ? '\\' : '/'
+            dirPath = dirPath.split(sec).slice(0, -1).join(sec)
+            await pjtAPI.update({
+              key: project.value.key,
+              extFiles,
+              volumes: [{ host: dirPath, ctnr: '/app/public/' + project.value.name }]
+            })
           }
         }
       }

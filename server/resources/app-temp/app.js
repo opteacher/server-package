@@ -11,8 +11,6 @@ import views from 'koa-views'
 import cors from 'koa2-cors'
 import Agendash from 'agendash'
 import { db, agenda } from './utils/index.js'
-import { genApiRoutes } from './lib/backend-library/router/index.js'
-import { genMdlRoutes } from './lib/backend-library/models/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 /*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
 import dayjs from 'dayjs'
@@ -23,8 +21,6 @@ dayjs.extend(isBetween)
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.tz.setDefault(dayjs.tz.guess())
-const router = await genApiRoutes(path.resolve('routes'))
-const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'), db)
 const app = new Koa()
 app.proxy = true
 // 跨域配置
@@ -50,13 +46,19 @@ app.use(
 app.use(json())
 // 指定静态目录
 app.use(statc(path.resolve('public')))
-// 路径分配
-app.use(router.routes()).use(router.allowedMethods())
-// 模型路由
-app.use(models.router.routes()).use(models.router.allowedMethods())
-// Agendash路由
-for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
-  app.use(middleware)
+if (/*return typeof project.database !== 'undefined'*/) {
+  const { genApiRoutes } = await import('./lib/backend-library/router/index.js')
+  const { genMdlRoutes } = await import('./lib/backend-library/models/index.js')
+  const router = await genApiRoutes(path.resolve('routes'))
+  const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'), db)
+  // 路径分配
+  app.use(router.routes()).use(router.allowedMethods())
+  // 模型路由
+  app.use(models.router.routes()).use(models.router.allowedMethods())
+  // Agendash路由
+  for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
+    app.use(middleware)
+  }
 }
 // Https服务
 /*return project.https ? 'app.use(sslify.default())' : ''*/

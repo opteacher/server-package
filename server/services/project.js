@@ -330,43 +330,161 @@ export async function generate(pid) {
   logger.log('info', `生成项目到目录：${genPath}`)
   fs.rmSync(genPath, { recursive: true, force: true })
   fs.mkdirSync(genPath, { recursive: true })
-  if (!project.database) {
+  const deps = {}
+  if (project.database) {
+    logger.log('info', '从数据库获取项目模型……')
+    for (const index in project.models) {
+      const mid = project.models[index]
+      project.models[index] = await db.select(Model, { _index: mid }, { ext: true })
+    }
+    if (!project.auth) {
+      project.auth = {}
+    }
+    logger.log('info', '从数据库获取项目持久化源配置……')
+
+    fs.mkdirSync(Path.join(genPath, 'configs'))
+    const dbCfgTmp = Path.join(tmpPath, 'configs', 'db.toml')
+    const dbCfgGen = Path.join(genPath, 'configs', 'db.toml')
+    logger.log('info', `调整数据源配置文件：${dbCfgTmp} -> ${dbCfgGen}`)
+
+    adjustFile(dbCfgTmp, dbCfgGen, { database: project.database })
+    const mdlCfgTmp = Path.join(tmpPath, 'configs', 'models.toml')
+    const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
+    logger.log('info', `调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
+
+    adjustFile(mdlCfgTmp, mdlCfgGen, { project })
+    const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
+    const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
+    logger.log('info', `调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
+
+    adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
+    if (project.auth.model) {
+      const kmMdlTmp = Path.resolve('configs', 'keymatch_model.conf')
+      const kmMdlGen = Path.join(genPath, 'configs', 'keymatch_model.conf')
+      logger.log('info', `调整授权配置文件：${kmMdlTmp} -> ${kmMdlGen}`)
+      fs.copyFileSync(kmMdlTmp, kmMdlGen)
+    }
+
+    fs.mkdirSync(Path.join(genPath, 'utils'))
+    const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
+    const utilsGen = Path.join(genPath, 'utils', 'index.js')
+    logger.log('info', `调整工具文件：${utilsTmp} -> ${utilsGen}`)
+    adjustFile(utilsTmp, utilsGen)
+
+    const svcPath = Path.join(genPath, 'services')
+    fs.mkdirSync(svcPath)
+    if (project.auth.model) {
+      Object.assign(deps, await genAuth(project, genPath))
+    }
+    const mdlPath = Path.join(genPath, 'models')
+    const rotPath = Path.join(genPath, 'routes', project.name)
+    fs.mkdirSync(mdlPath)
+    fs.mkdirSync(rotPath, { recursive: true })
+    const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
+    const svcTmp = Path.join(tmpPath, 'services', 'temp.js')
+    const rotTmp = Path.join(tmpPath, 'routes', 'index.js')
+    const mdlData = fs.readFileSync(mdlTmp)
+    const svcData = fs.readFileSync(svcTmp)
+    const rotData = fs.readFileSync(rotTmp)
+    const svcRts = {}
+    const svcMap = {}
+    const varMap = {}
+    logger.log('info', '收集非模型服务实例……')
+    for (const service of project.services.filter(svc => !svc.model)) {
+      if (service.path) {
+        let pamIdx = service.path.indexOf('/:')
+        pamIdx = pamIdx === -1 ? service.path.length : pamIdx
+        const pathPfx = service.path.substring(0, pamIdx)
+        const rotGen = Path.join(rotPath, pathPfx)
+        fs.mkdirSync(rotGen, { recursive: true })
+        if (rotGen in svcRts) {
+          svcRts[rotGen].push({ service, pamIdx })
+        } else {
+          svcRts[rotGen] = [{ service, pamIdx }]
+        }
+      }
+
+      if (service.name === 'auth') {
+        logger.log('info', '跳过授权服务')
+        continue
+      }
+
+      let svcExt = await db.select(Service, { _index: service.id }, { ext: true, rawQuery: false })
+      if (svcExt.flow) {
+        const ndsInfo = await nodes2Codes(svcExt.flow.id)
+        svcExt.codes = ndsInfo.codes
+        svcExt.deps = _.unionBy(svcExt.deps, ndsInfo.deps, 'id')
+        if (svcExt.deps.length) {
+          logger.log('info', '收集项目依赖模块：')
+        }
+        for (const dep of svcExt.deps) {
+          if (!(dep.id in deps)) {
+            logger.log('info', `\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
+            deps[dep.id] = dep
+          }
+        }
+      }
+      if (!(service.name in svcMap)) {
+        svcMap[service.name] = [svcExt]
+      } else {
+        svcMap[service.name].push(svcExt)
+      }
+      if (svcExt.stcVars.length) {
+        logger.log(
+          'info',
+          '收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`)
+        )
+        if (!(service.name in varMap)) {
+          varMap[service.name] = Array.from(svcExt.stcVars)
+        } else {
+          const vnames = new Set(varMap[service.name].map(v => v.name))
+          varMap[service.name] = varMap[service.name].concat(
+            svcExt.stcVars.filter(v => !vnames.has(v.name))
+          )
+        }
+      }
+    }
+    logger.log('info', '生成非模型服务的路由……')
+    for (const [rotGen, services] of Object.entries(svcRts)) {
+      logger.log('info', `调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
+      adjustFile(rotData, `${rotGen}/index.js`, { services })
+    }
+    logger.log('info', '生成非模型服务实例……')
+    for (const [aname, services] of Object.entries(svcMap)) {
+      const svcDeps = Object.values(
+        Object.fromEntries(
+          services
+            .map(svc => svc.deps)
+            .filter(deps => deps)
+            .flat()
+            .map(dep => [dep.name, dep])
+        )
+      )
+      const svcGen = Path.join(svcPath, aname + '.js')
+      logger.log('info', `调整服务文件：${svcTmp} -> ${svcGen}`)
+      adjustFile(svcData, svcGen, { deps: svcDeps, services, stcVars: varMap[aname], genDefault })
+    }
+    logger.log('info', '生成模型实例……')
+    for (const model of project.models) {
+      const mid = model.id.toString()
+      model.services = project.services.filter(svc => svc.model && svc.model.toString() === mid)
+
+      model.props = model.props.map(prop =>
+        Object.assign(prop, { default: formatToStr(prop.default, prop.ptype) })
+      )
+
+      const mdlGen = Path.join(mdlPath, model.name + '.js')
+      logger.log('info', `调整模型文件：${mdlTmp} -> ${mdlGen}`)
+      adjustFile(mdlData, mdlGen, { model })
+    }
+  } else {
     logger.log('info', '检测为前端项目，进行前端项目的生成逻辑……')
-    return genFront(project)
   }
-  logger.log('info', '从数据库获取项目模型……')
-  for (const index in project.models) {
-    const mid = project.models[index]
-    project.models[index] = await db.select(Model, { _index: mid }, { ext: true })
-  }
-  if (!project.auth) {
-    project.auth = {}
-  }
-  logger.log('info', '从数据库获取项目持久化源配置……')
-  fs.mkdirSync(Path.join(genPath, 'configs'))
-  const dbCfgTmp = Path.join(tmpPath, 'configs', 'db.toml')
-  const dbCfgGen = Path.join(genPath, 'configs', 'db.toml')
-  logger.log('info', `调整数据源配置文件：${dbCfgTmp} -> ${dbCfgGen}`)
-  adjustFile(dbCfgTmp, dbCfgGen, { database: project.database })
-  const mdlCfgTmp = Path.join(tmpPath, 'configs', 'models.toml')
-  const mdlCfgGen = Path.join(genPath, 'configs', 'models.toml')
-  logger.log('info', `调整模型配置文件：${mdlCfgTmp} -> ${mdlCfgGen}`)
-  adjustFile(mdlCfgTmp, mdlCfgGen, { project })
-  const jobCfgTmp = Path.join(tmpPath, 'configs', 'job.toml')
-  const jobCfgGen = Path.join(genPath, 'configs', 'job.toml')
-  logger.log('info', `调整任务源配置文件：${jobCfgTmp} -> ${jobCfgGen}`)
-  adjustFile(jobCfgTmp, jobCfgGen, { mongodb: jobCfg.mongo })
   if (project.independ) {
     const svrCfgTmp = Path.join(tmpPath, 'configs', 'server.toml')
     const svrCfgGen = Path.join(genPath, 'configs', 'server.toml')
     logger.log('info', `调整服务配置文件：${svrCfgTmp} -> ${svrCfgGen}`)
     adjustFile(svrCfgTmp, svrCfgGen, { secret: svrCfg.secret })
-  }
-  if (project.auth.model) {
-    const kmMdlTmp = Path.resolve('configs', 'keymatch_model.conf')
-    const kmMdlGen = Path.join(genPath, 'configs', 'keymatch_model.conf')
-    logger.log('info', `调整授权配置文件：${kmMdlTmp} -> ${kmMdlGen}`)
-    fs.copyFileSync(kmMdlTmp, kmMdlGen)
   }
 
   const appTmp = Path.join(tmpPath, 'app.js')
@@ -393,21 +511,8 @@ export async function generate(pid) {
   logger.log('info', `复制库文件夹：${libTmp} -> ${libGen}`)
   copyDir(libTmp, libGen, { ignores: [Path.resolve(libTmp, 'node_modules')] })
 
-  fs.mkdirSync(Path.join(genPath, 'utils'))
-  const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
-  const utilsGen = Path.join(genPath, 'utils', 'index.js')
-  logger.log('info', `调整工具文件：${utilsTmp} -> ${utilsGen}`)
-  adjustFile(utilsTmp, utilsGen)
-
   logger.log('info', `生成public文件夹：${Path.join(genPath, 'public')}`)
   fs.mkdirSync(Path.join(genPath, 'public'))
-
-  const deps = {}
-  const svcPath = Path.join(genPath, 'services')
-  fs.mkdirSync(svcPath)
-  if (project.auth.model) {
-    Object.assign(deps, await genAuth(project, genPath))
-  }
 
   fs.mkdirSync(Path.join(genPath, 'views'))
   const vwsTmp = Path.join(tmpPath, 'views')
@@ -468,104 +573,6 @@ export async function generate(pid) {
     })
   }
 
-  const mdlPath = Path.join(genPath, 'models')
-  const rotPath = Path.join(genPath, 'routes', project.name)
-  fs.mkdirSync(mdlPath)
-  fs.mkdirSync(rotPath, { recursive: true })
-  const mdlTmp = Path.join(tmpPath, 'models', 'temp.js')
-  const svcTmp = Path.join(tmpPath, 'services', 'temp.js')
-  const rotTmp = Path.join(tmpPath, 'routes', 'index.js')
-  const mdlData = fs.readFileSync(mdlTmp)
-  const svcData = fs.readFileSync(svcTmp)
-  const rotData = fs.readFileSync(rotTmp)
-  const svcRts = {}
-  const svcMap = {}
-  const varMap = {}
-  logger.log('info', '收集非模型服务实例……')
-  for (const service of project.services.filter(svc => !svc.model)) {
-    if (service.path) {
-      let pamIdx = service.path.indexOf('/:')
-      pamIdx = pamIdx === -1 ? service.path.length : pamIdx
-      const pathPfx = service.path.substring(0, pamIdx)
-      const rotGen = Path.join(rotPath, pathPfx)
-      fs.mkdirSync(rotGen, { recursive: true })
-      if (rotGen in svcRts) {
-        svcRts[rotGen].push({ service, pamIdx })
-      } else {
-        svcRts[rotGen] = [{ service, pamIdx }]
-      }
-    }
-
-    if (service.name === 'auth') {
-      logger.log('info', '跳过授权服务')
-      continue
-    }
-
-    let svcExt = await db.select(Service, { _index: service.id }, { ext: true, rawQuery: false })
-    if (svcExt.flow) {
-      const ndsInfo = await nodes2Codes(svcExt.flow.id)
-      svcExt.codes = ndsInfo.codes
-      svcExt.deps = _.unionBy(svcExt.deps, ndsInfo.deps, 'id')
-      if (svcExt.deps.length) {
-        logger.log('info', '收集项目依赖模块：')
-      }
-      for (const dep of svcExt.deps) {
-        if (!(dep.id in deps)) {
-          logger.log('info', `\t${dep.name}${dep.version ? ': ' + dep.version : ''}`)
-          deps[dep.id] = dep
-        }
-      }
-    }
-    if (!(service.name in svcMap)) {
-      svcMap[service.name] = [svcExt]
-    } else {
-      svcMap[service.name].push(svcExt)
-    }
-    if (svcExt.stcVars.length) {
-      logger.log('info', '收集全局变量：\n' + svcExt.stcVars.map(v => `\t${v.name}: ${v.vtype}\n`))
-      if (!(service.name in varMap)) {
-        varMap[service.name] = Array.from(svcExt.stcVars)
-      } else {
-        const vnames = new Set(varMap[service.name].map(v => v.name))
-        varMap[service.name] = varMap[service.name].concat(
-          svcExt.stcVars.filter(v => !vnames.has(v.name))
-        )
-      }
-    }
-  }
-  logger.log('info', '生成非模型服务的路由……')
-  for (const [rotGen, services] of Object.entries(svcRts)) {
-    logger.log('info', `调整路由文件：${rotTmp} -> ${rotGen}/index.js`)
-    adjustFile(rotData, `${rotGen}/index.js`, { services })
-  }
-  logger.log('info', '生成非模型服务实例……')
-  for (const [aname, services] of Object.entries(svcMap)) {
-    const svcDeps = Object.values(
-      Object.fromEntries(
-        services
-          .map(svc => svc.deps)
-          .filter(deps => deps)
-          .flat()
-          .map(dep => [dep.name, dep])
-      )
-    )
-    const svcGen = Path.join(svcPath, aname + '.js')
-    logger.log('info', `调整服务文件：${svcTmp} -> ${svcGen}`)
-    adjustFile(svcData, svcGen, { deps: svcDeps, services, stcVars: varMap[aname], genDefault })
-  }
-  logger.log('info', '生成模型实例……')
-  for (const model of project.models) {
-    const mid = model.id.toString()
-    model.services = project.services.filter(svc => svc.model && svc.model.toString() === mid)
-
-    model.props = model.props.map(prop =>
-      Object.assign(prop, { default: formatToStr(prop.default, prop.ptype) })
-    )
-
-    const mdlGen = Path.join(mdlPath, model.name + '.js')
-    logger.log('info', `调整模型文件：${mdlTmp} -> ${mdlGen}`)
-    adjustFile(mdlData, mdlGen, { model })
-  }
   const pkgTmp = Path.join(tmpPath, 'package.json')
   const pkgGen = Path.join(genPath, 'package.json')
   logger.log('info', `调整package文件：${pkgTmp} -> ${pkgGen}`)

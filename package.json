@@ -44,7 +44,7 @@
     "@types/file-saver": "^2.0.6",
     "@types/lodash": "^4.14.182",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^20.11.19",
+    "@types/node": "^20.19.25",
     "@types/paho-mqtt": "^1.0.10",
     "@types/qs": "^6.9.9",
     "@types/resize-observer-browser": "^0.1.6",
