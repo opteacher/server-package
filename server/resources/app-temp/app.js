@@ -10,7 +10,6 @@ import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
 import Agendash from 'agendash'
-import { db, agenda } from './utils/index.js'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 /*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
 import dayjs from 'dayjs'
@@ -49,6 +48,7 @@ app.use(statc(path.resolve('public')))
 if (/*return typeof project.database !== 'undefined'*/) {
   const { genApiRoutes } = await import('./lib/backend-library/router/index.js')
   const { genMdlRoutes } = await import('./lib/backend-library/models/index.js')
+  const { db, agenda } = await import('./utils/index.js')
   const router = await genApiRoutes(path.resolve('routes'))
   const models = await genMdlRoutes(path.resolve('models'), path.resolve('configs', 'models'), db)
   // 路径分配
