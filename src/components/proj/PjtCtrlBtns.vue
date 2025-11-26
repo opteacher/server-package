@@ -70,7 +70,7 @@ import {
 import Mapper from '@lib/types/mapper'
 import { type UploadChangeParam } from 'ant-design-vue'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 
 const emit = defineEmits(['sync_fin'])
@@ -84,12 +84,13 @@ const mapper = new Mapper(
           label: '启动时清空数据库',
           type: 'Checkbox',
           placeholder: '清空对应数据库会丢失数据，请慎重！',
-          onChange: () => ({})
+          onChange: (_formState: any, dropDbs: boolean) =>
+            pjtAPI.update({ key: project.value.key, dropDbs })
         }
       }
     : {
         extFiles: {
-          label: '上传传送文件',
+          label: '上传构建的文件夹',
           type: 'UploadFile',
           path: '/server-package/api/v1/temp/file',
           directory: true,
@@ -98,23 +99,31 @@ const mapper = new Mapper(
           },
           onChange: async (_formState: any, info: UploadChangeParam | string[]) => {
             if (!Array.isArray(info)) {
+              const ucp = info as UploadChangeParam
+              if (ucp.fileList.every(fi => typeof fi.response !== 'undefined')) {
+                dirDict.value = Object.fromEntries(
+                  ucp.fileList.map(fi => [fi.response.result, fi.originFileObj.webkitRelativePath])
+                )
+              }
               return
             }
             const extFiles = info as string[]
-            let dirPath = extFiles.find(
+            let rootPath = extFiles.find(
               flPath => flPath.length === Math.min(...extFiles.map(fp => fp.length))
             )
-            const sec = dirPath.indexOf('\\') !== -1 ? '\\' : '/'
-            dirPath = dirPath.split(sec).slice(0, -1).join(sec)
+            const sec = rootPath.indexOf('\\') !== -1 ? '\\' : '/'
+            rootPath = rootPath.split(sec).slice(0, -1).join(sec)
+            console.log(rootPath)
             await pjtAPI.update({
               key: project.value.key,
               extFiles,
-              volumes: [{ host: dirPath, ctnr: '/app/public/' + project.value.name }]
+              volumes: [{ host: rootPath, ctnr: '/app/public/' + project.value.name }]
             })
           }
         }
       }
 )
+const dirDict = ref<Record<string, string>>({})
 const visibles = reactive({
   ctrlMenu: false,
   tsfFiles: false
@@ -124,7 +133,7 @@ function onProjCtrlClick({ key }: { key: 'sync_proj' | 'stop_proj' | 'send_files
   const project = store.getters['project/ins']
   switch (key) {
     case 'sync_proj':
-      emitter.emit('update:visible', true)
+      emitter.emit('update:visible', { show: true, object: project.value })
       break
     case 'stop_proj':
       api.stop(project.key)

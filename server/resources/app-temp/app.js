@@ -9,7 +9,6 @@ import sslify from 'koa-sslify'
 import statc from 'koa-static'
 import views from 'koa-views'
 import cors from 'koa2-cors'
-import Agendash from 'agendash'
 /*return project.auth.model ? 'import { auth } from \'./services/auth.js\'' : ''*/
 /*return start_svcs.concat(stop_svcs).map(svc => `import { ${svc.interface} } from \'./services/${svc.name}.js\'`).join('\n')*/
 import dayjs from 'dayjs'
@@ -55,10 +54,6 @@ if (/*return typeof project.database !== 'undefined'*/) {
   app.use(router.routes()).use(router.allowedMethods())
   // 模型路由
   app.use(models.router.routes()).use(models.router.allowedMethods())
-  // Agendash路由
-  for (const middleware of Agendash(agenda, { middleware: 'koa' })) {
-    app.use(middleware)
-  }
 }
 // Https服务
 /*return project.https ? 'app.use(sslify.default())' : ''*/

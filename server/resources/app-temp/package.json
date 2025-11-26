@@ -15,7 +15,6 @@
   "dependencies": {
     /*return pkgDeps.filter(dep => !['dayjs', 'axios', '@hokify/agenda'].includes(dep.from)).map(dep => `"${dep.from}": "${dep.version}",`).join('\n    ')*/
     "@hokify/agenda": "^6.3.0",
-    "agendash": "^4.0.0",
     "axios": "^0.25.0",
     "casbin": "^5.29.0",
     "dayjs": "^1.11.3",
