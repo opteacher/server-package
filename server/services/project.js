@@ -595,6 +595,16 @@ export async function generate(pid) {
   } catch (e) {
     fs.mkdirSync(cchPath)
   }
+  const utlApiTmp = Path.resolve('routes/server-package/api/v1/utils/index.js')
+  const utlApiGen = Path.join(genPath, 'routes', project.name, 'api/v1/utils/index.js')
+  logger.log('info', `复制通用辅助接口文件：${utlApiTmp} -> ${utlApiGen}`)
+  const utlPath = Path.dirname(utlApiGen)
+  try {
+    fs.accessSync(utlPath)
+  } catch (e) {
+    fs.mkdirSync(utlPath, { recursive: true })
+  }
+  fs.copyFileSync(utlApiTmp, utlApiGen)
   return project
 }
 

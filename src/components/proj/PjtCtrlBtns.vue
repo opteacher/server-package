@@ -68,7 +68,8 @@ import {
   UploadOutlined
 } from '@ant-design/icons-vue'
 import Mapper from '@lib/types/mapper'
-import { type UploadChangeParam } from 'ant-design-vue'
+import { UploadFile, type UploadChangeParam } from 'ant-design-vue'
+import { FileType } from 'ant-design-vue/es/upload/interface'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
@@ -92,11 +93,12 @@ const mapper = new Mapper(
         extFiles: {
           label: '上传构建的文件夹',
           type: 'UploadFile',
-          path: '/server-package/api/v1/temp/file',
+          path: '/server-package/api/v1/utils/file/upload',
           directory: true,
-          params: {
-            keepName: true
-          },
+          params: (file: FileType) => ({
+            keepName: true,
+            relPath: file.webkitRelativePath
+          }),
           onChange: async (_formState: any, info: UploadChangeParam | string[]) => {
             if (!Array.isArray(info)) {
               const ucp = info as UploadChangeParam

@@ -5,7 +5,7 @@ import MidPubBtns from '@/components/proj/MidPubBtns.vue'
 import MsvcSelect from '@/components/proj/MsvcSelect.vue'
 import PjtCtrlBtns from '@/components/proj/PjtCtrlBtns.vue'
 import SvcTable from '@/components/proj/SvcTable.vue'
-import TypoCard from '@/components/proj/TypoCard.vue'
+import TypoPanel from '@/components/proj/TypoPanel.vue'
 import OptSclPnl from '@/lib/frontend-library/src/components/OptSclPnl.vue'
 import { OpnType, typeDftVal } from '@/types'
 import ExpCls from '@/types/expCls'
@@ -36,7 +36,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { pjtAPI as api, mdlAPI, propAPI, typAPI } from '../apis'
+import { pjtAPI as api, mdlAPI, propAPI } from '../apis'
 import LytProject from '../layouts/LytProject.vue'
 import { mapper as pjtMapper } from './Home'
 import { emitter as pjtEmitter } from './Home'
@@ -49,8 +49,6 @@ import {
   propMapper
 } from './Model'
 import {
-  clsEmitter,
-  clsMapper,
   frtEmitter,
   frtMapper,
   svcColumns,
@@ -192,15 +190,6 @@ function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
       break
   }
 }
-async function onTypoSubmit(typo: Typo, next: Function) {
-  if (typo.key) {
-    await typAPI.update(typo)
-  } else {
-    await typAPI.add(typo)
-  }
-  next()
-  await store.dispatch('project/refresh')
-}
 function onSyncFinish() {
   store.commit('project/SET_STATUS', 'loading')
   dkrLogs.emitter.emit('clean')
@@ -339,7 +328,8 @@ function onPropClick(model: Model, prop?: Property) {
             </template>
           </a-descriptions>
         </a-page-header>
-        <a-tabs :tabBarStyle="{ 'margin-bottom': 0 }">
+        <TypoPanel v-if="!project.database" :typos="project.typos" />
+        <a-tabs v-else :tabBarStyle="{ 'margin-bottom': 0 }">
           <template #rightExtra>
             <a-button @click="onSwitchMdlVw">
               <template #icon>
@@ -468,32 +458,7 @@ function onPropClick(model: Model, prop?: Property) {
             />
           </a-tab-pane>
           <a-tab-pane key="typo" tab="自定义类">
-            <div class="text-right">
-              <a-typography-text class="mr-3" type="secondary">
-                点击方法进入方法流程设计
-              </a-typography-text>
-              <a-button type="primary" @click="() => clsEmitter.emit('update:visible', true)">
-                添加
-              </a-button>
-            </div>
-            <a-row class="w-full p-2" :gutter="{ lg: 16, xl: 24, xxl: 32 }">
-              <a-col
-                v-for="typo of project.typos"
-                :key="typo.key"
-                :lg="{ span: 12 }"
-                :xl="{ span: 9 }"
-                :xxl="{ span: 6 }"
-              >
-                <TypoCard :typo="typo" :emitter="clsEmitter" />
-              </a-col>
-            </a-row>
-            <FormDialog
-              title="自定义类"
-              :emitter="clsEmitter"
-              :mapper="clsMapper"
-              :new-fun="() => newOne(Typo)"
-              @submit="onTypoSubmit"
-            />
+            <TypoPanel :typos="project.typos" />
           </a-tab-pane>
         </a-tabs>
         <SvcTable

@@ -26,7 +26,7 @@
           :multiple="false"
           :directory="true"
           :showUploadList="false"
-          action="/server-package/api/v1/temp/file"
+          action="/server-package/api/v1/utils/file/upload"
           @change="onMidDep"
         >
           <a-tooltip>

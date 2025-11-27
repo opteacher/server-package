@@ -40,7 +40,7 @@ const impDlg = reactive({
     impFile: {
       label: '上传流程文件',
       type: 'UploadFile',
-      path: '/server-package/api/v1/temp/file'
+      path: '/server-package/api/v1/utils/file/upload'
     },
     svcId: {
       label: '服务ID',
