@@ -14,20 +14,18 @@ import Model from '@/types/model'
 import Project from '@/types/project'
 import Property from '@/types/property'
 import Service, { Method, mthdClrs } from '@/types/service'
-import Typo from '@/types/typo'
-import { newOne, reqDelete, reqPost, reqPut, setProp, until } from '@/utils'
+import { newOne, setProp, swchBoolProp } from '@/utils'
 import {
   AntDesignOutlined,
   ExportOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   FormOutlined,
   Html5Outlined,
   PartitionOutlined,
   SettingOutlined,
   SyncOutlined,
   AppstoreOutlined,
-  BarsOutlined
+  BarsOutlined,
+  FileTextOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -48,13 +46,7 @@ import {
   propEmitter,
   propMapper
 } from './Model'
-import {
-  frtEmitter,
-  frtMapper,
-  svcColumns,
-  svcEmitter,
-  svcMapper
-} from './Project'
+import { frtEmitter, frtMapper, svcColumns, svcEmitter, svcMapper } from './Project'
 import Status from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
 import { pluralize, singularize, capitalize } from 'inflection'
@@ -100,10 +92,12 @@ const dkrLogs = reactive<{
   collapsed: boolean
   content: string
   emitter: TinyEmitter
+  width: number
 }>({
   collapsed: true,
   content: '',
-  emitter: new TinyEmitter()
+  emitter: new TinyEmitter(),
+  width: 300
 })
 const actModel = reactive({
   tab: 'struct',
@@ -219,8 +213,8 @@ function onPropClick(model: Model, prop?: Property) {
 
 <template>
   <LytProject :active="`/project/${pid}`">
-    <a-layout class="h-full">
-      <a-layout-content class="bg-white">
+    <a-layout class="h-full relative">
+      <a-layout-content class="bg-white overflow-y-auto">
         <a-page-header class="p-0 mb-10" :title="project.name" :sub-title="project.nickName">
           <template #tags>
             <a-tooltip>
@@ -237,6 +231,12 @@ function onPropClick(model: Model, prop?: Property) {
                 </template>
                 <a @click="refresh">{{ project.status.stat }}</a>
               </a-tag>
+              <a-button v-if="project.status.stat === 'running'" type="primary" size="small">
+                <template #icon>
+                  <FileTextOutlined />
+                </template>
+                日志
+              </a-button>
             </a-tooltip>
           </template>
           <template #extra>
@@ -286,7 +286,7 @@ function onPropClick(model: Model, prop?: Property) {
                 />
               </template>
             </FormDialog>
-            <a-tooltip v-if="project.status.stat !== 'stopped'">
+            <!-- <a-tooltip v-if="project.status.stat !== 'stopped'">
               <template #title>查看日志</template>
               <a-button @click="() => setProp(dkrLogs, 'collapsed', !dkrLogs.collapsed)">
                 <template #icon>
@@ -294,11 +294,14 @@ function onPropClick(model: Model, prop?: Property) {
                   <menu-unfold-outlined v-else />
                 </template>
               </a-button>
-            </a-tooltip>
+            </a-tooltip> -->
           </template>
           <a-descriptions size="small" :column="4">
-            <a-descriptions-item v-if="project.desc" label="描述" :span="2">
+            <a-descriptions-item v-if="project.desc" label="描述" :span="4">
               {{ project.desc }}
+            </a-descriptions-item>
+            <a-descriptions-item label="独立部署（不依赖server-package）">
+              {{ project.independ ? '是' : '否' }}
             </a-descriptions-item>
             <a-descriptions-item label="占用端口">{{ project.port }}</a-descriptions-item>
             <template v-if="!isFront">
@@ -308,24 +311,91 @@ function onPropClick(model: Model, prop?: Property) {
               <a-descriptions-item label="启动时清空数据库">
                 {{ project.dropDbs ? '是' : '否' }}
               </a-descriptions-item>
-              <a-descriptions-item label="独立部署（不依赖server-package）">
-                {{ project.independ ? '是' : '否' }}
+              <a-descriptions-item label="https协议">
+                {{ project.https ? '是' : '否' }}
               </a-descriptions-item>
-              <a-descriptions-item v-if="project.buildCmds" label="构建时命令" :span="4">
-                <a-typography-paragraph
-                  class="whitespace-pre-line"
-                  :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-                  :content="project.buildCmds"
-                />
-              </a-descriptions-item>
-              <a-descriptions-item v-if="project.runCmds" label="运行时命令" :span="4">
-                <a-typography-paragraph
-                  class="whitespace-pre-line"
-                  :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
-                  :content="project.runCmds"
-                />
+              <a-descriptions-item label="使用GPU">
+                {{ project.gpus ? '是' : '否' }}
               </a-descriptions-item>
             </template>
+            <a-descriptions-item label="基本工具集">
+              {{ project.basicTools ? 'vim net-tools telnet' : '无' }}
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions v-if="!isFront" layout="vertical" size="small">
+            <a-descriptions-item
+              v-if="project.expPorts.length"
+              label="对外端口"
+              class="truncate"
+              :span="2"
+            >
+              <ul class="list-none ps-0">
+                <li v-for="port in project.expPorts">{{ port }}</li>
+              </ul>
+            </a-descriptions-item>
+            <a-descriptions-item
+              v-if="project.extFiles.length"
+              label="额外文件"
+              class="truncate"
+              :span="2"
+            >
+              <ul class="list-none ps-0">
+                <li v-for="extFile in project.extFiles">{{ extFile }}</li>
+              </ul>
+            </a-descriptions-item>
+            <a-descriptions-item
+              v-if="project.envVars.length"
+              label="环境变量"
+              class="truncate"
+              :span="2"
+            >
+              <ul class="list-none ps-0">
+                <li v-for="evar in project.envVars">
+                  <a-space align="center">
+                    <span class="text-xl font-bold">*</span>
+                    {{ evar.name }}
+                    <template v-if="evar.value">
+                      <b>=</b>
+                      <a-tooltip>
+                        <template #title>{{ evar.value }}</template>
+                        <span class="cursor-pointer">{{ evar.value }}</span>
+                      </a-tooltip>
+                    </template>
+                  </a-space>
+                </li>
+              </ul>
+            </a-descriptions-item>
+            <a-descriptions-item
+              v-if="project.volumes.length"
+              label="挂载"
+              class="truncate"
+              :span="2"
+            >
+              <ul class="list-none ps-0">
+                <li v-for="vol in project.volumes">
+                  <a-space align="center">
+                    <span class="text-xl font-bold">*</span>
+                    <span>{{ vol.host }}</span>
+                    <b>:</b>
+                    <span>{{ vol.ctnr }}</span>
+                  </a-space>
+                </li>
+              </ul>
+            </a-descriptions-item>
+            <a-descriptions-item v-if="project.buildCmds" label="构建时命令" :span="4">
+              <a-typography-paragraph
+                class="whitespace-pre-line"
+                :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+                :content="project.buildCmds"
+              />
+            </a-descriptions-item>
+            <a-descriptions-item v-if="project.runCmds" label="运行时命令" :span="4">
+              <a-typography-paragraph
+                class="whitespace-pre-line"
+                :ellipsis="{ rows: 2, expandable: true, symbol: 'more' }"
+                :content="project.runCmds"
+              />
+            </a-descriptions-item>
           </a-descriptions>
         </a-page-header>
         <TypoPanel v-if="!project.database" :typos="project.typos" />
@@ -468,23 +538,6 @@ function onPropClick(model: Model, prop?: Property) {
           :emitter="svcEmitter"
         />
       </a-layout-content>
-      <a-layout-sider
-        class="pl-3"
-        v-model:collapsed="dkrLogs.collapsed"
-        :trigger="null"
-        collapsible
-        theme="light"
-        :collapsedWidth="0"
-        :width="300"
-      >
-        <OptSclPnl
-          :url="optUrl"
-          topic="server-package"
-          :emitter="dkrLogs.emitter"
-          tboxPos="top"
-          @before-start="() => api.logs.access(pid)"
-        />
-      </a-layout-sider>
     </a-layout>
     <FormDialog
       title="编辑字段"

@@ -1,24 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { depAPI, typAPI } from '@/apis'
-import router from '@/router'
 import store from '@/store'
 import Dep from '@/types/dep'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
-import Project from '@/types/project'
 import Property from '@/types/property'
 import { EmitType, Method, emitTypeOpns } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
-import Typo, { Func } from '@/types/typo'
 import Variable from '@/types/variable'
-import { depExp, pickOrIgnore, setProp, updDftByType } from '@/utils'
+import { depExp, setProp, updDftByType } from '@/utils'
 import { Cond, OpnType, typeOpns, methods, BaseTypes } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
-import { Modal, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
+import { type UploadChangeParam, type UploadFile } from 'ant-design-vue'
 import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
 
 export const tsEmitter = new Emitter()
