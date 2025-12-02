@@ -1,6 +1,12 @@
 import { gnlCpy } from '@/utils'
 
-export type Stat = 'loading' | 'running' | 'stopped'
+export const stats = {
+  loading: '加载中',
+  running: '运行中',
+  stopped: '已停止'
+}
+
+export type Stat = keyof typeof stats
 
 export default class Status {
   stat: Stat

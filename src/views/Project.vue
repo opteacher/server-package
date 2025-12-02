@@ -25,7 +25,9 @@ import {
   SyncOutlined,
   AppstoreOutlined,
   BarsOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  PauseCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons-vue'
 import Column from '@lib/types/column'
 import { createByFields } from '@lib/types/mapper'
@@ -47,7 +49,7 @@ import {
   propMapper
 } from './Model'
 import { frtEmitter, frtMapper, svcColumns, svcEmitter, svcMapper } from './Project'
-import Status from '@/types/status'
+import Status, { stats } from '@/types/status'
 import MdlCardVw from '@/components/proj/MdlCardVw.vue'
 import { pluralize, singularize, capitalize } from 'inflection'
 import DbSelect from '@/components/proj/DbSelect.vue'
@@ -92,12 +94,12 @@ const dkrLogs = reactive<{
   collapsed: boolean
   content: string
   emitter: TinyEmitter
-  width: number
+  side: 'top' | 'bottom' | 'left' | 'right'
 }>({
-  collapsed: true,
+  collapsed: false,
   content: '',
   emitter: new TinyEmitter(),
-  width: 300
+  side: 'right'
 })
 const actModel = reactive({
   tab: 'struct',
@@ -209,6 +211,11 @@ function onPropClick(model: Model, prop?: Property) {
   Model.copy(model, actModel.sel, true)
   propEmitter.emit('update:visible', prop ? { show: true, object: prop } : true)
 }
+function onDkrLogsChange(show: boolean) {
+  if (!show) {
+    return
+  }
+}
 </script>
 
 <template>
@@ -220,23 +227,27 @@ function onPropClick(model: Model, prop?: Property) {
             <a-tooltip>
               <template #title>点击刷新状态</template>
               <a-tag v-if="project.status.stat === 'running'" color="#52c41a">
-                <a @click="refresh">{{ project.status.stat }}</a>
-              </a-tag>
-              <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
-                <a @click="refresh">{{ project.status.stat }}</a>
-              </a-tag>
-              <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
                 <template #icon>
                   <SyncOutlined :spin="true" />
                 </template>
-                <a @click="refresh">{{ project.status.stat }}</a>
+                <a @click="refresh">{{ stats[project.status.stat] }}</a>
               </a-tag>
-              <a-button v-if="project.status.stat === 'running'" type="primary" size="small">
+              <a-tag v-else-if="project.status.stat === 'stopped'" color="#f5222d">
                 <template #icon>
-                  <FileTextOutlined />
+                  <PauseCircleOutlined />
                 </template>
-                日志
-              </a-button>
+                <a @click="refresh">{{ stats[project.status.stat] }}</a>
+              </a-tag>
+              <a-tag v-else-if="project.status.stat === 'loading'" color="#faad14">
+                <template #icon>
+                  <LoadingOutlined />
+                </template>
+                <a @click="refresh">{{ stats[project.status.stat] }}</a>
+              </a-tag>
+              <a-tag v-if="project.status.stat === 'running'" color="#108ee9">
+                <template #icon><FileTextOutlined /></template>
+                <a @click="() => (dkrLogs.collapsed = true)">日志</a>
+              </a-tag>
             </a-tooltip>
           </template>
           <template #extra>
@@ -592,5 +603,27 @@ function onPropClick(model: Model, prop?: Property) {
         </a-input-group>
       </template>
     </FormDialog>
+    <a-drawer
+      v-model:open="dkrLogs.collapsed"
+      title="Docker日志"
+      :placement="dkrLogs.side"
+      width="40vw"
+      @after-open-change="onDkrLogsChange"
+    >
+      <template #extra>
+        <a-select
+          :options="[
+            { label: '上侧', value: 'top' },
+            { label: '下侧', value: 'bottom' },
+            { label: '左侧', value: 'left' },
+            { label: '右侧', value: 'right' }
+          ]"
+          v-model:value="dkrLogs.side"
+        />
+      </template>
+      <p>Some contents...</p>
+      <p>Some contents...</p>
+      <p>Some contents...</p>
+    </a-drawer>
   </LytProject>
 </template>

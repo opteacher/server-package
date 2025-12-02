@@ -13,13 +13,14 @@ import {
   chkMiddle,
   genMiddle,
   depMiddle,
-  pjtsWithStt,
-  expDkrImg,
-  acsDkrLogsESS,
-  extDkrLogs,
-  acsDkrLogsMQTT,
-  pjtRunCmd,
-  pjtRunYml
+  getWithStats,
+  expDockerImage,
+  dockerLogsESS,
+  disDockerLogs,
+  dockerLogsMQTT,
+  genRunCmd,
+  genCmpYml,
+  getDockerLogs
 } from '../../../../../services/project.js'
 import { exportClass, getData } from '../../../../../services/model.js'
 import { bind, unbind, genSign } from '../../../../../services/auth.js'
@@ -29,7 +30,7 @@ const router = new Router()
 
 router.get('/s', async ctx => {
   ctx.body = {
-    result: await pjtsWithStt(ctx.request.query)
+    result: await getWithStats(ctx.request.query)
   }
 })
 
@@ -133,25 +134,27 @@ router.get('/:pid/middle/status', async ctx => {
   }
 })
 
-router.get('/:pid/docker/image/export', expDkrImg)
+router.get('/:pid/docker/image/export', expDockerImage)
 
-router.get('/:pid/docker/logs/access/ess', acsDkrLogsESS)
+router.get('/:pid/docker/logs', getDockerLogs)
+
+router.get('/:pid/docker/logs/access/ess', dockerLogsESS)
 
 router.delete('/:pid/docker/logs/exit', async ctx => {
   ctx.body = {
-    result: await extDkrLogs(ctx)
+    result: await disDockerLogs(ctx)
   }
 })
 
 router.get('/:pid/docker/logs/access/mqtt', async ctx => {
   ctx.body = {
-    result: await acsDkrLogsMQTT(ctx)
+    result: await dockerLogsMQTT(ctx)
   }
 })
 
 router.get('/:pid/docker/runCmd', async ctx => {
   ctx.body = {
-    result: ctx.query.compose ? await pjtRunYml(ctx.params.pid) : await pjtRunCmd(ctx.params.pid)
+    result: ctx.query.compose ? await genCmpYml(ctx.params.pid) : await genRunCmd(ctx.params.pid)
   }
 })
 

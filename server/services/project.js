@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
-import { spawn, spawnSync } from 'child_process'
+import { spawn, spawnSync, execSync } from 'child_process'
 import fs from 'fs'
 import sendfile from 'koa-sendfile'
 import Path from 'path'
@@ -299,7 +299,7 @@ export async function sync(pid) {
 
     logger.log('info', '启动项目……')
     await run(project)
-    await adjAndRestartNginx()
+    await adjRstNginx()
   }, 1000)
   return Promise.resolve({ message: '同步中……' })
 }
@@ -665,7 +665,7 @@ export async function run(pjt) {
   const childPcs = spawn(
     [
       `docker build -t ${project.name}:latest ${appPath}`,
-      await pjtRunCmd(project),
+      await genRunCmd(project),
       `docker cp ${aptPath} ${project.name}:/etc/apt/sources.list.d/debian.sources`
     ].join(' && '),
     {
@@ -703,7 +703,7 @@ export async function run(pjt) {
  * @param {*} projects { name: string; port: number }[]
  * @returns
  */
-async function adjAndRestartNginx(projects) {
+async function adjRstNginx(projects) {
   if (typeof projects === 'undefined') {
     projects = await db
       .select(Project)
@@ -754,7 +754,7 @@ async function adjAndRestartNginx(projects) {
 
 export async function runAll() {
   const projects = await db.select(Project)
-  await adjAndRestartNginx(projects)
+  await adjRstNginx(projects)
   projects.map(project => {
     if (project.thread) {
       run(project)
@@ -908,7 +908,7 @@ export async function status(pid) {
   }
 }
 
-export async function pjtsWithStt(params) {
+export async function getWithStats(params) {
   const projects = await db.select(Project, params)
   return projects.map(async project => Object.assign({ health: await status(project) }, project))
 }
@@ -1166,15 +1166,7 @@ export async function chkMiddle(pid) {
   return { midURL, status: 'published' }
 }
 
-export async function expFrtend(ctx) {
-  const project = await db.select(Project, { _index: ctx.params.pid })
-}
-
-export async function genFront(project) {
-  return project
-}
-
-export async function expDkrImg(ctx) {
+export async function expDockerImage(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
     ctx.body = {
@@ -1203,7 +1195,7 @@ export async function expDkrImg(ctx) {
   )
 }
 
-export async function acsDkrLogsESS(ctx) {
+export async function dockerLogsESS(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
     ctx.body = {
@@ -1250,7 +1242,7 @@ export async function acsDkrLogsESS(ctx) {
   await db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
 }
 
-export async function extDkrLogs(ctx) {
+export async function disDockerLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.logPid) {
     return { error: '日志监控未启动！' }
@@ -1260,7 +1252,7 @@ export async function extDkrLogs(ctx) {
   return { message: '监控进程停止' }
 }
 
-export async function acsDkrLogsMQTT(ctx) {
+export async function dockerLogsMQTT(ctx) {
   const project = await db.select(Project, { _index: ctx.params.pid })
   if (!project.thread) {
     return { error: '项目未启动！' }
@@ -1287,7 +1279,7 @@ export async function acsDkrLogsMQTT(ctx) {
   return db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
 }
 
-export async function pjtRunCmd(pjt) {
+export async function genRunCmd(pjt) {
   let project = pjt
   if (typeof pjt === 'string') {
     project = await db.select(Project, { _index: pjt })
@@ -1313,7 +1305,7 @@ export async function pjtRunCmd(pjt) {
   )
 }
 
-export async function pjtRunYml(pjt) {
+export async function genCmpYml(pjt) {
   let project = pjt
   if (typeof pjt === 'string') {
     project = await db.select(Project, { _index: pjt })
@@ -1372,4 +1364,13 @@ export async function pjtRunYml(pjt) {
   ]
     .filter(ln => ln)
     .join('\n')
+}
+
+export async function getDockerLogs(ctx) {
+  const project = await db.select(Project, { _index: ctx.request.params.pid })
+  const result = execSync('docker logs', [project.name])
+  if (result.error) {
+    return ctx.throw(400, result.error)
+  }
+  return result.stdout.toString()
 }
