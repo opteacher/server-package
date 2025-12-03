@@ -215,6 +215,7 @@ function onDkrLogsChange(show: boolean) {
   if (!show) {
     return
   }
+  
 }
 </script>
 
@@ -297,15 +298,6 @@ function onDkrLogsChange(show: boolean) {
                 />
               </template>
             </FormDialog>
-            <!-- <a-tooltip v-if="project.status.stat !== 'stopped'">
-              <template #title>查看日志</template>
-              <a-button @click="() => setProp(dkrLogs, 'collapsed', !dkrLogs.collapsed)">
-                <template #icon>
-                  <menu-fold-outlined v-if="dkrLogs.collapsed" />
-                  <menu-unfold-outlined v-else />
-                </template>
-              </a-button>
-            </a-tooltip> -->
           </template>
           <a-descriptions size="small" :column="4">
             <a-descriptions-item v-if="project.desc" label="描述" :span="4">

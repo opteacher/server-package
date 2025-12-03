@@ -159,7 +159,8 @@ export default {
         type: 'api',
         action: 'docker/runCmd',
         axiosConfig: { params: query }
-      })
+      }),
+    logs: (key: string) => reqGet('project', key, { type: 'api', action: 'docker/logs' })
   },
   logs: {
     access: (key: string) =>

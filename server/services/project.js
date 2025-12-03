@@ -1368,9 +1368,9 @@ export async function genCmpYml(pjt) {
 
 export async function getDockerLogs(ctx) {
   const project = await db.select(Project, { _index: ctx.request.params.pid })
-  const result = execSync('docker logs', [project.name])
+  const result = execSync(`docker logs ${project.name}`)
   if (result.error) {
     return ctx.throw(400, result.error)
   }
-  return result.stdout.toString()
+  ctx.body = { result }
 }
