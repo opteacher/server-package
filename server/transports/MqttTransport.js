@@ -14,7 +14,7 @@ export default class MqttTransport extends Transport {
 
   constructor(opt) {
     super(opt)
-    this.client = mqtt.connect(`mqtt://${config.host}:${config.mqttPort}`, {
+    this.client = mqtt.connect(`mqtt://${config.host}:${config.port}`, {
       clientId: config.cliPrefix + Math.random().toString(16).substring(2, 8),
       username: config.username,
       password: config.password
@@ -31,7 +31,7 @@ export default class MqttTransport extends Transport {
     }
 
     if (info.message) {
-      this.client.publish(config.topic, info.message, { qos }, err => {
+      this.client.publish(config.infoTopic, info.message, { qos }, err => {
         if (err) {
           // console.error(err)
         }

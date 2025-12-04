@@ -160,12 +160,7 @@ export default {
         action: 'docker/runCmd',
         axiosConfig: { params: query }
       }),
-    logs: (key: string) => reqGet('project', key, { type: 'api', action: 'docker/logs' })
-  },
-  logs: {
-    access: (key: string) =>
-      reqGet('project', key, { type: 'api', action: 'docker/logs/access/mqtt' }),
-    exit: (key: string) => reqDelete('project', `${key}/docker/logs/exit`, { type: 'api' })
+    logs: (key: string) => reqGet('project', `${key}/docker`, { type: 'api', action: 'logs' })
   },
   middle: {
     login: {

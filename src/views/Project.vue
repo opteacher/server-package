@@ -55,6 +55,8 @@ import { pluralize, singularize, capitalize } from 'inflection'
 import DbSelect from '@/components/proj/DbSelect.vue'
 import EditableTable from '@lib/components/EditableTable.vue'
 import FormDialog from '@lib/components/FormDialog.vue'
+import mqtt from 'mqtt'
+import { notification } from 'ant-design-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -95,6 +97,7 @@ const dkrLogs = reactive<{
   content: string
   emitter: TinyEmitter
   side: 'top' | 'bottom' | 'left' | 'right'
+  client?: mqtt.MqttClient
 }>({
   collapsed: false,
   content: '',
@@ -211,11 +214,36 @@ function onPropClick(model: Model, prop?: Property) {
   Model.copy(model, actModel.sel, true)
   propEmitter.emit('update:visible', prop ? { show: true, object: prop } : true)
 }
-function onDkrLogsChange(show: boolean) {
+async function onDkrLogsChange(show: boolean) {
   if (!show) {
-    return
+    return dkrLogs.client && dkrLogs.client.endAsync()
   }
-  
+  const clientId = await api.docker.logs(pid)
+  try {
+    dkrLogs.client = mqtt.connect('mqtt://192.168.1.11:1883', {
+      clientId,
+      clean: true,
+      connectTimeout: 4000,
+      username: 'admin',
+      password: '59524148chenOP',
+      reconnectPeriod: 1000
+    })
+    await new Promise<void>((resolve, reject) => {
+      dkrLogs.client.on('connect', () => {
+        console.log('Connected')
+        dkrLogs.client.subscribe(['server-package/info'], err => (err ? resolve() : reject(err)))
+      })
+      dkrLogs.client.on('error', err => reject(err))
+    })
+  } catch (e) {
+    notification.error({
+      message: '连接MQTT失败',
+      description: JSON.stringify(e)
+    })
+  }
+  dkrLogs.client.on('message', (topic, payload) => {
+    console.log('Received Message:', topic, payload.toString())
+  })
 }
 </script>
 

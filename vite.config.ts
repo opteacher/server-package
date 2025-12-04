@@ -39,11 +39,6 @@ export default ({ mode }) =>
           target: 'http://localhost:4000',
           ws: true,
           changeOrigin: true
-        },
-        '/mqtt$': {
-          target: 'ws://localhost:8083/mqtt',
-          ws: true,
-          changeOrigin: true
         }
       }
     },

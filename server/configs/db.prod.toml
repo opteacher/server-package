@@ -6,11 +6,12 @@ host="mongo"
 port=27017
 
 [mqtt]
-topic="server-package"
+infoTopic="server-package/info"
+errTopic="server-package/error"
 username="admin"
 password="59524148chenOP"
 host="emqx"
 cliPrefix="emqx_log_"
-mqttPort=1883
+port=1883
 wsPort=8083
 qos=0

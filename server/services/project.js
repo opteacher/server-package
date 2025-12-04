@@ -25,11 +25,14 @@ import Service from '../models/service.js'
 import Typo from '../models/typo.js'
 import { db, genDefault, pickOrIgnore, logger } from '../utils/index.js'
 import SseTransport from '../transports/SseTransport.js'
+import mqtt from 'mqtt'
+import crypto from 'crypto'
 
 const svrCfg = readConfig(Path.resolve('configs', 'server'))
 const dbCfg = readConfig(Path.resolve('configs', 'db'), true)
 const jobCfg = readConfig(Path.resolve('configs', 'job'), true)
 const tmpPath = Path.resolve('resources', 'app-temp')
+const mqttCfg = dbCfg.mqtt
 
 function formatToStr(value, vtype) {
   if (typeof value === 'undefined' || value === null) {
@@ -1257,7 +1260,38 @@ export async function dockerLogsMQTT(ctx) {
   if (!project.thread) {
     return { error: '项目未启动！' }
   }
-
+  const cliUUID = crypto
+    .createHmac('sha256', svrCfg.secret)
+    .update(ctx.params.pid)
+    .digest('hex')
+  const clientId = `sp-log-${cliUUID}`
+  let client = null
+  try {
+    client = await new Promise((resolve, reject) => {
+      const mqttCli = mqtt.connect(`mqtt://${mqttCfg.host}:${mqttCfg.port}`, {
+        clientId,
+        clean: true,
+        connectTimeout: 4000,
+        username: mqttCfg.username,
+        password: mqttCfg.password,
+        reconnectPeriod: 1000
+      })
+      mqttCli.on('connect', () => {
+        logger.log('info', `MQTT日志监控已连接: ${clientId}`)
+        mqttCli.subscribe([mqttCfg.infoTopic], err => (err ? reject(err) : resolve(mqttCli)))
+      })
+      mqttCli.on('error', err => reject(err))
+      mqttCli.on('end', () => {
+        logger.log('info', `MQTT日志监控已停止: ${clientId}`)
+      })
+    })
+  } catch (e) {
+    const error = 'MQTT连接失败，请检查配置或稍后重试！' + JSON.stringify(e)
+    logger.log('error', error)
+    client.publish(mqttCfg.errTopic, error)
+    return { error }
+  }
+  client.publish(mqttCfg.infoTopic, '消息订阅成功，可以开始发送日志信息了！')
   const pname = project.name
   const logs = spawn(`docker logs -f ${pname}`, { shell: true, detached: true })
   logs.unref()
@@ -1265,18 +1299,19 @@ export async function dockerLogsMQTT(ctx) {
     data
       .toString()
       .split('\n')
-      .map(line => logger.log('info', line))
+      .map(line => client.publish(mqttCfg.infoTopic, line))
   })
   logs.stderr.on('data', data => {
     data
       .toString()
       .split('\n')
-      .map(line => logger.log('error', line))
+      .map(line => client.publish(mqttCfg.errTopic, line))
   })
   logs.on('close', () => {
-    logger.log('info', '[STOP]')
+    client.publish(mqttCfg.infoTopic, '日志监控已停止！')
+    client.end()
   })
-  return db.saveOne(Project, ctx.params.pid, { logPid: logs.pid })
+  return clientId
 }
 
 export async function genRunCmd(pjt) {

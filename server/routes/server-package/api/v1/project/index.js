@@ -136,17 +136,7 @@ router.get('/:pid/middle/status', async ctx => {
 
 router.get('/:pid/docker/image/export', expDockerImage)
 
-router.get('/:pid/docker/logs', getDockerLogs)
-
-router.get('/:pid/docker/logs/access/ess', dockerLogsESS)
-
-router.delete('/:pid/docker/logs/exit', async ctx => {
-  ctx.body = {
-    result: await disDockerLogs(ctx)
-  }
-})
-
-router.get('/:pid/docker/logs/access/mqtt', async ctx => {
+router.get('/:pid/docker/logs', async ctx => {
   ctx.body = {
     result: await dockerLogsMQTT(ctx)
   }
