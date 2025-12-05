@@ -1262,13 +1262,14 @@ export async function dockerLogsMQTT(ctx) {
   }
   const cliUUID = crypto
     .createHmac('sha256', svrCfg.secret)
+    .update(Date.now().toString())
     .update(ctx.params.pid)
     .digest('hex')
   const clientId = `sp-log-${cliUUID}`
   let client = null
   try {
     client = await new Promise((resolve, reject) => {
-      const mqttCli = mqtt.connect(`mqtt://${mqttCfg.host}:${mqttCfg.port}`, {
+      const cli = mqtt.connect(`mqtt://${mqttCfg.host}:${mqttCfg.port}`, {
         clientId,
         clean: true,
         connectTimeout: 4000,
@@ -1276,39 +1277,35 @@ export async function dockerLogsMQTT(ctx) {
         password: mqttCfg.password,
         reconnectPeriod: 1000
       })
-      mqttCli.on('connect', () => {
+      cli.on('connect', () => {
         logger.log('info', `MQTT日志监控已连接: ${clientId}`)
-        mqttCli.subscribe([mqttCfg.infoTopic], err => (err ? reject(err) : resolve(mqttCli)))
+        cli.subscribe([mqttCfg.infoTopic], err => (err ? reject(err) : resolve(cli)))
       })
-      mqttCli.on('error', err => reject(err))
-      mqttCli.on('end', () => {
+      cli.on('error', err => reject(err))
+      cli.on('end', () => {
         logger.log('info', `MQTT日志监控已停止: ${clientId}`)
       })
     })
   } catch (e) {
     const error = 'MQTT连接失败，请检查配置或稍后重试！' + JSON.stringify(e)
     logger.log('error', error)
-    client.publish(mqttCfg.errTopic, error)
     return { error }
   }
-  client.publish(mqttCfg.infoTopic, '消息订阅成功，可以开始发送日志信息了！')
+  logger.log('info', '消息订阅成功，可以开始发送日志信息了！')
   const pname = project.name
-  const logs = spawn(`docker logs -f ${pname}`, { shell: true, detached: true })
-  logs.unref()
+  const logs = spawn('docker', ['logs', '-f', pname])
   logs.stdout.on('data', data => {
-    data
-      .toString()
-      .split('\n')
-      .map(line => client.publish(mqttCfg.infoTopic, line))
+    for (const line of data.toString().split('\n')) {
+      setTimeout(() => logger.log('info', line), 500)
+    }
   })
   logs.stderr.on('data', data => {
-    data
-      .toString()
-      .split('\n')
-      .map(line => client.publish(mqttCfg.errTopic, line))
+    for (const line of data.toString().split('\n')) {
+      setTimeout(() => logger.log('error', line), 500)
+    }
   })
   logs.on('close', () => {
-    client.publish(mqttCfg.infoTopic, '日志监控已停止！')
+    logger.log('info', '日志监控已停止！')
     client.end()
   })
   return clientId

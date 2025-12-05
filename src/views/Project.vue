@@ -94,13 +94,13 @@ const mdlOpns = computed<OpnType[]>(() =>
 )
 const dkrLogs = reactive<{
   collapsed: boolean
-  content: string
+  content: string[]
   emitter: TinyEmitter
   side: 'top' | 'bottom' | 'left' | 'right'
   client?: mqtt.MqttClient
 }>({
   collapsed: false,
-  content: '',
+  content: [],
   emitter: new TinyEmitter(),
   side: 'right'
 })
@@ -218,14 +218,13 @@ async function onDkrLogsChange(show: boolean) {
   if (!show) {
     return dkrLogs.client && dkrLogs.client.endAsync()
   }
+  dkrLogs.content = []
   const clientId = await api.docker.logs(pid)
   try {
-    dkrLogs.client = mqtt.connect('mqtt://192.168.1.11:1883', {
+    dkrLogs.client = mqtt.connect('ws://192.168.1.11:8083/mqtt', {
       clientId,
       clean: true,
       connectTimeout: 4000,
-      username: 'admin',
-      password: '59524148chenOP',
       reconnectPeriod: 1000
     })
     await new Promise<void>((resolve, reject) => {
@@ -236,13 +235,18 @@ async function onDkrLogsChange(show: boolean) {
       dkrLogs.client.on('error', err => reject(err))
     })
   } catch (e) {
-    notification.error({
-      message: '连接MQTT失败',
-      description: JSON.stringify(e)
-    })
+    if (e) {
+      notification.error({
+        message: '连接MQTT失败',
+        description: JSON.stringify(e)
+      })
+    }
   }
   dkrLogs.client.on('message', (topic, payload) => {
-    console.log('Received Message:', topic, payload.toString())
+    if (topic === 'server-package/info') {
+      dkrLogs.content.push(payload.toString())
+    }
+    document.getElementById('logsPanel').querySelector('li:last-child')?.scrollIntoView()
   })
 }
 </script>
@@ -641,9 +645,9 @@ async function onDkrLogsChange(show: boolean) {
           v-model:value="dkrLogs.side"
         />
       </template>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
+      <ul id="logsPanel" class="list-none ps-0">
+        <li v-for="line in dkrLogs.content" class="whitespace-nowrap">{{ line }}</li>
+      </ul>
     </a-drawer>
   </LytProject>
 </template>
