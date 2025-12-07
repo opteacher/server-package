@@ -6,20 +6,23 @@ import { Agenda } from '@hokify/agenda'
 
 export const cfgPath = Path.resolve('configs')
 
-const tmpCfg = await readConfig(Path.join(cfgPath, 'job'))
-const jobCfg = tmpCfg.mongo
-export const agenda = new Agenda({
-  db: {
-    address: [
-      'mongodb://',
-      jobCfg.username ? `${jobCfg.username}:` : '',
-      jobCfg.password ? `${jobCfg.password}@` : '',
-      `${jobCfg.host}:`,
-      `${jobCfg.port}/`,
-      `${jobCfg.database}?authSource=admin`
-    ].join('')
-  }
-})
+export let agenda = null
+if (/*return defineAgenda*/) {
+  const tmpCfg = await readConfig(Path.join(cfgPath, 'job'))
+  const jobCfg = tmpCfg.mongo
+  agenda = new Agenda({
+    db: {
+      address: [
+        'mongodb://',
+        jobCfg.username ? `${jobCfg.username}:` : '',
+        jobCfg.password ? `${jobCfg.password}@` : '',
+        `${jobCfg.host}:`,
+        `${jobCfg.port}/`,
+        `${jobCfg.database}?authSource=admin`
+      ].join('')
+    }
+  })
+}
 
 export const db = await getDbByName(
   process.env['models_type'] || readConfig(Path.join(cfgPath, 'models')).type,

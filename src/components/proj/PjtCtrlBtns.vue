@@ -46,11 +46,12 @@
     :new-fun="() => ({})"
     :emitter="emitter"
     @submit="
-      () =>
+      (_f: any, next: Function) =>
         api
           .sync(project.key)
           .then(() => store.dispatch('project/refresh'))
           .then(() => emit('sync_fin'))
+          .then(() => next())
     "
   />
 </template>

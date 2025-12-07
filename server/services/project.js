@@ -372,7 +372,9 @@ export async function generate(pid) {
     const utilsTmp = Path.join(tmpPath, 'utils', 'index.js')
     const utilsGen = Path.join(genPath, 'utils', 'index.js')
     logger.log('info', `调整工具文件：${utilsTmp} -> ${utilsGen}`)
-    adjustFile(utilsTmp, utilsGen)
+    adjustFile(utilsTmp, utilsGen, {
+      defineAgenda: project.services.some(svc => svc.emit === 'timeout' || svc.emit === 'interval')
+    })
 
     const svcPath = Path.join(genPath, 'services')
     fs.mkdirSync(svcPath)
@@ -1278,6 +1280,7 @@ export async function dockerLogsMQTT(ctx) {
         reconnectPeriod: 1000
       })
       cli.on('connect', () => {
+        console.log(cli.connected)
         logger.log('info', `MQTT日志监控已连接: ${clientId}`)
         cli.subscribe([mqttCfg.infoTopic], err => (err ? reject(err) : resolve(cli)))
       })

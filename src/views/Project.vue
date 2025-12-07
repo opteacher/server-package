@@ -57,10 +57,12 @@ import EditableTable from '@lib/components/EditableTable.vue'
 import FormDialog from '@lib/components/FormDialog.vue'
 import mqtt from 'mqtt'
 import { notification } from 'ant-design-vue'
+import { AnsiUp } from 'ansi_up'
 
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
+const ansi_up = new AnsiUp()
 const pid = route.params.pid as string
 const project = computed<Project>(() => store.getters['project/ins'])
 const pjtStt = computed<Status>(() => store.getters['project/ins'].status)
@@ -221,7 +223,7 @@ async function onDkrLogsChange(show: boolean) {
   dkrLogs.content = []
   const clientId = await api.docker.logs(pid)
   try {
-    dkrLogs.client = mqtt.connect('ws://192.168.1.11:8083/mqtt', {
+    dkrLogs.client = mqtt.connect(import.meta.env.VITE_MQTT_URL, {
       clientId,
       clean: true,
       connectTimeout: 4000,
@@ -244,7 +246,7 @@ async function onDkrLogsChange(show: boolean) {
   }
   dkrLogs.client.on('message', (topic, payload) => {
     if (topic === 'server-package/info') {
-      dkrLogs.content.push(payload.toString())
+      dkrLogs.content.push(ansi_up.ansi_to_html(payload.toString()))
     }
     document.getElementById('logsPanel').querySelector('li:last-child')?.scrollIntoView()
   })
@@ -646,7 +648,9 @@ async function onDkrLogsChange(show: boolean) {
         />
       </template>
       <ul id="logsPanel" class="list-none ps-0">
-        <li v-for="line in dkrLogs.content" class="whitespace-nowrap">{{ line }}</li>
+        <li v-for="line in dkrLogs.content" class="whitespace-nowrap">
+          <div v-html="line" />
+        </li>
       </ul>
     </a-drawer>
   </LytProject>
