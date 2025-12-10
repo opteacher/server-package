@@ -8,8 +8,7 @@ import Service, {
   emitMapper,
   itvlDimen,
   itvlDimenMapper,
-  mthdClrs,
-  weekDays
+  mthdClrs
 } from '@/types/service'
 import { newOne } from '@/utils'
 import {
@@ -110,7 +109,7 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       title="服务"
       description="定义在项目services文件夹下"
       size="small"
-      dlg-width="60vw"
+      dlg-width="70vw"
       :api="api"
       :filter="(svc: any) => (model ? svc.model === model : !svc.model)"
       :mapper="mapper"

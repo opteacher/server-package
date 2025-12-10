@@ -1280,10 +1280,13 @@ export async function dockerLogsMQTT(ctx) {
         reconnectPeriod: 1000
       })
       cli.on('connect', () => {
-        console.log(cli.connected)
-        logger.log('info', `MQTT日志监控已连接: ${clientId}`)
+        // console.log(cli.connected)
+        // logger.log('info', `MQTT日志监控已连接: ${clientId}`)
         cli.subscribe([mqttCfg.infoTopic], err => (err ? reject(err) : resolve(cli)))
       })
+      // cli.on('close', () => {
+      //   console.log('MQTT连接已关闭')
+      // })
       cli.on('error', err => reject(err))
       cli.on('end', () => {
         logger.log('info', `MQTT日志监控已停止: ${clientId}`)

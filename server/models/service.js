@@ -18,6 +18,7 @@ export default db.defineModel(
     condition: db.PropTypes.String,
     needRet: db.PropTypes.Boolean,
     desc: db.PropTypes.LongStr,
+    params: db.PropTypes.Array,
     stcVars: [
       {
         name: db.PropTypes.String,

@@ -14,7 +14,7 @@ import { depExp, setProp, updDftByType } from '@/utils'
 import { Cond, OpnType, typeOpns, methods, BaseTypes } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
-import { type UploadChangeParam, type UploadFile } from 'ant-design-vue'
+import { Col, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
 import { TinyEmitter as Emitter, TinyEmitter } from 'tiny-emitter'
 
 export const tsEmitter = new Emitter()
@@ -190,6 +190,61 @@ export const svcMapper = new Mapper({
       ]
     }
   },
+  desc: {
+    label: '描述',
+    type: 'Textarea'
+  },
+  params: {
+    label: '参数',
+    type: 'Table',
+    columns: [
+      new Column('参数名', 'name'),
+      new Column('中文名', 'label'),
+      new Column('参数类型', 'ptype'),
+      new Column('传入位置', 'input'),
+      new Column('是否必填', 'required'),
+      new Column('描述', 'desc'),
+      new Column('示例值', 'example')
+    ],
+    mapper: new Mapper({
+      name: {
+        label: '参数名',
+        type: 'Input',
+        rules: [{ required: true, message: '必须填入参数名！' }]
+      },
+      label: {
+        label: '中文名',
+        type: 'Input'
+      },
+      ptype: {
+        label: '参数类型',
+        type: 'Select',
+        options: typeOpns
+      },
+      input: {
+        label: '传入位置',
+        type: 'Select',
+        options: [
+          { label: '查询参数', value: 'query' },
+          { label: '路径参数', value: 'params' },
+          { label: '请求体', value: 'body' },
+          { label: '请求头', value: 'header' }
+        ]
+      },
+      required: {
+        label: '是否必填',
+        type: 'Checkbox'
+      },
+      desc: {
+        label: '描述',
+        type: 'Textarea'
+      },
+      example: {
+        label: '示例值',
+        type: 'Textarea'
+      }
+    })
+  },
   deps: {
     label: '依赖',
     type: 'TagList',
@@ -236,10 +291,6 @@ export const svcMapper = new Mapper({
     },
     addable: true,
     delable: true
-  },
-  desc: {
-    label: '描述',
-    type: 'Textarea'
   }
 })
 

@@ -6,6 +6,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { getObjKey, gnlCpy } from '../utils'
 import Node from './node'
 import Variable from './variable'
+import { type BaseTypes } from '@lib/types'
 
 export const emitMapper = {
   api: '网络接口',
@@ -73,6 +74,32 @@ export const mthdClrs: Record<Method, string> = {
   LINK: 'purple'
 }
 
+export class SvcParam {
+  key: string
+  name: string
+  label: string
+  ptype: BaseTypes
+  input: 'query' | 'params' | 'body' | 'header'
+  required: boolean | string
+  desc: string
+  example: string
+
+  constructor() {
+    this.key = ''
+    this.name = ''
+    this.label = ''
+    this.ptype = 'Unknown'
+    this.input = 'query'
+    this.required = false
+    this.desc = ''
+    this.example = ''
+  }
+
+  static copy(src: any, tgt?: SvcParam, force = false): SvcParam {
+    return gnlCpy(SvcParam, src, tgt, { force })
+  }
+}
+
 export default class Service {
   key: string
   name: string
@@ -94,6 +121,7 @@ export default class Service {
   needRet: boolean
   stcVars: Variable[]
   desc: string
+  params: SvcParam[]
 
   constructor() {
     this.key = ''
@@ -116,6 +144,7 @@ export default class Service {
     this.needRet = true
     this.stcVars = []
     this.desc = ''
+    this.params = []
   }
 
   reset() {
@@ -139,13 +168,14 @@ export default class Service {
     this.needRet = true
     this.stcVars = []
     this.desc = ''
+    this.params = []
   }
 
   static copy(src: any, tgt?: Service, force = false): Service {
     tgt = gnlCpy(Service, src, tgt, {
       force,
       ignProps: ['name', 'interface', 'interval', 'datetime', 'deps'],
-      cpyMapper: { flow: Node.copy, stcVars: Variable.copy }
+      cpyMapper: { flow: Node.copy, stcVars: Variable.copy, params: SvcParam.copy }
     })
     if (src.service && src.service.length === 2) {
       tgt.name = src.service[0]
