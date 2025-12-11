@@ -6,12 +6,12 @@ import Dep from '@/types/dep'
 import { Page } from '@/types/frontend'
 import Model from '@/types/model'
 import Property from '@/types/property'
-import { EmitType, Method, emitTypeOpns } from '@/types/service'
+import { EmitType, Method, emitTypeOpns, inputDict } from '@/types/service'
 import Service from '@/types/service'
 import Transfer from '@/types/transfer'
 import Variable from '@/types/variable'
 import { depExp, setProp, updDftByType } from '@/utils'
-import { Cond, OpnType, typeOpns, methods, BaseTypes } from '@lib/types'
+import { Cond, OpnType, typeOpns, methods, BaseTypes, typeDict } from '@lib/types'
 import Column from '@lib/types/column'
 import Mapper from '@lib/types/mapper'
 import { Col, type UploadChangeParam, type UploadFile } from 'ant-design-vue'
@@ -200,9 +200,10 @@ export const svcMapper = new Mapper({
     columns: [
       new Column('参数名', 'name'),
       new Column('中文名', 'label'),
-      new Column('参数类型', 'ptype'),
-      new Column('传入位置', 'input'),
+      new Column('参数类型', 'ptype', { width: 120 }),
+      new Column('传入位置', 'input', { width: 200 }),
       new Column('是否必填', 'required'),
+      new Column('缺省值', 'defVal'),
       new Column('描述', 'desc'),
       new Column('示例值', 'example')
     ],
@@ -219,21 +220,53 @@ export const svcMapper = new Mapper({
       ptype: {
         label: '参数类型',
         type: 'Select',
-        options: typeOpns
+        options: typeOpns,
+        onChange: (_param: any, to: BaseTypes) => {
+          switch (to) {
+            case 'Number':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'Number' })
+              break
+            case 'String':
+            case 'Id':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'Input' })
+              break
+            case 'LongStr':
+            case 'Unknown':
+            case 'Any':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'Textarea' })
+              break
+            case 'Array':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'Unknown' })
+              break
+            case 'Boolean':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'Checkbox' })
+              break
+            case 'DateTime':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'DateTime' })
+              break
+            case 'Object':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'JsonEditor' })
+              break
+            case 'Function':
+              svcEmitter.emit('update:mprop', { 'params.mapper.defVal.type': 'CodeEditor' })
+              break
+          }
+        }
       },
       input: {
         label: '传入位置',
         type: 'Select',
-        options: [
-          { label: '查询参数', value: 'query' },
-          { label: '路径参数', value: 'params' },
-          { label: '请求体', value: 'body' },
-          { label: '请求头', value: 'header' }
-        ]
+        options: Object.entries(inputDict).map(([value, label]) => ({ label, value }))
       },
       required: {
         label: '是否必填',
-        type: 'Checkbox'
+        type: 'Checkbox',
+        placeholder: ''
+      },
+      defVal: {
+        label: '缺省值',
+        type: 'Input',
+        disabled: [new Cond({ prop: 'required', compare: '==', value: true })]
       },
       desc: {
         label: '描述',
@@ -243,7 +276,11 @@ export const svcMapper = new Mapper({
         label: '示例值',
         type: 'Textarea'
       }
-    })
+    }),
+    lblDict: {
+      ptype: typeDict,
+      input: inputDict
+    }
   },
   deps: {
     label: '依赖',
@@ -311,8 +348,8 @@ export const svcColumns = [
   new Column('路由/激发条件', 'pathCond'),
   new Column('访问方式/控制', 'methodCtrl', { width: 100 }),
   new Column('文件/方法', 'fileFunc'),
-  new Column('全局变量', 'stcVars'),
-  new Column('描述', 'desc')
+  new Column('描述', 'desc'),
+  new Column('参数', 'params', { notDisplay: true } )
 ]
 
 export const frtEmitter = new Emitter()

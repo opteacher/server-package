@@ -8,7 +8,8 @@ import Service, {
   emitMapper,
   itvlDimen,
   itvlDimenMapper,
-  mthdClrs
+  mthdClrs,
+  inputDict
 } from '@/types/service'
 import { newOne } from '@/utils'
 import {
@@ -24,6 +25,7 @@ import dayjs from 'dayjs'
 import { TinyEmitter as Emitter } from 'tiny-emitter'
 import { computed, createVNode, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { groupBy } from 'lodash'
 
 const props = defineProps({
   emitter: { type: Emitter, required: true },
@@ -109,7 +111,7 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       title="服务"
       description="定义在项目services文件夹下"
       size="small"
-      dlg-width="70vw"
+      dlg-width="80vw"
       :api="api"
       :filter="(svc: any) => (model ? svc.model === model : !svc.model)"
       :mapper="mapper"
@@ -204,6 +206,19 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
       <template #desc="{ record: svc }">
         <pre v-if="svc.desc" class="max-w-xs">{{ svc.desc }}</pre>
         <template v-else>-</template>
+      </template>
+      <template #expandedRowRender="{ record: svc }">
+        <ul class="list-none mb-0 pl-0 space-y-0.5">
+          <li v-for="[input, ps] of Object.entries(groupBy(svc.params, 'input'))" :key="input">
+            <a-table
+              :title="() => inputDict[input]"
+              :columns="mapper.params.columns"
+              :data-source="ps"
+              size="small"
+              :pagination="false"
+            />
+          </li>
+        </ul>
       </template>
       <template #conditionEDT="{ editing: svc }">
         <template v-if="svc.emit === 'interval'">

@@ -81,6 +81,7 @@ export class SvcParam {
   ptype: BaseTypes
   input: 'query' | 'params' | 'body' | 'header'
   required: boolean | string
+  defVal: any
   desc: string
   example: string
 
@@ -91,6 +92,18 @@ export class SvcParam {
     this.ptype = 'Unknown'
     this.input = 'query'
     this.required = false
+    this.desc = ''
+    this.example = ''
+  }
+
+  reset() {
+    this.key = ''
+    this.name = ''
+    this.label = ''
+    this.ptype = 'Unknown'
+    this.input = 'query'
+    this.required = false
+    this.defVal = undefined
     this.desc = ''
     this.example = ''
   }
@@ -201,4 +214,11 @@ export default class Service {
     }
     return tgt
   }
+}
+
+export const inputDict = {
+  query: '查询参数（query）',
+  params: '路径参数（params）',
+  body: '请求体（body）',
+  header: '请求头（header）'
 }
