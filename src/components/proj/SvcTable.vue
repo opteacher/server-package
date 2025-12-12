@@ -208,17 +208,22 @@ async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Serv
         <template v-else>-</template>
       </template>
       <template #expandedRowRender="{ record: svc }">
-        <ul class="list-none mb-0 pl-0 space-y-0.5">
-          <li v-for="[input, ps] of Object.entries(groupBy(svc.params, 'input'))" :key="input">
-            <a-table
-              :title="() => inputDict[input]"
-              :columns="mapper.params.columns"
-              :data-source="ps"
-              size="small"
-              :pagination="false"
-            />
-          </li>
-        </ul>
+        <a-typography class="ps-10">
+          <a-typography-paragraph>{{ svc.desc }}</a-typography-paragraph>
+          <a-typography-paragraph>
+            <ul class="list-none mb-0 pl-0 space-y-0.5">
+              <li v-for="[input, ps] of Object.entries(groupBy(svc.params, 'input'))" :key="input">
+                <a-table
+                  :title="() => inputDict[input]"
+                  :columns="mapper.params.columns"
+                  :data-source="ps"
+                  size="small"
+                  :pagination="false"
+                />
+              </li>
+            </ul>
+          </a-typography-paragraph>
+        </a-typography>
       </template>
       <template #conditionEDT="{ editing: svc }">
         <template v-if="svc.emit === 'interval'">

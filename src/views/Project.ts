@@ -344,12 +344,10 @@ svcEmitter.on('show', () => {
 })
 
 export const svcColumns = [
-  new Column('激活方式', 'emit'),
+  new Column('激活方式', 'emit', { width: 80 }),
   new Column('路由/激发条件', 'pathCond'),
   new Column('访问方式/控制', 'methodCtrl', { width: 100 }),
-  new Column('文件/方法', 'fileFunc'),
-  new Column('描述', 'desc'),
-  new Column('参数', 'params', { notDisplay: true } )
+  new Column('文件/方法', 'fileFunc')
 ]
 
 export const frtEmitter = new Emitter()
