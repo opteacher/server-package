@@ -99,8 +99,9 @@ function onSignShow(show: boolean) {
   }
   showSgn.value = show
 }
-async function onSignCfg(form: any) {
+async function onSignCfg(form: any, next: Function) {
   await authAPI.sign.gen(form.cmpProps)
+  next()
   await refresh()
   showSgn.value = false
 }

@@ -199,12 +199,13 @@ export default defineComponent({
       }
       emit('update:cond', cond || '')
     }
-    async function onCondSubmit(cond: any) {
+    async function onCondSubmit(cond: any, next: Function) {
       const value = `${cond.prop}_${cond.cmp}_${cond.value}`
       await api.table.cells.cond.save(edtCells.refer, { [value]: Cell.copy({}) })
       edtCells.cdCell[value] = Cell.copy({})
       condStatic.visible = false
       onCondChange(value)
+      next()
     }
     function onPropSave(prop: any) {
       if (edtCells.selCond) {

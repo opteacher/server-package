@@ -146,9 +146,10 @@ function onProjCtrlClick({ key }: { key: 'sync_proj' | 'stop_proj' | 'send_files
       break
   }
 }
-async function onTransfer(info: Transfer) {
+async function onTransfer(info: Transfer, next: Function) {
   await api.transfer(info)
   await store.dispatch('project/refresh')
   visibles.tsfFiles = false
+  next()
 }
 </script>

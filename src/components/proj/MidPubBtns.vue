@@ -123,7 +123,7 @@ function onMidPubClick({ key }: { key: OperType }) {
     emitter.emit('update:visible', true)
   }
 }
-async function onMidSubmit(info: Middle) {
+async function onMidSubmit(info: Middle, next: Function) {
   switch (genOrPub.value) {
     case 'export':
       onMidGen(info)
@@ -135,6 +135,7 @@ async function onMidSubmit(info: Middle) {
       window.open(store.getters['project/middle'].url, '_blank')
       break
   }
+  next()
 }
 async function onMidPub(info: Middle) {
   await api.middle.publish(pid, info)

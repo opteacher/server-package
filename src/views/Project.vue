@@ -133,8 +133,9 @@ async function refresh() {
   mdlEmitter.emit('refresh', project.value.models)
   svcEmitter.emit('refresh', project.value.services)
 }
-async function onConfigSbt(pjt: Project) {
+async function onConfigSbt(pjt: Project, next: Function) {
   await api.update(pjt)
+  next()
   await store.dispatch('project/refresh')
   pjtEmitter.emit('update:visible', false)
 }
@@ -177,8 +178,9 @@ function onExpClsClick(model: Model) {
   expClsObj.update(model)
   expClsVsb.value = true
 }
-async function onExpClsSbt(formData: any) {
+async function onExpClsSbt(formData: any, next: Function) {
   await mdlAPI.export(formData)
+  next()
   expClsVsb.value = false
 }
 function onMdlOprClick(selKey: 'design' | 'export', model: Model) {
@@ -202,12 +204,13 @@ function onSwitchMdlVw() {
 function onRandPortGen(form: object) {
   setProp(form, 'port', Math.floor(Math.random() * (65535 - 2000) + 2000))
 }
-async function onPropSave(prop: Property) {
+async function onPropSave(prop: Property, next: Function) {
   if (prop.key === '') {
     await propAPI(actModel.sel, refresh).add(prop)
   } else {
     await propAPI(actModel.sel, refresh).update(prop)
   }
+  next()
   propEmitter.emit('update:visible', false)
   propEmitter.emit('refresh')
   actModel.sel.reset()

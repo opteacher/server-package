@@ -29,7 +29,7 @@
           :object="expCls"
           :new-fun="() => newOne(ExpCls)"
           :mapper="expMapper"
-          @submit="(formData: any) => mdlAPI.export(formData)"
+          @submit="(formData: any, next: Function) => mdlAPI.export(formData).then(() => next())"
         />
         <a-button
           type="primary"

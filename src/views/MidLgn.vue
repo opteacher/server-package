@@ -254,11 +254,11 @@ export default defineComponent({
       rect[3] = el.clientHeight
       return el
     }
-    async function onBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
+    async function onBkgdColSubmit(color: string, next: () => void) {
       await pjtAPI.middle.login.save(pid, { bkgdColor: color }, refresh)
       next()
     }
-    async function onFmBkgdColSubmit({ color, next }: { color: string; next: () => void }) {
+    async function onFmBkgdColSubmit(color: string, next: () => void) {
       await pjtAPI.middle.login.save(pid, { fmBkgdColor: color }, refresh)
       next()
     }

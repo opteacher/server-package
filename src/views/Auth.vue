@@ -164,8 +164,9 @@ function onPathChange(rule: Rule, val: string[]) {
     pickPKeyFmPath(rule)
   }
 }
-async function onBindModel(form: any) {
+async function onBindModel(form: any, next: Function) {
   await api.bind(form)
+  next()
   await refresh()
   authVsb.value = false
 }

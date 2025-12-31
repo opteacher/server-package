@@ -75,7 +75,7 @@ function onBefSave(svc: Service) {
     svc.condition = [svc.interval.value, svc.interval.dimen].join(' ')
   }
 }
-function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
+function onImpFlowSubmit(params: { svcId: string; impFile: string[] }, next: Function) {
   Modal.confirm({
     title: '确定上传流程？',
     icon: createVNode(ExclamationCircleOutlined),
@@ -86,6 +86,7 @@ function onImpFlowSubmit(params: { svcId: string; impFile: string[] }) {
       router.push(`/server-package/project/${pid.value}/flow/${params.svcId}`)
     }
   })
+  next()
 }
 async function onDsgnFlowClick(selKey: 'design' | 'export' | 'import', svc: Service) {
   switch (selKey) {
