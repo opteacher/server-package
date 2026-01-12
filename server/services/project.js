@@ -999,6 +999,8 @@ export async function getAllAPIs(pjt) {
   for (const service of project.services.map(svc => svc.toJSON())) {
     switch (service.emit) {
       case 'api':
+      case 'app_start':
+      case 'app_stop':
         ret.push(
           pickOrIgnore(service, ['id', 'name', 'interface', 'model', 'method', 'path'], false)
         )
