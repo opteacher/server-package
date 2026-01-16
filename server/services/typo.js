@@ -13,7 +13,7 @@ export async function add(typo, pid) {
     await db.saveOne(Typo, newTyp._id, { super: typo.super })
   }
   for (const func of typo.funcs) {
-    const newFun = await db.save(Func, func)
+    const newFun = await db.save(Func, pickOrIgnore(func, ['flow']))
     await db.saveOne(Typo, newTyp.id, { funcs: newFun.id }, { updMode: 'append' })
   }
   const project = await db.select(Project, { _index: pid })
